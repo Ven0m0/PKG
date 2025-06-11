@@ -12,16 +12,27 @@ cmake -G Ninja ../llvm \
   -DLLVM_ENABLE_ZLIB=ON \
   -DZLIB_INCLUDE_DIR=/usr/include \
   -DZLIB_LIBRARY=/usr/lib/libz-ng.so \
+  -DZLIB_LIBRARY=$(pkg-config --libs zlib-ng) \
   -DLLVM_ENABLE_ZSTD=FORCE_ON \
   -DZSTD_LIBRARY=/usr/lib/libzstd.so \
-  --cmake-opt="-DLLVM_ENABLE_CURL=ON" \
+
+  -DLLVM_ENABLE_CURL=ON" \
   -DLLVM_ENABLE_HTTPLIB=ON \
   -DLLVM_ENABLE_TELEMETRY=OFF \
   -DLLVM_ENABLE_DUMP=OFF \
   -DLLVM_UNREACHABLE_OPTIMIZE=ON \
   -DLLVM_ENABLE_DEBUGLOC_COVERAGE_TRACKING=ON \
   -DLLVM_USE_LINKER=lld \
+  -DLLVM_ENABLE_LLD=ON
+  
   -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+  -DLLVM_ENABLE_RTTI=ON
+			--cmake-opt="-DLLVM_ENABLE_PROJECTS="polly;lldb;lld;clang-tools-extra;clang;bolt;libclc" \
+			--cmake-opt="-DLLVM_ENABLE_RUNTIMES="libc;libcxxabi;libcxx;compiler-rt;openmp;llvm-libgcc;offload"" \
+LLVM_ENABLE_THREADS=ON
+-cmake-opt="-D LLDB_USE_SYSTEM_SIX=1"
+--cmake-opt="-DLLVM_ENABLE_CURL=ON"
+
 
 LLVM_ENABLE_LIBCXX=ON
 LLVM_ENABLE_LLVM_LIBC=ON
