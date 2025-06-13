@@ -18,22 +18,21 @@ local cmake_args=(
   -DLLVM_TARGETS_TO_BUILD=X86
   -DLLVM_TARGET_ARCH=host
   -DCMAKE_SYSTEM_NAME=Linux
-  -DCMAKE_C_COMPILER=clang 
+  -DCMAKE_C_COMPILER=clang
   -DCMAKE_CXX_COMPILER=clang++
-  -DLLVM_ENABLE_PROJECTS="polly;lldb;lld;clang-tools-extra;clang;bolt;libclc" \
-  -DLLVM_ENABLE_RUNTIMES="libc;libcxxabi;libcxx;compiler-rt;openmp;llvm-libgcc;offload" \
+  -DLLVM_ENABLE_PROJECTS="polly;lldb;lld;clang-tools-extra;clang;bolt;libclc"
+  -DLLVM_ENABLE_RUNTIMES="libc;libcxxabi;libcxx;compiler-rt;openmp;llvm-libgcc;offload"
 # LLD
   -DLLVM_USE_LINKER=lld \
   -DLLVM_ENABLE_LLD=ON \
   -DBOOTSTRAP_LLVM_ENABLE_LLD=ON \
 # Zlib
-  -DLLVM_ENABLE_ZLIB=ON \
-  -DZLIB_INCLUDE_DIR=/usr/include \
-  -DZLIB_LIBRARY=/usr/lib/libz-ng.so \
-  #-DZLIB_LIBRARY=$(pkg-config --libs zlib-ng) \
+  -DLLVM_ENABLE_ZLIB=ON
+  -DZLIB_INCLUDE_DIR=/usr/include
+  -DZLIB_LIBRARY=/usr/lib/libz-ng.so
 # ZSTD
-  -DLLVM_ENABLE_ZSTD=FORCE_ON \
-  -DZSTD_LIBRARY=/usr/lib/libzstd.so \
+  -DLLVM_ENABLE_ZSTD=FORCE_ON
+  -DZSTD_LIBRARY=/usr/lib/libzstd.so
 # Libs
   -DLLVM_ENABLE_LIBCXX=ON
   -DLLVM_ENABLE_LLVM_LIBC=ON
