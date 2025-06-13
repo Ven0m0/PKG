@@ -18,7 +18,6 @@ local cmake_args=(
   -DLLVM_TARGETS_TO_BUILD=X86
   -DLLVM_TARGET_ARCH=host
   -DCMAKE_SYSTEM_NAME=Linux
-  -DLVM_DYLIB_COMPONENTS=Native
   -DCMAKE_C_COMPILER=clang 
   -DCMAKE_CXX_COMPILER=clang++
   -DLLVM_ENABLE_PROJECTS="polly;lldb;lld;clang-tools-extra;clang;bolt;libclc" \
@@ -43,6 +42,7 @@ local cmake_args=(
   -DLLVM_ENABLE_HTTPLIB=ON
   -DLLVM_ENABLE_RTTI=ON
   -DLLVM_BUILD_LLVM_DYLIB=ON
+  -DLVM_DYLIB_COMPONENTS=Native
   -DLLVM_LINK_LLVM_DYLIB=ON
   #Tweaks
   -DCMAKE_CXX_FLAGS_RELEASE="-O3"
