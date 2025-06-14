@@ -27,4 +27,4 @@ echo "🚀 Build success, now installing..."
 
 sudo make install
 
-read -s -r -p "✅ Wget2 compiled and got installed, press Enter to continue"
+read -s -r -p "✅ Wget2 compiled and got installed, press Enter to exit"
