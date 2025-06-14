@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sudo -v
+
 git clone https://gitlab.com/gnuwget/wget2.git && cd wget2
 sleep 1
 ./bootstrap
