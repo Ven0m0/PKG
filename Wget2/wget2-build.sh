@@ -18,8 +18,7 @@ export LDFLAGS="-fuse-ld=lld -Wl,-O3 -Wl,--sort-common -Wl,--as-needed -Wl,-gc-s
 ./configure --with-linux-crypto --with-ssl=openssl --with-openssl=yes --enable-threads=posix --disable-doc
 
 # make -j$(nproc)
-make
-make check
+make && make check
 
 echo "🚀 Build success, now installing..."
 
