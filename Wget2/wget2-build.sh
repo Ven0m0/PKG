@@ -16,7 +16,7 @@ export LDFLAGS="-fuse-ld=lld -Wl,-O3 -Wl,--sort-common -Wl,--as-needed -Wl,-gc-s
 
 #./configure --with-lzma --with-linux-crypto --with-ssl=openssl --with-bzip2 --with-openssl=yes --enable-threads=posix --enable-year2038 --disable-doc --enable-manylibs
 ./configure --with-linux-crypto --with-ssl=openssl --with-openssl=yes --enable-threads=posix --disable-doc
-
+./configure --with-linux-crypto --with-ssl=wolfssl --enable-threads=posix --disable-doc
 # make -j$(nproc)
 make && make check
 
