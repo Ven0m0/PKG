@@ -14,10 +14,12 @@ export CFLAGS="-march=native -mtune=native -O3 -pipe -fno-plt -fno-semantic-inte
 
 export LDFLAGS="-fuse-ld=lld -Wl,-O3 -Wl,--sort-common -Wl,--as-needed -Wl,-gc-sections -Wl,--strip-all -Wl,--compress-debug-sections=zstd"
 
-./configure --with-lzma --with-linux-crypto --with-ssl=openssl --with-bzip2 --with-openssl=yes --enable-threads=posix --enable-year2038 --disable-doc --enable-manylibs
+#./configure --with-lzma --with-linux-crypto --with-ssl=openssl --with-bzip2 --with-openssl=yes --enable-threads=posix --enable-year2038 --disable-doc --enable-manylibs
+./configure --with-linux-crypto --with-ssl=openssl --with-openssl=yes --enable-threads=posix --disable-doc
 
-make -j$(nproc)
-sleep 1
+# make -j$(nproc)
+make
+make check
 
 echo "🚀 Build success, now installing..."
 
