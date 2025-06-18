@@ -1,6 +1,6 @@
 BUILD_64=1
 
-mk_add_options AUTOCLOBBER=1
+mk_add_options AUTOCLOBBER=
 
 
 ac_add_options --disable-parental-controls
@@ -30,3 +30,17 @@ export MOZILLA_OFFICIAL=1
 
 ac_add_options --x-libraries=/usr/lib
 
+
+# Floop
+ac_add_options --disable-icu4x
+ac_add_options --enable-clang-plugin
+ac_add_options --enable-compile-environment
+ac_add_options --with-system-zlib
+export MOZ_SYSTEM_ZLIB=1
+export MOZ_PACKAGE_JSSHELL=1
+export MOZ_REQUIRE_SIGNING=
+ac_add_options --disable-crashreporter
+ac_add_options --enable-official-branding
+ac_add_options --disable-nodejs
+ac_add_options --as-milestone=release
+ac_add_options MOZ_TELEMETRY_REPORTING=
