@@ -60,6 +60,10 @@ build() {
   export CFLAGS+=' -ffat-lto-objects'
   export CXXFLAGS+=' -ffat-lto-objects'
 
+  # Other FLAGS:
+  export CFLAGS+=' -pthread'
+  export CXXFLAGS+=' -pthread'
+
   # First build pass: Generate profile
   cmake -S build/cmake -B build -G Ninja \
     -DCMAKE_BUILD_TYPE=None \
@@ -72,6 +76,11 @@ build() {
       -DZSTD_BUILD_TESTS=ON \
       -DZSTD_PROGRAMS_LINK_SHARED=ON \
       -DPGO_GENERATE=ON \
+      -DZSTD_MULTITHREAD=ON \
+      -DZSTD_NO_UNUSED_FUNCTIONS=ON \
+      -DHUF_FORCE_DECOMPRESS_X2-ON \
+      -DZSTD_NO_INLINE \
+      -DZSTD_STRIP_ERROR_STRINGS \
       -DPGO_USE=OFF
   cmake --build build
 
@@ -85,6 +94,10 @@ build() {
   # clean files
   cmake --build build --target clean
 
+  export CFLAGS+=' -ffunction-sections -fdata-sections -fmerge-all-constants'
+  export CXXFLAGS+=' -ffunction-sections -fdata-sections -fmerge-all-constants'
+  export LDFLAGS+=' -Wl,--gc-sections -Wl,--gc-sections -Wl,-z,norelro'
+
   # Second build pass: Use profile
   cmake -S build/cmake -B build -G Ninja \
     -DCMAKE_BUILD_TYPE=None \
@@ -97,6 +110,11 @@ build() {
     -DZSTD_BUILD_TESTS=ON \
     -DZSTD_PROGRAMS_LINK_SHARED=ON \
     -DPGO_GENERATE=OFF \
+    -DZSTD_MULTITHREAD=ON \
+    -DZSTD_NO_UNUSED_FUNCTIONS=ON \
+    -DHUF_FORCE_DECOMPRESS_X2-ON \
+    -DZSTD_NO_INLINE \
+    -DZSTD_STRIP_ERROR_STRINGS \
     -DPGO_USE=ON
 
   cmake --build build
