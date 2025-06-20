@@ -1,0 +1,4 @@
+# Download the latest release
+curl -LO https://github.com/jedisct1/EtchDNS/releases/download/v0.1.0/etchdns-linux-x86_64.tar.gz
+tar -xzf etchdns-linux-x86_64.tar.gz
+sudo mv etchdns /usr/local/bin/
