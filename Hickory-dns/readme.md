@@ -68,7 +68,7 @@ dig @127.0.0.1 -p 2345 example.com
 ```
 
 
-5.1. [Testing the resolver via CLI with resolve](https://github.com/hickory-dns/hickory-dns/blob/main/crates/resolver/README.md#testing-the-resolver-via-cli-with-resolve)
+   1. [Testing the resolver via CLI with resolve](https://github.com/hickory-dns/hickory-dns/blob/main/crates/resolver/README.md#testing-the-resolver-via-cli-with-resolve)
 ```bash
 cargo install --bin resolve hickory-util
 ```
