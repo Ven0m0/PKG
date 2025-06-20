@@ -60,5 +60,29 @@ echo "nameserver 127.0.0.1" | sudo tee /etc/resolv.conf
 
 ### 5. Test the Setup
 ```bash
+dig @127.0.0.1 google.com
+```
+or manually specify the port to test:
+```bash
+dig @127.0.0.1 -p 2345 example.com
+```
 
+
+5.1 [Testing the resolver via CLI with resolve](https://github.com/hickory-dns/hickory-dns/blob/main/crates/resolver/README.md#testing-the-resolver-via-cli-with-resolve)
+```bash
+cargo install --bin resolve hickory-util
+```
+
+```shell
+$ resolve www.example.com.
+Querying for www.example.com. A from udp:8.8.8.8:53, tcp:8.8.8.8:53, udp:8.8.4.4:53, tcp:8.8.4.4:53, udp:[2001:4860:4860::8888]:53, tcp:[2001:4860:4860::8888]:53, udp:[2001:4860:4860::8844]:53, tcp:[2001:4860:4860::8844]:53
+Success for query name: www.example.com. type: A class: IN
+        www.example.com. 21063 IN A 93.184.215.14
+```
+
+```bash
+$ resolve www.example.com.
+Querying for www.example.com. A from udp:8.8.8.8:53, tcp:8.8.8.8:53, udp:8.8.4.4:53, tcp:8.8.4.4:53, udp:[2001:4860:4860::8888]:53, tcp:[2001:4860:4860::8888]:53, udp:[2001:4860:4860::8844]:53, tcp:[2001:4860:4860::8844]:53
+Success for query name: www.example.com. type: A class: IN
+        www.example.com. 21063 IN A 93.184.215.14
 ```
