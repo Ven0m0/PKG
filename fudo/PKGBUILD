@@ -1,0 +1,41 @@
+# Maintainer: Paco Pascal <me@pacopascal.com>
+
+_pkgname='fudo'
+pkgname="${_pkgname}-git"
+pkgver=r13.b1a2014
+pkgrel=1
+pkgdesc='A sudo to doas wrapper'
+arch=('x86_64')
+url='https://github.com/FragmentedCurve/fudo'
+license=('BSD')
+depends=('doas')
+makedepends=('git' 'sd')
+conflicts=("${pkgname%-git}")
+provides=("${pkgname%-git}")
+source=('git+https://github.com/FragmentedCurve/fudo.git')
+md5sums=('SKIP')
+
+pkgver() {
+    cd "${_pkgname}"
+    (
+        set -o pipefail
+        # Use sd instead of sed for faster and simpler regex replacements
+        git describe --long --abbrev=7 2>/dev/null \
+            | sd '([^-]*-g)' 'r$1' \
+            | sd '-' '.' \
+            || printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+    )
+}
+
+build() {
+    cd "${_pkgname}"
+    make
+}
+
+package() {
+    cd "${_pkgname}"
+    install -D "fudo" "${pkgdir}/usr/local/bin/fudo"
+    install -D "fudo.1" "${pkgdir}/usr/local/share/man/man1/fudo.1"
+    # Optional: create 'sudo' symlink in /usr/local/bin instead of /usr/bin
+    ln -s "fudo" "${pkgdir}/usr/local/bin/sudo"
+}
