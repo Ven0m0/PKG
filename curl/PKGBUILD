@@ -1,0 +1,100 @@
+pkgname=('curl-openssl' 'curl-rustls' 'curl-wolfssl')
+pkgver=8.4.0
+pkgrel=1
+arch=('x86_64')
+url='https://curl.se/'
+license=('MIT')
+depends=('ca-certificates'
+         'brotli' 'libbrotlidec.so'
+         'glibc'
+         'librustls' 'librustls.so'
+         'zlib' 'libz.so'
+         'zstd' 'libzstd.so')
+makedepends=(openssl rustls wolfssl pkg-config autoconf automake libtool make rust)
+makedepends=('rust' 'git' 'go' 'cmake' 'make' 'patchelf')
+source=("git+https://github.com/curl/curl.git#tag=curl-${pkgver//./_}?signed")
+options=('!emptydirs')
+source=("https://curl.se/download/curl-${pkgver}.tar.xz")
+sha256sums=('SKIP')
+
+# split into three backend targets
+pkgdescription_openssl="curl with OpenSSL TLS"
+pkgdescription_rustls="curl with rustls TLS"
+pkgdescription_wolfssl="curl with wolfSSL TLS"
+provides=('curl')
+conflicts=('curl')
+backup=()
+
+prepare() {
+  tar xf "curl-${pkgver}.tar.xz"
+  cd "curl-${pkgver}"
+  autoreconf -fi
+  cd ..
+}
+
+build() {
+  cd "curl-${pkgver}"
+  CFLAGS+=' -ffat-lto-objects'
+  # common configure args
+  common_args=(
+    --prefix=/usr
+    --disable-manual
+    --disable-shared
+    --enable-ipv6 \
+    --enable-threaded-resolver \
+    --with-zlib
+    --enable-ftp
+    --enable-ares
+    --enable-http
+    --enable-http2
+    --enable-http3
+    --enable-post
+    --enable-ssl
+    --with-openssl
+    --with-quiche
+    CFLAGS="${CFLAGS}"
+    LDFLAGS="${LDFLAGS}"
+  )
+
+  for backend in openssl rustls wolfssl; do
+    build_dir="build-${backend}"
+    mkdir -p "${build_dir}"
+    pushd "${build_dir}"
+
+    case "${backend}" in
+      openssl)
+        backend_args=(--with-ssl)
+        ;;
+      rustls)
+        backend_args=(--with-rustls --without-ssl --without-gnutls)
+        ;;
+      wolfssl)
+        backend_args=(--with-wolfssl --without-ssl --without-gnutls)
+        ;;
+    esac
+
+    ../"curl-${pkgver}"/configure \
+      "${common_args[@]}" "${backend_args[@]}"
+    make
+    popd
+  done
+}
+
+package() {
+  cd "curl-${pkgver}"
+
+  for backend in openssl rustls wolfssl; do
+    pkgdir="${srcdir}/${pkgname[$(( ${backend} == openssl ? 0 : backend == rustls ? 1 : 2 ))]}"
+    build_dir="build-${backend}"
+
+    install -dm755 "${pkgdir}/usr/bin"
+    install -dm755 "${pkgdir}/usr/share/man/man1"
+
+    pushd "${build_dir}"
+    make DESTDIR="${pkgdir}" install
+    popd
+
+    # strip binaries
+    find "${pkgdir}/usr/bin" -type f -exec strip --strip-all {} +
+  done
+}
