@@ -21,15 +21,31 @@ https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=curl-c-ares
   --with-zstd      \
   --with-libssh2   \
   --enable-hsts    \
-  --disable-manual \
   --enable-ipv6 \
   --enable-threaded-resolver \
   --enable-websockets \
   --with-gssapi \
   --with-openssl \
   --with-openssl-quic \
+  --enable-quic
+  --enable-earlydata
+  --disable-manual \
+  --disable-shared
   --disable-ldap \
   --disable-ldaps \
-
+  --with-gssapi
+  --with-rustls
+  --enable-ares
+  --with-ca-bundle='/etc/ssl/certs/ca-certificates.crt'
 make -j"$(nproc)"
 sudo make install
+
+
+ % git clone https://github.com/wolfSSL/wolfssl.git
+ % cd wolfssl
+ % autoreconf -fi
+ % ./configure --prefix=<somewhere1> --enable-quic --enable-session-ticket --enable-earlydata --enable-psk --enable-harden --enable-altcertchains
+ % make
+ % make install
+
+ 
