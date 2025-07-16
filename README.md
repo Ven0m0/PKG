@@ -1,4 +1,4 @@
-# PKG
+## PKG
 
 [CachyOS-PKGBUILDS](https://github.com/CachyOS/CachyOS-PKGBUILDS)
 
