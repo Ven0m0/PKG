@@ -60,6 +60,8 @@ thin-lto = true
 ccache = 'ccache'
 static-libstdcpp = true
 ninja = true
+cxxflags = "-march=native"
+cflags = "-march=native"
 
 [build]
 compiler-docs = false
@@ -93,8 +95,8 @@ jemalloc = true
 lto = 'thin'
 
 [target.x86_64-unknown-linux-gnu]
-ar = '/home/seman/install/bin/llvm-ar'
-ranlib = '/home/seman/install/bin/llvm-ranlib'
+ar = 'llvm-ar'
+ranlib = 'llvm-ranlib'
 linker = 'clang'
 
 [dist]
@@ -111,7 +113,7 @@ build() {
     export CC=clang
     export CXX=clang++
     export HOSTS=x86_64-unknown-linux-gnu
-    export PATH=/home/seman/install/bin/:$PATH
+    export PATH=$HOME/install/bin/:$PATH
     export CMAKE_BUILD_TYPE=Release
     export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=clang
 
@@ -127,7 +129,7 @@ build() {
       --skipped-tests=tests/pretty \
       --skipped-tests=tests/run-pass-valgrind \
       --skipped-tests=tests/ui \
-      --llvm-dir=/home/seman/install/ -- python3 \
+      --llvm-dir=$HOME/install/ -- python3 \
       ./x.py dist --host $HOSTS --target $HOSTS \
       --include-default-paths \
       build-manifest bootstrap
