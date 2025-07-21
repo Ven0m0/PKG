@@ -65,7 +65,7 @@ cflags = "-march=native"
 libzstd = true
 optimize = true
 polly = true
-clang = false
+clang = true
 
 [build]
 compiler-docs = false
