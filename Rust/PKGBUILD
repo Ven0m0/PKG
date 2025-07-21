@@ -62,6 +62,10 @@ static-libstdcpp = true
 ninja = true
 cxxflags = "-march=native"
 cflags = "-march=native"
+libzstd = true
+optimize = true
+polly = true
+clang = false
 
 [build]
 compiler-docs = false
@@ -76,6 +80,9 @@ configure-args = ['--enable-full-tools', '--enable-profiler', '--set', 'target.x
 
 print-step-timings = true
 metrics = true
+# docs-minification = true
+optimized-compiler-builtins = true
+ccache = true
 
 [install]
 prefix = "/usr"
@@ -92,7 +99,12 @@ use-lld = true
 llvm-tools = true
 remap-debuginfo = false
 jemalloc = true
-lto = 'thin'
+lto = 'fat'
+optimize = true
+debug = false
+strip = true
+frame-pointers = false
+validate-mir-opts = 3
 
 [target.x86_64-unknown-linux-gnu]
 ar = 'llvm-ar'
