@@ -2,6 +2,8 @@
 
 [CachyOS-PKGBUILDS](https://github.com/CachyOS/CachyOS-PKGBUILDS)
 
+[CachyOS-PKGBUILDS 2](https://github.com/CachyOS/PKGBUILDs)
+
 ## Cloudflare
 
 [quiche-mallard](https://github.com/cloudflare/quiche-mallard)
