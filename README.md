@@ -4,6 +4,8 @@
 
 [CachyOS-PKGBUILDS 2](https://github.com/CachyOS/PKGBUILDs)
 
+[KISS-repo](https://github.com/XDream8/kiss-repo)
+
 ## Cloudflare
 
 [quiche-mallard](https://github.com/cloudflare/quiche-mallard)
