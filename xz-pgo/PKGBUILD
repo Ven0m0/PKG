@@ -21,6 +21,8 @@ sha512sums=('91f8f548c915de0ed79cee13ce0336b51c1cebf2eb142fa1efecfd07771c662c99c
 
 build() {
     cd "${srcdir}/${pkgname}-${pkgver}"
+    ## Patch make pgo-build in
+    patch -Np1 < ../add-pgo.patch
     export CFLAGS="${CFLAGS} -fprofile-generate -fprofile-update=atomic -fprofile-partial-training"
 
     ./configure \
