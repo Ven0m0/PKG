@@ -30,6 +30,8 @@ validpgpkeys=('0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D'  # Ned Deily (Python re
 
 prepare() {
   cd Python-${pkgver}
+  # Use branch sampling for bolt
+  patch -Np1 < ../bolt.patch
   # Ensure that we are using the system copy of various libraries (expat, libffi, and libmpdec),
   # rather than copies shipped in the tarball
   rm -r Modules/expat
