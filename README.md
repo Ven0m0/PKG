@@ -2,7 +2,7 @@
 
 - [CachyOS-PKGBUILDS](https://github.com/CachyOS/CachyOS-PKGBUILDS)
 
-- [CachyOS-PKGBUILDS 2](https://github.com/CachyOS/PKGBUILDs)
+- [CachyOS-aur-rebased-PKGBUILDS](https://github.com/CachyOS/PKGBUILDs)
 
 - [lseman's PKGBUILDS with pgo](https://github.com/lseman/PKGBUILDs)
 
