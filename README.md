@@ -1,10 +1,12 @@
 ## PKG
 
-[CachyOS-PKGBUILDS](https://github.com/CachyOS/CachyOS-PKGBUILDS)
+- [CachyOS-PKGBUILDS](https://github.com/CachyOS/CachyOS-PKGBUILDS)
 
-[CachyOS-PKGBUILDS 2](https://github.com/CachyOS/PKGBUILDs)
+- [CachyOS-PKGBUILDS 2](https://github.com/CachyOS/PKGBUILDs)
 
-[KISS-repo](https://github.com/XDream8/kiss-repo)
+- [lseman's PKGBUILDS with pgo](https://github.com/lseman/PKGBUILDs)
+
+- [KISS-repo](https://github.com/XDream8/kiss-repo)
 
 ## Cloudflare
 
