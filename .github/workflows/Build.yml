@@ -1,0 +1,58 @@
+name: Build Arch Linux Packages
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '**/PKGBUILD'
+  pull_request:
+    paths:
+      - '**/PKGBUILD'
+
+jobs:
+  # This job's purpose is to find all PKGBUILDs and create a JSON matrix for the next job.
+  generate-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Generate package matrix
+        id: set-matrix
+        run: |
+          # 1. Find all PKGBUILD files.
+          # 2. Get their parent directory names.
+          # 3. Pipe the list to jq to create a JSON array.
+          # 4. Set the result as a job output variable named "matrix".
+          MATRIX=$(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | jq -R . | jq -s .)
+          echo "matrix=${MATRIX}" >> $GITHUB_OUTPUT
+
+  # This job runs the builds based on the matrix from the previous job.
+  build:
+    needs: generate-matrix # Ensures this job runs only after generate-matrix is complete
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Dynamically create the build matrix from the JSON output of the 'generate-matrix' job
+        pkgdir: ${{ fromJSON(needs.generate-matrix.outputs.matrix) }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build and check PKGBUILD
+        id: makepkg
+        uses: 2m/arch-pkgbuild-builder@v1
+        with:
+          pkgname: ${{ matrix.pkgdir }}
+          
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.pkgdir }}-package
+          path: ${{ steps.makepkg.outputs.pkgfile0 }}
