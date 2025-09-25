@@ -1,0 +1,18 @@
+# .github/workflows/automerge-dependabot.yml
+name: Dependabot Auto-Merge
+on:
+  pull_request:
+    types: [opened]
+  pull_request_target:
+permissions:
+  contents: write
+  pull-requests: write
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      - name: Enable auto-merge for Dependabot PRs
+        uses: hmarr/auto-approve-action@v4
