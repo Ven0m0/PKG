@@ -29,3 +29,4 @@
 # Tools
 
 - https://github.com/twaugh/patchutils
+- https://crates.io/crates/mpatch
