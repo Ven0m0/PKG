@@ -1,0 +1,14 @@
+git clone https://github.com/OpenVisualCloud/SVT-VP9.git
+cd SVT-VP9/Build
+# Adjust this line to add any other cmake related options
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make -j $(nproc)
+sudo make install
+
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib
+export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:/usr/local/lib/pkgconfig
+git clone https://github.com/FFmpeg/FFmpeg.git ffmpeg
+cd ffmpeg
+git apply ../ffmpeg_plugin/master-0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch
+./configure --enable-libsvtvp9
+make -j $(nproc)
