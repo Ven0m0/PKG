@@ -5,3 +5,5 @@
 - [Firefox-opt](https://github.com/Ven0m0/Firefox-opt)
 
 - [firefox-vaapi-opt](https://github.com/lseman/PKGBUILDs/tree/main/firefox-vaapi-opt)
+
+- https://github.com/Betterbird/thunderbird-patches.git

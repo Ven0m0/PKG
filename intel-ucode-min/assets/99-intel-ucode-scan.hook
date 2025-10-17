@@ -1,0 +1,10 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = intel-ucode
+
+[Action]
+Description = Generate per-CPU intel microcode and rebuild initramfs
+When = PostTransaction
+Exec = /usr/local/bin/intel-ucode-scan.sh

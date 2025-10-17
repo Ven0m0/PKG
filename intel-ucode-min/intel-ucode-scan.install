@@ -1,0 +1,13 @@
+post_install() {
+  # Run once to seed /boot/intel-ucode.img after package install.
+  if command -x /usr/local/bin/intel-ucode-scan.sh >/dev/null 2>&1; then
+    /usr/local/bin/intel-ucode-scan.sh || true
+  fi
+}
+
+post_upgrade() {
+  # Re-run after upgrades to refresh image if needed.
+  if command -x /usr/local/bin/intel-ucode-scan.sh >/dev/null 2>&1; then
+    /usr/local/bin/intel-ucode-scan.sh || true
+  fi
+}

@@ -1,13 +1,99 @@
+pkgname=firefox-vaapi
+_pkgname=firefox
+pkgver=144.0
+pkgrel=1
+pkgdesc="Fast, Private & Safe Web Browser (with VA-API patches)"
+url="https://www.mozilla.org/firefox/"
+arch=(x86_64)
+license=(MPL-2.0)
+depends=(
+  alsa-lib
+  at-spi2-core
+  bash
+  cairo
+  dbus
+  ffmpeg4.4
+  fontconfig
+  freetype2
+  gcc-libs
+  gdk-pixbuf2
+  glib2
+  glibc
+  gtk3
+  hicolor-icon-theme
+  libpulse
+  libx11
+  libxcb
+  libxcomposite
+  libxdamage
+  libxext
+  libxfixes
+  libxrandr
+  libxss
+  libxt
+  mime-types
+  nspr
+  nss
+  pango
+  ttf-font
+)
+makedepends=(
+  cbindgen
+  clang
+  diffutils
+  imake
+  jack
+  lld
+  llvm
+  mesa
+  nasm
+  nodejs
+  onnxruntime
+  python
+  rust
+  unzip
+  wasi-compiler-rt
+  wasi-libc
+  wasi-libc++
+  wasi-libc++abi
+  xorg-server-xvfb
+  yasm
+  zip
+)
+optdepends=(
+  'hunspell-en_US: Spell checking, American English'
+  'libnotify: Notification integration'
+  'networkmanager: Location detection via available WiFi networks'
+  'onnxruntime: Local machine learning features such as smart tab groups'
+  'speech-dispatcher: Text-to-Speech'
+  'xdg-desktop-portal: Screensharing with Wayland'
+)
+provides=(firefox=${pkgver})
+conflicts=(firefox)
+options=(!emptydirs !makeflags !lto)
+source=(
+  https://archive.mozilla.org/pub/firefox/releases/$pkgver/source/firefox-$pkgver.source.tar.xz{,.asc}
+  0001-remove-nvidia-blocklist.patch
+)
+
+prepare() {
+  mkdir mozbuild
+  cd firefox-$pkgver
+
+  # Disable NVIDIA blocklists, to make it function with libva-nvidia-driver-git AUR package
+  msg2 "Patching Nvidia blocklist"
+  patch -Np1 -i ../0001-remove-nvidia-blocklist.patch
+
+  echo -n "$_google_api_key" >google-api-key
+
+  cat >../mozconfig <<END
 BUILD_64=1
-
 mk_add_options AUTOCLOBBER=
-
-
 ac_add_options --disable-parental-controls
 ac_add_options --disable-accessibility
 
-
 # Build options
+ac_add_options --enable-application=browser
 ac_add_options --disable-bootstrap
 ac_add_options --disable-elf-hack
 ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
@@ -70,6 +156,7 @@ export RANLIB=/usr/bin/llvm-ranlib
 
 ac_add_options --enable-jemalloc
 ac_add_options --enable-strip
+ac_add_options --with-ccache=sccache
 
 ac_add_options --enable-av1
 ac_add_options --enable-jxl
@@ -85,9 +172,7 @@ ac_add_options --with-pthreads
 export MC_OFFICIAL=1
 export MOZILLA_OFFICIAL=1
 
-
 ac_add_options --x-libraries=/usr/lib
-
 
 # Floop
 ac_add_options --disable-icu4x
@@ -101,22 +186,29 @@ ac_add_options --disable-crashreporter
 ac_add_options --enable-official-branding
 ac_add_options --disable-nodejs
 ac_add_options --as-milestone=release
+END
+}
 
 build() {
-export MOZ_ENABLE_FULL_SYMBOLS=1
-export MOZ_NOSPAM=1
-export MOZ_PROFILER_STARTUP=1 # Starts the profiler is started as early as possible during startup.
-# Fix DRI/zink issues during compilation
-export LIBGL_ALWAYS_SOFTWARE=true
-# Malloc_usable_size is used in various parts of the codebase
-CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
-CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
-# Breaks compilation since https://bugzilla.mozilla.org/show_bug.cgi?id=1896066
-CFLAGS="${CFLAGS/-fexceptions/}"
-CXXFLAGS="${CXXFLAGS/-fexceptions/}"
-# LTO needs more open files
-ulimit -n 4096
-# Do 3-tier PGO
+  export MOZ_ENABLE_FULL_SYMBOLS=1
+  export MOZ_NOSPAM=1
+  export MOZ_BUILD_DATE="$(date -u${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH} +%Y%m%d%H%M%S)"
+  export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
+  export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
+  export MOZ_PROFILER_STARTUP=1 # Starts the profiler is started as early as possible during startup.
+  # Work around https://bugzilla.mozilla.org/show_bug.cgi?id=1969383
+  export RUST_MIN_STACK=16777216
+  # Fix DRI/zink issues during compilation
+  export LIBGL_ALWAYS_SOFTWARE=true
+  # Malloc_usable_size is used in various parts of the codebase
+  CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+  CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+  # Breaks compilation since https://bugzilla.mozilla.org/show_bug.cgi?id=1896066
+  CFLAGS="${CFLAGS/-fexceptions/}"
+  CXXFLAGS="${CXXFLAGS/-fexceptions/}"
+  # LTO needs more open files
+  ulimit -n 4096
+  # Do 3-tier PGO
   if [[ "${_build_pgo::1}" == "t" ]]; then
     local _old_profdata="${SRCDEST:-$startdir}/merged.profdata"
     local _old_jarlog="${SRCDEST:-$startdir}/jarlog"
@@ -137,8 +229,8 @@ ulimit -n 4096
     # Make new profile
     if [[ "${_build_pgo_reuse::1}" != "t" ]] || [[ ! -s merged.profdata ]]; then
       echo "Building instrumented browser..."
-      cat > .mozconfig ../mozconfig
-      echo >> .mozconfig "ac_add_options --enable-profile-generate=cross"
+      cat >.mozconfig ../mozconfig
+      echo >>.mozconfig "ac_add_options --enable-profile-generate=cross"
       ./mach build
 
       echo "Profiling instrumented browser..."
@@ -164,12 +256,12 @@ ulimit -n 4096
     fi
 
     echo "Building optimized browser..."
-    cat > .mozconfig ../mozconfig
+    cat >.mozconfig ../mozconfig
 
     if [[ -s merged.profdata ]]; then
       stat -c "Profile data found (%s bytes)" merged.profdata
-      echo >> .mozconfig "ac_add_options --enable-profile-use=cross"
-      echo >> .mozconfig "ac_add_options --with-pgo-profile-path='${PWD@Q}/merged.profdata'"
+      echo >>.mozconfig "ac_add_options --enable-profile-use=cross"
+      echo >>.mozconfig "ac_add_options --with-pgo-profile-path='${PWD@Q}/merged.profdata'"
 
       # save profdata for reuse
       cp --reflink=auto -f merged.profdata "$_old_profdata"
@@ -179,7 +271,7 @@ ulimit -n 4096
 
     if [[ -s jarlog ]]; then
       stat -c "Jar log found (%s bytes)" jarlog
-      echo >> .mozconfig "ac_add_options --with-pgo-jarlog='${PWD@Q}/jarlog'"
+      echo >>.mozconfig "ac_add_options --with-pgo-jarlog='${PWD@Q}/jarlog'"
 
       # save jarlog for reuse
       cp --reflink=auto -f jarlog "$_old_jarlog"
@@ -190,7 +282,7 @@ ulimit -n 4096
     ./mach build
   else
     echo "Building browser..."
-    cat > .mozconfig ../mozconfig
+    cat >.mozconfig ../mozconfig
     ./mach build
   fi
 
@@ -201,9 +293,3 @@ ulimit -n 4096
   ./mach package
   ./mach package-multi-locale --locales ar cs da de el en-US en-GB es-ES fr hu id it ja ko lt nl nn-NO pl pt-BR pt-PT ru sv-SE th tr uk zh-CN zh-TW
 }
-
-
-
-
-
-
