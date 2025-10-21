@@ -88,9 +88,11 @@ prepare() {
 
   cat >../mozconfig <<END
 BUILD_64=1
-mk_add_options AUTOCLOBBER=
 ac_add_options --disable-parental-controls
 ac_add_options --disable-accessibility
+ac_add_options --enable-unverified-updates
+ac_add_options --with-unsigned-addon-scopes=app,system
+ac_add_options --allow-addon-sideload
 
 # Build options
 ac_add_options --enable-application=browser
@@ -99,17 +101,30 @@ ac_add_options --disable-elf-hack
 ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
 ac_add_options --enable-hardening
 ac_add_options --enable-linker=mold
+ac_add_options --enable-64bit
+ac_add_options --enable-lto=full
+ac_add_options MOZ_LTO=1
+ac_add_options --enable-minify
 ac_add_options --enable-release
+ac_add_options --enable-clang-plugin
 ac_add_options --enable-rust-simd
 ac_add_options --enable-wasm-simd
 ac_add_options --prefix=/usr
 ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
+mk_add_options AUTOCLOBBER=1
 export MOZ_INCLUDE_SOURCE_INFO=1
 export MOZILLA_OFFICIAL=1
 export MOZ_CRASHREPORTER=
 export MOZ_DATA_REPORTING=
 export MOZ_REQUIRE_SIGNING=
 mk_add_options MOZ_SERVICES_HEALTHREPORT=0
+mk_add_options MOZ_ENABLE_WAYLAND=1
+mk_add_options SGC_DISABLE_POISONING=1
+mk_add_options MOZ_OPTIMIZE=1
+mk_add_options MOZ_CRASHREPORTER=0
+mk_add_options MOZ_DATA_REPORTING=0
+mk_add_options MOZ_SERVICES_HEALTHREPORT=0
+mk_add_options MOZ_TELEMETRY_REPORTING=0
 export MOZ_TELEMETRY_REPORTING=
 # System libraries
 ac_add_options --with-system-jpeg
@@ -118,9 +133,10 @@ ac_add_options --with-system-libvpx
 ac_add_options --with-system-nspr
 ac_add_options --with-system-nss
 ac_add_options --with-system-webp
-ac_add_options --with-system-zlib
+ac_add_options --with-system-png
+ac_add_options --with-system-zlib # zlib-ng
 # Features
-ac_add_options --disable-crashreporter # (Minimize telemetry)
+ac_add_options --disable-crashreporter
 ac_add_options --disable-debug
 ac_add_options --disable-debug-js-modules
 ac_add_options --disable-debug-symbols
@@ -142,9 +158,10 @@ ac_add_options --enable-jack
 ac_add_options --enable-jxl
 ac_add_options --enable-proxy-bypass-protection
 ac_add_options --enable-sandbox
+ac_add_options --enable-dbus
 ac_add_options --enable-strip
 # Optimization
-ac_add_options --enable-optimize="-O3 -march=native"
+ac_add_options --enable-optimize="-O3 -march=native -w"
 ac_add_options OPT_LEVEL="3"
 ac_add_options RUSTC_OPT_LEVEL="3"
 # Other
@@ -154,12 +171,22 @@ export CXX=/usr/bin/clang++
 export NM=/usr/bin/llvm-nm
 export RANLIB=/usr/bin/llvm-ranlib
 
+ac_add_options --enable-jit
+ac_add_options --wasm-no-experimental
+ac_add_options --enable-wasm-gc
+ac_add_options --enable-wasm-avx
+ac_add_options --enable-wasm-simd
+ac_add_options --enable-wasm-relaxed-simd
+ac_add_options --enable-wasm-memory64
+ac_add_options --enable-wasm-branch-hinting
+ac_add_options --enable-shared-memory
+ac_add_options --enable-webrender
+
+ac_add_options --enable-forkserver
 ac_add_options --enable-jemalloc
+ac_add_options --enable-replace-malloc
 ac_add_options --enable-strip
 ac_add_options --with-ccache=sccache
-
-ac_add_options --enable-av1
-ac_add_options --enable-jxl
 
 ac_add_options --disable-gamepad
 ac_add_options --disable-tests
@@ -178,14 +205,19 @@ ac_add_options --x-libraries=/usr/lib
 ac_add_options --disable-icu4x
 ac_add_options --enable-clang-plugin
 ac_add_options --enable-compile-environment
-ac_add_options --with-system-zlib
 export MOZ_SYSTEM_ZLIB=1
 export MOZ_PACKAGE_JSSHELL=1
-export MOZ_REQUIRE_SIGNING=
 ac_add_options --disable-crashreporter
 ac_add_options --enable-official-branding
 ac_add_options --disable-nodejs
 ac_add_options --as-milestone=release
+
+ac_add_options MOZ_PGO=1
+if test "$GEN_PGO"; then
+    ac_add_options --enable-profile-generate
+elif test "$USE_PGO"; then
+    ac_add_options --enable-profile-use=cross
+fi
 END
 }
 
