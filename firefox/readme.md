@@ -5,7 +5,7 @@
 
 - https://github.com/Betterbird/thunderbird-patches.git
 - https://github.com/openSUSE/firefox-maintenance
-
+- https://github.com/ghostery/user-agent-desktop/tree/a6a819df5f919af399229bf4869bb1046bc4cbb8/patches
 
 bash
 ```
