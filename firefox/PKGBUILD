@@ -73,10 +73,11 @@ optdepends=('hunspell-en_US: Spell checking, American English'
             'onnxruntime: Local machine learning features such as smart tab groups'
             'speech-dispatcher: Text-to-Speech'
             'xdg-desktop-portal: Screensharing with Wayland'
-            'libdbusmenu-gtk3: global menu support')
+            'libdbusmenu-gtk3: global menu support'
+			'profile-sync-daemon: Load the browser profile into RAM')
 provides=(firefox=${pkgver})
 conflicts=(firefox)
-options=(!emptydirs !makeflags !lto)
+options=(!emptydirs !makeflags !lto !debug !strip)
 source=(
   https://archive.mozilla.org/pub/firefox/releases/$pkgver/source/firefox-$pkgver.source.tar.xz{,.asc}
   0001-remove-nvidia-blocklist.patch
