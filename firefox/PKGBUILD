@@ -235,6 +235,7 @@ ac_add_options MOZ_PGO=1
 if test "$GEN_PGO"; then
     ac_add_options --enable-profile-generate
     export IONPERF=ir PERF_SPEW_DIR=output MOZ_DISABLE_CONTENT_SANDBOX=1
+    export CFLAGS+=" -mllvm=-pgo-temporal-instrumentation -flto=full "
 elif test "$USE_PGO"; then
     ac_add_options --enable-profile-use=cross
 fi
