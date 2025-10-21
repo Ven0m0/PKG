@@ -327,3 +327,72 @@ build() {
   ./mach package
   ./mach package-multi-locale --locales de en-US en-GB
 }
+
+package() {
+  cd firedragon-source-v"${_pkgver}" || exit
+
+  DESTDIR="$pkgdir" ./mach install
+
+  install -Ddvm755 "${pkgdir}/usr/bin"
+  ln -srfv "$pkgdir/usr/lib/${pkgname}/${pkgname}" "$pkgdir/usr/bin/${pkgname}"
+
+  local vendorjs="${pkgdir}/usr/lib/${pkgname}/browser/defaults/preferences/vendor.js"
+  install -Dvm644 /dev/stdin "${vendorjs}" << END
+// Use LANG environment variable to choose locale
+pref("intl.locale.requested", "");
+
+// Use system-provided dictionaries
+pref("spellchecker.dictionary_path", "/usr/share/hunspell");
+
+// Disable default browser checking.
+pref("browser.shell.checkDefaultBrowser", false);
+
+// Don't disable extensions in the application directory
+pref("extensions.autoDisableScopes", 11);
+
+// Enable GNOME Shell search provider
+pref("browser.gnome-search-provider.enabled", true);
+END
+
+  local distini="${pkgdir}/usr/lib/${pkgname}/distribution/distribution.ini"
+  install -Dvm644 /dev/stdin "${distini}" << END
+[Global]
+id=${pkgname}
+version=${pkgver}-${pkgrel}
+about=${pkgdesc}
+
+[Preferences]
+app.distributor=garudalinux
+app.distributor.channel=${pkgname}
+app.partner.garudalinux=garudalinux
+END
+
+  # Make native messaging work
+  ln -s "/usr/lib/mozilla/native-messaging-hosts" "${pkgdir}/usr/lib/${pkgname}/native-messaging-hosts"
+
+  # GNOME search provider
+  local sprovider="$pkgdir/usr/share/gnome-shell/search-providers/$pkgname.search-provider.ini"
+  install -Dvm644 /dev/stdin "$sprovider" << END
+[Shell Search Provider]
+DesktopId=$pkgname.desktop
+BusName=org.mozilla.${pkgname//-/}.SearchProvider
+ObjectPath=/org/mozilla/${pkgname//-/}/SearchProvider
+Version=2
+END
+
+  # Application icons
+  for i in 16 32 48 64 128; do
+    install -Dvm644 browser/branding/firedragon/default$i.png \
+      "${pkgdir}/usr/share/icons/hicolor/${i}x${i}/apps/${pkgname}.png"
+  done
+  install -Dvm644 browser/branding/firedragon/content/about-logo.png \
+    "${pkgdir}/usr/share/icons/hicolor/192x192/apps/${pkgname}.png"
+
+  # Replace duplicate binary with wrapper
+  # https://bugzilla.mozilla.org/show_bug.cgi?id=658850
+  ln -srfv "$pkgdir/usr/bin/$pkgname" "$pkgdir/usr/lib/$pkgname/${pkgname%-*}-bin"
+
+  # All the needed configuration files
+  install -Dvm644 "firedragon/assets/${pkgname}.desktop" "${pkgdir}/usr/share/applications/${pkgname}.desktop"
+  install -Dvm644 "${srcdir}/firedragon.psd" "${pkgdir}/usr/share/psd/browsers/firedragon"
+}
