@@ -85,6 +85,8 @@ source=(
 prepare() {
   mkdir mozbuild
   cd firefox-$pkgver
+  # set number of cores directly
+  sed -i -e "s/multiprocessing.cpu_count()/$(nproc)/" build/moz.configure/lto-pgo.configure
   # Disable NVIDIA blocklists, to make it function with libva-nvidia-driver-git AUR package
   msg2 "Patching Nvidia blocklist"
   patch -Np1 -i ../0001-remove-nvidia-blocklist.patch
@@ -203,6 +205,8 @@ ac_add_options --with-pthreads
 
 export MC_OFFICIAL=1
 export MOZILLA_OFFICIAL=1
+export MOZ_NOSPAM=1 MACH_USE_SYSTEM_PYTHON=1
+export MOZ_ENABLE_FULL_SYMBOLS=1
 
 ac_add_options --x-libraries=/usr/lib
 
