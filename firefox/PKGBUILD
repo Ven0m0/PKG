@@ -112,7 +112,7 @@ ac_add_options --enable-64bit
 ac_add_options --enable-lto=full
 ac_add_options MOZ_LTO=1
 export MOZ_LTO=1
-ac_add_options --enable-minify
+ac_add_options --enable-minify=properties
 ac_add_options --enable-release
 ac_add_options --enable-clang-plugin
 ac_add_options --enable-rust-simd
@@ -186,10 +186,12 @@ export RANLIB=/usr/bin/llvm-ranlib
 ac_add_options --enable-jit
 ac_add_options --wasm-no-experimental
 ac_add_options --enable-wasm-gc
-ac_add_options --enable-wasm-avx
+# ac_add_options --enable-wasm-avx
 ac_add_options --enable-wasm-simd
 ac_add_options --enable-wasm-relaxed-simd
 ac_add_options --enable-wasm-memory64
+ac_add_options --enable-wasm-memory-control
+ac_add_options --enable-wasm-multi-memory
 ac_add_options --enable-wasm-branch-hinting
 ac_add_options --enable-shared-memory
 ac_add_options --enable-webrender
@@ -200,6 +202,7 @@ ac_add_options --enable-replace-malloc
 ac_add_options --enable-strip
 ac_add_options --with-ccache=sccache
 mk_add_options MOZ_PARALLEL_COMPILE=1
+mk_add_options MOZ_MAKE_CFLAGS="-j$(nproc)"
 
 ac_add_options --disable-gamepad
 ac_add_options --disable-tests
@@ -240,7 +243,7 @@ export CFLAGS="-O3 -ffp-contract=fast -march=x86-64-v3"
 export CPPFLAGS="-O3 -ffp-contract=fast -march=x86-64-v3"
 export CXXFLAGS="-O3 -ffp-contract=fast -march=x86-64-v3"
 export LDFLAGS="-Wl,-O3 -Wl,-mllvm,-fp-contract=fast -march=x86-64-v3"
-export RUSTFLAGS="-C target-cpu=x86-64-v3 -C target-feature=+avx2 -C codegen-units=1"
+export RUSTFLAGS="-C target-cpu=x86-64-v3 -C target-feature=+avx2 -C codegen-units=1 -Copt-level=3 -Cstrip=symbols -Cdebuginfo=0 -Cpanic=abort -Ccontrol-flow-guard=no"
 export POLLY="-mllvm -polly -mllvm -polly-2nd-level-tiling -mllvm -polly-loopfusion-greedy -mllvm -polly-pattern-matching-based-opts -mllvm -polly-position=before-vectorizer -mllvm -polly-vectorizer=stripmine"
 
 # reduce chance of builds failung during linking due to running out of memory
