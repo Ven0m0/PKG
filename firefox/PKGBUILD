@@ -212,9 +212,11 @@ ac_add_options --enable-official-branding
 ac_add_options --disable-nodejs
 ac_add_options --as-milestone=release
 
+# https://github.com/BrowserWorks/waterfox/blob/current/docs/performance/jit_profiling_with_perf.md
 ac_add_options MOZ_PGO=1
 if test "$GEN_PGO"; then
     ac_add_options --enable-profile-generate
+    export IONPERF=ir PERF_SPEW_DIR=output MOZ_DISABLE_CONTENT_SANDBOX=1
 elif test "$USE_PGO"; then
     ac_add_options --enable-profile-use=cross
 fi
