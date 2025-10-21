@@ -160,6 +160,7 @@ ac_add_options --enable-proxy-bypass-protection
 ac_add_options --enable-sandbox
 ac_add_options --enable-dbus
 ac_add_options --enable-strip
+export STRIP_FLAGS="--strip-debug --strip-unneeded"
 # Optimization
 ac_add_options --enable-optimize="-O3 -march=native -w -ffp-contract=fast -ftree-vectorize"
 ac_add_options OPT_LEVEL="3"
@@ -187,6 +188,7 @@ ac_add_options --enable-jemalloc
 ac_add_options --enable-replace-malloc
 ac_add_options --enable-strip
 ac_add_options --with-ccache=sccache
+mk_add_options MOZ_PARALLEL_COMPILE=1
 
 ac_add_options --disable-gamepad
 ac_add_options --disable-tests
