@@ -161,7 +161,7 @@ ac_add_options --enable-sandbox
 ac_add_options --enable-dbus
 ac_add_options --enable-strip
 # Optimization
-ac_add_options --enable-optimize="-O3 -march=native -w -ffp-contract=fast"
+ac_add_options --enable-optimize="-O3 -march=native -w -ffp-contract=fast -ftree-vectorize"
 ac_add_options OPT_LEVEL="3"
 ac_add_options RUSTC_OPT_LEVEL="3"
 # Other
