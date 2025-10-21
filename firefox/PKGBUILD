@@ -37,6 +37,13 @@ depends=(
   pango
   ttf-font
 )
+depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse
+		kplasmafoxhelper libvpx icu nspr dav1d aom harfbuzz graphite
+		libwebp)
+makedepends=('unzip' 'zip' 'diffutils' 'python-setuptools' 'python-psutil'
+			 'python' 'yasm' 'mesa' 'imake' 'xorg-server-xvfb' 'libpulse'
+			 'inetutils' 'autoconf2.13' 'rust' 'cargo' 'llvm' 'clang' 'gtk2' 'libevent'
+			 'nodejs' 'cbindgen' 'nasm' 'zlib' 'lld' 'python-zstandard' 'dump_syms')
 makedepends=(
   cbindgen
   clang
@@ -60,14 +67,13 @@ makedepends=(
   yasm
   zip
 )
-optdepends=(
-  'hunspell-en_US: Spell checking, American English'
-  'libnotify: Notification integration'
-  'networkmanager: Location detection via available WiFi networks'
-  'onnxruntime: Local machine learning features such as smart tab groups'
-  'speech-dispatcher: Text-to-Speech'
-  'xdg-desktop-portal: Screensharing with Wayland'
-)
+optdepends=('hunspell-en_US: Spell checking, American English'
+            'libnotify: Notification integration'
+            'networkmanager: Location detection via available WiFi networks'
+            'onnxruntime: Local machine learning features such as smart tab groups'
+            'speech-dispatcher: Text-to-Speech'
+            'xdg-desktop-portal: Screensharing with Wayland'
+            'libdbusmenu-gtk3: global menu support')
 provides=(firefox=${pkgver})
 conflicts=(firefox)
 options=(!emptydirs !makeflags !lto)
@@ -79,13 +85,10 @@ source=(
 prepare() {
   mkdir mozbuild
   cd firefox-$pkgver
-
   # Disable NVIDIA blocklists, to make it function with libva-nvidia-driver-git AUR package
   msg2 "Patching Nvidia blocklist"
   patch -Np1 -i ../0001-remove-nvidia-blocklist.patch
-
   echo -n "$_google_api_key" >google-api-key
-
   cat >../mozconfig <<END
 BUILD_64=1
 ac_add_options --disable-parental-controls
@@ -248,84 +251,63 @@ build() {
   if [[ "${_build_pgo::1}" == "t" ]]; then
     local _old_profdata="${SRCDEST:-$startdir}/merged.profdata"
     local _old_jarlog="${SRCDEST:-$startdir}/jarlog"
-
     # Restore old profile
     if [[ "${_build_pgo_reuse::1}" == "t" ]]; then
       if [[ -s "$_old_profdata" ]]; then
         echo "Restoring old profile data."
         cp --reflink=auto -f "$_old_profdata" merged.profdata
       fi
-
       if [[ -s "$_old_jarlog" ]]; then
         echo "Restoring old jar log."
         cp --reflink=auto -f "$_old_jarlog" jarlog
       fi
     fi
-
     # Make new profile
     if [[ "${_build_pgo_reuse::1}" != "t" ]] || [[ ! -s merged.profdata ]]; then
       echo "Building instrumented browser..."
       cat >.mozconfig ../mozconfig
       echo >>.mozconfig "ac_add_options --enable-profile-generate=cross"
       ./mach build
-
       echo "Profiling instrumented browser..."
       ./mach package
-
       if [[ "${_build_pgo_xvfb::1}" == "t" ]]; then
-        local _headless_run=(
-          xvfb-run
-          -s "-screen 0 1920x1080x24 -nolisten local"
-        )
+        local _headless_run=(xvfb-run -s "-screen 0 1920x1080x24 -nolisten local")
       else
-        local _headless_run=(
-          wlheadless-run
-          -c weston --width=1920 --height=1080
-        )
+        local _headless_run=(wlheadless-run -c weston --width=1920 --height=1080)
       fi
-
       LLVM_PROFDATA=llvm-profdata JARLOG_FILE=${PWD@Q}/jarlog \
         "${_headless_run[@]}" -- ./mach python build/pgo/profileserver.py
-
       echo "Removing instrumented browser..."
       ./mach clobber
     fi
-
     echo "Building optimized browser..."
     cat >.mozconfig ../mozconfig
-
     if [[ -s merged.profdata ]]; then
       stat -c "Profile data found (%s bytes)" merged.profdata
       echo >>.mozconfig "ac_add_options --enable-profile-use=cross"
       echo >>.mozconfig "ac_add_options --with-pgo-profile-path='${PWD@Q}/merged.profdata'"
-
       # save profdata for reuse
       cp --reflink=auto -f merged.profdata "$_old_profdata"
     else
       echo "Profile data not found."
     fi
-
     if [[ -s jarlog ]]; then
       stat -c "Jar log found (%s bytes)" jarlog
       echo >>.mozconfig "ac_add_options --with-pgo-jarlog='${PWD@Q}/jarlog'"
-
       # save jarlog for reuse
       cp --reflink=auto -f jarlog "$_old_jarlog"
     else
       echo "Jar log not found."
     fi
-
     ./mach build
   else
     echo "Building browser..."
     cat >.mozconfig ../mozconfig
     ./mach build
   fi
-
   echo "Building symbol archive..."
   ./mach buildsymbols
-
   echo "Packaging browser with locales..."
   ./mach package
-  ./mach package-multi-locale --locales ar cs da de el en-US en-GB es-ES fr hu id it ja ko lt nl nn-NO pl pt-BR pt-PT ru sv-SE th tr uk zh-CN zh-TW
+  ./mach package-multi-locale --locales de en-US en-GB
 }
