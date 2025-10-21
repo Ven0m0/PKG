@@ -184,9 +184,9 @@ export NM=/usr/bin/llvm-nm
 export RANLIB=/usr/bin/llvm-ranlib
 
 ac_add_options --enable-jit
-ac_add_options --wasm-no-experimental
+# ac_add_options --wasm-no-experimental
 ac_add_options --enable-wasm-gc
-# ac_add_options --enable-wasm-avx
+ac_add_options --enable-wasm-avx
 ac_add_options --enable-wasm-simd
 ac_add_options --enable-wasm-relaxed-simd
 ac_add_options --enable-wasm-memory64
