@@ -286,9 +286,13 @@ build() {
     # Make new profile
     if [[ "${_build_pgo_reuse::1}" != "t" ]] || [[ ! -s merged.profdata ]]; then
       echo "Building instrumented browser..."
+      # temporarily disable ublock-origin, interferes with profiling
+      cp "lw/policies.json" "$srcdir/policies.json"
+      jq 'del(.policies.Extensions.Install)' "$srcdir/policies.json" > "lw/policies.json"
       cat >.mozconfig ../mozconfig
       echo >>.mozconfig "ac_add_options --enable-profile-generate=cross"
-      ./mach build
+      export MOZ_ENABLE_FULL_SYMBOLS=1
+      ./mach build --priority norma
       echo "Profiling instrumented browser..."
       ./mach package
       if [[ "${_build_pgo_xvfb::1}" == "t" ]]; then
@@ -296,7 +300,7 @@ build() {
       else
         local _headless_run=(wlheadless-run -c weston --width=1920 --height=1080)
       fi
-      LLVM_PROFDATA=llvm-profdata JARLOG_FILE=${PWD@Q}/jarlog \
+      LLVM_PROFDATA=llvm-profdata JARLOG_FILE=${PWD@Q}/jarlog LIBGL_ALWAYS_SOFTWARE=true \
         "${_headless_run[@]}" -- ./mach python build/pgo/profileserver.py
       echo "Removing instrumented browser..."
       ./mach clobber objdir
@@ -317,10 +321,12 @@ build() {
       echo >>.mozconfig "ac_add_options --with-pgo-jarlog='${PWD@Q}/jarlog'"
       # save jarlog for reuse
       cp --reflink=auto -f jarlog "$_old_jarlog"
+      # reenable ublock-origin
+      cp "$srcdir/policies.json" "lw/policies.js
     else
       echo "Jar log not found."
     fi
-    ./mach build
+    ./mach build --priority normal
   else
     echo "Building browser..."
     cat >.mozconfig ../mozconfig
