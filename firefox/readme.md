@@ -17,3 +17,5 @@ export CFLAGS="-O3 -ffp-contract=fast -march=native"
 
 '''
 
+
+- https://github.com/zen-browser/desktop/blob/e449fc6e2e89fa7bdbea89e0fa8e8a914186f24d/src/build/pgo/profileserver-py.patch#L7
