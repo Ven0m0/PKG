@@ -241,6 +241,10 @@ export CXXFLAGS="-O3 -ffp-contract=fast -march=x86-64-v3"
 export LDFLAGS="-Wl,-O3 -Wl,-mllvm,-fp-contract=fast -march=x86-64-v3"
 export RUSTFLAGS="-C target-cpu=x86-64-v3 -C target-feature=+avx2 -C codegen-units=1"
 export POLLY="-mllvm -polly -mllvm -polly-2nd-level-tiling -mllvm -polly-loopfusion-greedy -mllvm -polly-pattern-matching-based-opts -mllvm -polly-position=before-vectorizer -mllvm -polly-vectorizer=stripmine"
+
+# reduce chance of builds failung during linking due to running out of memory
+export LDFLAGS+=" -Wl,--no-keep-memory"
+
 END
 }
 
@@ -294,7 +298,7 @@ build() {
       LLVM_PROFDATA=llvm-profdata JARLOG_FILE=${PWD@Q}/jarlog \
         "${_headless_run[@]}" -- ./mach python build/pgo/profileserver.py
       echo "Removing instrumented browser..."
-      ./mach clobber
+      ./mach clobber objdir
     fi
     echo "Building optimized browser..."
     cat >.mozconfig ../mozconfig
@@ -319,8 +323,9 @@ build() {
   else
     echo "Building browser..."
     cat >.mozconfig ../mozconfig
-    ./mach build
   fi
+  ./mach build --priority normal
+  
   echo "Building symbol archive..."
   ./mach buildsymbols
   echo "Packaging browser with locales..."
@@ -392,6 +397,10 @@ END
   # https://bugzilla.mozilla.org/show_bug.cgi?id=658850
   ln -srfv "$pkgdir/usr/bin/$pkgname" "$pkgdir/usr/lib/$pkgname/${pkgname%-*}-bin"
 
+  local nssckbi="$pkgdir/usr/lib/$pkgname/libnssckbi.so"
+  if [[ -e $nssckbi ]]; then
+    ln -srfv "$pkgdir/usr/lib/libnssckbi.so" "$nssckbi"
+  fi
   # All the needed configuration files
   install -Dvm644 "firedragon/assets/${pkgname}.desktop" "${pkgdir}/usr/share/applications/${pkgname}.desktop"
   install -Dvm644 "${srcdir}/firedragon.psd" "${pkgdir}/usr/share/psd/browsers/firedragon"
