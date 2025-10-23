@@ -1,19 +1,31 @@
-# Maintainer: you
 pkgname=firefox-custom
+provides=(firefox=${pkgver})
+conflicts=(firefox)
 pkgver=stable
 pkgrel=1
-pkgdesc='Firefox - minimal build, tuned: LTO PGO BOLT Polly Propeller, -march=x86-64-v3'
+pkgdesc='Firefox optimized'
 arch=(x86_64)
 url="https://mozilla.org/firefox"
 license=(MPL)
-depends=(libx11 dbus gtk3 alsa-lib nss nspr libstdc++ libxcomposite libxrandr pango hunspell)
-makedepends=(git clang lld cmake rust cargo ninja python3 zip unzip autoconf2.13 clang-tools-extra llvm llvm-tools bindgen
-             cargo-make pkg-config gtk-doc sed grep file)
+depends=('dbus-glib' 'gtk3' 'alsa-lib' 'nss' 'nspr' 'libstdc++' 'libxcomposite' 'libxrandr' 'pango' 'dav1d' 'aom' 'icu' 'graphite' 'libwebp' 'libxt')
+makedepends=('git' 'clang' 'lld' 'cmake' 'rust' 'cargo' 'ninja' 'python3' 'zip' 'unzip' 'autoconf2.13' 'clang-tools-extra' 'llvm' 'llvm-tools bindgen'
+             'cargo-make' 'pkg-config' 'gtk-doc' 'sed' 'grep' 'file')
+optdepends=('hunspell-en_US: Spell checking, American English'
+            'libnotify: Notification integration'
+            'networkmanager: Location detection via available WiFi networks'
+            'onnxruntime: Local machine learning features such as smart tab groups'
+            'speech-dispatcher: Text-to-Speech'
+            'xdg-desktop-portal: Screensharing with Wayland'
+            'libdbusmenu-gtk3: global menu support'
+			      'profile-sync-daemon: Load the browser profile into RAM')
 backup=()
-options=(!strip !emptydirs)
+options=(!strip !emptydirs !debug !makeflags !lto)
 
 # git source. makepkg supports git+ URLs.
-source=("git+https://github.com/mozilla/gecko-dev.git#branch=mozilla-release")
+source=(
+  # "git+https://github.com/mozilla/gecko-dev.git#branch=mozilla-release"
+  "https://archive.mozilla.org/pub/firefox/releases/$pkgver/source/firefox-$pkgver.source.tar.xz{,.asc}"
+)
 sha256sums=('SKIP')
 
 # Tunables:
