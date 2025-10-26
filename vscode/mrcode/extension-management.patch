@@ -1,0 +1,56 @@
+diff --git a/src/vs/workbench/contrib/extensions/browser/extensions.contribution.ts b/src/vs/workbench/contrib/extensions/browser/extensions.contribution.ts
+index 3f89ebe..c218695 100644
+--- a/src/vs/workbench/contrib/extensions/browser/extensions.contribution.ts
++++ b/src/vs/workbench/contrib/extensions/browser/extensions.contribution.ts
+@@ -27,3 +27,3 @@ import { IDialogService, IFileDialogService } from '../../../../platform/dialogs
+ import { ExtensionGalleryManifestStatus, ExtensionGalleryResourceType, ExtensionGalleryServiceUrlConfigKey, getExtensionGalleryManifestResourceUri, IExtensionGalleryManifest, IExtensionGalleryManifestService } from '../../../../platform/extensionManagement/common/extensionGalleryManifest.js';
+-import { EXTENSION_INSTALL_SOURCE_CONTEXT, ExtensionInstallSource, ExtensionsLocalizedLabel, FilterType, IExtensionGalleryService, IExtensionManagementService, PreferencesLocalizedLabel, SortBy, VerifyExtensionSignatureConfigKey } from '../../../../platform/extensionManagement/common/extensionManagement.js';
++import { EXTENSION_INSTALL_SOURCE_CONTEXT, ExtensionInstallSource, ExtensionsLocalizedLabel, FilterType, IExtensionGalleryService, IExtensionManagementService, PreferencesLocalizedLabel, SortBy, VerifyExtensionSignatureConfigKey, IGlobalExtensionEnablementService } from '../../../../platform/extensionManagement/common/extensionManagement.js';
+ import { areSameExtensions, getIdAndVersion } from '../../../../platform/extensionManagement/common/extensionManagementUtil.js';
+@@ -485,2 +485,46 @@ CommandsRegistry.registerCommand({
+ 
++CommandsRegistry.registerCommand({
++	id: 'workbench.extensions.disableExtension',
++	metadata: {
++		description: localize('workbench.extensions.disableExtension.description', "Disable the given extension"),
++		args: [
++			{
++				name: localize('workbench.extensions.disableExtension.arg.name', "Id of the extension to disable"),
++				schema: {
++					'type': 'string'
++				}
++			}
++		]
++	},
++	handler: async (accessor, id: string) => {
++		if (!id) {
++			throw new Error(localize('id required', "Extension id required."));
++		}
++		const extensionManagementService = accessor.get(IGlobalExtensionEnablementService);
++		extensionManagementService.disableExtension({ id });
++	}
++});
++
++CommandsRegistry.registerCommand({
++	id: 'workbench.extensions.enableExtension',
++	metadata: {
++		description: localize('workbench.extensions.enableExtension.description', "Enable the given extension"),
++		args: [
++			{
++				name: localize('workbench.extensions.enableExtension.arg.name', "Id of the extension to enable"),
++				schema: {
++					'type': 'string'
++				}
++			}
++		]
++	},
++	handler: async (accessor, id: string) => {
++		if (!id) {
++			throw new Error(localize('id required', "Extension id required."));
++		}
++		const extensionManagementService = accessor.get(IGlobalExtensionEnablementService);
++		extensionManagementService.enableExtension({ id });
++	}
++});
++
+ function overrideActionForActiveExtensionEditorWebview(command: MultiCommand | undefined, f: (webview: IWebview) => void) {
