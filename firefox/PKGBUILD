@@ -1,4 +1,5 @@
 pkgname=firefox-custom
+_pkgname=firefox
 provides=(firefox=${pkgver})
 conflicts=(firefox)
 pkgver=stable
@@ -69,6 +70,11 @@ ac_add_options --with-system-nss
 ac_add_options --enable-default-toolkit=cairo-gtk3
 ac_add_options --enable-wayland
 mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-firefox
+
+ac_add_options --with-unsigned-addon-scopes=app,system
+ac_add_options --allow-addon-sideload
+
+export MOZ_NO_PIE_COMPAT=1
 EOF
 }
 
