@@ -1,6 +1,6 @@
 options=('strip' '!docs' 'zipman' '!debug' 'lto' 'optipng' 'svgo')
 
-git clone https://github.com/intel/llvm.git && cd llvm
+git clone --depth 1 https://github.com/intel/llvm.git && cd llvm
 
   # Build only minimal debug info to reduce size
   export CFLAGS=${CFLAGS/-g /-g1 }
