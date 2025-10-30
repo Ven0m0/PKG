@@ -1,0 +1,144 @@
+# Maintainer: Ven0m0
+# Contributor: Peter Jung ptr1337 <admin@ptr1337.dev>
+# Contributor: Evangelos Foutras <foutrelis@archlinux.org>
+# Contributor: Jan "heftig" Steffens <jan.steffens@gmail.com>
+
+# Build Profiles:
+# - release: Standard Arch release build.
+# - pgo:     'release' with Profile-Guided Optimization (Full LTO). Slow build, fast binary.
+# - nano:    Minimal build with limited targets (X86;AMDGPU or AArch64;AMDGPU).
+# - mini:    Minimal build with all targets.
+_build_profile=${_build_profile:-nano}
+
+pkgname=('llvm' 'llvm-libs')
+pkgver=21.1.4
+pkgrel=2
+arch=('x86_64' 'aarch64')
+url='https://llvm.org/'
+license=('Apache-2.0 WITH LLVM-exception')
+depends=('llvm-libs' 'curl' 'perl')
+optdepends=('llvm-propeller: for post-link optimization (requires _build_profile=pgo)')
+makedepends=('cmake' 'ninja' 'zlib' 'zstd' 'curl' 'libffi' 'libedit'
+  'libxml2' 'python-setuptools' 'python-psutil' 'python-sphinx'
+  'python-myst-parser' 'clang' 'lld' 'llvm')
+options=('!lto')
+_source_base="https://github.com/llvm/llvm-project/releases/download/llvmorg-$pkgver"
+source=("$_source_base/llvm-$pkgver.src.tar.xz"{,.sig}
+  "$_source_base/cmake-$pkgver.src.tar.xz"{,.sig}
+  "$_source_base/third-party-$pkgver.src.tar.xz"{,.sig})
+sha256sums=('f311681255deb37f74bbf950a653e9434e7d8383a7b46a603a323c46cd4bf50e'
+  'SKIP'
+  'f4316d84a862ba3023ca1d26bd9c6a995516b4fa028b6fb329d22e24cc6d235e'
+  'SKIP'
+  'ae8658390504e08e464f65ecea838a0584df4734c27cecedfe7eb32780e81564'
+  'SKIP')
+validpgpkeys=('474E22316ABF4785A88C6E8EA2C794A986419D8A'
+  'D574BD5D1D0E98895E3BF90044F2485E45D59042')
+
+prepare() {
+  cd "$srcdir" || exit
+  rename -v -- "-$pkgver.src" '' {cmake,third-party}-"$pkgver".src
+  mkdir -p "llvm-$pkgver.src/build"
+}
+
+build() {
+  cd "llvm-$pkgver.src/build" || exit
+  export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib
+  export LDFLAGS+=' -Wl,-O1,--sort-common,--as-needed'
+
+  declare -a cmake_args=(
+    -G Ninja -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_SKIP_RPATH=ON
+    -DLLVM_HOST_TRIPLE="$CHOST" -DLLVM_BINUTILS_INCDIR=/usr/include
+    -DLLVM_ENABLE_BINDINGS=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF
+    -DLLVM_INSTALL_UTILS=ON -DPACKAGE_BUGREPORT='https://github.com/Ven0m0/archlinux-pkgs-debloated/issues'
+  )
+
+  case "$_build_profile" in
+  nano | mini)
+    export CFLAGS+=' -Oz' CXXFLAGS+=' -Oz'
+    cmake_args+=(
+      -DCMAKE_BUILD_TYPE=MinSizeRel -DLLVM_BUILD_DOCS=OFF -DLLVM_BUILD_TESTS=OFF
+      -DLLVM_ENABLE_ASSERTIONS=OFF -DLLVM_ENABLE_RTTI=OFF -DLLVM_ENABLE_CURL=OFF
+      -DLLVM_ENABLE_FFI=OFF -DLLVM_ENABLE_SPHINX=OFF -DLLVM_ENABLE_UNWIND_TABLES=OFF
+    )
+    if [[ $_build_profile == 'nano' ]]; then
+      local targets=$([[ $CARCH == 'x86_64' ]] && echo 'X86;AMDGPU' || echo 'AArch64;AMDGPU')
+      cmake_args+=("-DLLVM_TARGETS_TO_BUILD=$targets")
+    fi
+    ;;
+  pgo | release)
+    export CFLAGS+=' -fno-semantic-interposition' CXXFLAGS+=' -fno-semantic-interposition'
+    cmake_args+=(
+      -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_DOCDIR=share/doc -DLLVM_BUILD_DOCS=ON
+      -DLLVM_BUILD_LLVM_DYLIB=ON -DLLVM_LINK_LLVM_DYLIB=ON -DLLVM_BUILD_TESTS=ON
+      -DLLVM_ENABLE_CURL=ON -DLLVM_ENABLE_FFI=ON -DLLVM_ENABLE_RTTI=ON
+      -DLLVM_ENABLE_SPHINX=ON -DLLVM_INSTALL_GTEST=ON -DLLVM_USE_PERF=ON
+      -DSPHINX_WARNINGS_AS_ERRORS=OFF
+    )
+    ;;
+  esac
+
+  if [[ $_build_profile == 'pgo' ]]; then
+    msg 'Starting PGO generate build...'
+    cmake .. "${cmake_args[@]}" -DLLVM_BUILD_INSTRUMENTED=IR -DLLVM_VP_COUNTERS_PER_SITE=6
+    ninja
+    ./bin/llvm-lit -v test || :
+    llvm-profdata merge -o llvm.profdata profiles/*.profraw
+    rm -rf ./* # Clean build dir for second pass
+
+    msg "Starting final build (PGO-use)..."
+    export CFLAGS+=" -fprofile-use=$PWD/llvm.profdata"
+    export CXXFLAGS+=" -fprofile-use=$PWD/llvm.profdata"
+    export LDFLAGS+=' -flto=full'
+    cmake_args+=(-DLLVM_ENABLE_LTO=Full -DLLVM_PROFDATA_FILE="$PWD/llvm.profdata")
+  else
+    msg "Starting final build ($_build_profile)..."
+  fi
+
+  cmake .. "${cmake_args[@]}"
+  ninja
+}
+
+check() {
+  [[ $_build_profile =~ (nano|mini) ]] && return 0
+  (cd "llvm-$pkgver.src/build" && LD_LIBRARY_PATH="$PWD/lib" ninja check)
+}
+
+package_llvm() {
+  pkgdesc='Compiler infrastructure'
+  cd "llvm-$pkgver.src/build" || exit
+  DESTDIR="$pkgdir" ninja install
+
+  if [[ $_build_profile == 'pgo' && -x "/usr/bin/generate_propeller_profiles" ]]; then
+    msg 'Running Propeller post-link optimization...'
+    local bin_dir="$pkgdir/usr/bin"
+    find "$bin_dir" -type f -executable -print0 | while IFS= read -r -d '' bin_file; do
+      [[ $(file -b "$bin_file") =~ ELF.*executable ]] \
+        && generate_propeller_profiles --profile="$PWD/llvm.profdata" --binary="$bin_file" --output="$bin_file.prop" || :
+    done
+  fi
+
+  if [[ ! $_build_profile =~ (nano|mini) ]]; then
+    (cd ../utils/lit && python3 setup.py install --root="$pkgdir" -O1 --optimize=1)
+    mv -f "$pkgdir"/usr/lib/lib{LLVM,LTO,Remarks}*.so* "$srcdir"
+    mv -f "$pkgdir"/usr/lib/LLVMgold.so "$srcdir"
+    rm -rf "$pkgdir"/usr/share/doc/llvm/html/{_sources,.buildinfo}
+  fi
+  install -Dm644 ../LICENSE.TXT "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}
+
+package_llvm-libs() {
+  pkgdesc='LLVM runtime libraries'
+  depends=('gcc-libs' 'zlib' 'zstd' 'libffi' 'libedit' 'libxml2')
+
+  if [[ $_build_profile =~ (nano|mini) ]]; then
+    (cd "llvm-$pkgver.src/build" && DESTDIR="$pkgdir" ninja install-LLVM-libraries)
+  else
+    provides=('libLLVM.so' 'libLTO.so' 'libRemarks.so')
+    install -d "$pkgdir/usr/lib"
+    cp -P "$srcdir"/lib{LLVM,LTO,Remarks}*.so* "$srcdir"/LLVMgold.so "${pkgdir}/usr/lib/"
+    install -d "${pkgdir}/usr/lib/bfd-plugins"
+    ln -s ../LLVMgold.so "${pkgdir}/usr/lib/bfd-plugins/LLVMgold.so"
+  fi
+  install -Dm644 "$srcdir/llvm-${pkgver}.src/LICENSE.TXT" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}
