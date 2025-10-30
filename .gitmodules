@@ -1,0 +1,12 @@
+[submodule "ffmpeg/patches/negativo17"]
+	path = ffmpeg/patches/negativo17
+	url = https://github.com/negativo17/ffmpeg.git
+[submodule "ffmpeg/patches/jellyfin"]
+	path = ffmpeg/patches/jellyfin
+	url = https://github.com/jellyfin/jellyfin-ffmpeg
+[submodule "ffmpeg/ffmpeg/patches"]
+	path = ffmpeg/ffmpeg/patches
+	url = https://github.com/nekotrix/FFmpeg-Builds-SVT-AV1-Essential.git
+[submodule "ffmpeg/patches/svt-av1-essential"]
+	path = ffmpeg/patches/svt-av1-essential
+	url = https://github.com/nekotrix/FFmpeg-Builds-SVT-AV1-Essential.git

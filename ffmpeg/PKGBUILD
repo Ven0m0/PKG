@@ -1,14 +1,58 @@
-git clone https://github.com/OpenVisualCloud/SVT-VP9.git
-cd SVT-VP9/Build
-# Adjust this line to add any other cmake related options
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j $(nproc)
-sudo make install
+pkgname=ffmpeg-opt
+arch=(x86_64)
+depends=(
+  aribb24 fribidi
+  expat fontconfig libfreetype.so
+  glibc gnutls
+  libjpeg-turbo libpng libwebp
+  libtheora libvpx.so libx264.so libdav1d.so
+  libdrm libva-drm.so libva.so
+  libvorbisenc.so libvorbis.so opus
+  bzip2 xz zlib
+)
+makedepends=(clang ffnvcodec-headers nasm)
 
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib
-export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:/usr/local/lib/pkgconfig
-git clone https://github.com/FFmpeg/FFmpeg.git ffmpeg
-cd ffmpeg
-git apply ../ffmpeg_plugin/master-0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch
-./configure --enable-libsvtvp9
-make -j $(nproc)
+prepare() {
+  cd $pkgdir
+  echo "add SVT-VP9 (https://github.com/OpenVisualCloud/SVT-VP9)"
+  git clone --depth 1 https://github.com/OpenVisualCloud/SVT-VP9.git
+  # Adjust this line to add any other cmake related options
+  export CFLAGS="$CFLAGS -flto=auto -Wno-incompatible-pointer-types" CXXFLAGS="$CXXFLAGS -flto=auto" LDFLAGS="$LDFLAGS -flto=auto"
+  CMAKE_EXTRA_FLAGS="-DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON ${CMAKE_EXTRA_FLAGS:-}"
+  export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib
+  export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:/usr/local/lib/pkgconfig
+  git clone --depth 1 https://github.com/FFmpeg/FFmpeg.git ffmpeg
+  git apply --whitespace=fix ../ffmpeg_plugin/master-0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch
+
+  echo "add SVT-HEVC (https://github.com/OpenVisualCloud/SVT-HEVC)"
+  git am --whitespace=fix ../SVT-HEVC/ffmpeg_plugin/master-0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch
+  git am ../SVT-HEVC/ffmpeg_plugin/0002-doc-Add-libsvt_hevc-encoder-docs.patch
+  ./configure --enable-libsvthevc
+}
+build() {
+  ./configure --enable-libsvtvp9 --enable-avcodec --enable-libdav1d --enable-libaom --enable-libjxl \
+    --enable-libdvdread --enable-libfontconfig --enable-libfreetype --enable-gmp --enable-libopus --enable-libsvtav1 \
+    --enable-libwebp --enable-libvpx --enable-vulkan --enable-vdpau --enable-vaapi --enable-vapoursynth --enable-zlib \
+    --enable-xlib 3 --enable-shared --enable-openssl  --enable-opengl --enable-opencl --enable-openal \
+    --enable-nonfree --enable-lzma --enable-lv2 --enable-libdrm --enable-cuda-llvm \
+    --enable-cuvid --enable-ffnvcodec --enable-cuda-nvcc --enable-libsvtvp9 --enable-libvmaf --enable-libvpl \
+    --disable-example --disable-swscale --disable-lavf --enable-libzimg --disable-symbol-versions --without-python
+
+    --disable-doc --enable-lto --enable-version --enable-nvdec --enable-nvenc
+    --enable-wayland --enable-drm --enable-shared -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled \
+    -Dcairo-tests=disabled -Dexynos=disabled --buildtype=release -Dzlib=enabled --enable-nasm \
+    --disable-gtktest --disable-oggtest --disable-vorbistest --disable-unit-tests --disable-libx265
+
+
+
+  make -j $(nproc)
+  make install
+}
+
+package() {
+  install -Dm 755 bin/ffdetect "${pkgdir}"/usr/bin/ffdetect
+  install -Dm 755 ffmpeg-${pkgver}_public/ffmpeg "${pkgdir}"/usr/bin/ffmpeg
+  install -Dm 755 ffmpeg-${pkgver}_public/ffprobe "${pkgdir}"/usr/bin/ffprobe
+}
+
+# vim: ts=2 sw=2 et:
