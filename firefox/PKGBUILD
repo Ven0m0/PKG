@@ -51,11 +51,10 @@ prepare() {
 # write a compact mozconfig to target minimal features
 _write_mozconfig() {
   cat >.mozconfig <<'EOF'
-ac_add_options --enable-optimize
+ac_add_options --enable-optimize=-O3
+ac_add_options --enable-lto
 ac_add_options --enable-release
-ac_add_options --disable-debug
-ac_add_options --disable-crashreporter
-ac_add_options --disable-updater
+ac_add_options --enable-strip
 ac_add_options --disable-sandbox
 ac_add_options --disable-tests
 ac_add_options --disable-installer
@@ -64,9 +63,6 @@ ac_add_options --disable-websockets
 ac_add_options --disable-client-telemetry
 ac_add_options --disable-crashreporter
 ac_add_options --disable-health-report
-ac_add_options --enable-system-ffi
-ac_add_options --with-system-nspr
-ac_add_options --with-system-nss
 ac_add_options --enable-default-toolkit=cairo-gtk3
 ac_add_options --enable-wayland
 mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-firefox
@@ -74,7 +70,42 @@ mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-firefox
 ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --allow-addon-sideload
 
-export MOZ_NO_PIE_COMPAT=1
+# System libraries
+ac_add_options --with-system-nspr
+ac_add_options --with-system-nss
+ac_add_options --with-system-libvpx
+ac_add_options --with-system-webp
+ac_add_options --with-system-libevent
+ac_add_options --with-system-icu
+ac_add_options --with-system-zlib
+ac_add_options --with-system-jpeg
+
+# Features
+ac_add_options --enable-jxl
+ac_add_options --enable-pulseaudio
+ac_add_options --enable-alsa
+ac_add_options --enable-jack
+ac_add_options --disable-warnings-as-errors
+ac_add_options --disable-crashreporter
+ac_add_options --disable-tests
+ac_add_options --disable-debug
+ac_add_options --disable-updater
+ac_add_options --disable-gpsd
+ac_add_options --disable-synth-speechd
+ac_add_options --disable-debug-symbols
+ac_add_options --disable-debug-js-modules
+ac_add_options --disable-rust-tests
+ac_add_options --disable-necko-wifi
+ac_add_options --disable-webspeech
+ac_add_options --disable-webspeechtestbackend
+ac_add_options --disable-default-browser-agent
+
+# Disables crash reporting, telemetry and other data gathering tools
+mk_add_options MOZ_CRASHREPORTER=0
+mk_add_options MOZ_DATA_REPORTING=0
+mk_add_options MOZ_SERVICES_HEALTHREPORT=0
+mk_add_options MOZ_TELEMETRY_REPORTING=0
+export MOZ_NO_PIE_COMPAT=1 MOZ_NOSPAM=1 MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=system
 EOF
 }
 
@@ -82,7 +113,8 @@ build() {
   cd "$srcdir"/gecko-dev || return 1
 
   _write_mozconfig
-
+  # LTO needs more open files
+  ulimit -n 4096
   # environment
   export CC=clang
   export CXX=clang++
