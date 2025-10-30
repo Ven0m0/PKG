@@ -4,11 +4,18 @@ export LC_ALL=C LANG=C LANGUAGE=C HOME="/home/${SUDO_USER:-$USER}"
 cd -P -- "$(cd -P -- "${BASH_SOURCE[0]%/*}" && echo "$PWD")" || exit 1
 sudo -v
 
-cargo install etchdns -f
+if command -v sccache &>/dev/null; then
+  export CC="sccache clang" CXX="sccache clang++" RUSTC_WRAPPER=sccache SCCACHE_IDLE_TIMEOUT=10800
+  sccache --start-server &>/dev/null
+fi
+export RUSTFLAGS="-Copt-level=3 -Ctarget-cpu=native -Ccodegen-units=1 -Cstrip=symbols -Clto=fat -Clinker-plugin-lto -Clink-arg=-fuse-ld=lld -Cpanic=immediate-abort -Zunstable-options \
+-Ztune-cpu=native -Cllvm-args=-enable-dfa-jump-thread -Zfunction-sections -Zfmt-debug=none -Zlocation-detail=none"
+MALLOC_CONF="thp:always,metadata_thp:always,tcache:true,percpu_arena:percpu"
+export MALLOC_CONF _RJEM_MALLOC_CONF="$MALLOC_CONF" RUSTC_BOOTSTRAP=1 CARGO_INCREMENTAL=0 OPT_LEVEL=3 CARGO_PROFILE_RELEASE_LTO=true CARGO_CACHE_RUSTC_INFO=1 
+cargo +nightly -Zunstable-options -Zavoid-dev-deps -Zbuild-std=std,panic_abort -Zbuild-std-features=panic_immediate_abort install etchdns -f
 pbin="$(command -v etchdns || echo ${HOME}/.cargo/bin/etchdns)"
 sudo ln -sf "$pbin" "/usr/local/bin/$(basename $pbin)"
-# sudo chown root:root "/usr/local/bin/$(basename $pbin)"
-# sudo chmod 755 "/usr/local/bin/$(basename $pbin)"
+# sudo chown root:root "/usr/local/bin/$(basename $pbin)"; sudo chmod 755 "/usr/local/bin/$(basename $pbin)"
 
 # prepare config
 sudo touch /etc/etchdns.toml
