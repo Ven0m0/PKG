@@ -1,0 +1,2 @@
+https://raw.githubusercontent.com/CachyOS/CachyOS-PKGBUILDS/master/mesa/mesa/anti-lag.patch
+https://raw.githubusercontent.com/CachyOS/CachyOS-PKGBUILDS/master/mesa/mesa/gamescope-fps-limiter.patch
