@@ -1,0 +1,96 @@
+--- ./build/config/compiler/compiler.gni.orig
++++ ./build/config/compiler/compiler.gni
+@@ -37,6 +37,9 @@
+   # The default linker everywhere else.
+   use_lld = is_clang && current_os != "zos"
+ 
++  # enable together with use_lld
++  use_mold = false
++
+   # If true, optimize for size.
+   # Default to favoring speed over size for platforms not listed below.
+   optimize_for_size = !is_high_end_android && (is_android || is_castos)
+--- ./build/config/compiler/pgo/BUILD.gn.orig
++++ ./build/config/compiler/pgo/BUILD.gn
+@@ -143,13 +143,8 @@
+       if (is_win) {
+         ldflags = [ "-mllvm:-enable-ext-tsp-block-placement=1" ]
+       } else {
+-        ldflags = [ "-Wl,-mllvm,-enable-ext-tsp-block-placement=1" ]
+       }
+     } else {
+-      cflags += [
+-        "-mllvm",
+-        "-enable-ext-tsp-block-placement=1",
+-      ]
+     }
+   }
+ }
+--- ./build/config/compiler/BUILD.gn.orig
++++ ./build/config/compiler/BUILD.gn
+@@ -384,7 +384,9 @@
+       }
+     }
+ 
+-    if (use_lld) {
++    if (use_mold) {
++      ldflags += [ "-fuse-ld=mold" ]
++    } else if (use_lld) {
+       ldflags += [ "-fuse-ld=lld" ]
+       if (lld_path != "") {
+         ldflags += [ "-B$lld_path" ]
+@@ -601,7 +603,6 @@
+       if (is_win) {
+         ldflags += [ "-mllvm:-instcombine-lower-dbg-declare=0" ]
+       } else {
+-        ldflags += [ "-Wl,-mllvm,-instcombine-lower-dbg-declare=0" ]
+       }
+     }
+ 
+@@ -717,7 +714,6 @@
+     # binary size than the default setting of 100.
+     # TODO(gbiv): We ideally shouldn't need to specify this; ThinLTO
+     # should be able to better manage binary size increases on its own.
+-    import_instr_limit = 30
+ 
+     if (is_win) {
+       ldflags += [
+@@ -726,7 +722,6 @@
+         "/lldltocache:" +
+             rebase_path("$root_out_dir/thinlto-cache", root_build_dir),
+         "/lldltocachepolicy:$cache_policy",
+-        "-mllvm:-disable-auto-upgrade-debug-info",
+       ]
+     } else {
+       ldflags += [ "-flto=thin" ]
+@@ -766,14 +761,11 @@
+         import_instr_limit = 5
+       }
+ 
+-      ldflags += [ "-Wl,-mllvm,-import-instr-limit=$import_instr_limit" ]
+-
+       if (!is_chromeos) {
+         # TODO(https://crbug.com/972449): turn on for ChromeOS when that
+         # toolchain has this flag.
+         # We only use one version of LLVM within a build so there's no need to
+         # upgrade debug info, which can be expensive since it runs the verifier.
+-        ldflags += [ "-Wl,-mllvm,-disable-auto-upgrade-debug-info" ]
+       }
+     }
+ 
+@@ -893,7 +885,6 @@
+         is_android && host_os == "linux",
+         "MLGO is currently only supported for targeting Android on a linux host")
+     if (use_thin_lto) {
+-      ldflags += [ "-Wl,-mllvm,-enable-ml-inliner=release" ]
+     }
+   }
+ 
+@@ -1438,7 +1429,6 @@
+     # This can be removed once https://bugs.llvm.org/show_bug.cgi?id=40348
+     # has been resolved, and -mno-outline is obeyed by the linker during
+     # ThinLTO.
+-    ldflags += [ "-Wl,-mllvm,-enable-machine-outliner=never" ]
+   }
+ 
+   asmflags = cflags
