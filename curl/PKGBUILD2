@@ -30,9 +30,9 @@ build() {
     ../configure \
       --prefix=/usr \
       --enable-ipv6 --enable-threaded-resolver \
-      --enable-ares --enable-quic --enable-post \
+      --enable-quic --with-quiche --enable-http3 \
       --with-zlib --with-brotli --with-zstd \
-      --enable-http --enable-http2 --enable-http3 --enable-ssl \
+      --enable-http2 --with-rustls \
       --disable-manual --disable-shared \
       ${opts[$b]} CFLAGS="${CFLAGS}" LDFLAGS="${LDFLAGS}"
     make -j"$(nproc)"
