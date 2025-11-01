@@ -8,11 +8,11 @@ if command -v sccache &>/dev/null; then
   export CC="sccache clang" CXX="sccache clang++" RUSTC_WRAPPER=sccache SCCACHE_IDLE_TIMEOUT=10800
   sccache --start-server &>/dev/null
 fi
-export RUSTFLAGS="-Copt-level=3 -Ctarget-cpu=native -Ccodegen-units=1 -Cstrip=symbols -Clto=fat -Clinker-plugin-lto -Clink-arg=-fuse-ld=lld -Cpanic=immediate-abort -Zunstable-options \
+export RUSTFLAGS="-Copt-level=3 -Ctarget-cpu=native -Ccodegen-units=1 -Cstrip=symbols -Clto=fat -Clink-arg=-fuse-ld=mold -Cpanic=immediate-abort -Zunstable-options \
 -Ztune-cpu=native -Cllvm-args=-enable-dfa-jump-thread -Zfunction-sections -Zfmt-debug=none -Zlocation-detail=none"
 MALLOC_CONF="thp:always,metadata_thp:always,tcache:true,percpu_arena:percpu"
 export MALLOC_CONF _RJEM_MALLOC_CONF="$MALLOC_CONF" RUSTC_BOOTSTRAP=1 CARGO_INCREMENTAL=0 OPT_LEVEL=3 CARGO_PROFILE_RELEASE_LTO=true CARGO_CACHE_RUSTC_INFO=1 
-cargo +nightly -Zunstable-options -Zavoid-dev-deps -Zbuild-std=std,panic_abort -Zbuild-std-features=panic_immediate_abort install etchdns -f
+cargo +nightly -Zunstable-options -Zavoid-dev-deps install etchdns -f
 pbin="$(command -v etchdns || echo ${HOME}/.cargo/bin/etchdns)"
 sudo ln -sf "$pbin" "/usr/local/bin/$(basename $pbin)"
 # sudo chown root:root "/usr/local/bin/$(basename $pbin)"; sudo chmod 755 "/usr/local/bin/$(basename $pbin)"
@@ -20,37 +20,61 @@ sudo ln -sf "$pbin" "/usr/local/bin/$(basename $pbin)"
 # prepare config
 sudo touch /etc/etchdns.toml
 sudo cat > /etc/etchdns.toml <<'EOF'
-listen_addresses = ["0.0.0.0:53"]
-log_level = "warn"
-authoritative_dns = false
-upstream_servers = ["1.1.1.2:53","1.0.0.2:53"]
-load_balancing_strategy = "fastest"
-probe_interval = 60
+listen_addr = "127.0.0.1:53"
 cache = true
-cache_size = 100000
-cache_in_memory_only = true
-min_cache_ttl = 10
-serve_stale_grace_time = 86400
-serve_stale_ttl = 60
-negative_cache_ttl = 120
+cache_size = 10000
+cache_ttl_cap = 86400
+cache_in_memory_only = false
 prefetch_popular_queries = true
-prefetch_threshold = 10
-udp_rate_limit_window = 0
-tcp_rate_limit_window = 0
-doh_rate_limit_window = 0
-max_udp_clients = 10000
+prefetch_threshold = 5
+log_level = "warn"
+listen_addresses = ["0.0.0.0:53"]
+dns_packet_len_max = 4096
+upstream_servers = [
+  "1.1.1.2:53",
+  "1.0.0.2:53",
+  "1.1.1.1:53",
+  "1.0.0.1:53"
+]
+load_balancing_strategy = "fastest"
+server_timeout = 3
+probe_interval = 60
+max_udp_clients = 1000
 max_tcp_clients = 1000
-max_concurrent_queries = 10000
+max_doh_connections = 100
+max_inflight_queries = 1000
+authoritative_dns = false
+serve_stale_grace_time = 86400
+serve_stale_ttl = 120
+negative_cache_ttl = 120
+min_cache_ttl = 1
+udp_rate_limit_window = 0
+udp_rate_limit_count = 1000
+udp_rate_limit_max_clients = 100000
+tcp_rate_limit_window = 0
+tcp_rate_limit_count = 100
+tcp_rate_limit_max_clients = 50000
+doh_rate_limit_window = 0
+doh_rate_limit_count = 400
+doh_rate_limit_max_clients = 50000
+metrics_address = "127.0.0.1:9100"
+metrics_path = "/metrics"
+max_metrics_connections = 25
+control_listen_addresses = ["127.0.0.1:8080"]
+control_path = "/control"
+max_control_connections = 16
+query_log_include_client_addr = false
+query_log_include_query_type = false
 enable_ecs = true
 ecs_prefix_v4 = 24
 ecs_prefix_v6 = 56
-query_log_include_client_addr = false
-query_log_include_query_type = false
+enable_strict_ip_validation = false
 block_private_ips = false
 block_loopback_ips = false
+min_client_port = 1024
+blocked_ip_ranges = []
 user = "$USER"
-group = "$USER"
-metrics_listen_address = "127.0.0.1:9100"
+group = "$(id -gn $USER)"
 EOF
 
 # create service
@@ -60,7 +84,7 @@ Description=EtchDNS high-performance DNS proxy
 After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/etchdns -c /etc/etchdns/etchdns.toml
+ExecStart=/usr/local/bin/etchdns -c /etc/etchdns.toml
 User=root
 Group=root
 LimitNOFILE=65536
@@ -71,7 +95,9 @@ WantedBy=multi-user.target
 EOF
 
 # enable and start
-sudo systemctl daemon-reload
+sudo systemctl disable --now systemd-resolved-monitor.socket
+sudo systemctl disable --now systemd-resolved-varlink.socket
+sudo systemctl disable --now systemd-resolved.service
 sudo systemctl enable --now etchdns
-
+sudo systemctl daemon-reload
 echo "EtchDNS setup complete. Check service status: systemctl status etchdns"
