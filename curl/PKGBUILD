@@ -4,9 +4,8 @@ pkgrel=1
 arch=('x86_64')
 url='https://curl.se/'
 license=('MIT')
-depends=('ca-certificates'
+depends=('ca-certificates' 'glibc'
          'brotli' 'libbrotlidec.so'
-         'glibc'
          'librustls' 'librustls.so'
          'zlib' 'libz.so'
          'zstd' 'libzstd.so')
@@ -50,20 +49,22 @@ build() {
     --enable-http3
     --enable-post
     --enable-ssl
-    --with-openssl
+    --with-rustls
+    --without-ssl
+    --without-gnutls
     --with-quiche
     CFLAGS="${CFLAGS}"
     LDFLAGS="${LDFLAGS}"
   )
 
-  for backend in openssl rustls wolfssl; do
+  for backend in openssl rustls; do
     build_dir="build-${backend}"
     mkdir -p "${build_dir}"
     pushd "${build_dir}"
 
     case "${backend}" in
       openssl)
-        backend_args=(--with-ssl)
+        backend_args=(--with-openssl --with-ssl)
         ;;
       rustls)
         backend_args=(--with-rustls --without-ssl --without-gnutls)
@@ -75,7 +76,7 @@ build() {
 
     ../"curl-${pkgver}"/configure \
       "${common_args[@]}" "${backend_args[@]}"
-    make
+    make -j"$(nproc)"
     popd
   done
 }
@@ -91,7 +92,7 @@ package() {
     install -dm755 "${pkgdir}/usr/share/man/man1"
 
     pushd "${build_dir}"
-    make DESTDIR="${pkgdir}" install
+    make DESTDIR="${pkgdir}" install -j"$(nproc)"
     popd
 
     # strip binaries
