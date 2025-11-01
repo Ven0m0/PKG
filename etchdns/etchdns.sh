@@ -71,7 +71,7 @@ WantedBy=multi-user.target
 EOF
 
 # enable and start
-systemctl daemon-reload
-systemctl enable --now etchdns
+sudo systemctl daemon-reload
+sudo systemctl enable --now etchdns
 
 echo "EtchDNS setup complete. Check service status: systemctl status etchdns"
