@@ -1,11 +1,11 @@
 pkgbase=curl
 pkgname=('curl-rustls' 'curl-openssl' 'curl-wolfssl')
 pkgver=8.4.0
-pkgrel=1
+pkgrel=2
 arch=('x86_64')
 url='https://curl.se/'
 license=('MIT')
-makedepends=('openssl' 'rustls' 'wolfssl' 'pkg-config' 'autoconf' 'automake' 'libtool')
+makedepends=('openssl' 'rustls' 'wolfssl' 'pkg-config' 'autoconf' 'automake' 'libtool' 'quiche')
 source=("https://curl.se/download/curl-${pkgver}.tar.xz")
 sha256sums=('fe6e147d13c4ee6a213efb739561d5d1066ca9efb91b2491585daf4ffcfbf89e')
 
@@ -18,60 +18,59 @@ prepare() {
 build() {
   cd "curl-${pkgver}"
   export CFLAGS="-O3 -march=native -flto -ffat-lto-objects -pipe"
-  export LDFLAGS="-flto -Wl,-O2 -Wl,--sort-common -Wl,--as-needed -Wl,-z,relro -Wl,-z,now -Wl,-z,pack-relative-relocs"
-  local -A opts=(
+  export LDFLAGS="-flto -Wl,-O2 -Wl,--sort-common -Wl,--as-needed -Wl,-z,relro,-z,now,-z,pack-relative-relocs"
+
+  local -A tls=(
     [rustls]="--with-rustls"
     [openssl]="--with-openssl"
     [wolfssl]="--with-wolfssl"
   )
+
   for b in rustls openssl wolfssl; do
     mkdir -p "build-$b"
     cd "build-$b"
     ../configure \
       --prefix=/usr \
+      --disable-shared --disable-manual \
       --enable-ipv6 --enable-threaded-resolver \
-      --enable-quic --with-quiche --enable-http3 \
+      --enable-http2 --enable-quic --with-quiche \
       --with-zlib --with-brotli --with-zstd \
-      --enable-http2 --with-rustls \
-      --disable-manual --disable-shared \
-      ${opts[$b]} CFLAGS="${CFLAGS}" LDFLAGS="${LDFLAGS}"
+      ${tls[$b]} \
+      CFLAGS="${CFLAGS}" LDFLAGS="${LDFLAGS}"
     make -j"$(nproc)"
     cd ..
   done
 }
 
 package_curl-rustls() {
-  pkgdesc="URL transfer tool (rustls TLS)"
-  depends=('ca-certificates' 'brotli' 'librustls' 'zlib' 'zstd')
+  pkgdesc="URL transfer (rustls TLS + HTTP/3)"
+  depends=('ca-certificates' 'brotli' 'librustls' 'zlib' 'zstd' 'quiche')
   provides=('curl')
   conflicts=('curl' 'curl-openssl' 'curl-wolfssl')
 
   cd "curl-${pkgver}/build-rustls"
   make DESTDIR="$pkgdir" install
   strip -s "$pkgdir"/usr/bin/curl
-  find "${pkgdir}/usr/bin" -type f -exec strip --strip-all {} +
 }
 
 package_curl-openssl() {
-  pkgdesc="URL transfer tool (OpenSSL TLS)"
-  depends=('ca-certificates' 'brotli' 'openssl' 'zlib' 'zstd')
+  pkgdesc="URL transfer (OpenSSL TLS + HTTP/3)"
+  depends=('ca-certificates' 'brotli' 'openssl' 'zlib' 'zstd' 'quiche')
   provides=('curl')
   conflicts=('curl' 'curl-rustls' 'curl-wolfssl')
 
   cd "curl-${pkgver}/build-openssl"
   make DESTDIR="$pkgdir" install
   strip -s "$pkgdir"/usr/bin/curl
-  find "${pkgdir}/usr/bin" -type f -exec strip --strip-all {} +
 }
 
 package_curl-wolfssl() {
-  pkgdesc="URL transfer tool (wolfSSL TLS)"
-  depends=('ca-certificates' 'brotli' 'libwolfssl' 'zlib' 'zstd')
+  pkgdesc="URL transfer (wolfSSL TLS + HTTP/3)"
+  depends=('ca-certificates' 'brotli' 'libwolfssl' 'zlib' 'zstd' 'quiche')
   provides=('curl')
   conflicts=('curl' 'curl-rustls' 'curl-openssl')
 
   cd "curl-${pkgver}/build-wolfssl"
   make DESTDIR="$pkgdir" install
   strip -s "$pkgdir"/usr/bin/curl
-  find "${pkgdir}/usr/bin" -type f -exec strip --strip-all {} +
 }
