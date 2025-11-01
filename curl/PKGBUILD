@@ -12,10 +12,9 @@ depends=('ca-certificates' 'glibc'
 makedepends=(openssl rustls wolfssl pkg-config autoconf automake libtool make rust)
 makedepends=('rust' 'git' 'go' 'cmake' 'make' 'patchelf')
 source=("git+https://github.com/curl/curl.git#tag=curl-${pkgver//./_}?signed")
-options=('!emptydirs')
+options=('!emptydirs' '!debug')
 source=("https://curl.se/download/curl-${pkgver}.tar.xz")
 sha256sums=('SKIP')
-
 # split into three backend targets
 pkgdescription_openssl="curl with OpenSSL TLS"
 pkgdescription_rustls="curl with rustls TLS"
@@ -42,6 +41,9 @@ build() {
     --enable-ipv6 \
     --enable-threaded-resolver \
     --with-zlib
+    --with-brotli
+    --enable-earlydata
+    --enable-hsts
     --enable-ftp
     --enable-ares
     --enable-http
@@ -52,6 +54,7 @@ build() {
     --with-rustls
     --without-ssl
     --without-gnutls
+    --enable-quic
     --with-quiche
     CFLAGS="${CFLAGS}"
     LDFLAGS="${LDFLAGS}"
@@ -64,7 +67,7 @@ build() {
 
     case "${backend}" in
       openssl)
-        backend_args=(--with-openssl --with-ssl)
+        backend_args=(--with-openssl --with-openssl-quic --with-ssl)
         ;;
       rustls)
         backend_args=(--with-rustls --without-ssl --without-gnutls)
@@ -87,14 +90,11 @@ package() {
   for backend in openssl rustls wolfssl; do
     pkgdir="${srcdir}/${pkgname[$(( ${backend} == openssl ? 0 : backend == rustls ? 1 : 2 ))]}"
     build_dir="build-${backend}"
-
     install -dm755 "${pkgdir}/usr/bin"
     install -dm755 "${pkgdir}/usr/share/man/man1"
-
     pushd "${build_dir}"
     make DESTDIR="${pkgdir}" install -j"$(nproc)"
     popd
-
     # strip binaries
     find "${pkgdir}/usr/bin" -type f -exec strip --strip-all {} +
   done
