@@ -19,7 +19,7 @@ sudo ln -sf "$pbin" "/usr/local/bin/$(basename $pbin)"
 
 # prepare config
 sudo touch /etc/etchdns.toml
-sudo cat > /etc/etchdns/etchdns.toml <<'EOF'
+sudo cat > /etc/etchdns.toml <<'EOF'
 listen_addresses = ["0.0.0.0:53"]
 log_level = "warn"
 authoritative_dns = false
