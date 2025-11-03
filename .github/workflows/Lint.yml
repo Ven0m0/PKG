@@ -1,4 +1,4 @@
-name: Build Arch Linux Packages
+name: Lint and format
 on:
   workflow_dispatch:
   push:
@@ -14,14 +14,11 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 1
-    - name: Free disk
-      run: |
-        sudo rm -rf /usr/local/lib/android /usr/share/dotnet &>/dev/null || :
     - id: set
       run: |
         pkgs=$(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | jq -Rsc 'split("\n")[:-1]')
         echo "pkgs=$pkgs" >>$GITHUB_OUTPUT
-  build:
+  lint:
     needs: matrix
     runs-on: ubuntu-latest
     strategy:
@@ -33,7 +30,7 @@ jobs:
     - id: makepkg
       uses: 2m/arch-pkgbuild-builder@v1.16
       with:
-        target: pkgbuild
+        target: srcinfo
         pkgname: ${{matrix.pkg}}
     - uses: actions/upload-artifact@v4
       with:
