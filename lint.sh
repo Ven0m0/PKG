@@ -17,7 +17,7 @@ for pkg in "${pkgs[@]}"; do
     shellharden --replace PKGBUILD || errs+=("$pkg: shellharden failed")
   fi
   if command -v shfmt &>/dev/null; then
-    shfmt -ln bash -bn -s -i 2 -w PKGBUILD || || errs+=("$pkg: shfmt failed")
+    shfmt -ln bash -bn -s -i 2 -w PKGBUILD || errs+=("$pkg: shfmt failed")
   fi
   if [[ -f .SRCINFO ]]; then
     makepkg --printsrcinfo 2>/dev/null | diff --ignore-blank-lines .SRCINFO - &>/dev/null || {
