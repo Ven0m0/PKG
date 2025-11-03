@@ -1,10 +1,10 @@
-name: Lint and format
+name: Lint
 on:
   workflow_dispatch:
   push:
-    paths: ['**/PKGBUILD']
+    paths: ['**/PKGBUILD', '**/.SRCINFO']
   pull_request:
-    paths: ['**/PKGBUILD']
+    paths: ['**/PKGBUILD', '**/.SRCINFO']
 jobs:
   matrix:
     runs-on: ubuntu-latest
@@ -27,13 +27,7 @@ jobs:
         pkg: ${{fromJSON(needs.matrix.outputs.pkgs)}}
     steps:
     - uses: actions/checkout@v4
-    - id: makepkg
-      uses: 2m/arch-pkgbuild-builder@v1.16
+    - uses: 2m/arch-pkgbuild-builder@v1.16
       with:
         target: srcinfo
         pkgname: ${{matrix.pkg}}
-    - uses: actions/upload-artifact@v4
-      with:
-        name: ${{matrix.pkg}}
-        path: ${{steps.makepkg.outputs.pkgfile0}}
-        compression-level: 0
