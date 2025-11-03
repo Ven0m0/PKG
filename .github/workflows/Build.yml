@@ -1,63 +1,42 @@
 name: Build Arch Linux Packages
-
 on:
   workflow_dispatch:
   push:
-    paths:
-      - '**/PKGBUILD'
+    paths: ['**/PKGBUILD']
   pull_request:
-    paths:
-      - '**/PKGBUILD'
-
+    paths: ['**/PKGBUILD']
 jobs:
-  # This job's purpose is to find all PKGBUILDs and create a JSON matrix for the next job.
-  generate-matrix:
+  matrix:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      pkgs: ${{steps.set.outputs.pkgs}}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 1
-      - name: Free Disk space
-        shell: bash
-        run: |
-          sudo rm -rf /usr/local/lib/android   # will release about 10 GB if you don't need Android
-          sudo rm -rf /usr/share/dotnet        # will release about 20GB if you don't need .NET
-          
-      - name: Generate package matrix
-        id: set-matrix
-        run: |
-          # 1. Find all PKGBUILD files.
-          # 2. Get their parent directory names.
-          # 3. Pipe the list to jq to create a JSON array.
-          # 4. Set the result as a job output variable named "matrix".
-          MATRIX=$(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | jq -R . | jq -s .)
-          echo "matrix=${MATRIX}" >> $GITHUB_OUTPUT
-
-  # This job runs the builds based on the matrix from the previous job.
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+    - name: Free disk
+      run: |
+        sudo rm -rf /usr/local/lib/android /usr/share/dotnet &>/dev/null || :
+    - id: set
+      run: |
+        pkgs=$(fd -t f '^PKGBUILD$' -x dirname | jq -Rsc 'split("\n")[:-1]')
+        echo "pkgs=$pkgs" >>$GITHUB_OUTPUT
   build:
-    needs: generate-matrix # Ensures this job runs only after generate-matrix is complete
+    needs: matrix
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        # Dynamically create the build matrix from the JSON output of the 'generate-matrix' job
-        pkgdir: ${{ fromJSON(needs.generate-matrix.outputs.matrix) }}
-
+        pkg: ${{fromJSON(needs.matrix.outputs.pkgs)}}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Build and check PKGBUILD
-        id: makepkg
-        uses: 2m/arch-pkgbuild-builder@v1
-        with:
-          pkgname: ${{ matrix.pkgdir }}
-          
-      - name: Upload package artifact
-        uses: actions/upload-artifact@v5
-        with:
-          name: ${{ matrix.pkgdir }}-package
-          path: ${{ steps.makepkg.outputs.pkgfile0 }}
+    - uses: actions/checkout@v4
+    - id: makepkg
+      uses: 2m/arch-pkgbuild-builder@v1.16
+      with:
+        target: pkgbuild
+        pkgname: ${{matrix.pkg}}
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{matrix.pkg}}
+        path: ${{steps.makepkg.outputs.pkgfile0}}
+        compression-level: 0
