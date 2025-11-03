@@ -19,7 +19,7 @@ jobs:
         sudo rm -rf /usr/local/lib/android /usr/share/dotnet &>/dev/null || :
     - id: set
       run: |
-        pkgs=$(fd -t f '^PKGBUILD$' -x dirname | jq -Rsc 'split("\n")[:-1]')
+        pkgs=$(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | jq -Rsc 'split("\n")[:-1]')
         echo "pkgs=$pkgs" >>$GITHUB_OUTPUT
   build:
     needs: matrix
