@@ -31,3 +31,14 @@ jobs:
       with:
         target: srcinfo
         pkgname: ${{matrix.pkg}}
+
+    - name: Validate package
+      uses: heyhusen/archlinux-package-action@v2
+      with:
+        updpkgsums: true
+        pkgrel: true
+        pkgver: true
+        namcap: true
+        aur: true
+        update_archlinux_keyring: true
+        flags: ' --noconfirm'
