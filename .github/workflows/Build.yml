@@ -11,12 +11,20 @@ jobs:
     outputs:
       pkgs: ${{steps.set.outputs.pkgs}}
     steps:
-    - uses: actions/checkout@v4
+    - name: Maximize build space
+      uses: AdityaGarg8/remove-unwanted-software@v5
       with:
-        fetch-depth: 1
+        remove-android: 'true'
+        remove-dotnet: 'true'
+        remove-haskell: 'true'
+        remove-codeql: 'true'
+        remove-docker-images: 'true'
     - name: Free disk
       run: |
-        sudo rm -rf /usr/local/lib/android /usr/share/dotnet &>/dev/null || :
+        sudo rm -rf /usr/local/lib/android /usr/share/dotnet &>/dev/null
+    - uses: actions/checkout@v5
+      with:
+        fetch-depth: 1
     - id: set
       run: |
         pkgs=$(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | jq -Rsc 'split("\n")[:-1]')
