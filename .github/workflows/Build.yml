@@ -22,6 +22,8 @@ jobs:
     - name: Free disk
       run: |
         sudo rm -rf /usr/local/lib/android /usr/share/dotnet &>/dev/null
+        echo "Free space:"
+        df -h
     - uses: actions/checkout@v5
       with:
         fetch-depth: 1
