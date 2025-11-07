@@ -76,7 +76,7 @@ build() {
     export COMPRESSION_LEVELS=(1 5 9) # 1 for fastest, 9 for best compression
 
     echo "PGO data generation"
-    # Generate and process data - optimized to avoid redundant runs
+    # Generate and process data for PGO optimization
     for i in {1..100}; do
         for SIZE in ${DATA_SIZES[@]}; do
             for LEVEL in ${COMPRESSION_LEVELS[@]}; do
