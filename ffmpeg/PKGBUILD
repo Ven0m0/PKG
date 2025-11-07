@@ -59,14 +59,12 @@ depends=(alsa-lib aribb24 bzip2 cairo expat fontconfig
   "rav1e>=$_rav1ever"
   "rubberband>=$_rubberbandver"
   "vid.stab>=$_vidstabver"
-  "x264>=$_x264ver"
   #"x265>=$_x265ver"
-  )
-makedepends=(avisynthplus clang nasm git ladspa cmake libgl
-  mesa opencl-headers lv2 gmp patch
+  "x264>=$_x264ver")
+makedepends=(avisynthplus clang nasm git ladspa cmake 
+  libgl mesa opencl-headers lv2 gmp patch
   "ffnvcodec-headers>=$_ffnvcodecver"
-  "vulkan-headers>=$_vulkanver"
-  )
+  "vulkan-headers>=$_vulkanver")
 optdepends=(
   'avisynthplus: AviSynthPlus support'
   'frei0r-plugins: Frei0r video effects support'
