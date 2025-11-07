@@ -1,17 +1,35 @@
 pkgname=ffmpeg-opt
 arch=(x86_64)
-depends=(
-  aribb24 fribidi
-  expat fontconfig libfreetype.so
-  glibc gnutls
-  libjpeg-turbo libpng libwebp
-  libtheora libvpx.so libx264.so libdav1d.so
-  libdrm libva-drm.so libva.so
-  libvorbisenc.so libvorbis.so opus
-  bzip2 xz zlib
-)
-makedepends=(clang ffnvcodec-headers nasm)
+url=https://ffmpeg.org
 
+depends=(
+  alsa-lib aom aribb24 bzip2 cairo dav1d expat fontconfig
+  freetype2 fribidi glib2 glibc glslang gmp gnutls gsm
+  harfbuzz jack lame libass libavc1394 libbluray libbs2b
+  libdrm libdvdnav libdvdread libgl libiec61883 libjpeg-turbo
+  libjxl libmodplug libopenmpt libplacebo libpng libpulse
+  libraw1394 librsvg libsoxr libtheora libva libvdpau
+  libvpx libwebp libx11 libx264 libxcb libxext opus
+  libxml2 libxv ocl-icd onevpl opencore-amr openjpeg2 
+  rubberband sdl2 snappy speex xvidcore v4l-utils
+  vapoursynth vid.stab vmaf vulkan-icd-loader x264
+  xz zimg zlib rav1e svt-av1
+)
+makedepends=(amf-headers avisynthplus clang nasm frei0r-plugins
+  git ladspa mesa ffnvcodec-headers opencl-headers vulkan-headers)
+optdepends=(
+  'avisynthplus: AviSynthPlus support'
+  'frei0r-plugins: Frei0r video effects support'
+  'intel-media-sdk: Intel QuickSync support (legacy)'
+  'ladspa: LADSPA filters'
+  'nvidia-utils: Nvidia NVDEC/NVENC support'
+  'onevpl-intel-gpu: Intel QuickSync support')
+provides=('libavcodec.so' 'libavdevice.so' 'libavfilter.so' 
+  'libavformat.so' 'libavutil.so' 'libswresample.so' 'libswscale.so')
+source=('git+https://git.ffmpeg.org/ffmpeg.git?signed#tag=${_tag}#depth=1'
+  0001-Add-av_stream_get_first_dts-for-Chromium.patch
+  0001-unbreak-glslang-build.patch
+)
 prepare() {
   cd $pkgdir
   echo "add SVT-VP9 (https://github.com/OpenVisualCloud/SVT-VP9)"
@@ -36,7 +54,7 @@ build() {
     --enable-xlib 3 --enable-shared --enable-openssl  --enable-opengl --enable-opencl --enable-openal \
     --enable-nonfree --enable-lzma --enable-lv2 --enable-libdrm --enable-cuda-llvm \
     --enable-cuvid --enable-ffnvcodec --enable-cuda-nvcc --enable-libsvtvp9 --enable-libvmaf --enable-libvpl \
-    --disable-example --disable-swscale --disable-lavf --enable-libzimg --disable-symbol-versions --without-python
+    --disable-example --disable-lavf --enable-libzimg --disable-symbol-versions --without-python
 
     --disable-doc --enable-lto --enable-version --enable-nvdec --enable-nvenc
     --enable-wayland --enable-drm --enable-shared -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled \
