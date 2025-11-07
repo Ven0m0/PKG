@@ -80,7 +80,7 @@ optdepends=(
 provides=("ffmpeg=$pkgver" 'libavcodec.so' 'libavdevice.so' 'libavfilter.so' 
   'libavformat.so' 'libavutil.so' 'libswresample.so' 'libswscale.so')
 conflicts=('ffmpeg')
-source=("$pkgname::git+https://git.ffmpeg.org/${pkgname}.git#tag=v${pkgver/p/-}#depth=1"
+source=("$pkgname::git+https://git.ffmpeg.org/${pkgname}.git#tag=v${pkgver/p/-}#depth=1&submodules"
   "https://gitlab.archlinux.org/archlinux/packaging/packages/ffmpeg/-/blob/2-8.0-3/0001-Add-av_stream_get_first_dts-for-Chromium.patch"
   "https://gitlab.archlinux.org/archlinux/packaging/packages/ffmpeg/-/blob/2-8.0-3/0001-unbreak-glslang-build.patch"
   "https://gitlab.archlinux.org/archlinux/packaging/packages/emby-ffmpeg/-/blob/main/06c2a2c425f22e7dba5cad909737a631cc676e3f.patch"
@@ -92,7 +92,6 @@ source=("$pkgname::git+https://git.ffmpeg.org/${pkgname}.git#tag=v${pkgver/p/-}#
   "https://aur.archlinux.org/cgit/aur.git/plain/060-ffmpeg-whisper.cpp-fix-pkgconfig.patch?h=ffmpeg-full"
   "https://git.ffmpeg.org/gitweb/ffmpeg.git/patch/f8a300c6739ea2ca648579d7faf3ae9811b9f19a"
   "https://git.ffmpeg.org/gitweb/ffmpeg.git/patch/fa23202cc7baab899894e8d22d82851a84967848" # lcevcdec4.0.0-fix.patch
-  
 )
 options=('!lto')
 noextract=('readme.md')
