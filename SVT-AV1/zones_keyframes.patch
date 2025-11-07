@@ -1,0 +1,252 @@
+diff --git a/Source/API/EbSvtAv1Enc.h b/Source/API/EbSvtAv1Enc.h
+index dff2fc23..a6d55bc9 100644
+--- a/Source/API/EbSvtAv1Enc.h
++++ b/Source/API/EbSvtAv1Enc.h
+@@ -231,9 +231,10 @@ typedef struct SvtAv1FrameScaleEvts {
+ } SvtAv1FrameScaleEvts;
+ 
+ typedef struct QualityZone {
+-    uint64_t start_frame;  // inclusive
+-    uint64_t end_frame;    // inclusive
+-    int      zone_quality; // CRF/CQP value for this zone
++    uint64_t start_frame;     // inclusive
++    uint64_t end_frame;       // inclusive
++    int      zone_quality;    // CRF/CQP value for this zone
++    bool     force_keyframes; // whether to force keyframes at zone boundaries
+ } QualityZone;
+ 
+ // Will contain the EbEncApi which will live in the EncHandle class
+@@ -1006,9 +1007,12 @@ typedef struct EbSvtAv1EncConfiguration {
+ 
+     /* @brief CRF zones configuration string
+      *
+-     * Format: "start1,end1,crf1;start2,end2,crf2;..."
+-     * Example: "0,100,35;101,200,25"
++     * Format: "start1,end1,crf1[,keyframes1];start2,end2,crf2[,keyframes2];..."
++     * Example: "0,100,35,true;101,200,25;201,300,40,false"
++     * keyframes flag is optional, defaults to false
++     * When true, forces keyframes at zone start and end+1 frames
+      * Default is NULL (no zones).
++     * Can be set via CLI --zones or config file Zones
+      */
+     char* zones;
+     
+diff --git a/Source/App/app_main.c b/Source/App/app_main.c
+index 2df7a696..a970a28b 100644
+--- a/Source/App/app_main.c
++++ b/Source/App/app_main.c
+@@ -152,6 +152,69 @@ static int compar_uint64(const void* a, const void* b) {
+     return (x < y) ? -1 : (x > y) ? 1 : 0;
+ }
+ 
++static void extract_zone_keyframes(const QualityZone* zones, uint16_t num_zones, 
++                                   uint64_t** keyframes_out, size_t* count_out) {
++    if (!zones || num_zones == 0) {
++        *keyframes_out = NULL;
++        *count_out = 0;
++        return;
++    }
++    
++    // Count how many keyframes we need (max 2 per zone)
++    size_t max_keyframes = 0;
++    for (uint16_t i = 0; i < num_zones; i++) {
++        if (zones[i].force_keyframes) {
++            max_keyframes += 2; // start and end+1
++        }
++    }
++    
++    if (max_keyframes == 0) {
++        *keyframes_out = NULL;
++        *count_out = 0;
++        return;
++    }
++    
++    uint64_t* keyframes = (uint64_t*)malloc(max_keyframes * sizeof(uint64_t));
++    if (!keyframes) {
++        *keyframes_out = NULL;
++        *count_out = 0;
++        return;
++    }
++    
++    size_t count = 0;
++    for (uint16_t i = 0; i < num_zones; i++) {
++        if (zones[i].force_keyframes) {
++            // Add start frame
++            bool found = false;
++            for (size_t j = 0; j < count; j++) {
++                if (keyframes[j] == zones[i].start_frame) {
++                    found = true;
++                    break;
++                }
++            }
++            if (!found) {
++                keyframes[count++] = zones[i].start_frame;
++            }
++            
++            // Add end+1 frame
++            uint64_t end_plus_one = zones[i].end_frame + 1;
++            found = false;
++            for (size_t j = 0; j < count; j++) {
++                if (keyframes[j] == end_plus_one) {
++                    found = true;
++                    break;
++                }
++            }
++            if (!found) {
++                keyframes[count++] = end_plus_one;
++            }
++        }
++    }
++    
++    *keyframes_out = keyframes;
++    *count_out = count;
++}
++
+ static EbErrorType enc_context_ctor(EncApp* enc_app, EncContext* enc_context, int32_t argc, char* argv[],
+                                     EncPass enc_pass, int32_t passes) {
+ #if LOG_ENC_DONE
+@@ -226,6 +289,51 @@ static EbErrorType enc_context_ctor(EncApp* enc_app, EncContext* enc_context, in
+                       sizeof(forced_keyframes->frames[0]),
+                       compar_uint64);
+             }
++            if (app_cfg->config.parsed_zones && app_cfg->config.num_zones > 0) {
++                uint64_t* zone_keyframes = NULL;
++                size_t zone_keyframe_count = 0;
++                
++                extract_zone_keyframes(app_cfg->config.parsed_zones, 
++                                    app_cfg->config.num_zones,
++                                    &zone_keyframes, 
++                                    &zone_keyframe_count);
++                
++                if (zone_keyframe_count > 0) {
++                    struct forced_key_frames* forced_keyframes = &app_cfg->forced_keyframes;
++                    
++                    size_t total_count = forced_keyframes->count + zone_keyframe_count;
++                    
++                    uint64_t* new_frames = (uint64_t*)realloc(forced_keyframes->frames, 
++                                                            total_count * sizeof(uint64_t));
++                    if (new_frames) {
++                        forced_keyframes->frames = new_frames;
++                        
++                        for (size_t i = 0; i < zone_keyframe_count; i++) {
++                            // Check for duplicates with existing keyframes
++                            bool duplicate = false;
++                            for (size_t j = 0; j < forced_keyframes->count; j++) {
++                                if (forced_keyframes->frames[j] == zone_keyframes[i]) {
++                                    duplicate = true;
++                                    break;
++                                }
++                            }
++                            if (!duplicate) {
++                                forced_keyframes->frames[forced_keyframes->count++] = zone_keyframes[i];
++                            }
++                        }
++                        
++                        qsort(forced_keyframes->frames,
++                            forced_keyframes->count,
++                            sizeof(forced_keyframes->frames[0]),
++                            compar_uint64);
++                        
++                        if (!app_cfg->config.force_key_frames) {
++                            app_cfg->config.force_key_frames = true;
++                        }
++                    }
++                    free(zone_keyframes);
++                }
++            }
+             init_memory_file_map(app_cfg);
+             init_reader(app_cfg);
+ 
+diff --git a/Source/Lib/Globals/enc_settings.c b/Source/Lib/Globals/enc_settings.c
+index 68875106..9435893b 100644
+--- a/Source/Lib/Globals/enc_settings.c
++++ b/Source/Lib/Globals/enc_settings.c
+@@ -2037,13 +2037,33 @@ static EbErrorType parse_zones_string(const char* zones_str, QualityZone** zones
+     while (zone_token && parsed_zones < zone_count) {
+         unsigned long long start, end;
+         int quality;
++        char keyframes_str[16] = {0};
++        bool force_keyframes = false;
+ 
+-        if (sscanf(zone_token, "%llu,%llu,%d", &start, &end, &quality) != 3) {
++        // Try to parse with optional keyframes parameter
++        int parsed_fields = sscanf(zone_token, "%llu,%llu,%d,%15s", &start, &end, &quality, keyframes_str);
++        
++        if (parsed_fields < 3) {
++            SVT_ERROR("Invalid zone format '%s'. Expected: start,end,quality[,keyframes]\n", zone_token);
+             free(zones);
+             free(zones_copy);
+             return EB_ErrorBadParameter;
+         }
+         
++        // Parse keyframes flag if provided
++        if (parsed_fields >= 4) {
++            if (!strcmp(keyframes_str, "true") || !strcmp(keyframes_str, "1")) {
++                force_keyframes = true;
++            } else if (!strcmp(keyframes_str, "false") || !strcmp(keyframes_str, "0")) {
++                force_keyframes = false;
++            } else {
++                SVT_ERROR("Invalid keyframes value '%s' in zone. Use 'true', 'false', '1', or '0'\n", keyframes_str);
++                free(zones);
++                free(zones_copy);
++                return EB_ErrorBadParameter;
++            }
++        }
++        
+         // Validate zone parameters
+         if (start > end) {
+             SVT_ERROR("Invalid zone: start frame (%llu) > end frame (%llu)\n", start, end);
+@@ -2062,6 +2082,7 @@ static EbErrorType parse_zones_string(const char* zones_str, QualityZone** zones
+         zones[parsed_zones].start_frame = start;
+         zones[parsed_zones].end_frame = end;
+         zones[parsed_zones].zone_quality = quality;
++        zones[parsed_zones].force_keyframes = force_keyframes;
+         parsed_zones++;
+         
+         zone_token = strtok(NULL, ";");
+@@ -2167,6 +2188,13 @@ EB_API EbErrorType svt_av1_enc_parse_parameter(EbSvtAv1EncConfiguration *config_
+                 config_struct->parsed_zones = NULL;
+             }
+         }
++        
++        if (!value || strlen(value) == 0) {
++            config_struct->zones = NULL;
++            config_struct->num_zones = 0;
++            return EB_ErrorNone;
++        }
++        
+         config_struct->zones = strdup(value);
+         
+         // Parse zones immediately
+@@ -2186,19 +2214,28 @@ EB_API EbErrorType svt_av1_enc_parse_parameter(EbSvtAv1EncConfiguration *config_
+                 SVT_INFO("Parsed %d zones:\n", config_struct->num_zones);
+             }
+             for (int i = 0; i < config_struct->num_zones; i++) {
++                const char* mode_str;
+                 if (config_struct->enable_adaptive_quantization == 0 && config_struct->enable_variance_boost == 0) {
+-                    SVT_INFO("  Zone %d: frames %llu-%llu, CQP %d\n", 
++                    mode_str = "CQP";
++                } else {
++                    mode_str = "CRF";
++                }
++                
++                if (config_struct->parsed_zones[i].force_keyframes) {
++                    SVT_INFO("  Zone %d: frames %llu-%llu, %s %d, keyframes forced\n", 
+                             i + 1,
+                             config_struct->parsed_zones[i].start_frame,
+                             config_struct->parsed_zones[i].end_frame,
++                            mode_str,
+                             config_struct->parsed_zones[i].zone_quality);
+                 } else {
+-                    SVT_INFO("  Zone %d: frames %llu-%llu, CRF %d\n", 
++                    SVT_INFO("  Zone %d: frames %llu-%llu, %s %d\n", 
+                             i + 1,
+                             config_struct->parsed_zones[i].start_frame,
+                             config_struct->parsed_zones[i].end_frame,
++                            mode_str,
+                             config_struct->parsed_zones[i].zone_quality);
+-                }  
++                }
+             }
+         }
+         
