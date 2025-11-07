@@ -16,11 +16,12 @@ MALLOC_CONF="thp:always,metadata_thp:always,tcache:true,percpu_arena:percpu"
 export MALLOC_CONF _RJEM_MALLOC_CONF="$MALLOC_CONF" RUSTC_BOOTSTRAP=1 CARGO_INCREMENTAL=0 OPT_LEVEL=3 CARGO_PROFILE_RELEASE_LTO=true CARGO_CACHE_RUSTC_INFO=1 
 cargo +nightly -Zunstable-options -Zavoid-dev-deps install etchdns -f
 pbin="$(command -v etchdns || echo ${HOME}/.cargo/bin/etchdns)"
+pbin_name="$(basename "$pbin")"
 
 # Consolidate all sudo operations into a single block
 sudo bash <<SUDO_BLOCK
-ln -sf "$pbin" "/usr/local/bin/\$(basename "\$pbin")"
-# chown root:root "/usr/local/bin/\$(basename "\$pbin")"; chmod 755 "/usr/local/bin/\$(basename "\$pbin")"
+ln -sf "$pbin" "/usr/local/bin/$pbin_name"
+# chown root:root "/usr/local/bin/$pbin_name"; chmod 755 "/usr/local/bin/$pbin_name"
 
 # Prepare config - write directly instead of using cat
 cat > /etc/etchdns.toml <<'EOF'
