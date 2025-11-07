@@ -9,7 +9,7 @@ license=('custom:Apache License v2.0 with LLVM Exception')
 depends=('cuda' 'hip-runtime-amd')
 makedepends=('git' 'cmake' 'python' 'ninja')
 checkdepends=("python-psutil")
-source=('intel-llvm::git+https://github.com/intel/llvm.git#branch=sycl' "intel-llvm.sh" "intel-llvm.conf")
+source=('intel-llvm::git+https://github.com/intel/llvm.git#branch=sycl#depth=1' "intel-llvm.sh" "intel-llvm.conf")
 md5sums=('SKIP'
          '66c25f2ada33c8ac8b706a084383dc11'
          '847be655cc4b75f59e1a4c8b433ee3a9')
