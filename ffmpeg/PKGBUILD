@@ -199,7 +199,7 @@ package() {
   #install -Dm 755 ffmpeg/tools/qt-faststart "${pkgdir}"/usr/bin/
   
   cd "${pkgname:-$pkgdir)"
-  rm -fv ./*-docs-*.pkg.tar.* ./*-debug-*.pkg.tar.*
+  rm -f ./*-docs-*.pkg.tar.* ./*-debug-*.pkg.tar.*
   install -Dm 755 bin/ffdetect "${pkgdir}"/usr/bin/ffdetect
   install -Dm 755 ffmpeg-${pkgver}_public/ffmpeg "${pkgdir}"/usr/bin/ffmpeg
   install -Dm 755 ffmpeg-${pkgver}_public/ffprobe "${pkgdir}"/usr/bin/ffprobe
