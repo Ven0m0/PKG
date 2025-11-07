@@ -5,6 +5,16 @@ on:
     paths: ['**/PKGBUILD']
   pull_request:
     paths: ['**/PKGBUILD']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions: write-all
+env:
+  DEBIAN_FRONTEND: noninteractive
+  LC_ALL: C
+  GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+
 jobs:
   matrix:
     runs-on: ubuntu-latest
