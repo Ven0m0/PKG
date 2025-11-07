@@ -92,10 +92,10 @@ options=(${_makepkg_options[@]})
 url="https://www.mesa3d.org"
 license=('custom')
 
-_sourceurl="mesa::git+${_mesa_source}${_mesa_version}"
+_sourceurl="mesa::git+${_mesa_source}${_mesa_version}#depth=1"
 _mesa_srcdir="mesa"
 
-source=("$_sourceurl"
+source=("${_sourceurl}"
         'LICENSE'
         'llvm32.native'
 )
