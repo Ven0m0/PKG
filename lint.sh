@@ -3,12 +3,14 @@ set -e; shopt -s globstar nullglob
 LC_ALL=C LANG=C
 pkgs=($(find -O2 . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||'))
 errs=()
+original_dir="$PWD"
+
 for pkg in "${pkgs[@]}"; do
   [[ -d $pkg ]] || continue
-  cd "$pkg" && echo "==> $pkg"
+  cd "$original_dir/$pkg" && echo "==> $pkg"
   if [[ ! -f PKGBUILD ]]; then
     errs+=("$pkg: no PKGBUILD")
-    cd - &>/dev/null; continue
+    continue
   fi
   if command -v shellcheck &>/dev/null; then
     shellcheck -x -a -s bash -f diff PKGBUILD | patch -Np1 || errs+=("$pkg: shellcheck failed")
@@ -28,8 +30,10 @@ for pkg in "${pkgs[@]}"; do
     errs+=("$pkg: missing .SRCINFO")
     echo "Run: cd $pkg && makepkg --printsrcinfo > .SRCINFO"
   fi
-  cd - &>/dev/null
 done
+
+cd "$original_dir"
+
 if ((${#errs[@]})); then
   printf '%s\n' "${errs[@]}" >&2; exit 1
 fi
