@@ -16,14 +16,14 @@ url='https://www.gnu.org/software/libc'
 license=(GPL LGPL)
 makedepends=(git gd python)
 options=(staticlibs !lto)
-source=(git+https://sourceware.org/git/glibc.git#commit=${_commit}
-        locale.gen.txt
-        locale-gen
-        lib32-glibc.conf
-        sdt.h sdt-config.h
-        reenable_DT_HASH.patch
-        tune_adaptive_spin.patch
-        0001-Set-vector-width-and-alignment-to-fix-GCC-AVX-issue.patch
+source=('git+https://sourceware.org/git/glibc.git#commit=${_commit}#depth=1'
+        'locale.gen.txt'
+        'locale-gen'
+        'lib32-glibc.conf'
+        'sdt.h sdt-config.h'
+        'reenable_DT_HASH.patch'
+        'tune_adaptive_spin.patch'
+        '0001-Set-vector-width-and-alignment-to-fix-GCC-AVX-issue.patch'
 )
 validpgpkeys=(7273542B39962DF7B299931416792B4EA25340F8 # Carlos O'Donell
               BC7C7372637EC10C57D7AA6579C43DFBF1CF2187) # Siddhesh Poyarekar
