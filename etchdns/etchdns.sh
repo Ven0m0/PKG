@@ -19,8 +19,8 @@ pbin="$(command -v etchdns || echo ${HOME}/.cargo/bin/etchdns)"
 
 # Consolidate all sudo operations into a single block
 sudo bash <<SUDO_BLOCK
-ln -sf "$pbin" "/usr/local/bin/$(basename "$pbin")"
-# chown root:root "/usr/local/bin/$(basename "$pbin")"; chmod 755 "/usr/local/bin/$(basename "$pbin")"
+ln -sf "$pbin" "/usr/local/bin/\$(basename "\$pbin")"
+# chown root:root "/usr/local/bin/\$(basename "\$pbin")"; chmod 755 "/usr/local/bin/\$(basename "\$pbin")"
 
 # Prepare config - write directly instead of using cat
 cat > /etc/etchdns.toml <<'EOF'

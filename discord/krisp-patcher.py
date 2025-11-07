@@ -26,7 +26,7 @@ with open(executable, "rb") as elf_file:
     address_to_file = text_start_file - text_start
 
 krisp_initialize_offset = krisp_initialize_address - address_to_file
-isSignedByDiscord_offset = krisp_initialize_address - address_to_file
+isSignedByDiscord_offset = isSignedByDiscord_address - address_to_file
 
 with open(executable, "rb") as f:
     f.seek(krisp_initialize_offset)
