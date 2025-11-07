@@ -1,7 +1,12 @@
-pkgname=ffmpeg-opt
+_pkgname=ffmpeg-opt
+pkgname=ffmpeg
+pkgver=8.0
+pkgrel=3
+epoch=2
 arch=(x86_64)
 url=https://ffmpeg.org
-
+pkgdesc='Ven0m0s build of ffmpeg'
+license=('GPL-3.0-only')
 depends=(
   alsa-lib aom aribb24 bzip2 cairo dav1d expat fontconfig
   freetype2 fribidi glib2 glibc glslang gmp gnutls gsm
@@ -15,23 +20,39 @@ depends=(
   vapoursynth vid.stab vmaf vulkan-icd-loader x264
   xz zimg zlib rav1e svt-av1
 )
-makedepends=(amf-headers avisynthplus clang nasm frei0r-plugins
-  git ladspa mesa ffnvcodec-headers opencl-headers vulkan-headers)
+makedepends=(avisynthplus clang nasm git ladspa
+  mesa ffnvcodec-headers opencl-headers vulkan-headers)
 optdepends=(
   'avisynthplus: AviSynthPlus support'
   'frei0r-plugins: Frei0r video effects support'
+  'intel-compute-runtime: for Intel OpenCL runtime based tonemapping'
   'intel-media-sdk: Intel QuickSync support (legacy)'
+  'onevpl-intel-gpu: for Intel Quick Sync Video (Alder Lake and newer)'
   'ladspa: LADSPA filters'
   'nvidia-utils: Nvidia NVDEC/NVENC support'
-  'onevpl-intel-gpu: Intel QuickSync support')
+  'onevpl-intel-gpu: Intel QuickSync support'
+  'vulkan-intel: for Intel ANV Vulkan support')
 provides=('libavcodec.so' 'libavdevice.so' 'libavfilter.so' 
   'libavformat.so' 'libavutil.so' 'libswresample.so' 'libswscale.so')
-source=('git+https://git.ffmpeg.org/ffmpeg.git?signed#tag=${_tag}#depth=1'
-  0001-Add-av_stream_get_first_dts-for-Chromium.patch
-  0001-unbreak-glslang-build.patch
+source=("$pkgname::git+https://git.ffmpeg.org/${pkgname}.git#tag=v${pkgver/p/-}#depth=1"
+  "https://gitlab.archlinux.org/archlinux/packaging/packages/ffmpeg/-/blob/2-8.0-3/0001-Add-av_stream_get_first_dts-for-Chromium.patch"
+  "https://gitlab.archlinux.org/archlinux/packaging/packages/ffmpeg/-/blob/2-8.0-3/0001-unbreak-glslang-build.patch"
+  "https://gitlab.archlinux.org/archlinux/packaging/packages/emby-ffmpeg/-/blob/main/06c2a2c425f22e7dba5cad909737a631cc676e3f.patch"
+  "https://gitlab.archlinux.org/archlinux/packaging/packages/emby-ffmpeg/-/blob/main/mbedtls-3.6.patch"
 )
+options=('!lto')
+noextract=(readme.md)
+
 prepare() {
-  cd $pkgdir
+  cd "$pkgname"
+  # https://crbug.com/1251779
+  git apply -3 ../0001-Add-av_stream_get_first_dts-for-Chromium.patch
+  # https://github.com/FFmpeg/FFmpeg/commit/f1e9032a2000b8b885cffd6fed8eacd47b37673f
+  git apply -3 ../0001-unbreak-glslang-build.patch
+
+  # apply patches
+  #for i in patches/*.patch; do patch -Np1 -i -- "$i"; done
+  
   echo "add SVT-VP9 (https://github.com/OpenVisualCloud/SVT-VP9)"
   git clone --depth 1 https://github.com/OpenVisualCloud/SVT-VP9.git
   # Adjust this line to add any other cmake related options
@@ -48,26 +69,36 @@ prepare() {
   ./configure --enable-libsvthevc
 }
 build() {
+  cd "$pkgname"
+  CFLAGS+=" -Wno-incompatible-pointer-types"
   ./configure --enable-libsvtvp9 --enable-avcodec --enable-libdav1d --enable-libaom --enable-libjxl \
-    --enable-libdvdread --enable-libfontconfig --enable-libfreetype --enable-gmp --enable-libopus --enable-libsvtav1 \
+    --enable-libdvdread --enable-libfontconfig --enable-libfreetype --enable-gmp --enable-libsvtav1 \
     --enable-libwebp --enable-libvpx --enable-vulkan --enable-vdpau --enable-vaapi --enable-vapoursynth --enable-zlib \
-    --enable-xlib 3 --enable-shared --enable-openssl  --enable-opengl --enable-opencl --enable-openal \
+    --enable-xlib --enable-shared --enable-openssl  --enable-opengl --enable-opencl --enable-openal \
     --enable-nonfree --enable-lzma --enable-lv2 --enable-libdrm --enable-cuda-llvm \
     --enable-cuvid --enable-ffnvcodec --enable-cuda-nvcc --enable-libsvtvp9 --enable-libvmaf --enable-libvpl \
-    --disable-example --disable-lavf --enable-libzimg --disable-symbol-versions --without-python
+    --disable-example --disable-lavf --enable-libzimg --disable-symbol-versions --without-python --enable-version3
 
-    --disable-doc --enable-lto --enable-version --enable-nvdec --enable-nvenc
-    --enable-wayland --enable-drm --enable-shared -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled \
+    --disable-doc --enable-lto --enable-version --enable-nvdec --enable-nvenc --target-os=linux
+    --enable-wayland --enable-drm --enable-shared -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled --disable-amf \
     -Dcairo-tests=disabled -Dexynos=disabled --buildtype=release -Dzlib=enabled --enable-nasm \
-    --disable-gtktest --disable-oggtest --disable-vorbistest --disable-unit-tests --disable-libx265
-
-
+    --disable-gtktest --disable-oggtest --disable-vorbistest --disable-unit-tests --disable-libx265 \
+    --disable-libvorbis --enable-libopus --disable-librtmp --prefix=/usr --disable-debug
 
   make -j $(nproc)
-  make install
+  #make -j $(nproc) tools/qt-faststart
+  #make -j $(nproc) doc/ff{mpeg,play}.1
 }
 
 package() {
+  #depends+=(libass.so libbluray.so libbs2b.so libdav1d.so librav1e.so libjxl.so
+    #libfreetype.so libharfbuzz.so libopenmpt.so libplacebo.so librsvg-2.so 
+    #librubberband.so libva.so libva-drm.so libzimg.so libzmq.so
+    #libvidstab.so libvpx.so libx264.so libxvidcore.so)
+  #make -j $(nproc) DESTDIR="${pkgdir}" -C ffmpeg install install-man
+  #install -Dm 755 ffmpeg/tools/qt-faststart "${pkgdir}"/usr/bin/
+  
+  cd "${pkgname:-$pkgdir)"
   install -Dm 755 bin/ffdetect "${pkgdir}"/usr/bin/ffdetect
   install -Dm 755 ffmpeg-${pkgver}_public/ffmpeg "${pkgdir}"/usr/bin/ffmpeg
   install -Dm 755 ffmpeg-${pkgver}_public/ffprobe "${pkgdir}"/usr/bin/ffprobe
