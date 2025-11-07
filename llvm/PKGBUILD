@@ -22,7 +22,7 @@ makedepends=('cmake' 'ninja' 'zlib' 'zstd' 'curl' 'libffi' 'libedit'
   'libxml2' 'python-setuptools' 'python-psutil' 'python-sphinx'
   'python-myst-parser' 'clang' 'lld' 'llvm')
 options=('!lto')
-_source_base="https://github.com/llvm/llvm-project/releases/download/llvmorg-$pkgver"
+_source_base="https://github.com/llvm/llvm-project/releases/download/llvmorg-${pkgver}#depth=1"
 source=("$_source_base/llvm-$pkgver.src.tar.xz"{,.sig}
   "$_source_base/cmake-$pkgver.src.tar.xz"{,.sig}
   "$_source_base/third-party-$pkgver.src.tar.xz"{,.sig})
