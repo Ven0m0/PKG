@@ -45,32 +45,42 @@ if not os.path.exists(cache_path):
         file.write("{}")
 
 def patch():
+    # Read all files once at the start
     with open(product_path, "r") as product_file:
         product_data = json.load(product_file)
     with open(patch_path, "r") as patch_file:
         patch_data = json.load(patch_file)
+    
+    # Build cache data in memory
     cache_data = {}
     for key in patch_data.keys():
         if key in product_data:
             cache_data[key] = product_data[key]
         product_data[key] = patch_data[key]
+    
+    # Write both files at the end
     with open(product_path, "w") as product_file:
         json.dump(product_data, product_file, indent='\t')
     with open(cache_path, "w") as cache_file:
         json.dump(cache_data, cache_file, indent='\t')
 
 def restore():
+    # Read all files once at the start
     with open(product_path, "r") as product_file:
         product_data = json.load(product_file)
     with open(patch_path, "r") as patch_file:
         patch_data = json.load(patch_file)
     with open(cache_path, "r") as cache_file:
         cache_data = json.load(cache_file)
+    
+    # Update product data in memory
     for key in patch_data.keys():
         if key in product_data:
             del product_data[key]
     for key in cache_data.keys():
         product_data[key] = cache_data[key]
+    
+    # Write the final result
     with open(product_path, "w") as product_file:
         json.dump(product_data, product_file, indent='\t')
 

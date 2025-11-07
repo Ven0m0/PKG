@@ -29,11 +29,11 @@ def run_speedometer(driver, version='2.0'):
 
     driver.save_screenshot(f"speedometer_{version}_start.png")
 
-    start_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "button")))
+    start_button = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.TAG_NAME, "button")))
     start_button.click()
 
-    # Wait for the details button to be visible
-    details_button = WebDriverWait(driver, 60).until(EC.visibility_of_element_located((By.CLASS_NAME, "show-details")))
+    # Wait for the details button to be visible - increased timeout for long-running benchmark
+    details_button = WebDriverWait(driver, 300).until(EC.visibility_of_element_located((By.CLASS_NAME, "show-details")))
     details_button.click()
 
     driver.save_screenshot(f"speedometer_{version}_b.png")
