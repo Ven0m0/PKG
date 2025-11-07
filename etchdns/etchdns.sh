@@ -2,6 +2,8 @@
 set -euo pipefail
 export LC_ALL=C LANG=C LANGUAGE=C HOME="/home/${SUDO_USER:-$USER}"
 cd -P -- "$(cd -P -- "${BASH_SOURCE[0]%/*}" && echo "$PWD")" || exit 1
+
+# Request sudo once at the start
 sudo -v
 
 if command -v sccache &>/dev/null; then
@@ -14,12 +16,15 @@ MALLOC_CONF="thp:always,metadata_thp:always,tcache:true,percpu_arena:percpu"
 export MALLOC_CONF _RJEM_MALLOC_CONF="$MALLOC_CONF" RUSTC_BOOTSTRAP=1 CARGO_INCREMENTAL=0 OPT_LEVEL=3 CARGO_PROFILE_RELEASE_LTO=true CARGO_CACHE_RUSTC_INFO=1 
 cargo +nightly -Zunstable-options -Zavoid-dev-deps install etchdns -f
 pbin="$(command -v etchdns || echo ${HOME}/.cargo/bin/etchdns)"
-sudo ln -sf "$pbin" "/usr/local/bin/$(basename $pbin)"
-# sudo chown root:root "/usr/local/bin/$(basename $pbin)"; sudo chmod 755 "/usr/local/bin/$(basename $pbin)"
+pbin_name="$(basename "$pbin")"
 
-# prepare config
-sudo touch /etc/etchdns.toml
-sudo cat > /etc/etchdns.toml <<'EOF'
+# Consolidate all sudo operations into a single block
+sudo bash <<SUDO_BLOCK
+ln -sf "$pbin" "/usr/local/bin/$pbin_name"
+# chown root:root "/usr/local/bin/$pbin_name"; chmod 755 "/usr/local/bin/$pbin_name"
+
+# Prepare config - write directly instead of using cat
+cat > /etc/etchdns.toml <<'EOF'
 listen_addr = "127.0.0.1:53"
 cache = true
 cache_size = 10000
@@ -77,8 +82,8 @@ user = "$USER"
 group = "$(id -gn $USER)"
 EOF
 
-# create service
-sudo cat > /etc/systemd/system/etchdns.service <<'EOF'
+# Create service
+cat > /etc/systemd/system/etchdns.service <<'EOF'
 [Unit]
 Description=EtchDNS high-performance DNS proxy
 After=network.target
@@ -94,10 +99,12 @@ Restart=on-failure
 WantedBy=multi-user.target
 EOF
 
-# enable and start
-sudo systemctl disable --now systemd-resolved-monitor.socket
-sudo systemctl disable --now systemd-resolved-varlink.socket
-sudo systemctl disable --now systemd-resolved.service
-sudo systemctl enable --now etchdns
-sudo systemctl daemon-reload
+# Enable and start services
+systemctl disable --now systemd-resolved-monitor.socket
+systemctl disable --now systemd-resolved-varlink.socket
+systemctl disable --now systemd-resolved.service
+systemctl enable --now etchdns
+systemctl daemon-reload
+SUDO_BLOCK
+
 echo "EtchDNS setup complete. Check service status: systemctl status etchdns"
