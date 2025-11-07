@@ -48,3 +48,7 @@ nohup.out
 pkg/
 src/
 target
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
