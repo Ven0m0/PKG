@@ -27,7 +27,7 @@ jobs:
         pkg: ${{fromJSON(needs.matrix.outputs.pkgs)}}
     steps:
     - uses: actions/checkout@v4
-    - uses: 2m/arch-pkgbuild-builder@v1.16
+    - uses: 2m/arch-pkgbuild-builder@v1.21
       with:
         target: srcinfo
         pkgname: ${{matrix.pkg}}
