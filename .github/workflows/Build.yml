@@ -64,7 +64,7 @@ jobs:
       with:
         target: pkgbuild
         pkgname: ${{matrix.pkg}}
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v5
       with:
         name: ${{matrix.pkg}}
         path: ${{steps.makepkg.outputs.pkgfile0}}
