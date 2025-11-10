@@ -58,7 +58,7 @@ jobs:
       matrix:
         pkg: ${{fromJSON(needs.matrix.outputs.pkgs)}}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - id: makepkg
       uses: 2m/arch-pkgbuild-builder@v1.16
       with:
