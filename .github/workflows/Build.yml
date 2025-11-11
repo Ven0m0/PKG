@@ -60,7 +60,7 @@ jobs:
     steps:
     - uses: actions/checkout@v5
     - id: makepkg
-      uses: 2m/arch-pkgbuild-builder@v1.16
+      uses: 2m/arch-pkgbuild-builder@v1.21
       with:
         target: pkgbuild
         pkgname: ${{matrix.pkg}}
