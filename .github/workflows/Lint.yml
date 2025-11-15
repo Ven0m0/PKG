@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v5
       with:
-        fetch-depth: 1
+        fetch-depth: 0
     - id: set
       run: |
         pkgs=$(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | jq -Rsc 'split("\n")[:-1]')
@@ -26,7 +26,9 @@ jobs:
       matrix:
         pkg: ${{fromJSON(needs.matrix.outputs.pkgs)}}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
     - uses: 2m/arch-pkgbuild-builder@v1.21
       with:
         target: srcinfo
@@ -40,5 +42,6 @@ jobs:
         pkgver: true
         namcap: true
         aur: true
+        srcinfo: true
         update_archlinux_keyring: true
-        flags: ' --noconfirm'
+        flags: '-si --noconfirm --needed'
