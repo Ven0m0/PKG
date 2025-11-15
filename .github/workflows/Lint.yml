@@ -5,6 +5,13 @@ on:
     paths: ['**/PKGBUILD', '**/.SRCINFO']
   pull_request:
     paths: ['**/PKGBUILD', '**/.SRCINFO']
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions: write-all
+env:
+  DEBIAN_FRONTEND: noninteractive
+  GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
 jobs:
   matrix:
     runs-on: ubuntu-latest
