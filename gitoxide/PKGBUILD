@@ -1,0 +1,26 @@
+# Maintainer: Sebastian Thiel <sebastian.thiel@icloud.com>
+pkgname=gitoxide
+pkgver=0.46.0
+pkgrel=1
+makedepends=('rust' 'cargo')
+arch=('x86_64' 'aarch64')
+pkgdesc="A command-line application for interacting with git repositories"
+license=('MIT OR Apache-2.0')
+url='https://github.com/GitoxideLabs/gitoxide'
+# Generated in accordance to https://wiki.archlinux.org/title/Rust_package_guidelines.
+# Might require further modification depending on the package involved.
+prepare() {
+  cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
+}
+
+build() {
+  export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target
+  cargo build -r --frozen --no-default-features--bins --lib --features --features max-pure
+}
+check() {
+  export RUSTUP_TOOLCHAIN=stable
+  cargo test --frozen --all-features
+}
+package() {
+  install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/$pkgname"
+}
