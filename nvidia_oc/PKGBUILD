@@ -39,6 +39,4 @@ package() {
   [Install]
   WantedBy=multi-user.target
 EOF
-  sudo systemctl daemon-reload
-  sudo systemctl enable --now nvidia_oc
 }
