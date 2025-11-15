@@ -30,6 +30,21 @@ check() {
 package() {
   cd "$pkgname-$pkgver"
   install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/$pkgname"
+  sudo cat > /etc/systemd/system/etchdns.service <<'EOF'
+  [Unit]
+  Description=EtchDNS high-performance DNS proxy
+  After=network.target
+  
+  [Service]
+  ExecStart=/usr/bin/etchdns -c /etc/etchdns.toml
+  User=root
+  Group=root
+  LimitNOFILE=65536
+  Restart=on-failure
+
+  [Install]
+  WantedBy=multi-user.target
+EOF
 }
 
 # vim: ts=2 sw=2 et:
