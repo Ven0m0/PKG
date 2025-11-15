@@ -22,3 +22,5 @@ sha512sums=('b3a43be42a7d3401e03d55c912dfa9774c5c1d240300d05e4c6268fc21261c9fc14
 package() {
  install -Dm644 "$srcdir/$pkgname" "$pkgdir/etc/pacman.d/$pkgname"
 }
+
+# vim: ts=2 sw=2 et:

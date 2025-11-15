@@ -1,70 +1,34 @@
-# https://archlinux.org/packages/extra/x86_64/ffmpeg/
-# https://github.com/jellyfin/jellyfin-ffmpeg
-# https://gitlab.archlinux.org/archlinux/packaging/packages/emby-ffmpeg
-# https://aur.archlinux.org/packages/ffmpeg-obs
-# https://github.com/nekotrix/FFmpeg-Builds-SVT-AV1-Essential
-# https://github.com/Ven0m0/archlinux-pkgs-debloated/blob/main/ffmpeg-mini.sh
-# https://github.com/OpenVisualCloud/SVT-VP9/tree/master/ffmpeg_plugin
+# Maintainer: Ven0m0
+# Based on: https://archlinux.org/packages/extra/x86_64/ffmpeg/
+# Based on: https://github.com/jellyfin/jellyfin-ffmpeg
 
-_pkgname=ffmpeg-opt
-pkgname=ffmpeg
-pkgver=8.0
-pkgrel=2
-_svt_hevc_ver='ed80959ebb5586aa7763c91a397d44be1798587c'
-_obs_studio_ver='32.0.1'
-_whispercpp_ver='1.8.2'
+_pkgname=ffmpeg
+pkgname=ffmpeg-opt
+pkgver=7.1
+pkgrel=1
+pkgdesc='Complete solution to record, convert and stream audio and video - optimized build'
 arch=(x86_64)
 url='https://ffmpeg.org'
-pkgdesc='Ven0m0s build of ffmpeg'
 license=('GPL-3.0-only')
-# To manage dependency rebuild easily, this will prevent you to rebuild FFmpeg on non-updated system
-_aomver=3
-_dav1dver=1.3.0
-_ffnvcodecver=12.2
-_glslangver=1.4.328
-_libjxlver=0.11.0
-_libplacebover=7.351
-_libristver=0.2.7
-_libtheoraver=1.2
-_libvpxver=1.15.2
-_libxml2ver=2.14
-_rav1ever=0.8.1
-_rubberbandver=4
-_srtver=1.5
-_svtav1ver=3
-_vidstabver=1.1.1
-_vmafver=3
-_vulkanver=1.3.279
-_x264ver=0.164
-_x265ver=4.1
-
-depends=(alsa-lib aribb24 bzip2 cairo expat fontconfig
+depends=(
+  alsa-lib aribb24 bzip2 cairo expat fontconfig
   freetype2 fribidi glib2 glibc gmp gnutls gsm
   harfbuzz jack lame libass libavc1394 libbluray libbs2b
   libdrm libdvdnav libdvdread libgl libiec61883 libjpeg-turbo
   libmodplug libopenmpt libpng libpulse libraw1394 librsvg
-  libsoxr libva libvdpau libwebp libx11 libx264 libxcb
-  libxext opus libxv ocl-icd onevpl opencore-amr openjpeg2 
-  sdl2 snappy speex xvidcore v4l-utils vapoursynth vmaf
-  xz zimg zlib svt-av1 vulkan-icd-loader
-  "aom>=$_aomver"
-  #"srt>=$_srtver"
-  "dav1d>=$_dav1dver"
-  "glslang>=$_glslangver"
-  "libjxl>=$_libjxlver"
-  "libplacebo>=$_libplacebover"
-  "libtheora>=$_libtheoraver"
-  "libvpx>=$_libvpxver"
-  "libxml2>=$_libxml2ver"
-  "rav1e>=$_rav1ever"
-  "rubberband>=$_rubberbandver"
-  "vid.stab>=$_vidstabver"
-  #"x265>=$_x265ver"
-  "x264>=$_x264ver")
-makedepends=(avisynthplus clang nasm git ladspa cmake 
-  libgl mesa opencl-headers lv2 gmp patch
-  "ffnvcodec-headers>=$_ffnvcodecver"
-  "vulkan-headers>=$_vulkanver")
+  libsoxr libva libvdpau libwebp libx11 libxcb libxext
+  libxv ocl-icd onevpl opencore-amr openjpeg2 opus
+  sdl2 snappy speex v4l-utils vapoursynth xvidcore
+  xz zimg zlib
+  aom dav1d rav1e svt-av1
+  libplacebo libtheora libvpx libxml2 rubberband vid.stab vmaf
+  x264 x265
+)
+makedepends=(
+  avisynthplus clang nasm git ladspa cmake
+  libgl mesa opencl-headers vulkan-headers ffnvcodec-headers
+  lv2 gmp patch
+)
 optdepends=(
   'avisynthplus: AviSynthPlus support'
   'frei0r-plugins: Frei0r video effects support'
@@ -73,138 +37,119 @@ optdepends=(
   'onevpl-intel-gpu: for Intel Quick Sync Video (Alder Lake and newer)'
   'ladspa: LADSPA filters'
   'nvidia-utils: Nvidia NVDEC/NVENC support'
-  'onevpl-intel-gpu: Intel QuickSync support'
-  'vulkan-intel: for Intel ANV Vulkan support')
-provides=("ffmpeg=$pkgver" 'libavcodec.so' 'libavdevice.so' 'libavfilter.so' 
-  'libavformat.so' 'libavutil.so' 'libswresample.so' 'libswscale.so')
-conflicts=('ffmpeg')
-source=("$pkgname::git+https://git.ffmpeg.org/${pkgname}.git#tag=v${pkgver/p/-}#depth=1&submodules"
-  "https://gitlab.archlinux.org/archlinux/packaging/packages/ffmpeg/-/blob/2-8.0-3/0001-Add-av_stream_get_first_dts-for-Chromium.patch"
-  "https://gitlab.archlinux.org/archlinux/packaging/packages/ffmpeg/-/blob/2-8.0-3/0001-unbreak-glslang-build.patch"
-  "https://gitlab.archlinux.org/archlinux/packaging/packages/emby-ffmpeg/-/blob/main/06c2a2c425f22e7dba5cad909737a631cc676e3f.patch"
-  "https://gitlab.archlinux.org/archlinux/packaging/packages/emby-ffmpeg/-/blob/main/mbedtls-3.6.patch"
-  #"https://aur.archlinux.org/cgit/aur.git/plain/010-ffmpeg-add-svt-hevc.patch?h=ffmpeg-full"
-  #"020-ffmpeg-add-svt-hevc-docs-g${_svt_hevc_ver:0:7}.patch"::"https://raw.githubusercontent.com/OpenVisualCloud/SVT-HEVC/${_svt_hevc_ver}/ffmpeg_plugin/0002-doc-Add-libsvt_hevc-encoder-docs.patch"
-  "https://aur.archlinux.org/cgit/aur.git/plain/030-ffmpeg-add-svt-vp9.patch?h=ffmpeg-full"
-  "https://aur.archlinux.org/cgit/aur.git/plain/050-ffmpeg-fix-cuda-nvcc-with-gcc14.patch?h=ffmpeg-full"
-  "https://aur.archlinux.org/cgit/aur.git/plain/060-ffmpeg-whisper.cpp-fix-pkgconfig.patch?h=ffmpeg-full"
-  "https://git.ffmpeg.org/gitweb/ffmpeg.git/patch/f8a300c6739ea2ca648579d7faf3ae9811b9f19a"
-  "https://git.ffmpeg.org/gitweb/ffmpeg.git/patch/fa23202cc7baab899894e8d22d82851a84967848" # lcevcdec4.0.0-fix.patch
+  'vulkan-intel: for Intel ANV Vulkan support'
 )
-options=('!lto')
-noextract=('readme.md')
-sha256sums=('SKIP' 'SKIP')
-
-## Add OBS Studio needed feature
-depends+=("librist>=$_libristver")
-_args+=(--enable-librist)
-
-## Add upstream feature for x86_64 build
-if [[  $ARCH == "x86_64" ]]; then
-  _args+=(--enable-lto --enable-libsvtav1)
-  depends+=("svt-av1>=$_svtav1ver")
-else
-  _args+=(--disable-lto)
-fi
+provides=("ffmpeg=$pkgver" 'libavcodec.so' 'libavdevice.so' 'libavfilter.so'
+          'libavformat.so' 'libavutil.so' 'libswresample.so' 'libswscale.so')
+conflicts=('ffmpeg')
+options=(!lto)
+source=(
+  "https://ffmpeg.org/releases/ffmpeg-${pkgver}.tar.xz"
+)
+sha256sums=('SKIP')
 
 prepare() {
-  ## Based on changes from ffmpeg-cuda
-  ## If 'ON', CUDA compilation is made with Nvidia CUDA Compiler, this is what ffmpeg-cuda provides. (nonfree option)
-  ## If 'OFF', CUDA compilation is made with clang (without cuda package), this is what upstream package provides.
-  [[ -z "$FFMPEG_OBS_CUDA" ]] && export FFMPEG_OBS_CUDA=OFF
-  ## Enable debugging symbols
-  [[ -z "${FFMPEG_OBS_DEBUG:-OFF}" ]] && export FFMPEG_OBS_DEBUG=OFF
-  ## Add changes from ffmpeg-decklink (nonfree option)
-  [[ -z "$FFMPEG_OBS_DECKLINK" ]] && export FFMPEG_OBS_DECKLINK=OFF
-  # Add changes from ffmpeg-libfdk_aac (nonfree option)
-  [[ -z "$FFMPEG_OBS_LIBFDK_AAC" ]] && export FFMPEG_OBS_LIBFDK_AAC=OFF
-  ## Add SVT related changes from ffmpeg-full because ffmpeg-svt is out of date
-  [[ -z "$FFMPEG_OBS_SVT" ]] && export FFMPEG_OBS_SVT=OFF
-  ## Add changes from ffmpeg-vulkan (now only enables libglslang since vulkan is enabled upstream)
-  [[ -z "$FFMPEG_OBS_VULKAN" ]] && export FFMPEG_OBS_VULKAN=OFF
-  
-  rm -f "ffmpeg-${pkgver}/libavcodec"/libsvt_{hevc,vp9}.c
-  cd "$pkgname-${pkgver}"
-  # https://crbug.com/1251779
-  git apply -3 ../0001-Add-av_stream_get_first_dts-for-Chromium.patch
-  # https://github.com/FFmpeg/FFmpeg/commit/f1e9032a2000b8b885cffd6fed8eacd47b37673f
-  git apply -3 ../0001-unbreak-glslang-build.patch
-  # apply patches
-  #for i in patches/*.patch; do patch -Np1 -i -- "$i"; done
-  echo "add SVT-VP9 (https://github.com/OpenVisualCloud/SVT-VP9)"
-  git clone --depth 1 https://github.com/OpenVisualCloud/SVT-VP9.git
-  # Adjust this line to add any other cmake related options
-  export CFLAGS="$CFLAGS -flto=auto -Wno-incompatible-pointer-types" CXXFLAGS="$CXXFLAGS -flto=auto" LDFLAGS="$LDFLAGS -flto=auto"
-  CMAKE_EXTRA_FLAGS="-DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON ${CMAKE_EXTRA_FLAGS:-}"
-  export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib
-  export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:/usr/local/lib/pkgconfig
-  git clone --depth 1 https://github.com/FFmpeg/FFmpeg.git ffmpeg
-  git apply --whitespace=fix ../ffmpeg_plugin/master-0001-Add-ability-for-ffmpeg-to-run-svt-vp9.patch
+  cd "$srcdir/$_pkgname-$pkgver"
 
-  echo "add SVT-HEVC (https://github.com/OpenVisualCloud/SVT-HEVC)"
-  git am --whitespace=fix ../SVT-HEVC/ffmpeg_plugin/master-0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch
-  git am ../SVT-HEVC/ffmpeg_plugin/0002-doc-Add-libsvt_hevc-encoder-docs.patch
-  ./configure --enable-libsvthevc
+  # Apply patches if any
+  local src
+  for src in "${source[@]}"; do
+    src="${src%%::*}"
+    src="${src##*/}"
+    [[ $src == *.patch ]] || continue
+    echo "Applying patch $src..."
+    patch -Np1 -i "$srcdir/$src"
+  done
 }
-build() {
-    # whisper.cpp AUR package conflicts with imagemagick at the time of writing
-    # building it locally as a static library for the time being, as imagemagick is a commonly used package (high usage in pkgstats)
-    cmake -B build/whisper.cpp -S "whisper.cpp-${_whispercpp_ver}" \
-        -G 'Unix Makefiles' \
-        -DBUILD_SHARED_LIBS:BOOL='OFF' \
-        -DCMAKE_BUILD_TYPE:STRING='Release' \
-        -DCMAKE_INSTALL_PREFIX:PATH="${srcdir}/staging" \
-        -DWHISPER_BUILD_EXAMPLES:BOOL='OFF' \
-        -DWHISPER_BUILD_TESTS:BOOL='OFF' \
-        -Wno-dev
-    cmake --build build/whisper.cpp --target install
-    cd "ffmpeg-${pkgver}"
-    printf '%s\n' '  -> Running ffmpeg configure script...'
 
-    export CFLAGS+=' -isystem/opt/cuda/include'
-    export CFLAGS+=" -isystem${srcdir}/obs-studio-${_obs_studio_ver}/plugins/decklink/linux/decklink-sdk"
-    export LDFLAGS+=' -L/opt/cuda/lib64'
-    export PKG_CONFIG_PATH="${srcdir}/staging/lib/pkgconfig${PKG_CONFIG_PATH:+":${PKG_CONFIG_PATH}"}"
-    # fix build of libavfilter/asrc_flite.c with gcc 14
-    export CFLAGS+=' -Wno-error=incompatible-pointer-types'
-    
-  cd "$pkgname"
-  ./configure --enable-libsvtvp9 --enable-avcodec --enable-libdav1d --enable-libaom --enable-libjxl \
-    --enable-libdvdread --enable-libfontconfig --enable-libfreetype --enable-gmp --enable-libsvtav1 \
-    --enable-libwebp --enable-libvpx --enable-vulkan --enable-vdpau --enable-vaapi --enable-vapoursynth --enable-zlib \
-    --enable-xlib --enable-shared --enable-openssl  --enable-opengl --enable-opencl --enable-openal \
-    --enable-lzma --enable-lv2 --enable-libdrm \
-    --enable-cuvid --enable-ffnvcodec --enable-libsvtvp9 --enable-libvmaf --enable-libvpl \
-    --disable-example --disable-lavf --enable-libzimg --disable-symbol-versions --without-python --enable-version3 \
-    --enable-nonfree --enable-gpl \
-    --disable-doc --enable-lto --enable-version --enable-nvdec --enable-nvenc --target-os="$(uname -s 2>/dev/null || echo linux)"
-    --enable-wayland --enable-drm --enable-shared -Dradeon=disabled -Damdgpu=disabled -Dnouveau=disabled --disable-amf \
-    -Dcairo-tests=disabled -Dexynos=disabled --buildtype=release -Dzlib=enabled --enable-nasm \
-    --disable-gtktest --disable-oggtest --disable-vorbistest --disable-unit-tests --disable-libx265 \
-    --disable-libvorbis --enable-libopus --disable-librtmp --prefix=/usr --disable-debug --disable-rpath \
-    --disable-htmlpages --disable-static --disable-libtorch --disable-libtls --disable-libtensorflow --disable-libshaderc \
-    --disable-pocketsphinx --disable-libnpp --disable-ohcodec --enable-small
-    #--disable-mbedtls
-    
-  make -j $(nproc)
-  make -j $(nproc) tools/qt-faststart
-  #make -j $(nproc) doc/ff{mpeg,play}.1
+build() {
+  cd "$srcdir/$_pkgname-$pkgver"
+
+  # Compiler settings for optimization
+  export CFLAGS="-O3 -march=native -mtune=native -pipe -fno-plt -fexceptions \
+-Wp,-D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security \
+-fstack-clash-protection -fcf-protection"
+  export CXXFLAGS="${CFLAGS}"
+  export LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
+
+  ./configure \
+    --prefix=/usr \
+    --disable-debug \
+    --disable-static \
+    --disable-stripping \
+    --enable-shared \
+    --enable-gpl \
+    --enable-version3 \
+    --enable-nonfree \
+    --enable-lto \
+    --enable-fontconfig \
+    --enable-gmp \
+    --enable-gnutls \
+    --enable-ladspa \
+    --enable-libaom \
+    --enable-libaribb24 \
+    --enable-libass \
+    --enable-libbluray \
+    --enable-libbs2b \
+    --enable-libdav1d \
+    --enable-libdrm \
+    --enable-libdvdnav \
+    --enable-libdvdread \
+    --enable-libfreetype \
+    --enable-libfribidi \
+    --enable-libgsm \
+    --enable-libiec61883 \
+    --enable-libjack \
+    --enable-libjxl \
+    --enable-libmodplug \
+    --enable-libmp3lame \
+    --enable-libopencore_amrnb \
+    --enable-libopencore_amrwb \
+    --enable-libopenjpeg \
+    --enable-libopenmpt \
+    --enable-libopus \
+    --enable-libplacebo \
+    --enable-libpulse \
+    --enable-librav1e \
+    --enable-librsvg \
+    --enable-librubberband \
+    --enable-libsnappy \
+    --enable-libsoxr \
+    --enable-libspeex \
+    --enable-libssh \
+    --enable-libsvtav1 \
+    --enable-libtheora \
+    --enable-libv4l2 \
+    --enable-libvidstab \
+    --enable-libvmaf \
+    --enable-libvorbis \
+    --enable-libvpl \
+    --enable-libvpx \
+    --enable-libwebp \
+    --enable-libx264 \
+    --enable-libx265 \
+    --enable-libxcb \
+    --enable-libxml2 \
+    --enable-libxvid \
+    --enable-libzimg \
+    --enable-nvdec \
+    --enable-nvenc \
+    --enable-opencl \
+    --enable-opengl \
+    --enable-vapoursynth \
+    --enable-vaapi \
+    --enable-vdpau \
+    --enable-vulkan
+
+  make
+  make tools/qt-faststart
 }
 
 package() {
-  #depends+=(libass.so libbluray.so libbs2b.so libdav1d.so librav1e.so libjxl.so libvpx.so
-    #libfreetype.so libharfbuzz.so libopenmpt.so libplacebo.so librsvg-2.so libzmq.so
-    #librubberband.so libva.so libva-drm.so libzimg.so libvidstab.so libx264.so libxvidcore.so)
-  #make -j $(nproc) DESTDIR="${pkgdir}" -C ffmpeg install install-man
-  #install -Dm 755 ffmpeg/tools/qt-faststart "${pkgdir}"/usr/bin/
-  
-  cd "${pkgname:-$pkgdir)"
-  rm -f ./*-docs-*.pkg.tar.* ./*-debug-*.pkg.tar.*
-  install -Dm 755 bin/ffdetect "${pkgdir}"/usr/bin/ffdetect
-  install -Dm 755 ffmpeg-${pkgver}_public/ffmpeg "${pkgdir}"/usr/bin/ffmpeg
-  install -Dm 755 ffmpeg-${pkgver}_public/ffprobe "${pkgdir}"/usr/bin/ffprobe
-  install -Dm 755 "ffmpeg-${pkgver}/tools/qt-faststart" -t "${pkgdir}/usr/bin"
-  install -Dm 644 LICENSE -t "${pkgdir}/usr/share/licenses/${pkgname}"
+  cd "$srcdir/$_pkgname-$pkgver"
+
+  make DESTDIR="$pkgdir" install
+  install -Dm755 tools/qt-faststart "$pkgdir/usr/bin/qt-faststart"
 }
 
 # vim: ts=2 sw=2 et:
