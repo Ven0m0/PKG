@@ -17,7 +17,9 @@
     },
     "DNSOverHTTPS": {
       "Enabled": true
+      "Locked": false
     },
+    "OverridePostUpdatePage": "",
     "FirefoxHome": {
       "SponsoredPocket": false,
       "Pocket": false,
@@ -53,9 +55,7 @@
             "selectedFilterLists": [
               "adguard-annoyance",
               "adguard-generic",
-              "adguard-social",
               "adguard-spyware-url",
-              "curben-phishing",
               "easylist",
               "easyprivacy",
               "ublock-abuse",
