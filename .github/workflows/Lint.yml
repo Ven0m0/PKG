@@ -31,6 +31,7 @@ jobs:
         fetch-depth: 0
     - uses: 2m/arch-pkgbuild-builder@v1.21
       with:
+        target: pkgbuild
         pkgname: ${{matrix.pkg}}
     - name: Validate package
       uses: heyhusen/archlinux-package-action@v2
