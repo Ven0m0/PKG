@@ -1,16 +1,19 @@
+# Maintainer: Ven0m0
 pkgname=firefox-custom
 _pkgname=firefox
-provides=(firefox=${pkgver})
-conflicts=(firefox)
-pkgver=stable
+pkgver=133.0
 pkgrel=1
 pkgdesc='Firefox optimized'
 arch=(x86_64)
 url="https://mozilla.org/firefox"
 license=(MPL)
-depends=('dbus-glib' 'gtk3' 'alsa-lib' 'nss' 'nspr' 'libstdc++' 'libxcomposite' 'libxrandr' 'pango' 'dav1d' 'aom' 'icu' 'graphite' 'libwebp' 'libxt')
-makedepends=('git' 'clang' 'lld' 'cmake' 'rust' 'cargo' 'ninja' 'python3' 'zip' 'unzip' 'autoconf2.13' 'clang-tools-extra' 'llvm' 'llvm-tools bindgen'
-             'cargo-make' 'pkg-config' 'gtk-doc' 'sed' 'grep' 'file')
+provides=("firefox=${pkgver}")
+conflicts=('firefox')
+depends=('dbus-glib' 'gtk3' 'alsa-lib' 'nss' 'nspr' 'libstdc++' 'libxcomposite'
+         'libxrandr' 'pango' 'dav1d' 'aom' 'icu' 'graphite' 'libwebp' 'libxt')
+makedepends=('git' 'clang' 'lld' 'cmake' 'rust' 'cargo' 'ninja' 'python'
+             'zip' 'unzip' 'autoconf2.13' 'clang-tools-extra' 'llvm'
+             'bindgen' 'cargo-make' 'pkg-config' 'gtk-doc' 'sed' 'grep' 'file')
 optdepends=('hunspell-en_US: Spell checking, American English'
             'libnotify: Notification integration'
             'networkmanager: Location detection via available WiFi networks'
@@ -18,15 +21,11 @@ optdepends=('hunspell-en_US: Spell checking, American English'
             'speech-dispatcher: Text-to-Speech'
             'xdg-desktop-portal: Screensharing with Wayland'
             'libdbusmenu-gtk3: global menu support'
-			      'profile-sync-daemon: Load the browser profile into RAM')
+            'profile-sync-daemon: Load the browser profile into RAM')
 backup=()
 options=(!strip !emptydirs !debug !makeflags !lto)
 
-# git source. makepkg supports git+ URLs.
-source=(
-  # "git+https://github.com/mozilla/gecko-dev.git#branch=mozilla-release"
-  "https://archive.mozilla.org/pub/firefox/releases/$pkgver/source/firefox-$pkgver.source.tar.xz{,.asc}"
-)
+source=("https://archive.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz")
 sha256sums=('SKIP')
 
 # Tunables:
@@ -37,18 +36,26 @@ sha256sums=('SKIP')
 : "${NATIVE_ARCH:=x86-64-v3}"
 
 # Build flags as arrays
-_cflags=( -O3 -march=${NATIVE_ARCH} -mtune=native -fomit-frame-pointer -ffunction-sections -fdata-sections )
-_cppflags=( "${_cflags[@]}" )
-_ldflags=( -Wl,-O1 -Wl,--gc-sections -flto -fuse-linker-plugin -Wl,-plugin-opt=emit-llvm )
-_rustflags=( -C target-cpu=native -C opt-level=3 -C lto -C codegen-units=1 )
+_cflags=(-O3 -march=${NATIVE_ARCH} -mtune=native -fomit-frame-pointer -ffunction-sections -fdata-sections)
+_cppflags=("${_cflags[@]}")
+_ldflags=(-Wl,-O1 -Wl,--gc-sections -flto -fuse-linker-plugin -Wl,-plugin-opt=emit-llvm)
+_rustflags=(-C target-cpu=native -C opt-level=3 -C lto -C codegen-units=1)
 
 prepare() {
-  cd "$srcdir"/gecko-dev || return 1
-  git reset --hard
-  git submodule update --init --recursive
+  cd "$srcdir"/${_pkgname}-${pkgver}
+
+  # Apply patches if any exist
+  local src
+  for src in "${source[@]}"; do
+    src="${src%%::*}"
+    src="${src##*/}"
+    [[ $src == *.patch ]] || continue
+    echo "Applying patch $src..."
+    patch -Np1 -i "$srcdir/$src"
+  done
 }
 
-# write a compact mozconfig to target minimal features
+# Write a compact mozconfig to target minimal features
 _write_mozconfig() {
   cat >.mozconfig <<'EOF'
 ac_add_options --enable-optimize=-O3
@@ -110,12 +117,14 @@ EOF
 }
 
 build() {
-  cd "$srcdir"/gecko-dev || return 1
+  cd "$srcdir"/${_pkgname}-${pkgver}
 
   _write_mozconfig
+
   # LTO needs more open files
   ulimit -n 4096
-  # environment
+
+  # Environment
   export CC=clang
   export CXX=clang++
   export AR=llvm-ar
@@ -142,17 +151,17 @@ build() {
     echo "PGO: instrumented build. After this completes, run the browser to generate profiles, then rebuild with ENABLE_PGO=use"
   fi
 
-  # configure / build via mach
+  # Configure / build via mach
   ./mach bootstrap --no-interactive --application-choice=browser || true
   ./mach build || return 1
 
   # If running BOLT rewriting is requested and llvm-bolt exists, run on the main binaries
   if [[ -n "${ENABLE_BOLT:-}" ]] && command -v llvm-bolt >/dev/null 2>&1; then
-    # collect target binaries
+    # Collect target binaries
     objdir=./obj-firefox/dist
     for bin in "$objdir"/firefox "$objdir"/libxul.so; do
       [[ -f "$bin" ]] || continue
-      # placeholder profile path; user should generate profile_data.prof by running instrumented binary
+      # Placeholder profile path; user should generate profile_data.prof by running instrumented binary
       prof=profile_data/merged.prof
       if [[ -f "$prof" ]]; then
         llvm-bolt "$bin" -o "${bin}.bolt" --data="$prof" || true
@@ -172,15 +181,15 @@ build() {
 }
 
 package() {
-  cd "$srcdir"/gecko-dev || return 1
+  cd "$srcdir"/${_pkgname}-${pkgver}
   objdir=./obj-firefox/dist
 
   install -Dm755 "$objdir/firefox" "$pkgdir/usr/bin/firefox-custom"
   mkdir -p "$pkgdir/usr/lib/firefox-custom"
   cp -a "$objdir/"* "$pkgdir/usr/lib/firefox-custom/"
 
-  # minimal desktop file
-  install -Dm644 <<'DESK' "$pkgdir/usr/share/applications/firefox-custom.desktop"
+  # Minimal desktop file
+  install -Dm644 /dev/stdin "$pkgdir/usr/share/applications/firefox-custom.desktop" <<'DESK'
 [Desktop Entry]
 Name=Firefox Custom
 Exec=/usr/bin/firefox-custom %u
@@ -189,11 +198,12 @@ Type=Application
 Categories=Network;WebBrowser;
 DESK
 
-  # icons if present
+  # Icons if present
   if [[ -d "$objdir/browser/branding/distribution/icons" ]]; then
     mkdir -p "$pkgdir/usr/share/icons/hicolor/128x128/apps"
-    cp -a "$objdir/browser/branding/distribution/icons/*" "$pkgdir/usr/share/icons/hicolor/128x128/apps/" 2>/dev/null || true
+    cp -a "$objdir/browser/branding/distribution/icons/"* \
+      "$pkgdir/usr/share/icons/hicolor/128x128/apps/" 2>/dev/null || true
   fi
 }
 
-# vim: ft=sh
+# vim: ts=2 sw=2 et:

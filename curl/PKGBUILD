@@ -1,16 +1,16 @@
+# Maintainer: Ven0m0
 pkgbase=curl
 pkgname=('curl-rustls' 'curl-openssl' 'curl-wolfssl')
-pkgver=8.4.0
-pkgrel=2
+pkgver=8.11.0
+pkgrel=1
 arch=('x86_64')
 url='https://curl.se/'
 license=('MIT')
 makedepends=('openssl' 'rustls' 'wolfssl' 'pkg-config' 'autoconf' 'automake' 'libtool' 'quiche')
 source=("https://curl.se/download/curl-${pkgver}.tar.xz")
-sha256sums=('fe6e147d13c4ee6a213efb739561d5d1066ca9efb91b2491585daf4ffcfbf89e')
+sha256sums=('SKIP')
 
 prepare() {
-  tar xf "curl-${pkgver}.tar.xz"
   cd "curl-${pkgver}"
   autoreconf -fi
 }
@@ -69,3 +69,5 @@ package_curl-wolfssl() {
   make DESTDIR="$pkgdir" install
   strip -s "$pkgdir"/usr/bin/curl
 }
+
+# vim: ts=2 sw=2 et:

@@ -76,3 +76,5 @@ package() {
     install -Dm644 doc/fzf.txt "$pkgdir"/usr/share/vim/vimfiles/doc/fzf.txt
     install -Dm644 plugin/fzf.vim "$pkgdir"/usr/share/vim/vimfiles/plugin/fzf.vim
 }
+
+# vim: ts=2 sw=2 et:

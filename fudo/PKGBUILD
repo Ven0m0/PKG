@@ -37,3 +37,5 @@ package() {
     install -Dm755 fudo "${pkgdir}/usr/bin/fudo"
     install -Dm644 fudo.1 "${pkgdir}/usr/share/man/man1/fudo.1"
 }
+
+# vim: ts=2 sw=2 et:
