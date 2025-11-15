@@ -31,17 +31,15 @@ jobs:
         fetch-depth: 0
     - uses: 2m/arch-pkgbuild-builder@v1.21
       with:
-        target: srcinfo
         pkgname: ${{matrix.pkg}}
-
     - name: Validate package
       uses: heyhusen/archlinux-package-action@v2
       with:
-        updpkgsums: true
+        #updpkgsums: false
         pkgrel: true
         pkgver: true
         namcap: true
         aur: true
-        srcinfo: false
-        update_archlinux_keyring: true
-        flags: '-si --noconfirm --needed'
+        #srcinfo: false
+        #update_archlinux_keyring: true
+        #flags: '-si --noconfirm --needed'
