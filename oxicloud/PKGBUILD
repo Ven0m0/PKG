@@ -12,7 +12,7 @@ prepare() {
 
 build() {
   export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target
-  cargo build --frozen -r --all-features
+  cargo build --frozen -r --all-features --bins --lib
 }
 
 check() {
