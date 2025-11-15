@@ -42,6 +42,6 @@ jobs:
         pkgver: true
         namcap: true
         aur: true
-        srcinfo: true
+        srcinfo: false
         update_archlinux_keyring: true
         flags: '-si --noconfirm --needed'
