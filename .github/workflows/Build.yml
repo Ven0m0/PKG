@@ -45,7 +45,7 @@ jobs:
         echo -e "\nFree space:"; df -h
     - uses: actions/checkout@v5
       with:
-        fetch-depth: 1
+        fetch-depth: 0
     - id: set
       run: |
         pkgs=$(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | jq -Rsc 'split("\n")[:-1]')
@@ -59,6 +59,8 @@ jobs:
         pkg: ${{fromJSON(needs.matrix.outputs.pkgs)}}
     steps:
     - uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
     - id: makepkg
       uses: 2m/arch-pkgbuild-builder@v1.21
       with:
