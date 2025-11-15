@@ -12,7 +12,6 @@ concurrency:
 permissions: write-all
 env:
   DEBIAN_FRONTEND: noninteractive
-  LC_ALL: C
   GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
 
 jobs:
