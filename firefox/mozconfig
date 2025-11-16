@@ -44,6 +44,7 @@ export LDFLAGS="-Wl,-O3 -Wl,--gc-sections -Wl,-z,now -Wl,-z,relro -Wl,--icf=all 
 
 
 ac_add_options --enable-optimize=-O3
+export RUSTC_OPT_LEVEL=3
 ac_add_options --enable-lto
 ac_add_options --enable-release
 ac_add_options --enable-strip
