@@ -7,6 +7,7 @@
 - https://github.com/openSUSE/firefox-maintenance
 - https://github.com/ghostery/user-agent-desktop/tree/a6a819df5f919af399229bf4869bb1046bc4cbb8/patches
 - https://github.com/CachyOS/CachyOS-Browser-Common/tree/3e1aae166cac70948d7c0b50e0eb1210c39d1e07/patches
+- https://github.com/CYFARE/HellFire
 
 bash
 ```
