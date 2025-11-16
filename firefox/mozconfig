@@ -1,70 +1,28 @@
 ac_add_options --enable-application=browser
-ac_add_options --disable-artifact-builds
-
 ac_add_options --enable-release
-ac_add_options --disable-debug
-ac_add_options --disable-debug-symbols
-ac_add_options --disable-debug-js-modules
-ac_add_options --disable-tests
 ac_add_options --enable-strip
 ac_add_options --enable-install-strip
-ac_add_options --enable-clang-plugin
+ac_add_options --enable-optimize=-O3
 ac_add_options --enable-lto=full
-ac_add_options --linker=lld
-ac_add_options --with-ccache=sccache
-ac_add_options --enable-wasm-avx
-ac_add_options --enable-rust-simd
-ac_add_options --disable-parental-controls
-ac_add_options --disable-crashreporter
-ac_add_options --disable-updater
-ac_add_options --enable-jemalloc
-
+ac_add_options --enable-lto
+ac_add_options --enable-clang-plugin
 ac_add_options --enable-hardening
-# ac_add_options --enable-sandbox
 ac_add_options --enable-replace-malloc
-
 ac_add_options --enable-webrtc
 ac_add_options --enable-jxl
 ac_add_options --enable-av1
-ac_add_options --enable-eme=widevine
-
-mk_add_options AUTOCLOBBER=1
-mk_add_options MOZ_PARALLEL_COMPILE=30
-mk_add_options MOZ_PARALLEL_BUILD=30
-mk_add_options MOZ_CRASHREPORTER=0
-mk_add_options MOZ_DATA_REPORTING=0
-mk_add_options MOZ_SERVICES_HEALTHREPORT=0
-mk_add_options MOZ_TELEMETRY_REPORTING=0
-
-# Compiler Flags
-export RUSTFLAGS="-Copt-level=3 -Ctarget-cpu=native -Ccodegen-units=1 -Cdebuginfo=0 -Cpanic=abort -Cforce-frame-pointers=no -Cembed-bitcode=yes -Cllvm-args=--inline-threshold=2000 -Cllvm-args=--vectorize-loops -Cllvm-args=--vectorize-slp -Cllvm-args=--unroll-threshold=1000"
-export CFLAGS="-O3 -march=native -fno-semantic-interposition -fomit-frame-pointer -fdata-sections -ffunction-sections -fno-plt -funroll-loops -ftree-vectorize -fno-math-errno -freciprocal-math -fno-trapping-math -fno-common -pipe -fmerge-all-constants -fno-signed-zeros -fno-zero-initialized-in-bss"
-export CXXFLAGS="$CFLAGS"
-export LDFLAGS="-Wl,-O3 -Wl,--gc-sections -Wl,-z,now -Wl,-z,relro -Wl,--icf=all -Wl,--as-needed -Wl,--hash-style=gnu -Wl,--sort-common -Wl,--build-id=none"
-
-
-ac_add_options --enable-optimize=-O3
-export RUSTC_OPT_LEVEL=3
-ac_add_options --enable-lto
-ac_add_options --enable-release
-ac_add_options --enable-strip
-ac_add_options --with-ccache=sccache
-ac_add_options --disable-sandbox
-ac_add_options --disable-tests
-ac_add_options --disable-installer
-ac_add_options --disable-maintenance-service
-ac_add_options --disable-websockets
-ac_add_options --disable-client-telemetry
-ac_add_options --disable-crashreporter
-ac_add_options --disable-health-report
-ac_add_options --enable-default-toolkit=cairo-gtk3
 ac_add_options --enable-wayland
-mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-firefox
-
-ac_add_options --with-unsigned-addon-scopes=app,system
+ac_add_options --enable-jemalloc
+ac_add_options --enable-wasm-avx
+ac_add_options --enable-rust-simd
+ac_add_options --enable-pulseaudio
+ac_add_options --enable-alsa
+ac_add_options --enable-jack
+ac_add_options --enable-eme=widevine
+ac_add_options --enable-default-toolkit=cairo-gtk3
 ac_add_options --allow-addon-sideload
-
-# System libraries
+ac_add_options --with-ccache=sccache
+ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --with-system-nspr
 ac_add_options --with-system-nss
 ac_add_options --with-system-libvpx
@@ -73,34 +31,51 @@ ac_add_options --with-system-libevent
 ac_add_options --with-system-icu
 ac_add_options --with-system-zlib
 ac_add_options --with-system-jpeg
+ac_add_options --linker=lld
 
-# Features
-ac_add_options --enable-jxl
-ac_add_options --enable-pulseaudio
-ac_add_options --enable-alsa
-ac_add_options --enable-jack
-ac_add_options --disable-warnings-as-errors
-ac_add_options --disable-crashreporter
-ac_add_options --disable-tests
+# Disable unwanted features
+ac_add_options --disable-artifact-builds
 ac_add_options --disable-debug
-ac_add_options --disable-updater
-ac_add_options --disable-gpsd
-ac_add_options --disable-synth-speechd
 ac_add_options --disable-debug-symbols
 ac_add_options --disable-debug-js-modules
+ac_add_options --disable-tests
+ac_add_options --disable-parental-controls
+ac_add_options --disable-crashreporter
+ac_add_options --disable-updater
+ac_add_options --disable-sandbox
+ac_add_options --disable-installer
+ac_add_options --disable-maintenance-service
+ac_add_options --disable-websockets
+ac_add_options --disable-client-telemetry
+ac_add_options --disable-health-report
+ac_add_options --disable-gpsd
+ac_add_options --disable-synth-speechd
 ac_add_options --disable-rust-tests
 ac_add_options --disable-necko-wifi
 ac_add_options --disable-webspeech
 ac_add_options --disable-webspeechtestbackend
 ac_add_options --disable-default-browser-agent
+ac_add_options --disable-warnings-as-errors
 
-# Disables crash reporting, telemetry and other data gathering tools
+# Parallel build
+mk_add_options AUTOCLOBBER=1
+mk_add_options MOZ_PARALLEL_COMPILE=30
+mk_add_options MOZ_PARALLEL_BUILD=30
+
+# Telemetry, reporting, crash
 mk_add_options MOZ_CRASHREPORTER=0
 mk_add_options MOZ_DATA_REPORTING=0
 mk_add_options MOZ_SERVICES_HEALTHREPORT=0
 mk_add_options MOZ_TELEMETRY_REPORTING=0
+
+# Output dir
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-firefox
+
+# Compiler Flags
+export RUSTFLAGS="-Copt-level=3 -Ctarget-cpu=native -Ccodegen-units=1 -Cdebuginfo=0 -Cpanic=abort -Cforce-frame-pointers=no -Cembed-bitcode=yes -Cllvm-args=--inline-threshold=2000 -Cllvm-args=--vectorize-slp-max-reg-size=64"
+export CFLAGS="-O3 -march=native -fno-semantic-interposition -fomit-frame-pointer -fdata-sections -ffunction-sections -fno-plt -funroll-loops -ftree-vectorize -fno-math-errno -freciprocal-math -fno-tree-scev-cprop"
+export CXXFLAGS="$CFLAGS"
+export LDFLAGS="-Wl,-O3 -Wl,--gc-sections -Wl,-z,now -Wl,-z,relro -Wl,--icf=all -Wl,--as-needed -Wl,--hash-style=gnu -Wl,--sort-common -Wl,--build-id=none"
+
+export RUSTC_OPT_LEVEL=3
 export MOZ_NO_PIE_COMPAT=1 MOZ_NOSPAM=1 MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=system
-
-
-
-
