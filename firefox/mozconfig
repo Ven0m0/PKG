@@ -22,6 +22,12 @@ ac_add_options --enable-hardening
 # ac_add_options --enable-sandbox
 ac_add_options --enable-replace-malloc
 
+ac_add_options --enable-webrtc
+ac_add_options --enable-jxl
+ac_add_options --enable-av1
+ac_add_options --enable-eme=widevine
+
+mk_add_options AUTOCLOBBER=1
 mk_add_options MOZ_PARALLEL_COMPILE=30
 mk_add_options MOZ_PARALLEL_BUILD=30
 mk_add_options MOZ_CRASHREPORTER=0
