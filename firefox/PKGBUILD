@@ -1,9 +1,9 @@
 # Maintainer: Ven0m0
 pkgname=firefox-custom
 _pkgname=firefox
-pkgver=133.0
+pkgver=145.0.1
 pkgrel=1
-pkgdesc='Firefox optimized'
+pkgdesc='Firefox optimal build'
 arch=(x86_64)
 url="https://mozilla.org/firefox"
 license=(MPL-2.0)
@@ -95,6 +95,7 @@ source=(
   ${srcdir}/patches/NNN9-reduce-console-noise-moz.patch
   ${srcdir}/patches/browser-modules-AsyncTabSwitcher.sys.patch
 )
+validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353')
 sha256sums=('SKIP')
 
 # Tunables:
@@ -110,7 +111,7 @@ _ldflags=(-Wl,-O3 -Wl,--gc-sections -Wl,--sort-common -Wl,--as-needed -Wl,-z,pac
 _rustflags=(-Ctarget-cpu=native -Copt-level=3 -Clto=fat -Ccodegen-units=1 -Cpanic=abort -Cllvm-args=-enable-dfa-jump-thread -Clink-arg=-fuse-ld=lld -Zunstable-options -Ztune-cpu=native)
 
 prepare() {
-  cd "${srcdir}/${_pkgname}-${pkgver}" || :
+  cd "${srcdir}/${_pkgname}-${pkgver}" || return
   # Apply patches if any exist
   local src
   for src in "${source[@]}"; do
