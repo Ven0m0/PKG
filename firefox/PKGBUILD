@@ -124,19 +124,23 @@ prepare() {
 # Write a compact mozconfig to target minimal features
 _write_mozconfig() {
   cat >.mozconfig <<'EOF'
-ac_add_options --enable-optimize=-O3
+ac_add_options --enable-application=browser
+mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
+ac_add_options --prefix=/usr
+ac_add_options --enable-optimize="-O3 -march=native"
 ac_add_options OPT_LEVEL="3"
 ac_add_options RUSTC_OPT_LEVEL="3"
 ac_add_options --enable-rust-simd
 ac_add_options --enable-wasm-simd
 ac_add_options --enable-linker=lld
+ac_add_options --with-ccache=sccache
 ac_add_options --enable-lto=cross,full
 ac_add_options MOZ_LTO=cross,full
 ac_add_options MOZ_PGO=1
 ac_add_options --enable-strip
 ac_add_options --disable-install-strip
 ac_add_options --enable-release
-ac_add_options --with-ccache=sccache
+ac_add_options --enable-hardening
 ac_add_options --disable-sandbox
 ac_add_options --disable-tests
 ac_add_options --disable-installer
@@ -147,18 +151,10 @@ ac_add_options --disable-crashreporter
 ac_add_options --disable-health-report
 ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
 ac_add_options --enable-wayland
-mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-firefox
-ac_add_options --prefix=/usr
 ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
 ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --allow-addon-sideload
-export MOZILLA_OFFICIAL=1
-
-export AR=llvm-ar
-export CC='clang'
-export CXX='clang++'
-export NM=llvm-nm
-export RANLIB=llvm-ranlib
+export CC='clang' CXX='clang++' AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib
 
 # System libraries
 ac_add_options --with-system-nspr
@@ -199,7 +195,7 @@ mk_add_options MOZ_CRASHREPORTER=0
 mk_add_options MOZ_DATA_REPORTING=0
 mk_add_options MOZ_SERVICES_HEALTHREPORT=0
 mk_add_options MOZ_TELEMETRY_REPORTING=0
-export MOZ_NO_PIE_COMPAT=1 MOZ_NOSPAM=1 MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
+export MOZILLA_OFFICIAL=1 MOZ_NO_PIE_COMPAT=1 MOZ_NOSPAM=1 MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip MOZ_APP_REMOTINGNAME="$pkgname"
 EOF
 }
 
@@ -273,36 +269,32 @@ build() {
 }
 
 package() {
-  cd "$srcdir"/${_pkgname}-${pkgver}
+  cd "${srcdir}/${_pkgname}-${pkgver}"
   objdir=./obj-firefox/dist
-
   DESTDIR="$pkgdir" ./mach install
-  _vendorjs="$pkgdir/usr/lib/$_pkgname/browser/defaults/preferences/vendor.js"
+  _vendorjs="${pkgdir}/usr/lib/${_pkgname}/browser/defaults/preferences/vendor.js"
   install -Dm644 /dev/stdin "$_vendorjs" <<END
-// Use LANG environment variable to choose locale
 pref("intl.locale.requested", "");
-
-// Use system-provided dictionaries
 pref("spellchecker.dictionary_path", "/usr/share/hunspell");
-
-// Disable default browser checking.
 pref("browser.shell.checkDefaultBrowser", false);
-
-// Don't disable our bundled extensions in the application directory
+pref("image.jxl.enabled", true);
 pref("extensions.autoDisableScopes", 11);
 pref("extensions.shownSelectionUI", true);
-
-// Enable JPEG XL images
-pref("image.jxl.enabled", true);
-
-// Prevent about:config warning
 pref("browser.aboutConfig.showWarning", false);
-
-// Prevent telemetry notification
+pref("datareporting.healthreport.uploadEnabled", false);
+pref("datareporting.policy.dataSubmissionEnabled", false);
+pref("toolkit.telemetry.enabled", false);
+pref("toolkit.telemetry.unified", false);
 pref("services.settings.main.search-telemetry-v2.last_check", $(date +%s));
+pref("browser.ping-centre.telemetry", false);
+pref("app.normandy.enabled", false);
+pref("app.shield.optoutstudies.enabled", false);
+pref("extensions.getAddons.showPane", false);
+pref("extensions.htmlaboutaddons.recommendations.enabled", false);
+pref("browser.discovery.enabled", false);
 END
 
-  _distini="$pkgdir/usr/lib/$_pkgname/distribution/distribution.ini"
+  _distini="${pkgdir}/usr/lib/${_pkgname}/distribution/distribution.ini"
   install -Dm644 /dev/stdin "$_distini" <<END
 [Global]
 id=archlinux
@@ -314,12 +306,12 @@ app.distributor=archlinux
 app.distributor.channel=$_pkgname
 app.partner.archlinux=archlinux
 END
-  install -Dm755 "$objdir/firefox" "$pkgdir/usr/bin/firefox-custom"
-  mkdir -p "$pkgdir/usr/lib/firefox-custom"
-  cp -a "$objdir/"* "$pkgdir/usr/lib/firefox-custom/"
+  install -Dm755 "${objdir}/firefox" "${pkgdir}/usr/bin/firefox-custom"
+  mkdir -p "${pkgdir}/usr/lib/firefox-custom"
+  cp -a "${objdir}/"* "${pkgdir}/usr/lib/firefox-custom/"
 
   # Minimal desktop file
-  install -Dm644 /dev/stdin "$pkgdir/usr/share/applications/firefox-custom.desktop" <<'DESK'
+  install -Dm644 /dev/stdin "${pkgdir}/usr/share/applications/firefox-custom.desktop" <<'DESK'
 [Desktop Entry]
 Name=Firefox Custom
 Exec=/usr/bin/firefox-custom %u
@@ -328,33 +320,33 @@ Type=Application
 Categories=Network;WebBrowser;
 DESK
   # Icons if present
-  if [[ -d "$objdir/browser/branding/distribution/icons" ]]; then
-    mkdir -p "$pkgdir/usr/share/icons/hicolor/128x128/apps"
-    cp -a "$objdir/browser/branding/distribution/icons/"* \
-      "$pkgdir/usr/share/icons/hicolor/128x128/apps/" 2>/dev/null || true
+  if [[ -d "${objdir}/browser/branding/distribution/icons" ]]; then
+    mkdir -p "${pkgdir}/usr/share/icons/hicolor/128x128/apps"
+    cp -a "${objdir}/browser/branding/distribution/icons/"* \
+      "${pkgdir}/usr/share/icons/hicolor/128x128/apps/" 2>/dev/null || true
   fi
   for i in 16 22 24 32 48 64 128 256; do
     install -Dm644 browser/branding/official/default$i.png \
-      "$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/$_pkgname.png"
+      "${pkgdir}/usr/share/icons/hicolor/${i}x${i}/apps/${_pkgname}.png"
   done
   install -Dm644 browser/branding/official/content/about-logo.png \
-    "$pkgdir/usr/share/icons/hicolor/192x192/apps/$_pkgname.png"
+    "${pkgdir}/usr/share/icons/hicolor/192x192/apps/${_pkgname}.png"
   install -Dm644 browser/branding/official/content/about-logo@2x.png \
-    "$pkgdir/usr/share/icons/hicolor/384x384/apps/$_pkgname.png"
+    "${pkgdir}/usr/share/icons/hicolor/384x384/apps/${_pkgname}.png"
   install -Dm644 ../firefox-symbolic.svg \
-    "$pkgdir/usr/share/icons/hicolor/symbolic/apps/$_pkgname-symbolic.svg"
+    "${pkgdir}/usr/share/icons/hicolor/symbolic/apps/${_pkgname}-symbolic.svg"
 
-  install -Dm644 ../$_pkgname.desktop \
-    "$pkgdir/usr/share/applications/$_pkgname.desktop"
+  install -Dm644 ../${_pkgname}.desktop \
+    "${pkgdir}/usr/share/applications/${_pkgname}.desktop"
   # Install a wrapper to avoid confusion about binary path
-  install -Dm755 /dev/stdin "$pkgdir/usr/bin/$_pkgname" <<END
+  install -Dm755 /dev/stdin "${pkgdir}/usr/bin/${_pkgname}" <<END
 #!/bin/sh
 exec /usr/lib/$_pkgname/firefox "\$@"
 END
   # Replace duplicate binary with wrapper
   # https://bugzilla.mozilla.org/show_bug.cgi?id=658850
-  ln -srf "$pkgdir/usr/bin/$_pkgname" \
-    "$pkgdir/usr/lib/$_pkgname/firefox-bin"
+  ln -srf "${pkgdir}/usr/bin/${_pkgname}" \
+    "${pkgdir}/usr/lib/${_pkgname}/firefox-bin"
 }
 
 # vim: ts=2 sw=2 et:
