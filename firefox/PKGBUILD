@@ -98,29 +98,26 @@ source=(
 sha256sums=('SKIP')
 
 # Tunables:
-# ENABLE_PGO=1  -> run PGO (two-stage). You should run the instrumented build, exercise the browser to generate profiles, then rebuild.
-# ENABLE_BOLT=1 -> run llvm-bolt pass (requires llvm-bolt available in PATH)
-# ENABLE_POLLY=1 -> enable polly compiler passes where feasible
-# NATIVE_ARCH -> defaults to x86-64-v3
-: "${NATIVE_ARCH:=x86-64-v3}"
+# : "${ENABLE_PGO:=1}"  -> run PGO (two-stage). You should run the instrumented build, exercise the browser to generate profiles, then rebuild.
+# : "${ENABLE_BOLT:=1}" -> run llvm-bolt pass (requires llvm-bolt available in PATH)
 
+: "${NATIVE_ARCH:=native}"
+: "${ENABLE_POLLY:=1}" # -> enable polly compiler passes where feasible
 # Build flags as arrays
-_cflags=(-O3 -march=${NATIVE_ARCH} -mtune=native -fomit-frame-pointer -ffunction-sections -fdata-sections)
+_cflags=(-O3 -march=${NATIVE_ARCH} -mtune=${NATIVE_ARCH} -fomit-frame-pointer -ffunction-sections -fdata-sections -pipe -fno-plt -fno-semantic-interposition -fjump-tables)
 _cppflags=("${_cflags[@]}")
-_ldflags=(-Wl,-O1 -Wl,--gc-sections -flto -fuse-linker-plugin -Wl,-plugin-opt=emit-llvm)
-_rustflags=(-C target-cpu=native -C opt-level=3 -C lto -C codegen-units=1)
+_ldflags=(-Wl,-O3 -Wl,--gc-sections -Wl,--sort-common -Wl,--as-needed -Wl,-z,pack-relative-relocs -Wl,-z,relro -Wl,-z,now -flto -fuse-linker-plugin -Wl,-plugin-opt=emit-llvm)
+_rustflags=(-Ctarget-cpu=native -Copt-level=3 -Clto=fat -Ccodegen-units=1 -Cpanic=abort -Cllvm-args=-enable-dfa-jump-thread -Clink-arg=-fuse-ld=lld -Zunstable-options -Ztune-cpu=native)
 
 prepare() {
-  cd "$srcdir"/${_pkgname}-${pkgver}
-
+  cd "${srcdir}/${_pkgname}-${pkgver}" || :
   # Apply patches if any exist
   local src
   for src in "${source[@]}"; do
-    src="${src%%::*}"
-    src="${src##*/}"
+    src="${src%%::*}"; src="${src##*/}"
     [[ $src == *.patch ]] || continue
-    echo "Applying patch $src..."
-    patch -Np1 -i "$srcdir/$src"
+    echo "Applying patch ${src}..."
+    patch -Np1 -i "${srcdir}/${src}" || :
   done
 }
 
@@ -132,7 +129,6 @@ ac_add_options OPT_LEVEL="3"
 ac_add_options RUSTC_OPT_LEVEL="3"
 ac_add_options --enable-rust-simd
 ac_add_options --enable-wasm-simd
-ac_add_options --enable-lto
 ac_add_options --enable-linker=lld
 ac_add_options --enable-lto=cross,full
 ac_add_options MOZ_LTO=cross,full
@@ -140,7 +136,6 @@ ac_add_options MOZ_PGO=1
 ac_add_options --enable-strip
 ac_add_options --disable-install-strip
 ac_add_options --enable-release
-ac_add_options --enable-strip
 ac_add_options --with-ccache=sccache
 ac_add_options --disable-sandbox
 ac_add_options --disable-tests
@@ -190,17 +185,21 @@ ac_add_options --disable-synth-speechd
 ac_add_options --disable-debug-symbols
 ac_add_options --disable-debug-js-modules
 ac_add_options --disable-rust-tests
+ac_add_options --disable-rust-debug
 ac_add_options --disable-necko-wifi
 ac_add_options --disable-webspeech
 ac_add_options --disable-webspeechtestbackend
+ac_add_options --disable-phc
+ac_add_options --disable-dmd
 ac_add_options --disable-default-browser-agent
+ac_add_options --without-wasm-sandboxed-libraries
 
 # Disables crash reporting, telemetry and other data gathering tools
 mk_add_options MOZ_CRASHREPORTER=0
 mk_add_options MOZ_DATA_REPORTING=0
 mk_add_options MOZ_SERVICES_HEALTHREPORT=0
 mk_add_options MOZ_TELEMETRY_REPORTING=0
-export MOZ_NO_PIE_COMPAT=1 MOZ_NOSPAM=1 MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=system
+export MOZ_NO_PIE_COMPAT=1 MOZ_NOSPAM=1 MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
 EOF
 }
 
@@ -217,18 +216,19 @@ build() {
 
   # Environment
   export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib LD=lld LLVM_PROFDATA=llvm-profdata
-  export PYTHONOPTIMIZE=2 
-  export MOZ_NOSPAM=1 MOZ_ENABLE_WAYLAND=1 MOZ_DBUS_REMOTE=1 MOZ_ENABLE_XINPUT2=1 MOZ_DISABLE_RDD_SANDBOX=1
+  export PYTHONOPTIMIZE=2 RUSTC_WRAPPER=sccache CARGO_CACHE_RUSTC_INFO=1
+  export MOZ_NOSPAM=1 MOZ_ENABLE_WAYLAND=1 MOZ_DBUS_REMOTE=1 MOZ_ENABLE_XINPUT2=1 MOZ_DISABLE_RDD_SANDBOX=1 \
+    MOZ_CRASHREPORTER=0 MOZ_DATA_REPORTING=0 MOZ_SERVICES_HEALTHREPORT=0 MOZ_TELEMETRY_REPORTING=0 \
+    MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip MOZ_LTO=cross,full
   # Work around https://bugzilla.mozilla.org/show_bug.cgi?id=1969383
   export RUST_MIN_STACK=16777216
   
   export LIBGL_ALWAYS_SOFTWARE=true
-  
   export CFLAGS="${_cflags[*]} ${CFLAGS:-}"
   export CXXFLAGS="${_cppflags[*]} ${CXXFLAGS:-}"
   export LDFLAGS="${_ldflags[*]} ${LDFLAGS:-}"
   export RUSTFLAGS="${_rustflags[*]} ${RUSTFLAGS:-}"
-
+  export OPT_LEVEL=3 CARGO_INCREMENTAL=0 RUSTC_BOOTSTRAP=1
   # Polly/Propeller opt-in
   if [[ -n "${ENABLE_POLLY:-}" ]]; then
     export CFLAGS+=" -mllvm -polly -mllvm -polly-vectorizer=stripmine"
