@@ -59,7 +59,17 @@ prepare() {
 _write_mozconfig() {
   cat >.mozconfig <<'EOF'
 ac_add_options --enable-optimize=-O3
+ac_add_options OPT_LEVEL="3"
+ac_add_options RUSTC_OPT_LEVEL="3"
+ac_add_options --enable-rust-simd
+ac_add_options --enable-wasm-simd
 ac_add_options --enable-lto
+ac_add_options --enable-linker=lld
+ac_add_options --enable-lto=cross,full
+ac_add_options MOZ_LTO=cross,full
+ac_add_options MOZ_PGO=1
+ac_add_options --enable-strip
+ac_add_options --disable-install-strip
 ac_add_options --enable-release
 ac_add_options --enable-strip
 ac_add_options --with-ccache=sccache
@@ -71,12 +81,20 @@ ac_add_options --disable-websockets
 ac_add_options --disable-client-telemetry
 ac_add_options --disable-crashreporter
 ac_add_options --disable-health-report
-ac_add_options --enable-default-toolkit=cairo-gtk3
+ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
 ac_add_options --enable-wayland
 mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-firefox
-
+ac_add_options --prefix=/usr
+ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
 ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --allow-addon-sideload
+export MOZILLA_OFFICIAL=1
+
+export AR=llvm-ar
+export CC='clang'
+export CXX='clang++'
+export NM=llvm-nm
+export RANLIB=llvm-ranlib
 
 # System libraries
 ac_add_options --with-system-nspr
@@ -90,9 +108,9 @@ ac_add_options --with-system-jpeg
 
 # Features
 ac_add_options --enable-jxl
+ac_add_options --enable-av1
 ac_add_options --enable-pulseaudio
 ac_add_options --enable-alsa
-ac_add_options --enable-jack
 ac_add_options --disable-warnings-as-errors
 ac_add_options --disable-crashreporter
 ac_add_options --disable-tests
@@ -120,19 +138,23 @@ EOF
 build() {
   cd "$srcdir"/${_pkgname}-${pkgver}
 
+  # See https://github.com/glandium/git-cinnabar/issues/311
+  git config remote.origin.mirror false
+  
   _write_mozconfig
 
   # LTO needs more open files
   ulimit -n 4096
 
   # Environment
-  export CC=clang
-  export CXX=clang++
-  export AR=llvm-ar
-  export NM=llvm-nm
-  export RANLIB=llvm-ranlib
-  export LD=lld
-
+  export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib LD=lld LLVM_PROFDATA=llvm-profdata
+  export PYTHONOPTIMIZE=2 
+  export MOZ_NOSPAM=1 MOZ_ENABLE_WAYLAND=1 MOZ_DBUS_REMOTE=1 MOZ_ENABLE_XINPUT2=1 MOZ_DISABLE_RDD_SANDBOX=1
+  # Work around https://bugzilla.mozilla.org/show_bug.cgi?id=1969383
+  export RUST_MIN_STACK=16777216
+  
+  export LIBGL_ALWAYS_SOFTWARE=true
+  
   export CFLAGS="${_cflags[*]} ${CFLAGS:-}"
   export CXXFLAGS="${_cppflags[*]} ${CXXFLAGS:-}"
   export LDFLAGS="${_ldflags[*]} ${LDFLAGS:-}"
@@ -154,7 +176,7 @@ build() {
 
   # Configure / build via mach
   ./mach bootstrap --no-interactive --application-choice=browser || true
-  ./mach build || return 1
+  ./mach build --priority normal || return 1
 
   # If running BOLT rewriting is requested and llvm-bolt exists, run on the main binaries
   if [[ -n "${ENABLE_BOLT:-}" ]] && command -v llvm-bolt >/dev/null 2>&1; then
@@ -185,6 +207,44 @@ package() {
   cd "$srcdir"/${_pkgname}-${pkgver}
   objdir=./obj-firefox/dist
 
+  DESTDIR="$pkgdir" ./mach install
+  _vendorjs="$pkgdir/usr/lib/$_pkgname/browser/defaults/preferences/vendor.js"
+  install -Dm644 /dev/stdin "$_vendorjs" <<END
+// Use LANG environment variable to choose locale
+pref("intl.locale.requested", "");
+
+// Use system-provided dictionaries
+pref("spellchecker.dictionary_path", "/usr/share/hunspell");
+
+// Disable default browser checking.
+pref("browser.shell.checkDefaultBrowser", false);
+
+// Don't disable our bundled extensions in the application directory
+pref("extensions.autoDisableScopes", 11);
+pref("extensions.shownSelectionUI", true);
+
+// Enable JPEG XL images
+pref("image.jxl.enabled", true);
+
+// Prevent about:config warning
+pref("browser.aboutConfig.showWarning", false);
+
+// Prevent telemetry notification
+pref("services.settings.main.search-telemetry-v2.last_check", $(date +%s));
+END
+
+  _distini="$pkgdir/usr/lib/$_pkgname/distribution/distribution.ini"
+  install -Dm644 /dev/stdin "$_distini" <<END
+[Global]
+id=archlinux
+version=1.0
+about=Mozilla Firefox for Arch Linux
+
+[Preferences]
+app.distributor=archlinux
+app.distributor.channel=$_pkgname
+app.partner.archlinux=archlinux
+END
   install -Dm755 "$objdir/firefox" "$pkgdir/usr/bin/firefox-custom"
   mkdir -p "$pkgdir/usr/lib/firefox-custom"
   cp -a "$objdir/"* "$pkgdir/usr/lib/firefox-custom/"
@@ -198,13 +258,34 @@ Terminal=false
 Type=Application
 Categories=Network;WebBrowser;
 DESK
-
   # Icons if present
   if [[ -d "$objdir/browser/branding/distribution/icons" ]]; then
     mkdir -p "$pkgdir/usr/share/icons/hicolor/128x128/apps"
     cp -a "$objdir/browser/branding/distribution/icons/"* \
       "$pkgdir/usr/share/icons/hicolor/128x128/apps/" 2>/dev/null || true
   fi
+  for i in 16 22 24 32 48 64 128 256; do
+    install -Dm644 browser/branding/official/default$i.png \
+      "$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/$_pkgname.png"
+  done
+  install -Dm644 browser/branding/official/content/about-logo.png \
+    "$pkgdir/usr/share/icons/hicolor/192x192/apps/$_pkgname.png"
+  install -Dm644 browser/branding/official/content/about-logo@2x.png \
+    "$pkgdir/usr/share/icons/hicolor/384x384/apps/$_pkgname.png"
+  install -Dm644 ../firefox-symbolic.svg \
+    "$pkgdir/usr/share/icons/hicolor/symbolic/apps/$_pkgname-symbolic.svg"
+
+  install -Dm644 ../$_pkgname.desktop \
+    "$pkgdir/usr/share/applications/$_pkgname.desktop"
+  # Install a wrapper to avoid confusion about binary path
+  install -Dm755 /dev/stdin "$pkgdir/usr/bin/$_pkgname" <<END
+#!/bin/sh
+exec /usr/lib/$_pkgname/firefox "\$@"
+END
+  # Replace duplicate binary with wrapper
+  # https://bugzilla.mozilla.org/show_bug.cgi?id=658850
+  ln -srf "$pkgdir/usr/bin/$_pkgname" \
+    "$pkgdir/usr/lib/$_pkgname/firefox-bin"
 }
 
 # vim: ts=2 sw=2 et:
