@@ -83,8 +83,17 @@ conflicts=('firefox')
 provides=('firefox')
 source=(
   "https://archive.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"
-  $_pkgname.desktop
-  $_pkgname-symbolic.svg
+  ${_pkgname}.desktop
+  ${_pkgname}-symbolic.svg
+  ${srcdir}/patches/0001-Install-under-remoting-name.patch
+  ${srcdir}/patches/ffmpeg8-fix.patch
+  ${srcdir}/patches/0001-enable-vaapi.patch
+  ${srcdir}/patches/0002-remove-nvidia-blocklist.patch
+  ${srcdir}/patches/0018-bmo-1516081-Disable-watchdog-during-PGO-builds.patch
+  ${srcdir}/patches/17-feature-improved-send-progress.patch
+  ${srcdir}/patches/1864247-fix-performance-in-FindHdr.patch
+  ${srcdir}/patches/NNN9-reduce-console-noise-moz.patch
+  ${srcdir}/patches/browser-modules-AsyncTabSwitcher.sys.patch
 )
 sha256sums=('SKIP')
 
