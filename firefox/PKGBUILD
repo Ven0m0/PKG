@@ -6,14 +6,68 @@ pkgrel=1
 pkgdesc='Firefox optimized'
 arch=(x86_64)
 url="https://mozilla.org/firefox"
-license=(MPL)
+license=(MPL-2.0)
 provides=("firefox=${pkgver}")
 conflicts=('firefox')
 depends=('dbus-glib' 'gtk3' 'alsa-lib' 'nss' 'nspr' 'libstdc++' 'libxcomposite'
-         'libxrandr' 'pango' 'dav1d' 'aom' 'icu' 'graphite' 'libwebp' 'libxt')
+         'libxrandr' 'pango' 'dav1d' 'aom' 'icu' 'graphite' 'libwebp' 'libxt'
+  alsa-lib
+  at-spi2-core
+  bash
+  cairo
+  dbus
+  ffmpeg
+  fontconfig
+  freetype2
+  gcc-libs
+  gdk-pixbuf2
+  glib2
+  glibc
+  gtk3
+  hicolor-icon-theme
+  libevent
+  libjpeg
+  libpulse
+  libvpx
+  libwebp
+  libx11
+  libxcb
+  libxcomposite
+  libxdamage
+  libxext
+  libxfixes
+  libxrandr
+  libxss
+  libxt
+  mime-types
+  pango
+  ttf-font
+)
 makedepends=('git' 'clang' 'lld' 'cmake' 'rust' 'cargo' 'ninja' 'python'
              'zip' 'unzip' 'autoconf2.13' 'clang-tools-extra' 'llvm'
-             'bindgen' 'cargo-make' 'pkg-config' 'gtk-doc' 'sed' 'grep' 'file')
+             'bindgen' 'cargo-make' 'pkg-config' 'gtk-doc' 'sed' 'grep' 'file'
+  git-cinnabar
+  cbindgen
+  clang
+  diffutils
+  imake
+  jack
+  lld
+  llvm
+  mesa
+  nasm
+  nodejs
+  python
+  rust
+  unzip
+  wasi-compiler-rt
+  wasi-libc
+  wasi-libc++
+  wasi-libc++abi
+  xorg-server-xvfb
+  yasm
+  zip             
+)
 optdepends=('hunspell-en_US: Spell checking, American English'
             'libnotify: Notification integration'
             'networkmanager: Location detection via available WiFi networks'
@@ -24,8 +78,14 @@ optdepends=('hunspell-en_US: Spell checking, American English'
             'profile-sync-daemon: Load the browser profile into RAM')
 backup=()
 options=(!strip !emptydirs !debug !makeflags !lto)
-
-source=("https://archive.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz")
+_repo=https://hg.mozilla.org/mozilla-unified
+conflicts=('firefox')
+provides=('firefox')
+source=(
+  "https://archive.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"
+  $_pkgname.desktop
+  $_pkgname-symbolic.svg
+)
 sha256sums=('SKIP')
 
 # Tunables:
