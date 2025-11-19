@@ -4,3 +4,16 @@ mozilla-unified
 pkg
 src
 readme.md
+**/__pycache__/*
+venv
+.cache
+mozilla-release
+artifacts
+node_modules
+logs
+.DS_Store
+build/configs/mozconfig
+/mozconfig
+/local.mozconfig
+sb-gapi.data
+gls-gapi.data
