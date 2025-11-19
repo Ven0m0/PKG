@@ -1,0 +1,42 @@
+From: Krzysztof Modras <chrmod@chrmod.net>
+Date: Tue, 5 Mar 2024 14:44:08 +0100
+Subject: Remove Firefox View
+
+---
+ browser/base/content/browser-menubar.inc | 3 ---
+ browser/themes/shared/tabbrowser/tabs.css           | 2 +-
+ 2 files changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/browser/base/content/browser-menubar.inc b/browser/base/content/browser-menubar.inc
+index e8d139e8cb..e59f5a64d6 100644
+--- a/browser/base/content/browser-menubar.inc
++++ b/browser/base/content/browser-menubar.inc
+@@ -359,8 +359,8 @@
+                         hidden="true"
+                         data-l10n-id="menu-tools-fxa-re-auth"/>
+
+-              <menuitem id="menu_openFirefoxView"
+-                        data-l10n-id="menu-tools-firefox-view"/>
++              <!--<menuitem id="menu_openFirefoxView"
++                        data-l10n-id="menu-tools-firefox-view"/>-->
+               <menuseparator id="devToolsSeparator"/>
+               <menu id="browserToolsMenu" data-l10n-id="menu-tools-browser-tools">
+                 <menupopup id="menuWebDeveloperPopup">
+diff --git a/browser/themes/shared/tabbrowser/tabs.css b/browser/themes/shared/tabbrowser/tabs.css
+index 22d1fe3d07..eb787b0425 100644
+--- a/browser/themes/shared/tabbrowser/tabs.css
++++ b/browser/themes/shared/tabbrowser/tabs.css
+@@ -792,8 +792,8 @@ sidebar-main[expanded] > #vertical-tabs > #tabbrowser-tabs[orient="vertical"] .t
+   margin-inline-start: 2px;
+ }
+
+-:root[firefoxviewhidden] :is(#firefox-view-button, #wrapper-firefox-view-button),
+-:root[privatebrowsingmode] :is(#firefox-view-button, #menu_openFirefoxView) {
++:root :is(#firefox-view-button, #wrapper-firefox-view-button),
++:root :is(#firefox-view-button, #menu_openFirefoxView) {
+   display: none;
+ }
+
+--
+2.39.3 (Apple Git-145)
+
