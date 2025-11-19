@@ -1,0 +1,33 @@
+* text=auto eol=lf
+*.sh text eol=lf diff=bash
+*.bash text eol=lf diff=bash
+PKGBUILD text eol=lf diff=bash
+*.py diff=python
+*.js diff=java
+*.json diff=json
+*.jsonc diff=json linguist-language=JSONC
+*.yaml diff=yaml
+*.yml diff=yaml
+*.toml diff=toml linguist-language=TOML
+*.xml diff=xml
+*.html diff=html
+*.css diff=css
+*.md diff=markdown linguist-detectable linguist-documentation
+*.txt linguist-documentation
+*.ini text
+*.cfg text
+*.conf text
+*.service text
+*.jpg binary diff=exif
+*.jpeg binary diff=exif
+*.webp binary diff=exif
+*.avif binary diff=exif
+*.svg text
+*.ttf binary
+Makefile text eol=lf whitespace=blank-at-eol,-blank-at-eof,-space-before-tab,tab-in-indent,tabwidth=4
+*.patch diff=patch
+.gitignore text
+.gitattributes text
+.editorconfig text
+*.swp binary
+*.swo binary
