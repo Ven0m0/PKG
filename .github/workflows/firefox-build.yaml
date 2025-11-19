@@ -1,0 +1,87 @@
+name: Build firefox
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build package in container
+        run: |
+          docker run --rm -v $(pwd):/workspace -w /workspace archlinux:latest bash -c '
+            pacman -Syu --noconfirm && \
+            pacman -S --noconfirm sudo base-devel \
+                alsa-lib at-spi2-core bash cairo dbus ffmpeg fontconfig freetype2 \
+                gdk-pixbuf2 glib2 glibc gtk3 hicolor-icon-theme libpulse libx11 libxcb \
+                libxcomposite libxdamage libxext libxfixes libxrandr libxss mime-types \
+                nspr nss pango ttf-font clang lld llvm mesa nasm nodejs \
+                python rust unzip yasm zip cbindgen libice libsm libxt && \
+            useradd -m builder && \
+            echo "builder ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/builder && \
+            chmod 440 /etc/sudoers.d/builder && \
+            chown -R builder:builder /workspace && \
+            sudo -u builder bash -c "
+              cd firefox && \
+              makepkg --noconfirm --needed
+            "
+          '
+
+      - name: Extract package info from PKGBUILD
+        id: pkg_info
+        run: |
+          cd firefox
+
+          PKGNAME=$(grep "^pkgname=" PKGBUILD | head -1 | cut -d= -f2 | tr -d ' ')
+          PKGVER=$(grep "^pkgver=" PKGBUILD | head -1 | cut -d= -f2 | tr -d ' ')
+          PKGREL=$(grep "^pkgrel=" PKGBUILD | head -1 | cut -d= -f2 | tr -d ' ')
+
+          PKGFILE="${PKGNAME}-${PKGVER}-${PKGREL}-x86_64.pkg.tar.zst"
+
+          if [[ ! -f "$PKGFILE" ]]; then
+            echo "Ошибка: пакет $PKGFILE не найден!"
+            ls -la
+            exit 1
+          fi
+
+          echo "PKGNAME=$PKGNAME" >> $GITHUB_ENV
+          echo "PKGVER=$PKGVER" >> $GITHUB_ENV
+          echo "PKGREL=$PKGREL" >> $GITHUB_ENV
+          echo "PKGFILE=$PKGFILE" >> $GITHUB_ENV
+          echo "TAG=v${PKGVER}-${PKGREL}" >> $GITHUB_ENV
+
+          echo "Пакет: $PKGFILE"
+          echo "Тег: v${PKGVER}-${PKGREL}"
+
+      - name: Fix permissions for Git
+        run: |
+          sudo chown -R $(whoami):$(whoami) .git
+
+      - name: Create and push Git tag
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+          TAG="${{ env.TAG }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Тег $TAG уже существует, пропускаем создание."
+          else
+            git tag -a "$TAG" -m "Release $TAG"
+            git push origin "$TAG"
+          fi
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          name: ${{ env.PKGNAME }} ${{ env.TAG }}
+          files: firefox/${{ env.PKGFILE }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
