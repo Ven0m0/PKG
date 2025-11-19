@@ -55,9 +55,6 @@ __pycache__/
 *.zip
 *.xz
 mozilla-unified
-pkg
-src
-readme.md
 **/__pycache__/*
 venv
 .cache
