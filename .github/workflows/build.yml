@@ -1,0 +1,214 @@
+name: Build Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Create GitHub release for built packages'
+        required: false
+        type: boolean
+        default: false
+      package:
+        description: 'Specific package to build (leave empty for all)'
+        required: false
+        type: string
+  push:
+    paths: ['**/PKGBUILD']
+  pull_request:
+    paths: ['**/PKGBUILD']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: write-all
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+  GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+
+jobs:
+  # Find all packages to build
+  matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      pkgs: ${{ steps.set.outputs.pkgs }}
+    steps:
+      - name: Maximize build space
+        uses: AdityaGarg8/remove-unwanted-software@v5
+        with:
+          remove-android: 'true'
+          remove-dotnet: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+          remove-docker-images: 'true'
+      - name: Free disk space
+        run: |
+          df -h; sudo apt-get autoclean -y; sudo apt-get autoremove --purge -y
+          command -v docker &>/dev/null && docker system prune -a -f
+          sudo rm -f /var/lib/man-db/auto-update
+          sudo rm -rf "/var/lib/apt/lists/"* /opt/ghc /usr/local/.ghcup /usr/local/lib/android /usr/share/dotnet
+          echo "force-unsafe-io" | sudo tee -a /etc/dpkg/dpkg.cfg.d/force-unsafe-io
+          INITRAMFS_CONF="/etc/initramfs-tools/update-initramfs.conf"; DPKG_TRIGGERS="/var/lib/dpkg/triggers/File"
+          [[ -e /etc/initramfs-tools/update-initramfs.conf ]] && sudo sed -i 's/yes/no/g' /etc/initramfs-tools/update-initramfs.conf
+          if [[ -e $DPKG_TRIGGERS ]]; then
+            sudo sed '/fontconfig/d' -i $DPKG_TRIGGERS; sudo sed '/install-info/d' -i $DPKG_TRIGGERS
+            sudo sed '/mime/d' -i $DPKG_TRIGGERS; sudo sed '/hicolor-icon-theme/d' -i $DPKG_TRIGGERS
+          fi
+          echo -e "\nFree space:"; df -h
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: set
+        run: |
+          if [[ -n "${{ github.event.inputs.package }}" ]]; then
+            # Build specific package
+            pkgs='["${{ github.event.inputs.package }}"]'
+          else
+            # Build all packages
+            pkgs=$(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | jq -Rsc 'split("\n")[:-1]')
+          fi
+          echo "pkgs=$pkgs" >>$GITHUB_OUTPUT
+
+  # Build packages
+  build:
+    needs: matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pkg: ${{ fromJSON(needs.matrix.outputs.pkgs) }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      # Check if this is a specialized package requiring Docker build
+      - name: Determine build method
+        id: build_method
+        run: |
+          pkg="${{ matrix.pkg }}"
+          case "$pkg" in
+            obs-studio|firefox|egl-wayland2|onlyoffice)
+              echo "method=docker" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "method=standard" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+      # Standard build for most packages
+      - name: Build package (standard)
+        if: steps.build_method.outputs.method == 'standard'
+        id: makepkg_standard
+        uses: 2m/arch-pkgbuild-builder@v1.21
+        with:
+          target: pkgbuild
+          pkgname: ${{ matrix.pkg }}
+
+      # Docker build for specialized packages
+      - name: Build package (Docker)
+        if: steps.build_method.outputs.method == 'docker'
+        run: |
+          pkg="${{ matrix.pkg }}"
+
+          # Package-specific dependencies
+          case "$pkg" in
+            obs-studio)
+              deps="ffmpeg pipewire rnnoise libxcomposite libxinerama libxkbcommon-x11 pciutils mbedtls vulkan-headers qt6-svg uthash cmake extra-cmake-modules ffnvcodec-headers nlohmann-json simde"
+              ;;
+            firefox)
+              deps="alsa-lib at-spi2-core bash cairo dbus ffmpeg fontconfig freetype2 gdk-pixbuf2 glib2 glibc gtk3 hicolor-icon-theme libpulse libx11 libxcb libxcomposite libxdamage libxext libxfixes libxrandr libxss mime-types nspr nss pango ttf-font clang lld llvm mesa nasm nodejs python rust unzip yasm zip cbindgen libice libsm libxt"
+              ;;
+            egl-wayland2)
+              deps="eglexternalplatform glibc libdrm wayland git libglvnd meson wayland-protocols"
+              ;;
+            onlyoffice)
+              deps="gtk3 gstreamer gst-plugins-base-libs libxss nss nspr desktop-file-utils hicolor-icon-theme wget unzip git libarchive"
+              ;;
+          esac
+
+          docker run --rm -v $(pwd):/workspace -w /workspace archlinux:latest bash -c "
+            pacman -Syu --noconfirm && \
+            pacman -S --noconfirm sudo base-devel $deps && \
+            useradd -m builder && \
+            echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/builder && \
+            chmod 440 /etc/sudoers.d/builder && \
+            chown -R builder:builder /workspace && \
+            sudo -u builder bash -c '
+              cd $pkg && \
+              makepkg --noconfirm --needed
+            '
+          "
+
+      # Extract package info for artifacts and releases
+      - name: Extract package info
+        id: pkg_info
+        run: |
+          cd "${{ matrix.pkg }}"
+
+          PKGNAME=$(grep "^pkgname=" PKGBUILD | head -1 | cut -d= -f2 | tr -d ' ')
+          PKGVER=$(grep "^pkgver=" PKGBUILD | head -1 | cut -d= -f2 | tr -d ' ')
+          PKGREL=$(grep "^pkgrel=" PKGBUILD | head -1 | cut -d= -f2 | tr -d ' ')
+
+          # Find the built package file
+          if [[ -n "${{ steps.makepkg_standard.outputs.pkgfile0 }}" ]]; then
+            PKGFILE="${{ steps.makepkg_standard.outputs.pkgfile0 }}"
+          else
+            PKGFILE=$(find . -maxdepth 1 -name "*.pkg.tar.zst" | head -1)
+            [[ -z "$PKGFILE" ]] && PKGFILE="${PKGNAME}-${PKGVER}-${PKGREL}-x86_64.pkg.tar.zst"
+          fi
+
+          echo "PKGNAME=$PKGNAME" >> $GITHUB_OUTPUT
+          echo "PKGVER=$PKGVER" >> $GITHUB_OUTPUT
+          echo "PKGREL=$PKGREL" >> $GITHUB_OUTPUT
+          echo "PKGFILE=$PKGFILE" >> $GITHUB_OUTPUT
+          echo "TAG=v${PKGVER}-${PKGREL}" >> $GITHUB_OUTPUT
+
+          echo "Package: $PKGFILE"
+          echo "Tag: v${PKGVER}-${PKGREL}"
+
+      # Upload artifacts for all builds
+      - name: Upload artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: ${{ matrix.pkg }}
+          path: ${{ matrix.pkg }}/${{ steps.pkg_info.outputs.PKGFILE }}
+          compression-level: 0
+
+      # Create release for specialized packages (when requested)
+      - name: Fix permissions for Git
+        if: |
+          github.event.inputs.create_release == 'true' &&
+          contains(fromJSON('["obs-studio", "firefox", "egl-wayland2", "onlyoffice"]'), matrix.pkg)
+        run: |
+          sudo chown -R $(whoami):$(whoami) .git
+
+      - name: Create and push Git tag
+        if: |
+          github.event.inputs.create_release == 'true' &&
+          contains(fromJSON('["obs-studio", "firefox", "egl-wayland2", "onlyoffice"]'), matrix.pkg)
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+          TAG="${{ steps.pkg_info.outputs.TAG }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping."
+          else
+            git tag -a "$TAG" -m "Release $TAG - ${{ matrix.pkg }}"
+            git push origin "$TAG"
+          fi
+
+      - name: Publish Release
+        if: |
+          github.event.inputs.create_release == 'true' &&
+          contains(fromJSON('["obs-studio", "firefox", "egl-wayland2", "onlyoffice"]'), matrix.pkg)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.pkg_info.outputs.TAG }}
+          name: ${{ steps.pkg_info.outputs.PKGNAME }} ${{ steps.pkg_info.outputs.TAG }}
+          files: ${{ matrix.pkg }}/${{ steps.pkg_info.outputs.PKGFILE }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
