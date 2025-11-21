@@ -30,7 +30,7 @@ sha256sums=('73187473feb74509357e8fa6cb9fd67153b2d010d00aeb2fddb6ceeb18abaf27'
 options=('!lto')
 
 prepare() {
-    cd sqlite-src-$_srcver
+    cd "sqlite-src-${_srcver}"
 
     # patch taken from Fedora
     # https://src.fedoraproject.org/rpms/sqlite/blob/master/f/sqlite.spec
@@ -55,15 +55,15 @@ pgo_profiler() {
 
     TRIES=3
 
-    cat queries.sql | while read query; do
+    while IFS= read -r query; do
         sync
         echo 3 | sudo tee /proc/sys/vm/drop_caches
 
         echo "$query"
-        for i in $(seq 1 $TRIES); do
-            LLVM_PROFILE_FILE=${PGO_PROFILE_DIR}/_%m_%p.profraw $SQLITE_DIR/sqlite3 mydb <<<"${query}"
+        for i in $(seq 1 "$TRIES"); do
+            LLVM_PROFILE_FILE=${PGO_PROFILE_DIR}/_%m_%p.profraw "$SQLITE_DIR"/sqlite3 mydb <<<"${query}"
         done
-    done
+    done < queries.sql
 
 }
 
@@ -99,22 +99,21 @@ build() {
     export CXXFLAGS+="$CXXFLAGS -fprofile-generate"
 
     # build sqlite
-    cd sqlite-src-$_srcver
-    cd sqlite-src-$_srcver
+    cd "sqlite-src-${_srcver}"
     ./configure --prefix=/usr \
         --disable-static \
         --enable-fts3 \
         --enable-fts4 \
         --enable-fts5 \
         --enable-rtree \
-        TCLLIBDIR=/usr/lib/sqlite$pkgver
+        TCLLIBDIR="/usr/lib/sqlite${pkgver}"
 
     sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
     make
 
-    export SQLITE_DIR=$PWD
+    export SQLITE_DIR="$PWD"
     cd ..
-    export ROOT_DIR=$PWD
+    export ROOT_DIR="$PWD"
 
     # run the profiler
     pgo_profiler
@@ -135,7 +134,7 @@ build() {
         --enable-fts4 \
         --enable-fts5 \
         --enable-rtree \
-        TCLLIBDIR=/usr/lib/sqlite$pkgve
+        TCLLIBDIR="/usr/lib/sqlite${pkgver}"
 
     sed -i -e 's/ -shared / -flto=thin -Wl,-O1,--as-needed\0/g' libtool
     make
@@ -151,7 +150,7 @@ package_sqlite() {
     provides=("sqlite3=$pkgver" 'libsqlite3.so')
     replaces=("sqlite3")
 
-    cd sqlite-src-$_srcver
+    cd "sqlite-src-${_srcver}"
     make DESTDIR="${pkgdir}" install
 
     install -m755 showdb showjournal showstat4 showwal sqldiff "${pkgdir}"/usr/bin/
@@ -161,7 +160,7 @@ package_sqlite() {
     install -m644 sqlite3.1 "${pkgdir}"/usr/share/man/man1/
 
     # license - no linking required because pkgbase=pkgname
-    install -D -m644 "${srcdir}"/license.txt "${pkgdir}"/usr/share/licenses/${pkgbase}/license.txt
+    install -D -m644 "${srcdir}"/license.txt "${pkgdir}/usr/share/licenses/${pkgbase}/license.txt"
 
     # split out tcl extension
     mkdir -p "$srcdir"/tcl
@@ -173,7 +172,7 @@ package_sqlite-analyzer() {
     pkgdesc="An analysis program for sqlite3 database files"
     depends=('sqlite' 'tcl' 'glibc')
 
-    cd sqlite-src-$_srcver
+    cd "sqlite-src-${_srcver}"
     install -m755 -d "${pkgdir}"/usr/bin
     install -m755 sqlite3_analyzer "${pkgdir}"/usr/bin/
 }
@@ -184,15 +183,15 @@ package_lemon() {
     pkgdesc="A parser generator"
     depends=('glibc')
 
-    cd sqlite-src-$_srcver
+    cd "sqlite-src-${_srcver}"
     # ELF file ('usr/bin/lemon') lacks FULL RELRO, check LDFLAGS. - no fix found so far
-    install -Dm755 lemon ${pkgdir}/usr/bin/lemon
-    install -Dm644 lempar.c ${pkgdir}/usr/share/lemon/lempar.c
+    install -Dm755 lemon "${pkgdir}/usr/bin/lemon"
+    install -Dm644 lempar.c "${pkgdir}/usr/share/lemon/lempar.c"
 
-    mkdir -p "${pkgdir}"/usr/share/doc/${pkgname}
-    cp ../sqlite-doc-${_docver}/lemon.html "${pkgdir}"/usr/share/doc/${pkgname}/
+    mkdir -p "${pkgdir}/usr/share/doc/lemon"
+    cp "../sqlite-doc-${_docver}/lemon.html" "${pkgdir}/usr/share/doc/lemon/"
     install -m755 -d "${pkgdir}"/usr/share/licenses
-    ln -sf /usr/share/licenses/${pkgbase} "${pkgdir}/usr/share/licenses/${pkgname}"
+    ln -sf "/usr/share/licenses/${pkgbase}" "${pkgdir}/usr/share/licenses/lemon"
 
 }
 
@@ -203,9 +202,9 @@ package_sqlite-doc() {
     provides=("sqlite3-doc=$pkgver")
     replaces=("sqlite3-doc")
 
-    cd sqlite-doc-${_docver}
-    mkdir -p "${pkgdir}"/usr/share/doc/${pkgbase}
-    cp -R * "${pkgdir}"/usr/share/doc/${pkgbase}/
+    cd "sqlite-doc-${_docver}"
+    mkdir -p "${pkgdir}/usr/share/doc/${pkgbase}"
+    cp -R -- * "${pkgdir}/usr/share/doc/${pkgbase}/"
 
-    rm "${pkgdir}"/usr/share/doc/${pkgbase}/lemon.html
+    rm "${pkgdir}/usr/share/doc/${pkgbase}/lemon.html"
 }

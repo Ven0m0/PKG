@@ -3,6 +3,7 @@ pkgname=etchdns
 pkgver=0.1.2
 pkgrel=1
 makedepends=('rust' 'cargo')
+depends=('gcc-libs')
 arch=('x86_64' 'aarch64')
 pkgdesc="A caching DNS proxy with advanced security features, WebAssembly hooks, and comprehensive protection mechanisms"
 url="https://github.com/jedisct1/etchdns"
@@ -30,20 +31,22 @@ check() {
 package() {
   cd "$pkgname-$pkgver"
   install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/$pkgname"
-  sudo cat > /etc/systemd/system/etchdns.service <<'EOF'
-  [Unit]
-  Description=EtchDNS high-performance DNS proxy
-  After=network.target
-  
-  [Service]
-  ExecStart=/usr/bin/etchdns -c /etc/etchdns.toml
-  User=root
-  Group=root
-  LimitNOFILE=65536
-  Restart=on-failure
 
-  [Install]
-  WantedBy=multi-user.target
+  # Install systemd service file
+  install -Dm0644 /dev/stdin "$pkgdir/usr/lib/systemd/system/etchdns.service" <<'EOF'
+[Unit]
+Description=EtchDNS high-performance DNS proxy
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/etchdns -c /etc/etchdns.toml
+User=root
+Group=root
+LimitNOFILE=65536
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
 EOF
 }
 
