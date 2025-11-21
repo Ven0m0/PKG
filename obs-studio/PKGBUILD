@@ -42,7 +42,7 @@ build() {
     -DENABLE_SCRIPTING=OFF \
     -DOBS_VERSION_OVERRIDE="$pkgver" \
     -Wno-dev
-  cmake --build build --target all -j$(nproc)
+  cmake --build build --target all -j"$(nproc)"
 }
 package() {
   DESTDIR="$pkgdir" cmake --install build
