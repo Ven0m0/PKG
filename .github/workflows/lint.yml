@@ -1,0 +1,75 @@
+name: Lint and Format
+
+on:
+  workflow_dispatch:
+  push:
+    paths: ['**/PKGBUILD', '**/.SRCINFO', '**.sh', '**.py', '**.json', '**.yml', '**.yaml']
+  pull_request:
+    paths: ['**/PKGBUILD', '**/.SRCINFO', '**.sh', '**.py', '**.json', '**.yml', '**.yaml']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: write-all
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+  GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+
+jobs:
+  # Job to find all PKGBUILD files
+  matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      pkgs: ${{ steps.set.outputs.pkgs }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: set
+        run: |
+          pkgs=$(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | jq -Rsc 'split("\n")[:-1]')
+          echo "pkgs=$pkgs" >>$GITHUB_OUTPUT
+
+  # Lint PKGBUILD files
+  pkgbuild-lint:
+    needs: matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pkg: ${{ fromJSON(needs.matrix.outputs.pkgs) }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: 2m/arch-pkgbuild-builder@v1.21
+        with:
+          target: pkgbuild
+          pkgname: ${{ matrix.pkg }}
+      - name: Validate package
+        uses: heyhusen/archlinux-package-action@v2
+        with:
+          pkgrel: true
+          pkgver: true
+          namcap: true
+          aur: true
+
+  # General code linting with MegaLinter
+  megalinter:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: MegaLinter
+        uses: oxsecurity/megalinter@v8
+        env:
+          VALIDATE_ALL_CODEBASE: true
+          GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+          FILTER_REGEX_EXCLUDE: '(.github|.git|.cache|go|node_modules|.var|.rustup|.wine|.zim|.void-editor|.vscode|.claude)/.*'
