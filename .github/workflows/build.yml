@@ -1,5 +1,4 @@
 name: Build Packages
-
 on:
   workflow_dispatch:
     inputs:
@@ -16,20 +15,16 @@ on:
     paths: ['**/PKGBUILD']
   pull_request:
     paths: ['**/PKGBUILD']
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 permissions:
   contents: write
   packages: read
   actions: read
-
 env:
   DEBIAN_FRONTEND: noninteractive
   GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
-
 jobs:
   # Find all packages to build
   matrix:
@@ -48,7 +43,6 @@ jobs:
             pkgs=$(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | jq -Rsc 'split("\n")[:-1]')
           fi
           echo "pkgs=$pkgs" >>$GITHUB_OUTPUT
-
   # Build packages
   build:
     needs: matrix
@@ -73,7 +67,6 @@ jobs:
               echo "needs_space=false" >> $GITHUB_OUTPUT
               ;;
           esac
-
       # Free disk space only for Docker builds
       - name: Maximize build space
         if: steps.build_method.outputs.needs_space == 'true'
@@ -84,7 +77,6 @@ jobs:
           remove-haskell: 'true'
           remove-codeql: 'true'
           remove-docker-images: 'true'
-
       - name: Free disk space
         if: steps.build_method.outputs.needs_space == 'true'
         run: |
@@ -95,9 +87,7 @@ jobs:
           sudo rm -rf /var/lib/apt/lists/* /opt/ghc /usr/local/.ghcup /usr/local/lib/android /usr/share/dotnet
           echo "force-unsafe-io" | sudo tee -a /etc/dpkg/dpkg.cfg.d/force-unsafe-io
           echo -e "\nFree space:"; df -h
-
       - uses: actions/checkout@v5
-
       # Standard build for most packages
       - name: Build package (standard)
         if: steps.build_method.outputs.method == 'standard'
@@ -106,7 +96,6 @@ jobs:
         with:
           target: pkgbuild
           pkgname: ${{ matrix.pkg }}
-
       # Docker build for specialized packages
       - name: Build package (Docker)
         if: steps.build_method.outputs.method == 'docker'
@@ -139,7 +128,6 @@ jobs:
             chown -R builder:builder /workspace
             sudo -u builder bash -c \"cd '$pkg' && makepkg --noconfirm --needed\"
           "
-
       # Extract package info for artifacts and releases
       - name: Extract package info
         id: pkg_info
@@ -166,7 +154,6 @@ jobs:
 
           echo "Package: $PKGFILE"
           echo "Tag: v${PKGVER}-${PKGREL}"
-
       # Upload artifacts for all builds
       - name: Upload artifact
         uses: actions/upload-artifact@v5
@@ -174,7 +161,6 @@ jobs:
           name: ${{ matrix.pkg }}
           path: ${{ matrix.pkg }}/${{ steps.pkg_info.outputs.PKGFILE }}
           compression-level: 0
-
       # Create release for specialized packages (when requested)
       - name: Check if release is needed
         id: check_release
@@ -185,11 +171,9 @@ jobs:
           else
             echo "enabled=false" >> $GITHUB_OUTPUT
           fi
-
       - name: Fix permissions for Git
         if: steps.check_release.outputs.enabled == 'true'
         run: sudo chown -R $(whoami):$(whoami) .git
-
       - name: Create and push Git tag
         if: steps.check_release.outputs.enabled == 'true'
         run: |
@@ -203,7 +187,6 @@ jobs:
             git tag -a "$TAG" -m "Release $TAG - ${{ matrix.pkg }}"
             git push origin "$TAG"
           fi
-
       - name: Publish Release
         if: steps.check_release.outputs.enabled == 'true'
         uses: softprops/action-gh-release@v2

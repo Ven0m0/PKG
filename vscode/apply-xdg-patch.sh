@@ -36,5 +36,5 @@ do
       ;;
     *)
       echo "unexpected file: $file"
-  esac
+  ;; esac
 done

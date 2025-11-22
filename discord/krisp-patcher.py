@@ -14,14 +14,16 @@ executable = sys.argv[1]
 
 with open(executable, "rb") as elf_file:
     elf = ELFFile(elf_file)
-    symtab = elf.get_section_by_name('.symtab')
+    symtab = elf.get_section_by_name(".symtab")
 
     krisp_initialize_address = symtab.get_symbol_by_name("_ZN7discordL17DoKrispInitializeEv")[0].entry.st_value
-    isSignedByDiscord_address = symtab.get_symbol_by_name("_ZN7discord4util17IsSignedByDiscordERKNSt4__Cr12basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE")[0].entry.st_value
+    isSignedByDiscord_address = symtab.get_symbol_by_name(
+        "_ZN7discord4util17IsSignedByDiscordERKNSt4__Cr12basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE"
+    )[0].entry.st_value
 
-    text = elf.get_section_by_name('.text')
-    text_start = text['sh_addr']
-    text_start_file = text['sh_offset']
+    text = elf.get_section_by_name(".text")
+    text_start = text["sh_addr"]
+    text_start_file = text["sh_offset"]
     # This seems to always be zero (.text starts at the right offset in the file). Do it just in case?
     address_to_file = text_start_file - text_start
 
@@ -71,9 +73,9 @@ if je_location:
     print(f"Found patch location: 0x{je_location:x}")
 
     shutil.copyfile(executable, executable + ".orig")
-    with open(executable, 'rb+') as f:
+    with open(executable, "rb+") as f:
         f.seek(je_location - address_to_file)
-        f.write(b'\x90' * je_size)   # je can be larger than 2 bytes given a large enough displacement :(
+        f.write(b"\x90" * je_size)  # je can be larger than 2 bytes given a large enough displacement :(
 else:
     if found_already_patched:
         print("Couldn't find patch location - already patched.")

@@ -17,10 +17,10 @@ source=("https://tukaani.org/${pkgname}/${pkgname}-${pkgver}.tar.gz"{,.sig}
     'add-pgo.patch')
 sha256sums=('135c90b934aee8fbc0d467de87a05cb70d627da36abe518c357a873709e5b7d6'
     'SKIP'
-    'SKIP')  # TODO: Add checksum for add-pgo.patch
+    '25d2b7b9c6d356ed18df7802bd6dae82005310fa065f3703c39e4d9f5ea55a9f')
 sha512sums=('91f8f548c915de0ed79cee13ce0336b51c1cebf2eb142fa1efecfd07771c662c99cad3730540fcb712057ab274130e13b87960f6b4c62f0bd9477f27a303fb2b'
     'SKIP'
-    'SKIP')  # TODO: Add checksum for add-pgo.patch
+    'fb9a7ea934555fe3ab2fccc4bd125fb4711d54862082f3a5e68faa2e96abb7c18c48c9b5e7d6be2616861dd1f97b5b3d244736676ec48b3467e61caf4c02a2a5')
 
 build() {
     cd "${srcdir}/${pkgname}-${pkgver}"

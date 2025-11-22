@@ -1,9 +1,9 @@
 # [Hickory-dns](https://github.com/hickory-dns/hickory-dns)
 
-
 ## Setting Up Hickory DNS as Your System DNS Client
 
 ### 1. Install Hickory DNS
+
 ```bash
 git clone https://github.com/hickory-dns/hickory-dns.git
 cd hickory-dns/hickory-server
@@ -12,6 +12,7 @@ sudo cp target/release/hickory-server /usr/local/bin/hickory-server
 ```
 
 fork from pull request:
+
 ```
 git clone --branch cpu-comment-crawl_dev --single-branch https://github.com/cpu/trust-dns.git
 ```
@@ -19,6 +20,7 @@ git clone --branch cpu-comment-crawl_dev --single-branch https://github.com/cpu/
 ### 2. Configure Hickory DNS
 
 Create a configuration file at /etc/hickory/hickory.toml:
+
 ```
 [server]
 listen = ["127.0.0.1:53"]  # Listen on localhost UDP and TCP port 53
@@ -31,6 +33,7 @@ level = "info"
 ```
 
 ### 3. Create a Systemd Service
+
 ```
 [Unit]
 Description=Hickory DNS Server
@@ -48,12 +51,14 @@ WantedBy=multi-user.target
 ```
 
 Enable and start the service:
+
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable --now hickory.service
 ```
 
 ### 4. Update `/etc/resolv.conf`
+
 ```bash
 echo "nameserver 127.0.0.1" | sudo tee /etc/resolv.conf
 ```
@@ -63,12 +68,15 @@ echo "nameserver 127.0.0.1" | sudo tee /etc/resolv.conf
 ```bash
 dig @127.0.0.1 google.com
 ```
+
 or manually specify the port to test:
+
 ```bash
 dig @127.0.0.1 -p 2345 example.com
 ```
 
 ### 5.1. [Testing the resolver via CLI with resolve](https://github.com/hickory-dns/hickory-dns/blob/main/crates/resolver/README.md#testing-the-resolver-via-cli-with-resolve)
+
 ```bash
 cargo install --bin resolve hickory-util
 ```
