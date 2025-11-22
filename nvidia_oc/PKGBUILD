@@ -50,6 +50,8 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target
 EOF
+
+  sudo systemctl daemon-reload
 }
 
 # vim: ts=2 sw=2 et:
