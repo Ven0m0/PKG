@@ -105,6 +105,11 @@ build() (
 #define SCM_UPDATE_TRACK_STR ""
 END
 
+  # Optimized compiler flags
+  export CFLAGS="${CFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt"
+  export CXXFLAGS="${CXXFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt"
+  export LDFLAGS="${LDFLAGS} -Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
+
   _cmake_options=(
     -B build -G Ninja -S "$_pkgsrc"
     -DCMAKE_BUILD_TYPE=Release
@@ -135,7 +140,7 @@ END
     _cmake_options+=(-DENABLE_LTO=OFF)
   fi
   cmake "${_cmake_options[@]}"
-  cmake --build build
+  cmake --build build -j"$(nproc)"
 )
 
 package() {

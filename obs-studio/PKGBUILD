@@ -13,18 +13,25 @@ makedepends=('extra-cmake-modules' 'ffnvcodec-headers' 'nlohmann-json' 'simde' '
 optdepends=(
   'v4l2loopback-dkms: virtual camera support'
 )
+options=('strip')
 source=(
   "$pkgname-$pkgver.tar.gz::https://github.com/obsproject/obs-studio/releases/download/$pkgver/OBS-Studio-$pkgver-Sources.tar.gz"
   "https://patch-diff.githubusercontent.com/raw/obsproject/obs-studio/pull/12328.patch"
 )
 sha256sums=('SKIP'
   '48d744037c553eea8f9b76bf46f6dcac753e52871f49b2c1a2580757f723a1b7')
+
 prepare() {
   cd "${pkgname}-${pkgver}-sources"
   patch -Np1 -i "${srcdir}/12328.patch" || :
 }
+
 build() {
-  export CXXFLAGS+=" -Wno-error=deprecated-declarations"
+  # Optimized compiler flags
+  export CFLAGS="${CFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt -flto=auto"
+  export CXXFLAGS="${CXXFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt -flto=auto -Wno-error=deprecated-declarations"
+  export LDFLAGS="${LDFLAGS} -Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
+
   cmake -B build -S "${pkgname}-${pkgver}-sources" \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/usr \

@@ -21,7 +21,7 @@ sha256sums=('60a420ad7085eb616cb6e2bdf0a7206d68ff3d37fb5a956dc44242eb2f79b66b'
             'SKIP')
 
 prepare() {
-  cd "$srcdir/$_pkgname-$pkgver"
+  cd "$_pkgname-$pkgver"
 
   local src
   for src in "${source[@]}"; do
@@ -29,12 +29,16 @@ prepare() {
     src="${src##*/}"
     [[ $src == *.patch ]] || continue
     echo "Applying patch $src..."
-    patch -Np1 -i "$srcdir/$src"
+    patch -Np1 -i "../$src"
   done
 }
 
 build() {
-  cd "$srcdir/$_pkgname-$pkgver"
+  cd "$_pkgname-$pkgver"
+
+  export CFLAGS="-O3 -march=native -mtune=native -pipe -fno-plt -flto=auto"
+  export CXXFLAGS="$CFLAGS"
+  export LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
 
   ./configure \
     --prefix=/usr \
@@ -43,16 +47,16 @@ build() {
     --without-gnutls \
     --with-openssl
 
-  make
+  make -j"$(nproc)"
 }
 
 check() {
-  cd "$srcdir/$_pkgname-$pkgver"
+  cd "$_pkgname-$pkgver"
   make check
 }
 
 package() {
-  cd "$srcdir/$_pkgname-$pkgver"
+  cd "$_pkgname-$pkgver"
 
   make DESTDIR="$pkgdir" install
 

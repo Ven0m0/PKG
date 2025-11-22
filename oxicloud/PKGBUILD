@@ -7,6 +7,7 @@ depends=('gcc-libs')
 arch=('x86_64' 'aarch64')
 url='https://github.com/DioCrafts/OxiCloud'
 license=('MIT')
+options=('strip')
 source=("$pkgname-$pkgver.tar.gz::https://github.com/DioCrafts/OxiCloud/archive/refs/tags/v$pkgver.tar.gz")
 sha256sums=('SKIP')  # TODO: Add actual checksum
 # Generated in accordance to https://wiki.archlinux.org/title/Rust_package_guidelines.
@@ -19,6 +20,7 @@ prepare() {
 build() {
   cd "OxiCloud-$pkgver"
   export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target
+  export RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C link-arg=-fuse-ld=lld"
   cargo build --frozen -r --all-features --bins --lib
 }
 

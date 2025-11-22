@@ -6,19 +6,20 @@ pkgrel=1
 arch=('x86_64')
 url='https://curl.se/'
 license=('MIT')
+options=('strip')
 makedepends=('openssl' 'rustls' 'wolfssl' 'pkg-config' 'autoconf' 'automake' 'libtool' 'quiche')
 source=("https://curl.se/download/curl-${pkgver}.tar.xz")
 sha256sums=('SKIP')
 
 prepare() {
-  cd "curl-${pkgver}"
+  cd "curl-$pkgver"
   autoreconf -fi
 }
 
 build() {
-  cd "curl-${pkgver}"
-  export CFLAGS="-O3 -march=native -flto -ffat-lto-objects -pipe"
-  export LDFLAGS="-flto -Wl,-O2 -Wl,--sort-common -Wl,--as-needed -Wl,-z,relro,-z,now,-z,pack-relative-relocs"
+  cd "curl-$pkgver"
+  export CFLAGS="-O3 -march=native -mtune=native -flto=auto -ffat-lto-objects -pipe -fno-plt"
+  export LDFLAGS="-flto=auto -Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now,-z,pack-relative-relocs"
   local -A tls=(
     [rustls]="--with-rustls"
     [openssl]="--with-openssl"
@@ -29,12 +30,17 @@ build() {
     cd "build-$b"
     ../configure \
       --prefix=/usr \
-      --disable-shared --disable-manual \
-      --enable-ipv6 --enable-threaded-resolver \
-      --enable-http2 --enable-quic --with-quiche \
-      --with-zlib --with-brotli --with-zstd \
-      ${tls[$b]} \
-      CFLAGS="${CFLAGS}" LDFLAGS="${LDFLAGS}"
+      --disable-shared \
+      --disable-manual \
+      --enable-ipv6 \
+      --enable-threaded-resolver \
+      --enable-http2 \
+      --enable-quic \
+      --with-quiche \
+      --with-zlib \
+      --with-brotli \
+      --with-zstd \
+      ${tls[$b]}
     make -j"$(nproc)"
     cd ..
   done
@@ -45,9 +51,8 @@ package_curl-rustls() {
   depends=('ca-certificates' 'brotli' 'librustls' 'zlib' 'zstd' 'quiche')
   provides=('curl')
   conflicts=('curl' 'curl-openssl' 'curl-wolfssl')
-  cd "curl-${pkgver}/build-rustls"
+  cd "curl-$pkgver/build-rustls"
   make DESTDIR="$pkgdir" install
-  strip -s "$pkgdir"/usr/bin/curl
 }
 
 package_curl-openssl() {
@@ -55,9 +60,8 @@ package_curl-openssl() {
   depends=('ca-certificates' 'brotli' 'openssl' 'zlib' 'zstd' 'quiche')
   provides=('curl')
   conflicts=('curl' 'curl-rustls' 'curl-wolfssl')
-  cd "curl-${pkgver}/build-openssl"
+  cd "curl-$pkgver/build-openssl"
   make DESTDIR="$pkgdir" install
-  strip -s "$pkgdir"/usr/bin/curl
 }
 
 package_curl-wolfssl() {
@@ -65,9 +69,8 @@ package_curl-wolfssl() {
   depends=('ca-certificates' 'brotli' 'libwolfssl' 'zlib' 'zstd' 'quiche')
   provides=('curl')
   conflicts=('curl' 'curl-rustls' 'curl-openssl')
-  cd "curl-${pkgver}/build-wolfssl"
+  cd "curl-$pkgver/build-wolfssl"
   make DESTDIR="$pkgdir" install
-  strip -s "$pkgdir"/usr/bin/curl
 }
 
 # vim: ts=2 sw=2 et:

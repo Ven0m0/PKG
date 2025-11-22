@@ -14,7 +14,7 @@ arch=('x86_64')
 license=('custom:Public Domain')
 url="https://www.sqlite.org/"
 makedepends=('tcl' 'readline' 'zlib')
-options=('!emptydirs')
+options=('!emptydirs' 'strip')
 source=(https://www.sqlite.org/2023/sqlite-src-${_srcver}.zip
     https://www.sqlite.org/2023/sqlite-doc-${_docver}.zip
     sqlite-lemon-system-template.patch
@@ -72,6 +72,11 @@ build() {
     export CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
     export CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
 
+    # Optimized compiler flags
+    export CFLAGS="${CFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt"
+    export CXXFLAGS="${CXXFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt"
+    export LDFLAGS="${LDFLAGS} -Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
+
     export CPPFLAGS="$CPPFLAGS \
         -DSQLITE_ENABLE_COLUMN_METADATA=1 \
         -DSQLITE_ENABLE_UNLOCK_NOTIFY \
@@ -95,8 +100,8 @@ build() {
     export NM=llvm-nm
     export RANLIB=llvm-ranlib
 
-    export CFLAGS+="$CFLAGS -fprofile-generate"
-    export CXXFLAGS+="$CXXFLAGS -fprofile-generate"
+    export CFLAGS+=" -fprofile-generate"
+    export CXXFLAGS+=" -fprofile-generate"
 
     # build sqlite
     cd "sqlite-src-${_srcver}"
@@ -109,7 +114,7 @@ build() {
         TCLLIBDIR="/usr/lib/sqlite${pkgver}"
 
     sed -i -e 's/ -shared / -Wl,-O1,--as-needed\0/g' libtool
-    make
+    make -j"$(nproc)"
 
     export SQLITE_DIR="$PWD"
     cd ..
@@ -137,10 +142,10 @@ build() {
         TCLLIBDIR="/usr/lib/sqlite${pkgver}"
 
     sed -i -e 's/ -shared / -flto=thin -Wl,-O1,--as-needed\0/g' libtool
-    make
+    make -j"$(nproc)"
 
     # build additional tools
-    make showdb showjournal showstat4 showwal sqldiff
+    make -j"$(nproc)" showdb showjournal showstat4 showwal sqldiff
 }
 
 package_sqlite() {
