@@ -1,12 +1,12 @@
-https://github.com/curl/curl/blob/master/GIT-INFO.md
-https://curl.se/docs/install.html
-
-https://gitlab.archlinux.org/archlinux/packaging/packages/curl-rustls/-/blob/main/PKGBUILD
-
-https://github.com/stunnel/static-curl
-
-https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=curl-http3
-https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=curl-c-ares
+# https://github.com/curl/curl/blob/master/GIT-INFO.md
+# https://curl.se/docs/install.html
+#
+# https://gitlab.archlinux.org/archlinux/packaging/packages/curl-rustls/-/blob/main/PKGBUILD
+#
+# https://github.com/stunnel/static-curl
+#
+# https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=curl-http3
+# https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=curl-c-ares
 
 
 ./configure \
@@ -27,25 +27,25 @@ https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=curl-c-ares
   --with-gssapi \
   --with-openssl \
   --with-openssl-quic \
-  --enable-quic
-  --enable-earlydata
+  --enable-quic \
+  --enable-earlydata \
   --disable-manual \
-  --disable-shared
+  --disable-shared \
   --disable-ldap \
   --disable-ldaps \
-  --with-gssapi
-  --with-rustls
-  --enable-ares
+  --with-gssapi \
+  --with-rustls \
+  --enable-ares \
   --with-ca-bundle='/etc/ssl/certs/ca-certificates.crt'
 make -j"$(nproc)"
 sudo make install
 
 
- % git clone https://github.com/wolfSSL/wolfssl.git
- % cd wolfssl
- % autoreconf -fi
- % ./configure --prefix=<somewhere1> --enable-quic --enable-session-ticket --enable-earlydata --enable-psk --enable-harden --enable-altcertchains
- % make
- % make install
+# % git clone https://github.com/wolfSSL/wolfssl.git
+# % cd wolfssl
+# % autoreconf -fi
+# % ./configure --prefix=<somewhere1> --enable-quic --enable-session-ticket --enable-earlydata --enable-psk --enable-harden --enable-altcertchains
+# % make
+# % make install
 
  

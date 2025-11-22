@@ -3,7 +3,7 @@
 sudo -v
 
 wget https://gnuwget.gitlab.io/wget2/wget2-latest.tar.gz && tar xf wget2-latest.tar.gz
-cd wget2-*
+cd wget2-* || exit
 #git clone https://gitlab.com/gnuwget/wget2.git && cd wget2
 sleep 1
 #./bootstrap
@@ -25,7 +25,7 @@ export LDFLAGS="-fuse-ld=lld -Wl,-O3 -Wl,--sort-common -Wl,--as-needed -Wl,-gc-s
 #./configure --with-linux-crypto --with-ssl=wolfssl --enable-threads=posix --disable-doc
 # make -j$(nproc)
 ./configure --with-linux-crypto --enable-threads=posix --disable-doc
-make -j$(nproc)
+make -j"$(nproc)"
 make check
 
 echo "🚀 Build success, now installing..."
@@ -34,4 +34,4 @@ sudo make install
 
 read -s -r -p "✅ Wget2 compiled and got installed, press Enter to exit"
 
-make clean && ./configure --with-linux-crypto --enable-threads=posix --disable-doc && make -j$(nproc) && make check
+make clean && ./configure --with-linux-crypto --enable-threads=posix --disable-doc && make -j"$(nproc)" && make check

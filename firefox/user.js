@@ -143,7 +143,10 @@ user_pref("privacy.globalprivacycontrol.functionality.enabled", true);
 user_pref("privacy.globalprivacycontrol.pbmode.enabled", true);
 user_pref("privacy.donottrackheader.enabled", true);
 user_pref("privacy.query_stripping.enabled", true);
-user_pref("privacy.partition.always_partition_third_party_non_cookie_storage", true);
+user_pref(
+	"privacy.partition.always_partition_third_party_non_cookie_storage",
+	true,
+);
 user_pref("privacy.firstparty.isolate", false); // conflicts with ETP strict
 user_pref("network.cookie.cookieBehavior", 5); // total cookie protection
 user_pref("cookiebanners.service.mode", 2);
@@ -152,8 +155,14 @@ user_pref("cookiebanners.service.enableGlobalRules", true);
 user_pref("cookiebanners.service.enableGlobalRules.subFrames", true);
 user_pref("dom.private-attribution.submission.enabled", false);
 user_pref("extensions.webcompat.enable_shims", true);
-user_pref("urlclassifier.trackingSkipURLs", "*.reddit.com, *.twitter.com, *.twimg.com, *.tiktok.com");
-user_pref("urlclassifier.features.socialtracking.skipURLs", "*.instagram.com, *.twitter.com, *.twimg.com");
+user_pref(
+	"urlclassifier.trackingSkipURLs",
+	"*.reddit.com, *.twitter.com, *.twimg.com, *.tiktok.com",
+);
+user_pref(
+	"urlclassifier.features.socialtracking.skipURLs",
+	"*.instagram.com, *.twitter.com, *.twimg.com",
+);
 
 /*** SECURITY ***/
 user_pref("security.tls.enable_0rtt_data", true);
@@ -200,7 +209,10 @@ user_pref("network.trr.confirmation_telemetry_enabled", false);
 user_pref("security.app_menu.recordEventTelemetry", false);
 user_pref("security.certerrors.recordEventTelemetry", false);
 user_pref("security.protectionspopup.recordEventTelemetry", false);
-user_pref("privacy.trackingprotection.emailtracking.data_collection.enabled", false);
+user_pref(
+	"privacy.trackingprotection.emailtracking.data_collection.enabled",
+	false,
+);
 user_pref("messaging-system.askForFeedback", false);
 user_pref("extensions.logging.enabled", false);
 user_pref("browser.search.log", false);
@@ -285,8 +297,14 @@ user_pref("extensions.screenshots.upload-disabled", true);
 user_pref("extensions.webcompat-reporter.enabled", false);
 user_pref("extensions.webextensions.restrictedDomains", "");
 user_pref("extensions.autoDisableScopes", 11);
-user_pref("browser.newtabpage.activity-stream.asrouter.userprefs.cfr.addons", false);
-user_pref("browser.newtabpage.activity-stream.asrouter.userprefs.cfr.features", false);
+user_pref(
+	"browser.newtabpage.activity-stream.asrouter.userprefs.cfr.addons",
+	false,
+);
+user_pref(
+	"browser.newtabpage.activity-stream.asrouter.userprefs.cfr.features",
+	false,
+);
 user_pref("signon.firefoxRelay.feature", "");
 
 /*** EXPERIMENTAL ***/

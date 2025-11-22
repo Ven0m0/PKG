@@ -13,10 +13,9 @@ if __name__ == "__main__":
         with open(PRODUCT_JSON_LOCATION) as file:
             product = load(file)
     except JSONDecodeError:
-        print(
-            "error: couldn't parse local product.json or fetch a new one from the web")
+        print("error: couldn't parse local product.json or fetch a new one from the web")
         exit(1)
-    if '-R' in argv:
+    if "-R" in argv:
         product["extensionsGallery"] = {
             "serviceUrl": "https://open-vsx.org/vscode/gallery",
             "itemUrl": "https://open-vsx.org/vscode/item",
@@ -26,11 +25,11 @@ if __name__ == "__main__":
         product["extensionsGallery"] = {
             "serviceUrl": "https://marketplace.visualstudio.com/_apis/public/gallery",
             "cacheUrl": "https://vscode.blob.core.windows.net/gallery/index",
-            "itemUrl": "https://marketplace.visualstudio.com/items"
+            "itemUrl": "https://marketplace.visualstudio.com/items",
         }
         product.pop("linkProtectionTrustedDomains", None)
 
-    with open(PRODUCT_JSON_LOCATION, mode='w') as file:
+    with open(PRODUCT_JSON_LOCATION, mode="w") as file:
         dump(product, file, indent=2)
 
 pkt_name = sys.argv[1]
@@ -41,8 +40,9 @@ patch_path = "/usr/share/%s/patch.json" % pkt_name
 cache_path = "/usr/share/%s/cache.json" % pkt_name
 
 if not os.path.exists(cache_path):
-    with open(cache_path, 'w') as file:
+    with open(cache_path, "w") as file:
         file.write("{}")
+
 
 def patch():
     # Read all files once at the start
@@ -50,19 +50,20 @@ def patch():
         product_data = json.load(product_file)
     with open(patch_path, "r") as patch_file:
         patch_data = json.load(patch_file)
-    
+
     # Build cache data in memory
     cache_data = {}
     for key in patch_data.keys():
         if key in product_data:
             cache_data[key] = product_data[key]
         product_data[key] = patch_data[key]
-    
+
     # Write both files at the end
     with open(product_path, "w") as product_file:
-        json.dump(product_data, product_file, indent='\t')
+        json.dump(product_data, product_file, indent="\t")
     with open(cache_path, "w") as cache_file:
-        json.dump(cache_data, cache_file, indent='\t')
+        json.dump(cache_data, cache_file, indent="\t")
+
 
 def restore():
     # Read all files once at the start
@@ -72,17 +73,18 @@ def restore():
         patch_data = json.load(patch_file)
     with open(cache_path, "r") as cache_file:
         cache_data = json.load(cache_file)
-    
+
     # Update product data in memory
     for key in patch_data.keys():
         if key in product_data:
             del product_data[key]
     for key in cache_data.keys():
         product_data[key] = cache_data[key]
-    
+
     # Write the final result
     with open(product_path, "w") as product_file:
-        json.dump(product_data, product_file, indent='\t')
+        json.dump(product_data, product_file, indent="\t")
+
 
 if operation == "patch":
     patch()

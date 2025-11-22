@@ -9,7 +9,7 @@ fi
 if command -v mise &>/dev/null && mise which nvidia_oc &>/dev/null; then
   fbin="$(mise which nvidia_oc 2>/dev/null || command -v nvidia_oc 2>/dev/null)"
 else
-  fbin="$(command -v nvidia_oc || echo ${HOME}/.cargo/bin/nvidia_oc)"
+  fbin="$(command -v nvidia_oc || echo "$HOME"/.cargo/bin/nvidia_oc)"
 fi
 fbin="${fbin:-${HOME}/.cargo/bin/nvidia_oc}"
 mkdir -p /usr/local/bin
