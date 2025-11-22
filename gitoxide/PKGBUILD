@@ -7,6 +7,7 @@ arch=('x86_64' 'aarch64')
 pkgdesc="A command-line application for interacting with git repositories"
 license=('MIT OR Apache-2.0')
 url='https://github.com/GitoxideLabs/gitoxide'
+options=('strip')
 source=("$pkgname-$pkgver.tar.gz::https://github.com/GitoxideLabs/$pkgname/archive/refs/tags/v$pkgver.tar.gz")
 sha256sums=('SKIP')
 
@@ -18,6 +19,7 @@ prepare() {
 build() {
   cd "$pkgname-$pkgver"
   export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target
+  export RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C link-arg=-fuse-ld=lld"
   cargo build -r --frozen --no-default-features --bins --lib --features max-pure
 }
 

@@ -30,6 +30,12 @@ prepare() {
 
 build() {
   cd openmp-$pkgver.src/build
+
+  # Optimized compiler flags
+  export CFLAGS="${CFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt"
+  export CXXFLAGS="${CXXFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt"
+  export LDFLAGS="${LDFLAGS} -Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
+
   local cmake_args=(
     -G Ninja
     -DCMAKE_BUILD_TYPE=Release
@@ -37,7 +43,7 @@ build() {
     -DLIBOMP_INSTALL_ALIASES=OFF
   )
   cmake .. "${cmake_args[@]}"
-  ninja
+  ninja -j"$(nproc)"
 }
 
 package() {

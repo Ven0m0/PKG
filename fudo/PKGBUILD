@@ -12,6 +12,7 @@ depends=('doas')
 makedepends=('git' 'sd')
 conflicts=("${pkgname%-git}")
 provides=("${pkgname%-git}")
+options=('strip')
 source=('git+https://github.com/FragmentedCurve/fudo.git')
 md5sums=('SKIP')
 
@@ -29,6 +30,11 @@ pkgver() {
 
 build() {
     cd "${_pkgname}"
+
+    # Optimized compiler flags
+    export CFLAGS="${CFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt -flto=auto"
+    export LDFLAGS="${LDFLAGS} -Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
+
     make -j"$(nproc)"
 }
 
