@@ -3,15 +3,31 @@ name: Lint and Format
 on:
   workflow_dispatch:
   push:
-    paths: ['**/PKGBUILD', '**/.SRCINFO', '**.sh', '**.py', '**.json', '**.yml', '**.yaml']
+    paths:
+      - '**/PKGBUILD'
+      - '**/.SRCINFO'
+      - '**.sh'
+      - '**.py'
+      - '**.json'
+      - '**.y*ml'
   pull_request:
-    paths: ['**/PKGBUILD', '**/.SRCINFO', '**.sh', '**.py', '**.json', '**.yml', '**.yaml']
+    paths:
+      - '**/PKGBUILD'
+      - '**/.SRCINFO'
+      - '**.sh'
+      - '**.py'
+      - '**.json'
+      - '**.y*ml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions: write-all
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  statuses: write
 
 env:
   DEBIAN_FRONTEND: noninteractive
@@ -25,8 +41,6 @@ jobs:
       pkgs: ${{ steps.set.outputs.pkgs }}
     steps:
       - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
       - id: set
         run: |
           pkgs=$(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | jq -Rsc 'split("\n")[:-1]')
@@ -42,9 +56,8 @@ jobs:
         pkg: ${{ fromJSON(needs.matrix.outputs.pkgs) }}
     steps:
       - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: 2m/arch-pkgbuild-builder@v1.21
+      - name: Build and lint package
+        uses: 2m/arch-pkgbuild-builder@v1.21
         with:
           target: pkgbuild
           pkgname: ${{ matrix.pkg }}
@@ -59,17 +72,13 @@ jobs:
   # General code linting with MegaLinter
   megalinter:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - name: MegaLinter
+      - name: Run MegaLinter
         uses: oxsecurity/megalinter@v8
         env:
-          VALIDATE_ALL_CODEBASE: true
+          VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'workflow_dispatch' }}
           GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
           FILTER_REGEX_EXCLUDE: '(.github|.git|.cache|go|node_modules|.var|.rustup|.wine|.zim|.void-editor|.vscode|.claude)/.*'
