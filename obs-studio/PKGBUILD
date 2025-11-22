@@ -18,8 +18,7 @@ source=(
   "https://patch-diff.githubusercontent.com/raw/obsproject/obs-studio/pull/12328.patch"
 )
 sha256sums=('SKIP'
-  '48d744037c553eea8f9b76bf46f6dcac753e52871f49b2c1a2580757f723a1b7'
-  '25322c692cf5cc88fc7d17cbb40a61b7e32d5ea675da647dd1a1996474ec2c8e')
+  '48d744037c553eea8f9b76bf46f6dcac753e52871f49b2c1a2580757f723a1b7')
 prepare() {
   cd "${pkgname}-${pkgver}-sources"
   patch -Np1 -i "${srcdir}/12328.patch" || :
