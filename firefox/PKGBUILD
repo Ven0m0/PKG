@@ -55,13 +55,14 @@ _ldflags=(-Wl,-O3 -Wl,--gc-sections -Wl,--sort-common -Wl,--as-needed -Wl,-z,pac
 _rustflags=(-Ctarget-cpu=native -Copt-level=3 -Clto=fat -Ccodegen-units=1 -Cpanic=abort -Clink-arg=-fuse-ld=lld -Cllvm-args=-enable-dfa-jump-thread )
 
 prepare() {
-  cd "${srcdir}/${_pkgname}-${pkgver}" || return
+  cd "$_pkgname-$pkgver"
   local src
   for src in "${source[@]}"; do
-    src="${src%%::*}"; src="${src##*/}"
+    src="${src%%::*}"
+    src="${src##*/}"
     [[ $src == *.patch ]] || continue
-    echo "Applying patch ${src}..."
-    patch -Np1 -i "${srcdir}/${src}" || :
+    echo "Applying patch $src..."
+    patch -Np1 -i "../$src" || :
   done
 }
 
@@ -109,21 +110,20 @@ EOF
 }
 
 build() {
-  cd "${_pkgname}-${pkgver}"
+  cd "$_pkgname-$pkgver"
   _write_mozconfig
-  # See https://github.com/glandium/git-cinnabar/issues/311
-  git config remote.origin.mirror false
+  git config remote.origin.mirror false 2>/dev/null || :
   ulimit -n 4096
-  export RUST_MIN_STACK=16777216
   export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib LD=ld.lld
+  export RUST_MIN_STACK=16777216
   export PYTHONOPTIMIZE=2 RUSTC_WRAPPER=sccache CARGO_CACHE_RUSTC_INFO=1 OPT_LEVEL=3 CARGO_INCREMENTAL=0
   export MOZ_NOSPAM=1 MOZ_ENABLE_WAYLAND=1 LIBGL_ALWAYS_SOFTWARE=true
-  export CFLAGS="${_cflags[*]} ${CFLAGS:-}"
-  export CXXFLAGS="${_cflags[*]} ${CXXFLAGS:-}"
-  export LDFLAGS="${_ldflags[*]} ${LDFLAGS:-}"
-  export RUSTFLAGS="${_rustflags[*]} ${RUSTFLAGS:-}"
+  CFLAGS="${_cflags[*]} ${CFLAGS:-}"
+  CXXFLAGS="${_cflags[*]} ${CXXFLAGS:-}"
   export CFLAGS="${CFLAGS/-fexceptions/}"
   export CXXFLAGS="${CXXFLAGS/-fexceptions/}"
+  export LDFLAGS="${_ldflags[*]} ${LDFLAGS:-}"
+  export RUSTFLAGS="${_rustflags[*]} ${RUSTFLAGS:-}"
   # Polly/Propeller opt-in
   [[ -n "${ENABLE_POLLY:-}" ]] && {
     export CFLAGS+=" -mllvm -polly -mllvm -polly-vectorizer=stripmine"
@@ -165,9 +165,9 @@ build() {
 }
 
 package() {
-  cd "${_pkgname}-${pkgver}"
+  cd "$_pkgname-$pkgver"
   DESTDIR="$pkgdir" ./mach install
-  install -Dm644 /dev/stdin "${pkgdir}/usr/lib/${_pkgname}/browser/defaults/preferences/vendor.js" <<END
+  install -Dm644 /dev/stdin "$pkgdir/usr/lib/$_pkgname/browser/defaults/preferences/vendor.js" <<END
 pref("intl.locale.requested", "");
 pref("spellchecker.dictionary_path", "/usr/share/hunspell");
 pref("browser.shell.checkDefaultBrowser", false);
@@ -187,7 +187,7 @@ pref("extensions.getAddons.showPane", false);
 pref("extensions.htmlaboutaddons.recommendations.enabled", false);
 pref("browser.discovery.enabled", false);
 END
-  install -Dm644 /dev/stdin "${pkgdir}/usr/lib/${_pkgname}/distribution/distribution.ini" <<END
+  install -Dm644 /dev/stdin "$pkgdir/usr/lib/$_pkgname/distribution/distribution.ini" <<END
 [Global]
 id=archlinux
 version=1.0
@@ -199,21 +199,21 @@ app.partner.archlinux=archlinux
 END
   for i in 16 22 24 32 48 64 128 256; do
     install -Dm644 browser/branding/official/default$i.png \
-      "${pkgdir}/usr/share/icons/hicolor/${i}x${i}/apps/${_pkgname}.png"
+      "$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/$_pkgname.png"
   done
   install -Dm644 browser/branding/official/content/about-logo.png \
-    "${pkgdir}/usr/share/icons/hicolor/192x192/apps/${_pkgname}.png"
+    "$pkgdir/usr/share/icons/hicolor/192x192/apps/$_pkgname.png"
   install -Dm644 browser/branding/official/content/about-logo@2x.png \
-    "${pkgdir}/usr/share/icons/hicolor/384x384/apps/${_pkgname}.png"
-  install -Dm644 ../${_pkgname}-symbolic.svg \
-    "${pkgdir}/usr/share/icons/hicolor/symbolic/apps/${_pkgname}-symbolic.svg"
-  install -Dm644 ../${_pkgname}.desktop \
-    "${pkgdir}/usr/share/applications/${_pkgname}.desktop"
-  install -Dm755 /dev/stdin "${pkgdir}/usr/bin/${_pkgname}" <<'END'
+    "$pkgdir/usr/share/icons/hicolor/384x384/apps/$_pkgname.png"
+  install -Dm644 ../$_pkgname-symbolic.svg \
+    "$pkgdir/usr/share/icons/hicolor/symbolic/apps/$_pkgname-symbolic.svg"
+  install -Dm644 ../$_pkgname.desktop \
+    "$pkgdir/usr/share/applications/$_pkgname.desktop"
+  install -Dm755 /dev/stdin "$pkgdir/usr/bin/$_pkgname" <<'END'
 #!/bin/sh
 exec /usr/lib/firefox/firefox "$@"
 END
-  ln -srf "${pkgdir}/usr/bin/${_pkgname}" "${pkgdir}/usr/lib/${_pkgname}/firefox-bin"
+  ln -srf "$pkgdir/usr/bin/$_pkgname" "$pkgdir/usr/lib/$_pkgname/firefox-bin"
 }
 
 # vim: ts=2 sw=2 et:

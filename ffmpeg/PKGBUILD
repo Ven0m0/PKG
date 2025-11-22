@@ -16,13 +16,13 @@ depends=(
   harfbuzz jack lame libass libavc1394 libbluray libbs2b
   libdrm libdvdnav libdvdread libgl libiec61883 libjpeg-turbo
   libmodplug libopenmpt libpng libpulse libraw1394 librsvg
-  libsoxr libva libvdpau libwebp libx11 libxcb libxext
+  libsoxr libssh libva libvdpau libwebp libx11 libxcb libxext
   libxv ocl-icd onevpl opencore-amr openjpeg2 opus
   sdl2 snappy speex v4l-utils vapoursynth xvidcore
   xz zimg zlib
   aom dav1d rav1e svt-av1
-  libplacebo libtheora libvpx libxml2 rubberband vid.stab vmaf
-  x264 x265
+  libplacebo libtheora libvorbis libvpx libxml2 rubberband vid.stab vmaf
+  x264 x265 libjxl
 )
 makedepends=(
   avisynthplus clang nasm git ladspa cmake
@@ -42,14 +42,14 @@ optdepends=(
 provides=("ffmpeg=$pkgver" 'libavcodec.so' 'libavdevice.so' 'libavfilter.so'
           'libavformat.so' 'libavutil.so' 'libswresample.so' 'libswscale.so')
 conflicts=('ffmpeg')
-options=(!lto)
+options=('strip')
 source=(
   "https://ffmpeg.org/releases/ffmpeg-${pkgver}.tar.xz"
 )
 sha256sums=('SKIP')
 
 prepare() {
-  cd "$srcdir/$_pkgname-$pkgver"
+  cd "$_pkgname-$pkgver"
 
   # Apply patches if any
   local src
@@ -58,19 +58,19 @@ prepare() {
     src="${src##*/}"
     [[ $src == *.patch ]] || continue
     echo "Applying patch $src..."
-    patch -Np1 -i "$srcdir/$src"
+    patch -Np1 -i "../$src"
   done
 }
 
 build() {
-  cd "$srcdir/$_pkgname-$pkgver"
+  cd "$_pkgname-$pkgver"
 
   # Compiler settings for optimization
-  export CFLAGS="-O3 -march=native -mtune=native -pipe -fno-plt -fexceptions \
--Wp,-D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security \
+  export CFLAGS="-O3 -march=native -mtune=native -pipe -fno-plt -flto=auto \
+-fexceptions -Wp,-D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security \
 -fstack-clash-protection -fcf-protection"
-  export CXXFLAGS="${CFLAGS}"
-  export LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
+  export CXXFLAGS="$CFLAGS"
+  export LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now -flto=auto"
 
   ./configure \
     --prefix=/usr \
@@ -141,12 +141,12 @@ build() {
     --enable-vdpau \
     --enable-vulkan
 
-  make
+  make -j"$(nproc)"
   make tools/qt-faststart
 }
 
 package() {
-  cd "$srcdir/$_pkgname-$pkgver"
+  cd "$_pkgname-$pkgver"
 
   make DESTDIR="$pkgdir" install
   install -Dm755 tools/qt-faststart "$pkgdir/usr/bin/qt-faststart"
