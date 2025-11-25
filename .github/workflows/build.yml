@@ -32,7 +32,7 @@ jobs:
     outputs:
       pkgs: ${{ steps.set.outputs.pkgs }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: set
         run: |
           if [[ -n "${{ github.event.inputs.package }}" ]]; then
@@ -87,7 +87,7 @@ jobs:
           sudo rm -rf /var/lib/apt/lists/* /opt/ghc /usr/local/.ghcup /usr/local/lib/android /usr/share/dotnet
           echo "force-unsafe-io" | sudo tee -a /etc/dpkg/dpkg.cfg.d/force-unsafe-io
           echo -e "\nFree space:"; df -h
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       # Standard build for most packages
       - name: Build package (standard)
         if: steps.build_method.outputs.method == 'standard'
