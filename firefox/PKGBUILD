@@ -1,28 +1,34 @@
 # Maintainer: Ven0m0
+# Merged from multiple optimized Firefox PKGBUILDs
+# Features: Aggressive optimization, PGO, VA-API, system libraries, hardware acceleration
+
 pkgname=firefox-custom
 _pkgname=firefox
-pkgver=145.0.1
+pkgver=145.0.2
 pkgrel=1
-pkgdesc='Firefox optimal build'
+pkgdesc='Firefox with aggressive optimizations, VA-API, PGO, and all performance tweaks'
 arch=(x86_64)
 url="https://mozilla.org/firefox"
 license=(MPL-2.0)
 provides=("firefox=${pkgver}")
 conflicts=('firefox')
+
 depends=(
-  alsa-lib at-spi2-core bash cairo dbus ffmpeg fontconfig freetype2
+  alsa-lib at-spi2-core bash cairo dbus ffmpeg4.4 fontconfig freetype2
   gcc-libs gdk-pixbuf2 glib2 glibc gtk3 hicolor-icon-theme libevent
   libjpeg libpulse libvpx libwebp libx11 libxcb libxcomposite libxdamage
   libxext libxfixes libxrandr libxss libxt mime-types nss nspr pango
-  ttf-font dbus-glib dav1d aom icu graphite
+  ttf-font dbus-glib dav1d aom icu graphite harfbuzz
 )
+
 makedepends=(
   autoconf2.13 bindgen cargo cargo-make cbindgen clang clang-tools-extra
   cmake diffutils git git-cinnabar gtk-doc imake jack lld llvm mesa nasm
-  ninja nodejs pkg-config python rust sed grep file unzip
+  ninja nodejs pkg-config python rust sed grep file unzip dump_syms
   wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi
-  xorg-server-xvfb yasm zip
+  xorg-server-xvfb yasm zip mercurial
 )
+
 optdepends=(
   'hunspell-en_US: Spell checking, American English'
   'libnotify: Notification integration'
@@ -32,30 +38,72 @@ optdepends=(
   'xdg-desktop-portal: Screensharing with Wayland'
   'libdbusmenu-gtk3: Global menu support'
   'profile-sync-daemon: Load browser profile into RAM'
+  'kmozillahelper: KDE integration'
 )
+
 options=(!strip !emptydirs !debug !makeflags !lto)
-_repo=https://hg.mozilla.org/mozilla-unified
-conflicts=('firefox')
-provides=('firefox')
+
 source=(
   "https://archive.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"
   ${_pkgname}.desktop
   ${_pkgname}-symbolic.svg
 )
-sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP')
-# Tunables:
-# : "${ENABLE_PGO:=1}"  -> run PGO (two-stage). You should run the instrumented build, exercise the browser to generate profiles, then rebuild.
-# : "${ENABLE_BOLT:=1}" -> run llvm-bolt pass (requires llvm-bolt available in PATH)
-: "${NATIVE_ARCH:=native}"
-: "${ENABLE_POLLY:=1}"
-# Build flags as arrays
-_cflags=(-O3 -march=${NATIVE_ARCH} -mtune=${NATIVE_ARCH} -fomit-frame-pointer -ffunction-sections -fdata-sections -pipe -fno-plt -fno-semantic-interposition -fjump-tables)
+
+sha256sums=('SKIP' 'SKIP' 'SKIP')
+
+# Tunables - set these in your environment to control build behavior
+: "${NATIVE_ARCH:=native}"       # CPU architecture to optimize for
+: "${ENABLE_PGO:=true}"           # Profile-Guided Optimization (recommended)
+: "${ENABLE_PGO_REUSE:=true}"     # Reuse previous PGO profiles
+: "${ENABLE_BOLT:=false}"         # LLVM BOLT optimization (requires llvm-bolt)
+: "${ENABLE_POLLY:=true}"         # Polly loop optimization
+: "${ENABLE_VAAPI:=true}"         # Hardware video acceleration
+: "${BUILD_LIMIT_CORES:=true}"    # Auto-limit cores based on available RAM
+
+# Aggressive optimization flags
+_cflags=(
+  -O3
+  -march=${NATIVE_ARCH}
+  -mtune=${NATIVE_ARCH}
+  -fomit-frame-pointer
+  -ffunction-sections
+  -fdata-sections
+  -pipe
+  -fno-plt
+  -fno-semantic-interposition
+  -fjump-tables
+)
+
 _cppflags=("${_cflags[@]}")
-_ldflags=(-Wl,-O3 -Wl,--gc-sections -Wl,--sort-common -Wl,--as-needed -Wl,-z,pack-relative-relocs -Wl,-z,relro -Wl,-z,now -flto -fuse-linker-plugin -Wl,-plugin-opt=emit-llvm)
-_rustflags=(-Ctarget-cpu=native -Copt-level=3 -Clto=fat -Ccodegen-units=1 -Cpanic=abort -Clink-arg=-fuse-ld=lld -Cllvm-args=-enable-dfa-jump-thread )
+
+_ldflags=(
+  -Wl,-O3
+  -Wl,--gc-sections
+  -Wl,--sort-common
+  -Wl,--as-needed
+  -Wl,-z,pack-relative-relocs
+  -Wl,-z,relro
+  -Wl,-z,now
+  -flto
+  -fuse-linker-plugin
+  -Wl,-plugin-opt=emit-llvm
+)
+
+_rustflags=(
+  -Ctarget-cpu=native
+  -Copt-level=3
+  -Clto=fat
+  -Ccodegen-units=1
+  -Cpanic=abort
+  -Clink-arg=-fuse-ld=lld
+  -Cllvm-args=-enable-dfa-jump-thread
+)
 
 prepare() {
+  mkdir -p mozbuild
   cd "$_pkgname-$pkgver"
+
+  # Apply any patches
   local src
   for src in "${source[@]}"; do
     src="${src%%::*}"
@@ -64,46 +112,76 @@ prepare() {
     echo "Applying patch $src..."
     patch -Np1 -i "../$src" || :
   done
-  # clear forced startup pages
-  sed -E -e 's&^\s*pref\("startup\.homepage.*$&&' -i "browser/branding/official/pref/firefox-branding.js"
+
+  # Clear forced startup pages
+  sed -E -e 's&^\s*pref\("startup\.homepage.*$&&' \
+    -i browser/branding/*/pref/firefox-branding.js
 }
 
-# Write a compact mozconfig to target minimal features
 _write_mozconfig() {
-  mkdir -p mozbuild
-  cd "$_pkgname-$pkgver"
-  cp browser/config/mozconfig ../mozconfig
-  cat >>../mozconfig <<END
+  cd "$srcdir/$_pkgname-$pkgver"
+
+  # Calculate optimal core count based on available RAM
+  local _cores _mem _nproc
+  _mem=$(grep -Pom1 '^MemAvailable.*\b\K[0-9]+' /proc/meminfo)
+  _nproc=$(nproc)
+
+  if [[ "${BUILD_LIMIT_CORES}" == "true" ]]; then
+    # Firefox needs ~3GB per core for linking, use available memory
+    _cores=$((_mem / (3 * 1024 * 1024)))
+    _cores=$((_cores < 1 ? 1 : _cores))
+    _cores=$((_cores > _nproc ? _nproc : _cores))
+    echo "Available RAM: $((_mem / (1024 * 1024)))GB, Using $_cores cores (of $_nproc available)"
+  else
+    _cores=$_nproc
+    echo "Using all $_cores cores"
+  fi
+
+  cat > ../mozconfig <<END
 ac_add_options --enable-application=browser
 mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
-export MOZ_APP_REMOTINGNAME=${pkgname}
+
+# Paths
+ac_add_options --prefix=/usr
+ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
+
+# Compiler
 export AR=llvm-ar
 export CC=clang
 export CXX=clang++
 export NM=llvm-nm
 export RANLIB=llvm-ranlib
-ac_add_options --prefix=/usr
-ac_add_options --enable-optimize="-O3 -march=native"
-# Rust optimizations
-ac_add_options OPT_LEVEL="3"
-ac_add_options RUSTC_OPT_LEVEL="3"
-export CARGO_PROFILE_RELEASE_OPT_LEVEL=3
-# Parallel build optimization
-mk_add_options MOZ_MAKE_FLAGS="-j$(nproc)" MOZ_PARALLEL_BUILD="$(nproc)"
-# x86_64 optimizations
-ac_add_options --disable-elf-hack
+
+# Build configuration
+ac_add_options --enable-release
+ac_add_options --enable-hardening
+ac_add_options --enable-optimize="-O3 -march=native -mtune=native"
 ac_add_options --enable-rust-simd
 ac_add_options --enable-wasm-simd
 ac_add_options --enable-wasm-avx
 ac_add_options --enable-linker=lld
-ac_add_options --with-ccache=sccache
 ac_add_options --enable-lto=full
+ac_add_options --disable-elf-hack
+ac_add_options --disable-bootstrap
+
+# Parallelism
+mk_add_options MOZ_MAKE_FLAGS="-j${_cores}"
+mk_add_options MOZ_PARALLEL_BUILD="${_cores}"
+
+# Rust optimization
+ac_add_options OPT_LEVEL="3"
+ac_add_options RUSTC_OPT_LEVEL="3"
+export CARGO_PROFILE_RELEASE_OPT_LEVEL=3
+
+# Memory allocator
 ac_add_options --enable-jemalloc
+
+# Stripping
 ac_add_options --enable-strip
 ac_add_options --enable-install-strip
 export STRIP_FLAGS="--strip-debug --strip-unneeded"
-ac_add_options --enable-release
-ac_add_options --enable-hardening
+
+# Disable debug features
 ac_add_options --disable-tests
 ac_add_options --disable-debug
 ac_add_options --disable-debug-symbols
@@ -112,12 +190,19 @@ ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
 ac_add_options --disable-default-browser-agent
 ac_add_options --disable-parental-controls
+
+# Wayland support
 ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
 ac_add_options --enable-wayland
-ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
+
+# Branding
+ac_add_options --enable-official-branding
+ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --allow-addon-sideload
-ac_add_options --with-distribution-id=org.archlinux
+export MOZ_APP_REMOTINGNAME=${pkgname}
+
+# System libraries
 ac_add_options --with-system-nspr
 ac_add_options --with-system-nss
 ac_add_options --with-system-libvpx
@@ -126,139 +211,261 @@ ac_add_options --with-system-libevent
 ac_add_options --with-system-icu
 ac_add_options --with-system-zlib
 ac_add_options --with-system-jpeg
+
+# Media features
 ac_add_options --enable-jxl
 ac_add_options --enable-av1
 ac_add_options --enable-pulseaudio
-ac_add_options --enable-proxy-bypass-protection
-ac_add_options --enable-eme=widevine
-ac_add_options --enable-webrtc
 ac_add_options --enable-alsa
 ac_add_options --enable-jack
+ac_add_options --enable-webrtc
+ac_add_options --enable-eme=widevine
+ac_add_options --enable-proxy-bypass-protection
+
+# Build environment
 ac_add_options --disable-warnings-as-errors
 mk_add_options MOZ_CRASHREPORTER=0
 mk_add_options MOZ_DATA_REPORTING=0
-export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib
-export MOZILLA_OFFICIAL=1 MOZ_NOSPAM=1 MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip MOZ_DEBUG_FLAGS=""
+export MOZILLA_OFFICIAL=1
+export MOZ_NOSPAM=1
+export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
+export MOZ_DEBUG_FLAGS=""
 
+# Optimization flags
 export CFLAGS+=" -g0"
 export CXXFLAGS+=" -g0"
-# might help with failing x86_64 builds?
 export LDFLAGS+=" -Wl,--no-keep-memory"
 export RUSTFLAGS="-Cdebuginfo=0 -Ctarget-cpu=native -Copt-level=3"
 END
+
+  # Optional: use sccache if available
+  if command -v sccache >/dev/null 2>&1; then
+    echo 'ac_add_options --with-ccache=sccache' >> ../mozconfig
+  fi
 }
 
 build() {
   cd "$_pkgname-$pkgver"
+
+  # Write optimized mozconfig
   _write_mozconfig
-  git config remote.origin.mirror false 2>/dev/null || :
+
+  # Environment setup
   ulimit -n 4096
   export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib LD=ld.lld
   export RUST_MIN_STACK=16777216
-  export PYTHONOPTIMIZE=2 RUSTC_WRAPPER=sccache CARGO_CACHE_RUSTC_INFO=1 OPT_LEVEL=3 CARGO_INCREMENTAL=0
-  export MOZ_NOSPAM=1 MOZ_ENABLE_WAYLAND=1 LIBGL_ALWAYS_SOFTWARE=true
+  export PYTHONOPTIMIZE=2
+  export CARGO_CACHE_RUSTC_INFO=1
+  export OPT_LEVEL=3
+  export CARGO_INCREMENTAL=0
+  export MOZ_NOSPAM=1
+  export MOZ_ENABLE_WAYLAND=1
+  export LIBGL_ALWAYS_SOFTWARE=true
+
+  # Use sccache if available
+  if command -v sccache >/dev/null 2>&1; then
+    export RUSTC_WRAPPER=sccache
+  fi
+
+  # Apply optimization flags
   CFLAGS="${_cflags[*]} ${CFLAGS:-}"
   CXXFLAGS="${_cflags[*]} ${CXXFLAGS:-}"
-  # malloc_usable_size is used in various parts of the codebase
+
+  # malloc_usable_size compatibility
   CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
   CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
-  # Breaks compilation since https://bugzilla.mozilla.org/show_bug.cgi?id=1896066
+
+  # Remove -fexceptions (breaks compilation)
   CFLAGS="${CFLAGS/-fexceptions/}"
   CXXFLAGS="${CXXFLAGS/-fexceptions/}"
+
   LDFLAGS="${_ldflags[*]} ${LDFLAGS:-}"
   RUSTFLAGS="${_rustflags[*]} ${RUSTFLAGS:-}"
+
   export CFLAGS CXXFLAGS LDFLAGS RUSTFLAGS
-  # Polly/Propeller opt-in
-  [[ -n "${ENABLE_POLLY:-}" ]] && {
+
+  # Polly optimization
+  if [[ "${ENABLE_POLLY}" == "true" ]]; then
+    echo "Enabling Polly loop optimization..."
     export CFLAGS+=" -mllvm -polly -mllvm -polly-vectorizer=stripmine"
     export CXXFLAGS+=" -mllvm -polly -mllvm -polly-vectorizer=stripmine"
-  }
-  # PGO instrumentation build
-  if [[ -n "${ENABLE_PGO:-}" ]]; then
-    export CFLAGS+=" -fprofile-generate=profile_data"
-    export CXXFLAGS+=" -fprofile-generate=profile_data"
-    export RUSTFLAGS+=" -C profile-generate=profile_data"
-    export LLVM_PROFDATA=llvm-profdata LIBGL_ALWAYS_SOFTWARE=true
-    echo "PGO: instrumented build. After this completes, run the browser to generate profiles, then rebuild with ENABLE_PGO=use"
-    cat >.mozconfig ../mozconfig - <<END
-    ac_add_options --enable-profile-generate=cross
-END
-    dbus-run-session
   fi
-  # clear forced startup pages
-  sed -E -e 's&^\s*pref\("startup\.homepage.*$&&' \
-    -i browser/branding/*/pref/firefox-branding.js
-  # Configure / build via mach
-  ./mach bootstrap --no-interactive --application-choice=browser || :
-  ./mach build -j"$(nproc)" --priority normal || return 1
-  # If running BOLT rewriting is requested and llvm-bolt exists, run on the main binaries
-  if [[ -n "${ENABLE_BOLT:-}" ]] && command -v llvm-bolt >/dev/null 2>&1; then
-    # Collect target binaries
-    objdir=./obj-firefox/dist
+
+  # Profile-Guided Optimization
+  local _pgo_profdata="$SRCDEST/firefox-$pkgver-merged.profdata"
+  local _pgo_jarlog="$SRCDEST/firefox-$pkgver-jarlog"
+
+  if [[ "${ENABLE_PGO}" == "true" ]]; then
+    # Try to reuse existing profile
+    if [[ "${ENABLE_PGO_REUSE}" == "true" ]] && [[ -s "$_pgo_profdata" ]]; then
+      echo "Reusing existing PGO profile data..."
+      cp "$_pgo_profdata" merged.profdata
+      [[ -s "$_pgo_jarlog" ]] && cp "$_pgo_jarlog" jarlog
+    fi
+
+    # Generate new profile if needed
+    if [[ ! -s merged.profdata ]]; then
+      echo "Building instrumented browser for PGO..."
+      cat > .mozconfig ../mozconfig - <<END
+ac_add_options --enable-profile-generate=cross
+export MOZ_ENABLE_FULL_SYMBOLS=1
+END
+
+      ./mach build --priority normal
+
+      echo "Profiling instrumented browser..."
+      ./mach package
+
+      LLVM_PROFDATA=llvm-profdata \
+        JARLOG_FILE="$PWD/jarlog" \
+        LIBGL_ALWAYS_SOFTWARE=true \
+        dbus-run-session \
+        xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
+        ./mach python build/pgo/profileserver.py
+
+      stat -c "Profile data generated (%s bytes)" merged.profdata
+      test -s merged.profdata
+
+      # Save for future builds
+      cp merged.profdata "$_pgo_profdata"
+      [[ -s jarlog ]] && cp jarlog "$_pgo_jarlog"
+
+      echo "Cleaning instrumented build..."
+      ./mach clobber objdir
+    fi
+
+    # Build with PGO profile
+    echo "Building optimized browser with PGO..."
+    cat > .mozconfig ../mozconfig - <<END
+ac_add_options --enable-lto=cross,full
+ac_add_options --enable-profile-use=cross
+ac_add_options --with-pgo-profile-path=${PWD@Q}/merged.profdata
+END
+
+    if [[ -s jarlog ]]; then
+      echo "ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog" >> .mozconfig
+    fi
+  else
+    # Build without PGO
+    cat > .mozconfig ../mozconfig
+  fi
+
+  # Main build
+  ./mach build --priority normal
+
+  # BOLT optimization (optional, requires llvm-bolt)
+  if [[ "${ENABLE_BOLT}" == "true" ]] && command -v llvm-bolt >/dev/null 2>&1; then
+    echo "Applying BOLT optimizations..."
+    local objdir=./obj/dist
     for bin in "$objdir"/firefox "$objdir"/libxul.so; do
       [[ -f "$bin" ]] || continue
-      # Placeholder profile path; user should generate profile_data.prof by running instrumented binary
-      prof=profile_data/merged.prof
+      local prof="${PWD}/merged.profdata"
       if [[ -f "$prof" ]]; then
-        llvm-bolt "$bin" -o "${bin}.bolt" --data="$prof" || :
-        mv -f "${bin}.bolt" "$bin" || :
+        llvm-bolt "$bin" -o "${bin}.bolt" --data="$prof" \
+          -reorder-blocks=ext-tsp \
+          -reorder-functions=hfsort \
+          -split-functions=3 \
+          -split-all-cold \
+          -dyno-stats \
+          -icf=1 || :
+        [[ -f "${bin}.bolt" ]] && mv -f "${bin}.bolt" "$bin"
       fi
     done
-  fi
-  # If PGO use-phase requested
-  if [[ "${ENABLE_PGO:-}" == "use" ]]; then
-    export CFLAGS="${_cflags[*]} -fprofile-use=profile_data -fprofile-correction"
-    export CXXFLAGS="${_cppflags[*]} -fprofile-use=profile_data -fprofile-correction"
-    export RUSTFLAGS="${_rustflags[*]} -C profile-use=profile_data"
-    ./mach clobber || :
-    ./mach build -j"$(nproc)" || return 1
   fi
 }
 
 package() {
   cd "$_pkgname-$pkgver"
+
   DESTDIR="$pkgdir" ./mach install
+
+  # Vendor preferences (privacy, performance, hardware acceleration)
   install -Dm644 /dev/stdin "$pkgdir/usr/lib/$_pkgname/browser/defaults/preferences/vendor.js" <<END
+// Use LANG environment variable
 pref("intl.locale.requested", "");
+
+// System dictionaries
 pref("spellchecker.dictionary_path", "/usr/share/hunspell");
+
+// Don't check for default browser
 pref("browser.shell.checkDefaultBrowser", false);
+
+// Enable JXL images
 pref("image.jxl.enabled", true);
+
+// Allow unsigned extensions
 pref("extensions.autoDisableScopes", 11);
 pref("extensions.shownSelectionUI", true);
+
+// Disable about:config warning
 pref("browser.aboutConfig.showWarning", false);
+
+// Disable telemetry
 pref("datareporting.healthreport.uploadEnabled", false);
 pref("datareporting.policy.dataSubmissionEnabled", false);
 pref("toolkit.telemetry.enabled", false);
 pref("toolkit.telemetry.unified", false);
-pref("services.settings.main.search-telemetry-v2.last_check", $(date +%s));
+pref("toolkit.telemetry.archive.enabled", false);
 pref("browser.ping-centre.telemetry", false);
+
+// Disable experiments
 pref("app.normandy.enabled", false);
 pref("app.shield.optoutstudies.enabled", false);
+
+// Disable recommendations
 pref("extensions.getAddons.showPane", false);
 pref("extensions.htmlaboutaddons.recommendations.enabled", false);
 pref("browser.discovery.enabled", false);
+
+// GNOME integration
 pref("browser.gnome-search-provider.enabled", true);
+
+// XDG portals
+pref("widget.use-xdg-desktop-portal.file-picker", 1);
+pref("widget.use-xdg-desktop-portal.mime-handler", 1);
+
+// Prevent telemetry notification
 pref("services.settings.main.search-telemetry-v2.last_check", $(date +%s));
-pref("widget.use-xdg-desktop-portal.file-picker", 1)
-pref("widget.use-xdg-desktop-portal.mime-handler", 1)
+
+// Hardware acceleration (VA-API)
+pref("gfx.webrender.all", true);
+pref("media.hardware-video-decoding.enabled", true);
+pref("media.hardware-video-decoding.force-enabled", true);
+pref("media.ffmpeg.vaapi.enabled", true);
+pref("media.rdd-ffmpeg.enabled", true);
+pref("media.av1.enabled", true);
+pref("media.webrtc.hw.h264.enabled", true);
+
+// Performance tweaks
+pref("layers.acceleration.force-enabled", true);
+pref("webgl.force-enabled", true);
+pref("dom.ipc.processCount", 8);
+pref("browser.tabs.remote.autostart", true);
 END
+
+  # Distribution info
   install -Dm644 /dev/stdin "$pkgdir/usr/lib/$_pkgname/distribution/distribution.ini" <<END
 [Global]
 id=archlinux
 version=1.0
-about=Mozilla Firefox for Arch Linux
+about=Firefox custom build for Arch Linux with optimizations
+
 [Preferences]
 app.distributor=archlinux
 app.distributor.channel=$_pkgname
 app.partner.archlinux=archlinux
 END
-  install -Dm644 /dev/stdin "$pkgdir/usr/share/gnome-shell/search-providers/$_pkgname.search-provider.ini" << END
+
+  # GNOME search provider
+  install -Dm644 /dev/stdin "$pkgdir/usr/share/gnome-shell/search-providers/$_pkgname.search-provider.ini" <<END
 [Shell Search Provider]
 DesktopId=$_pkgname.desktop
 BusName=org.mozilla.${_pkgname//-/}.SearchProvider
 ObjectPath=/org/mozilla/${_pkgname//-/}/SearchProvider
 Version=2
 END
+
+  # Icons
   for i in 16 22 24 32 48 64 128 256; do
     install -Dm644 browser/branding/official/default$i.png \
       "$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/$_pkgname.png"
@@ -269,14 +476,24 @@ END
     "$pkgdir/usr/share/icons/hicolor/384x384/apps/$_pkgname.png"
   install -Dm644 ../$_pkgname-symbolic.svg \
     "$pkgdir/usr/share/icons/hicolor/symbolic/apps/$_pkgname-symbolic.svg"
+
+  # Desktop file
   install -Dm644 ../$_pkgname.desktop \
     "$pkgdir/usr/share/applications/$_pkgname.desktop"
+
+  # Wrapper script
   install -Dm755 /dev/stdin "$pkgdir/usr/bin/$_pkgname" <<'END'
 #!/bin/sh
 exec /usr/lib/firefox/firefox "$@"
 END
+
+  # Link binary
   ln -srf "$pkgdir/usr/bin/$_pkgname" "$pkgdir/usr/lib/$_pkgname/firefox-bin"
-  ln -sf "$_pkgname" "$pkgdir/$_install_path/$_pkgname/$_pkgname-bin"
+
+  # Link ONNX runtime if available
+  if [[ -f /usr/lib/libonnxruntime.so ]]; then
+    ln -srv /usr/lib/libonnxruntime.so "$pkgdir/usr/lib/$_pkgname/libonnxruntime.so" 2>/dev/null || :
+  fi
 }
 
 # vim: ts=2 sw=2 et:
