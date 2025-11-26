@@ -42,7 +42,7 @@ source=(
   ${_pkgname}.desktop
   ${_pkgname}-symbolic.svg
 )
-sha256sums=('SKIP' 'SKIP' 'SKIP')
+sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP')
 # Tunables:
 # : "${ENABLE_PGO:=1}"  -> run PGO (two-stage). You should run the instrumented build, exercise the browser to generate profiles, then rebuild.
 # : "${ENABLE_BOLT:=1}" -> run llvm-bolt pass (requires llvm-bolt available in PATH)
@@ -68,22 +68,40 @@ prepare() {
 
 # Write a compact mozconfig to target minimal features
 _write_mozconfig() {
-  cat >mozconfig <<'EOF'
+  mkdir -p mozbuild
+  cd "$_pkgname-$pkgver"
+  cp browser/config/mozconfig ../mozconfig
+  cat >>../mozconfig <<END
 ac_add_options --enable-application=browser
 mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
+export MOZ_APP_REMOTINGNAME=${pkgname}
+export AR=llvm-ar
+export CC=clang
+export CXX=clang++
+export NM=llvm-nm
+export RANLIB=llvm-ranlib
 ac_add_options --prefix=/usr
 ac_add_options --enable-optimize="-O3 -march=native"
+ac_add_options OPT_LEVEL="3"
+ac_add_options RUSTC_OPT_LEVEL="3"
 ac_add_options --enable-rust-simd
 ac_add_options --enable-wasm-simd
 ac_add_options --enable-linker=lld
 ac_add_options --with-ccache=sccache
 ac_add_options --enable-lto=cross,full
+ac_add_options --enable-strip
+ac_add_options --enable-install-strip
+export STRIP_FLAGS="--strip-debug --strip-unneeded"
 ac_add_options --enable-release
 ac_add_options --enable-hardening
 ac_add_options --disable-tests
 ac_add_options --disable-debug
+ac_add_options --disable-debug-symbols
+ac_add_options --disable-debug-js-modules
 ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
+ac_add_options --disable-default-browser-agent
+ac_add_options --disable-parental-controls
 ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
 ac_add_options --enable-wayland
 ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
@@ -100,13 +118,21 @@ ac_add_options --with-system-jpeg
 ac_add_options --enable-jxl
 ac_add_options --enable-av1
 ac_add_options --enable-pulseaudio
+ac_add_options --enable-proxy-bypass-protection
+ac_add_options --enable-eme=widevine
+ac_add_options --enable-webrtc
 ac_add_options --enable-alsa
+ac_add_options --enable-jack
 ac_add_options --disable-warnings-as-errors
 mk_add_options MOZ_CRASHREPORTER=0
 mk_add_options MOZ_DATA_REPORTING=0
 export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib
 export MOZILLA_OFFICIAL=1 MOZ_NOSPAM=1 MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
-EOF
+
+# might help with failing x86_64 builds?
+export LDFLAGS+=" -Wl,--no-keep-memory"
+mk_add_options MOZ_PARALLEL_BUILD="$(nproc)"
+END
 }
 
 build() {
@@ -134,12 +160,19 @@ build() {
     export CFLAGS+=" -fprofile-generate=profile_data"
     export CXXFLAGS+=" -fprofile-generate=profile_data"
     export RUSTFLAGS+=" -C profile-generate=profile_data"
+    export LLVM_PROFDATA=llvm-profdata LIBGL_ALWAYS_SOFTWARE=true
     echo "PGO: instrumented build. After this completes, run the browser to generate profiles, then rebuild with ENABLE_PGO=use"
+    cat >.mozconfig ../mozconfig - <<END
+    ac_add_options --enable-profile-generate=cross
+END
+    dbus-run-session
   fi
+  # clear forced startup pages
+  sed -E -e 's&^\s*pref\("startup\.homepage.*$&&' \
+    -i browser/branding/*/pref/firefox-branding.js
   # Configure / build via mach
   ./mach bootstrap --no-interactive --application-choice=browser || :
-  ./mach build -j"$(nproc)" || return 1
-
+  ./mach build -j"$(nproc)" --priority normal || return 1
   # If running BOLT rewriting is requested and llvm-bolt exists, run on the main binaries
   if [[ -n "${ENABLE_BOLT:-}" ]] && command -v llvm-bolt >/dev/null 2>&1; then
     # Collect target binaries
@@ -186,6 +219,8 @@ pref("app.shield.optoutstudies.enabled", false);
 pref("extensions.getAddons.showPane", false);
 pref("extensions.htmlaboutaddons.recommendations.enabled", false);
 pref("browser.discovery.enabled", false);
+pref("browser.gnome-search-provider.enabled", true);
+pref("services.settings.main.search-telemetry-v2.last_check", $(date +%s));
 END
   install -Dm644 /dev/stdin "$pkgdir/usr/lib/$_pkgname/distribution/distribution.ini" <<END
 [Global]
@@ -196,6 +231,13 @@ about=Mozilla Firefox for Arch Linux
 app.distributor=archlinux
 app.distributor.channel=$_pkgname
 app.partner.archlinux=archlinux
+END
+  install -Dm644 /dev/stdin "$pkgdir/usr/share/gnome-shell/search-providers/$_pkgname.search-provider.ini" << END
+[Shell Search Provider]
+DesktopId=$_pkgname.desktop
+BusName=org.mozilla.${_pkgname//-/}.SearchProvider
+ObjectPath=/org/mozilla/${_pkgname//-/}/SearchProvider
+Version=2
 END
   for i in 16 22 24 32 48 64 128 256; do
     install -Dm644 browser/branding/official/default$i.png \
@@ -214,6 +256,7 @@ END
 exec /usr/lib/firefox/firefox "$@"
 END
   ln -srf "$pkgdir/usr/bin/$_pkgname" "$pkgdir/usr/lib/$_pkgname/firefox-bin"
+  ln -sf "$_pkgname" "$pkgdir/$_install_path/$_pkgname/$_pkgname-bin"
 }
 
 # vim: ts=2 sw=2 et:
