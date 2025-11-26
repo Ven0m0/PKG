@@ -1,0 +1,132 @@
+# Maintainer: ven0m0
+# Merged from: vscodium-electron & local patches
+_pkgname=vscodium
+_electron=electron38
+_nodejs="22.15.1"
+pkgname=${_pkgname}-electron
+pkgver=1.106.27818
+pkgrel=1
+pkgdesc="VS Code (System Electron) + MS Marketplace + Translucency + Fixes"
+arch=('x86_64')
+url="https://github.com/VSCodium/vscodium"
+license=('MIT')
+options=(!strip !debug !emptydirs)
+depends=("$_electron" 'libsecret' 'libx11' 'libxkbfile' 'ripgrep')
+optdepends=(
+  'gvfs: Trash support'
+  'libdbusmenu-glib: KDE global menu'
+)
+makedepends=('git' 'python' 'nvm' 'jq' 'rustup')
+provides=('codium' 'vscodium' 'code')
+conflicts=('codium' 'vscodium' 'vscodium-bin' 'vscodium-git' 'code')
+source=(
+  "git+https://github.com/VSCodium/vscodium.git#tag=${pkgver}"
+  "vscodium-electron.patch"
+  "translucent.patch"
+  "microphone.patch"
+  "product.json"
+  "vscodium.sh"
+  "vscodium.js"
+  "vscodium.desktop"
+  "vscodium-uri-handler.desktop"
+  "apply-xdg-patch.sh"
+)
+sha256sums=('SKIP'
+            '338d678e199b53f06d10ac9c82567c4baceb7ff3bd3c0017d4b2ef4a801ae99a'
+            'SKIP' 'SKIP' 'SKIP'
+            '9abc6d2cfe7ae1a955accebd0836effbd6ddecdf984aea6f6102b53814d15deb'
+            '28a271ba5b2e50b11259abd794ad2ab083612c78bee2d617bb5a8702932c8f44'
+            '3a5bc109974fcf408855c13965f6d6be0997655c5b359de0bfd19a678c00844e'
+            '6eef345b65bf2679c928c763529540435ab9c6e1836917319810a7a2d484ae1b'
+            'SKIP')
+
+case "$CARCH" in
+  x86_64) _vscode_arch=x64 ;;
+  *) _vscode_arch=x64 ;;
+esac
+
+_ensure_local_nvm() {
+  command -v nvm >/dev/null && nvm deactivate && nvm unload
+  export NVM_DIR="${srcdir}/nvm"
+  source /usr/share/nvm/init-nvm.sh || [[ $? != 1 ]]
+}
+
+prepare() {
+  command -v $_electron &>/dev/null || { echo "Error: $_electron missing."; exit 1; }
+  # 1. Setup Launcher Scripts
+  sed "s/@ELECTRON@/${_electron}/" "$srcdir/vscodium.sh" > "$srcdir/vscodium-electron.sh"
+  sed "s/@ELECTRON@/${_electron}/" "$srcdir/vscodium.js" > "$srcdir/vscodium-electron.js"
+  # 2. Clean previous build
+  cd "$srcdir/vscodium"
+  [[ -d vscode ]] && rm -rf vscode VSCode*
+  # 3. Patch Build System (System Electron)
+  patch -Nu build.sh -i "$srcdir/vscodium-electron.patch"
+  # 4. Apply Feature Patches (Translucency, Microphone)
+  # Note: Offsets may vary with version updates; inspect failures manually.
+  # We apply these to the vscode submodule *after* the build script initializes it,
+  # but since vscodium's build.sh clones vscode fresh, we must inject patches via
+  # a hook or apply them after 'get_repo.sh' logic if we were running it manually.
+  #
+  # VSCodium's build.sh handles cloning. To patch 'vscode' sources safely, we 
+  # patch the patches.txt mechanism OR let the build run 'prepare_vscode.sh'.
+  #
+  # SIMPLIFICATION: VSCodium supports a 'patches' dir. We copy ours there.
+  cp "$srcdir/translucent.patch" patches/
+  cp "$srcdir/microphone.patch" patches/
+  # Update patches list (VSCodium applies patches in alphabetical order from patches/ dir)
+  # If we need strict ordering or these are raw git patches for the vscode subdir:
+  # The translucent/microphone patches look like git diffs for the vscode repo.
+}
+
+build() {
+  _ensure_local_nvm
+  nvm install "${_nodejs}"
+  nvm use "${_nodejs}"
+  npm install --global node-gyp
+  export HOME="$srcdir"
+  cd "$srcdir/vscodium"
+  export DISABLE_UPDATE="yes" DISABLE_V8_COMPILE_CACHE=0
+  rustup default stable
+  export CARGO_TARGET_DIR="${srcdir}/${_pkgname}/vscode/cli/target"
+  # Build
+  . dev/build.sh
+}
+
+package() {
+  install -d -m755 "${pkgdir}/usr/bin"
+  install -d -m755 "${pkgdir}/usr/share/${_pkgname}"
+  install -d -m755 "${pkgdir}/usr/share/applications"
+  install -d -m755 "${pkgdir}/usr/share/pixmaps"
+  install -d -m755 "${pkgdir}/usr/lib/${_pkgname}"
+  install -d -m755 "${pkgdir}/usr/share/licenses/${_pkgname}"
+  # Resources
+  local _dist="${srcdir}/${_pkgname}/VSCode-linux-${_vscode_arch}"
+  # Swap product.json for MS Marketplace version
+  install -m644 "${srcdir}/product.json" "${_dist}/resources/app/product.json"
+  install -Dm644 "${_dist}/resources/app/LICENSE.txt" -t "${pkgdir}/usr/share/licenses/${_pkgname}/"
+  install -Dm644 "${_dist}/resources/app/ThirdPartyNotices.txt" -t "${pkgdir}/usr/share/licenses/${_pkgname}/"
+  cp -r --no-preserve=ownership --preserve=mode "${_dist}/resources/app"/* "${pkgdir}/usr/lib/${_pkgname}/"
+  # Clean redundant license files from lib
+  rm "${pkgdir}/usr/lib/${_pkgname}/LICENSE.txt"
+  rm "${pkgdir}/usr/lib/${_pkgname}/ThirdPartyNotices.txt"
+  cp -r --no-preserve=ownership --preserve=mode "${_dist}/resources/completions" "${pkgdir}/usr/lib/${_pkgname}/"
+  # Launcher
+  install -Dm755 "${srcdir}/vscodium-electron.sh" "${pkgdir}/usr/bin/${_pkgname}"
+  install -Dm755 "${srcdir}/vscodium-electron.js" "${pkgdir}/usr/lib/${_pkgname}/vscodium.js"
+  ln -s "/usr/bin/${_pkgname}" "${pkgdir}/usr/bin/code"
+  ln -s "/usr/bin/${_pkgname}" "${pkgdir}/usr/bin/codium"
+  # Desktop & Icons
+  install -D -m644 "${srcdir}/vscodium.desktop" "${pkgdir}/usr/share/applications/${_pkgname}.desktop"
+  install -D -m644 "${srcdir}/vscodium-uri-handler.desktop" "${pkgdir}/usr/share/applications/${_pkgname}-uri-handler.desktop"
+  install -D -m644 "${_dist}/resources/app/resources/linux/code.png" "${pkgdir}/usr/share/pixmaps/${_pkgname}.png"
+  # Apply XDG Patch (Mime types)
+  sh "${srcdir}/apply-xdg-patch.sh" "${pkgdir}/usr/share/applications/${_pkgname}.desktop"
+  sh "${srcdir}/apply-xdg-patch.sh" "${pkgdir}/usr/share/applications/${_pkgname}-uri-handler.desktop"
+  # Shell Completions
+  install -d -m755 "${pkgdir}/usr/share/zsh/site-functions"
+  install -d -m755 "${pkgdir}/usr/share/bash-completion/completions"
+  ln -s "/usr/lib/${_pkgname}/completions/zsh/_codium" "${pkgdir}/usr/share/zsh/site-functions/_vscodium"
+  ln -s "/usr/lib/${_pkgname}/completions/bash/codium" "${pkgdir}/usr/share/bash-completion/completions/vscodium"
+  # System Ripgrep
+  ln -sf /usr/bin/rg "${pkgdir}/usr/lib/${_pkgname}/node_modules/@vscode/ripgrep/bin/rg"
+}
