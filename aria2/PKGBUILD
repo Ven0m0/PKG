@@ -2,13 +2,12 @@
 _pkgname=aria2
 pkgname="$_pkgname-ven0m0"
 pkgver=1.37.0
-pkgrel=2
+pkgrel=3
 pkgdesc='Download utility that supports HTTP(S), FTP, BitTorrent, and Metalink'
 arch=('x86_64')
 url='https://aria2.github.io'
-license=('GPL')
+license=('GPL-2.0-or-later')
 depends=('openssl' 'libxml2' 'sqlite' 'c-ares' 'ca-certificates' 'libssh2')
-makedepends=('patch')
 checkdepends=('cppunit')
 provides=('aria2')
 conflicts=('aria2')
@@ -17,27 +16,23 @@ source=("https://github.com/aria2/aria2/releases/download/release-${pkgver}/aria
         '0001-tweak-aria2-for-speed.patch'
         '0002-retry-options.patch')
 sha256sums=('60a420ad7085eb616cb6e2bdf0a7206d68ff3d37fb5a956dc44242eb2f79b66b'
-            'SKIP'
-            'SKIP')
+            '8ceabb0a3fb3c533ce4dd6f4c7c03f1ec0aa9dd0bb7edf2f04fd33eb4e8da3c2'
+            'd8b38ed618a01c4a4dba03b97cf3edbe68797de2e3fa4e07d81e5cc18e76e80d')
 
 prepare() {
   cd "$_pkgname-$pkgver"
 
-  local src
-  for src in "${source[@]}"; do
-    src="${src%%::*}"
-    src="${src##*/}"
-    [[ $src == *.patch ]] || continue
-    echo "Applying patch $src..."
-    patch -Np1 -i "../$src"
-  done
+  # Apply patches
+  patch -Np1 -i ../0001-tweak-aria2-for-speed.patch
+  patch -Np1 -i ../0002-retry-options.patch
 }
 
 build() {
   cd "$_pkgname-$pkgver"
 
-  export CFLAGS="-O3 -march=native -mtune=native -pipe -fno-plt -flto=auto"
-  export CXXFLAGS="$CFLAGS"
+  # Optimized build flags
+  export CFLAGS="${CFLAGS/-O2/-O3} -pipe -fno-plt -fstack-protector-strong"
+  export CXXFLAGS="${CXXFLAGS/-O2/-O3} -pipe -fno-plt -fstack-protector-strong"
   export LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
 
   ./configure \
@@ -47,7 +42,7 @@ build() {
     --without-gnutls \
     --with-openssl
 
-  make -j"$(nproc)"
+  make
 }
 
 check() {
@@ -60,10 +55,9 @@ package() {
 
   make DESTDIR="$pkgdir" install
 
-  # Add bash completion
-  install -d "$pkgdir"/usr/share/bash-completion/completions
-  install -m644 "$pkgdir"/usr/share/doc/aria2/bash_completion/aria2c \
-    "$pkgdir"/usr/share/bash-completion/completions
+  # Install bash completion
+  install -Dm644 "$pkgdir"/usr/share/doc/aria2/bash_completion/aria2c \
+    "$pkgdir"/usr/share/bash-completion/completions/aria2c
   rm -rf "$pkgdir"/usr/share/doc/aria2/bash_completion
 }
 
