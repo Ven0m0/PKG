@@ -26,6 +26,7 @@ sha256sums=('SKIP')
 prepare() {
   cd $_pkgname-$pkgver.$_upstream_pkgrel
   mkdir -p bin/
+  patch -Np1 < ../natspec.patch
 }
 
 build() {
