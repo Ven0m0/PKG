@@ -22,30 +22,30 @@ provides=('codium' 'vscodium' 'code')
 conflicts=('codium' 'vscodium' 'vscodium-bin' 'vscodium-git' 'code')
 source=(
   "git+${url}#depth=1#tag=${pkgver}"
-  "vscodium-electron.patch"
+  "${_pkgname}-electron.patch"
   "translucent.patch"
   "microphone.patch"
   "product.json"
-  "vscodium.sh"
-  "vscodium.js"
-  "vscodium.desktop"
-  "vscodium-uri-handler.desktop"
+  "${_pkgname}.sh"
+  "${_pkgname}.js"
+  "${_pkgname}.desktop"
+  "${_pkgname}-uri-handler.desktop"
   "apply-xdg-patch.sh"
 )
 sha256sums=('SKIP'
-            '338d678e199b53f06d10ac9c82567c4baceb7ff3bd3c0017d4b2ef4a801ae99a'
-            'SKIP' 'SKIP' 'SKIP'
-            '9abc6d2cfe7ae1a955accebd0836effbd6ddecdf984aea6f6102b53814d15deb'
-            '28a271ba5b2e50b11259abd794ad2ab083612c78bee2d617bb5a8702932c8f44'
-            '3a5bc109974fcf408855c13965f6d6be0997655c5b359de0bfd19a678c00844e'
-            '6eef345b65bf2679c928c763529540435ab9c6e1836917319810a7a2d484ae1b'
-            'SKIP')
+  '338d678e199b53f06d10ac9c82567c4baceb7ff3bd3c0017d4b2ef4a801ae99a'
+  'SKIP' 'SKIP' 'SKIP'
+  '9abc6d2cfe7ae1a955accebd0836effbd6ddecdf984aea6f6102b53814d15deb'
+  '28a271ba5b2e50b11259abd794ad2ab083612c78bee2d617bb5a8702932c8f44'
+  '3a5bc109974fcf408855c13965f6d6be0997655c5b359de0bfd19a678c00844e'
+  '6eef345b65bf2679c928c763529540435ab9c6e1836917319810a7a2d484ae1b'
+  'SKIP')
 
 case "$CARCH" in
-  x86_64) _vscode_arch=x64 ;;
-  aarch64) _vscode_arch=arm64 ;;
-  armv7h) _vscode_arch=arm ;;
-  *) _vscode_arch=DUMMY ;;
+x86_64) _vscode_arch=x64 ;;
+aarch64) _vscode_arch=arm64 ;;
+armv7h) _vscode_arch=arm ;;
+*) _vscode_arch=DUMMY ;;
 esac
 
 _ensure_local_nvm() {
@@ -55,12 +55,16 @@ _ensure_local_nvm() {
 }
 
 prepare() {
-  command -v $_electron &>/dev/null || { echo "Error: $_electron missing."; exit 1; }
+  command -v "$_electron" &>/dev/null || {
+    echo "Error: $_electron missing."
+    exit 1
+
+  }
   # 1. Setup Launcher Scripts
-  sed "s/@ELECTRON@/${_electron}/" "$srcdir/vscodium.sh" > "$srcdir/vscodium-electron.sh"
-  sed "s/@ELECTRON@/${_electron}/" "$srcdir/vscodium.js" > "$srcdir/vscodium-electron.js"
+  sed "s/@ELECTRON@/${_electron}/" "$srcdir/vscodium.sh" >"$srcdir/vscodium-electron.sh"
+  sed "s/@ELECTRON@/${_electron}/" "$srcdir/vscodium.js" >"$srcdir/vscodium-electron.js"
   # 2. Clean previous build
-  cd "$srcdir/vscodium"
+  cd "$srcdir/vscodium" || exit
   [[ -d vscode ]] && rm -rf vscode VSCode*
   # 3. Patch Build System (System Electron)
   patch -Nu build.sh -i "$srcdir/vscodium-electron.patch"
@@ -70,7 +74,7 @@ prepare() {
   # but since vscodium's build.sh clones vscode fresh, we must inject patches via
   # a hook or apply them after 'get_repo.sh' logic if we were running it manually.
   #
-  # VSCodium's build.sh handles cloning. To patch 'vscode' sources safely, we 
+  # VSCodium's build.sh handles cloning. To patch 'vscode' sources safely, we
   # patch the patches.txt mechanism OR let the build run 'prepare_vscode.sh'.
   #
   # SIMPLIFICATION: VSCodium supports a 'patches' dir. We copy ours there.
@@ -83,14 +87,14 @@ prepare() {
 
 build() {
   _ensure_local_nvm
-  nvm install "${_nodejs}"
-  nvm use "${_nodejs}"
+  nvm install "$_nodejs"
+  nvm use "$_nodejs"
   npm install --global node-gyp
   export HOME="$srcdir"
-  cd "$srcdir/vscodium"
-  export DISABLE_UPDATE="yes" DISABLE_V8_COMPILE_CACHE=0 
+  cd "$srcdir/vscodium" || exit
+  export DISABLE_UPDATE="yes" DISABLE_V8_COMPILE_CACHE=0
   export SHOULD_BUILD="yes" SHOULD_BUILD_REH="no" CI_BUILD="no" OS_NAME="linux" VSCODE_PLATFORM="linux"
-  export VSCODE_ARCH="x64" VSCODE_QUALITY="stable" RELEASE_VERSION="${pkgver}"
+  export VSCODE_ARCH="x64" VSCODE_QUALITY="stable" RELEASE_VERSION="$pkgver"
   rustup default stable
   export CARGO_TARGET_DIR="${srcdir}/${_pkgname}/vscode/cli/target"
   # Build
