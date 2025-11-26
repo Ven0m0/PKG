@@ -82,13 +82,20 @@ export NM=llvm-nm
 export RANLIB=llvm-ranlib
 ac_add_options --prefix=/usr
 ac_add_options --enable-optimize="-O3 -march=native"
+# Rust optimizations
 ac_add_options OPT_LEVEL="3"
 ac_add_options RUSTC_OPT_LEVEL="3"
+export CARGO_PROFILE_RELEASE_OPT_LEVEL=3
+# Parallel build optimization
+mk_add_options MOZ_MAKE_FLAGS="-j$(nproc)" MOZ_PARALLEL_BUILD="$(nproc)"
+# x86_64 optimizations
+ac_add_options --disable-elf-hack
 ac_add_options --enable-rust-simd
 ac_add_options --enable-wasm-simd
+ac_add_options --enable-wasm-avx
 ac_add_options --enable-linker=lld
 ac_add_options --with-ccache=sccache
-ac_add_options --enable-lto=cross,full
+ac_add_options --enable-lto=full
 ac_add_options --enable-strip
 ac_add_options --enable-install-strip
 export STRIP_FLAGS="--strip-debug --strip-unneeded"
@@ -127,11 +134,13 @@ ac_add_options --disable-warnings-as-errors
 mk_add_options MOZ_CRASHREPORTER=0
 mk_add_options MOZ_DATA_REPORTING=0
 export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib
-export MOZILLA_OFFICIAL=1 MOZ_NOSPAM=1 MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
+export MOZILLA_OFFICIAL=1 MOZ_NOSPAM=1 MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip MOZ_DEBUG_FLAGS=""
 
+export CFLAGS+=" -g0"
+export CXXFLAGS+=" -g0"
 # might help with failing x86_64 builds?
 export LDFLAGS+=" -Wl,--no-keep-memory"
-mk_add_options MOZ_PARALLEL_BUILD="$(nproc)"
+export RUSTFLAGS="-Cdebuginfo=0 -Ctarget-cpu=native -Copt-level=3"
 END
 }
 
@@ -146,10 +155,15 @@ build() {
   export MOZ_NOSPAM=1 MOZ_ENABLE_WAYLAND=1 LIBGL_ALWAYS_SOFTWARE=true
   CFLAGS="${_cflags[*]} ${CFLAGS:-}"
   CXXFLAGS="${_cflags[*]} ${CXXFLAGS:-}"
-  export CFLAGS="${CFLAGS/-fexceptions/}"
-  export CXXFLAGS="${CXXFLAGS/-fexceptions/}"
-  export LDFLAGS="${_ldflags[*]} ${LDFLAGS:-}"
-  export RUSTFLAGS="${_rustflags[*]} ${RUSTFLAGS:-}"
+  # malloc_usable_size is used in various parts of the codebase
+  CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+  CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+  # Breaks compilation since https://bugzilla.mozilla.org/show_bug.cgi?id=1896066
+  CFLAGS="${CFLAGS/-fexceptions/}"
+  CXXFLAGS="${CXXFLAGS/-fexceptions/}"
+  LDFLAGS="${_ldflags[*]} ${LDFLAGS:-}"
+  RUSTFLAGS="${_rustflags[*]} ${RUSTFLAGS:-}"
+  export CFLAGS CXXFLAGS LDFLAGS RUSTFLAGS
   # Polly/Propeller opt-in
   [[ -n "${ENABLE_POLLY:-}" ]] && {
     export CFLAGS+=" -mllvm -polly -mllvm -polly-vectorizer=stripmine"
