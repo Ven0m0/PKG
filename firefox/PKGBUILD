@@ -47,9 +47,13 @@ source=(
   "https://archive.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"
   ${_pkgname}.desktop
   ${_pkgname}-symbolic.svg
+  patches/0001-enable-vaapi.patch
+  patches/0002-remove-nvidia-blocklist.patch
+  patches/0018-bmo-1516081-Disable-watchdog-during-PGO-builds.patch
+  patches/0024-Add-KDE-integration-to-Firefox.patch
 )
 
-sha256sums=('SKIP' 'SKIP' 'SKIP')
+sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
 
 # Tunables - set these in your environment to control build behavior
 : "${NATIVE_ARCH:=native}"       # CPU architecture to optimize for
@@ -247,19 +251,45 @@ END
 build() {
   cd "$_pkgname-$pkgver"
 
+  # Check for required commands
+  local _missing_cmds=()
+  for cmd in clang clang++ lld llvm-ar llvm-nm llvm-ranlib xvfb-run dbus-run-session; do
+    command -v "$cmd" >/dev/null 2>&1 || _missing_cmds+=("$cmd")
+  done
+  if [[ ${#_missing_cmds[@]} -gt 0 ]]; then
+    echo "ERROR: Missing required commands: ${_missing_cmds[*]}"
+    return 1
+  fi
+
   # Write optimized mozconfig
   _write_mozconfig
 
   # Environment setup
   ulimit -n 4096
+
+  # Build date
+  export MOZ_BUILD_DATE="$(date -u${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH} +%Y%m%d%H%M%S)"
+
+  # Compiler
   export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib LD=ld.lld
+
+  # Rust
   export RUST_MIN_STACK=16777216
+
+  # Build optimization
   export PYTHONOPTIMIZE=2
   export CARGO_CACHE_RUSTC_INFO=1
   export OPT_LEVEL=3
   export CARGO_INCREMENTAL=0
+
+  # Mozilla environment
   export MOZ_NOSPAM=1
   export MOZ_ENABLE_WAYLAND=1
+  export MOZILLA_OFFICIAL=1
+  export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
+  export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
+
+  # Software rendering for profiling
   export LIBGL_ALWAYS_SOFTWARE=true
 
   # Use sccache if available
@@ -292,8 +322,11 @@ build() {
   fi
 
   # Profile-Guided Optimization
-  local _pgo_profdata="$SRCDEST/firefox-$pkgver-merged.profdata"
-  local _pgo_jarlog="$SRCDEST/firefox-$pkgver-jarlog"
+  # Use SRCDEST if set, otherwise use a cache directory
+  local _pgo_cache="${SRCDEST:-$srcdir/.pgo-cache}"
+  mkdir -p "$_pgo_cache"
+  local _pgo_profdata="$_pgo_cache/firefox-$pkgver-merged.profdata"
+  local _pgo_jarlog="$_pgo_cache/firefox-$pkgver-jarlog"
 
   if [[ "${ENABLE_PGO}" == "true" ]]; then
     # Try to reuse existing profile
@@ -323,30 +356,41 @@ END
         xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
         ./mach python build/pgo/profileserver.py
 
-      stat -c "Profile data generated (%s bytes)" merged.profdata
-      test -s merged.profdata
+      if [[ -s merged.profdata ]]; then
+        stat -c "Profile data generated (%s bytes)" merged.profdata
 
-      # Save for future builds
-      cp merged.profdata "$_pgo_profdata"
-      [[ -s jarlog ]] && cp jarlog "$_pgo_jarlog"
+        # Save for future builds
+        cp merged.profdata "$_pgo_profdata"
+        [[ -s jarlog ]] && cp jarlog "$_pgo_jarlog"
 
-      echo "Cleaning instrumented build..."
-      ./mach clobber objdir
+        echo "Cleaning instrumented build..."
+        ./mach clobber objdir
+      else
+        echo "WARNING: PGO profile generation failed, continuing without PGO"
+        ENABLE_PGO=false
+      fi
     fi
 
-    # Build with PGO profile
-    echo "Building optimized browser with PGO..."
-    cat > .mozconfig ../mozconfig - <<END
+    # Build with PGO profile if available
+    if [[ "${ENABLE_PGO}" == "true" ]] && [[ -s merged.profdata ]]; then
+      echo "Building optimized browser with PGO..."
+      cat > .mozconfig ../mozconfig - <<END
 ac_add_options --enable-lto=cross,full
 ac_add_options --enable-profile-use=cross
 ac_add_options --with-pgo-profile-path=${PWD@Q}/merged.profdata
 END
 
-    if [[ -s jarlog ]]; then
-      echo "ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog" >> .mozconfig
+      if [[ -s jarlog ]]; then
+        echo "ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog" >> .mozconfig
+      fi
+    else
+      # Build without PGO
+      echo "Building without PGO..."
+      cat > .mozconfig ../mozconfig
     fi
   else
-    # Build without PGO
+    # PGO disabled by user
+    echo "Building without PGO (disabled)..."
     cat > .mozconfig ../mozconfig
   fi
 
