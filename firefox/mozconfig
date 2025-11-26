@@ -6,15 +6,23 @@ ac_add_options --enable-optimize=-O3
 ac_add_options --enable-lto=full
 ac_add_options --enable-lto
 ac_add_options --enable-clang-plugin
+ac_add_options --enable-minify=properties
 ac_add_options --enable-hardening
 ac_add_options --enable-replace-malloc
 ac_add_options --enable-webrtc
 ac_add_options --enable-jxl
 ac_add_options --enable-av1
+ac_add_options --enable-raw
 ac_add_options --enable-wayland
 ac_add_options --enable-jemalloc
 ac_add_options --enable-wasm-avx
 ac_add_options --enable-rust-simd
+ac_add_options --enable-wasm-simd
+ac_add_options --enable-wasm-relaxed-simd
+ac_add_options --enable-wasm-memory64
+ac_add_options --enable-wasm-memory-control
+ac_add_options --enable-wasm-multi-memory
+ac_add_options --enable-wasm-branch-hinting
 ac_add_options --enable-pulseaudio
 ac_add_options --enable-alsa
 ac_add_options --enable-jack
@@ -56,6 +64,10 @@ ac_add_options --disable-webspeech
 ac_add_options --disable-webspeechtestbackend
 ac_add_options --disable-default-browser-agent
 ac_add_options --disable-warnings-as-errors
+ac_add_options --disable-valgrind
+ac_add_options --disable-dmd
+ac_add_options --disable-phc
+ac_add_options --disable-bits-download
 
 # Parallel build
 mk_add_options AUTOCLOBBER=1
@@ -78,7 +90,12 @@ export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-Wl,-O3 -Wl,--gc-sections -Wl,-z,now -Wl,-z,relro -Wl,--icf=all -Wl,--as-needed -Wl,--hash-style=gnu -Wl,--sort-common -Wl,--build-id=none"
 
 export RUSTC_OPT_LEVEL=3
+export OPT_LEVEL=3
 export MOZ_NO_PIE_COMPAT=1 MOZ_NOSPAM=1 MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=system
+
+# Optimization levels for mozconfig
+ac_add_options OPT_LEVEL="3"
+ac_add_options RUSTC_OPT_LEVEL="3"
 
 if [ -n "$PGO_PROFILE_USE" ]; then
   export MOZ_LTO=cross,full
