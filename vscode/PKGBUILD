@@ -30,7 +30,6 @@ source=(
   "${_pkgname}.js"
   "${_pkgname}.desktop"
   "${_pkgname}-uri-handler.desktop"
-  "apply-xdg-patch.sh"
 )
 sha256sums=('SKIP'
   '338d678e199b53f06d10ac9c82567c4baceb7ff3bd3c0017d4b2ef4a801ae99a'
@@ -40,8 +39,7 @@ sha256sums=('SKIP'
   'fc63453bb4a5deb880c4791eaab3018a309c92f6d8ec1209857de82d66ac1857'
   '5340ae24cda3b558a970b9460152111214d2e1ec0f3855beab31d214481fac35'
   '3a5bc109974fcf408855c13965f6d6be0997655c5b359de0bfd19a678c00844e'
-  '6eef345b65bf2679c928c763529540435ab9c6e1836917319810a7a2d484ae1b'
-  '0322f049a2aed0b4767ff752246156b12909a7729f8d450e0265910fe746c009')
+  '6eef345b65bf2679c928c763529540435ab9c6e1836917319810a7a2d484ae1b')
 
 case "$CARCH" in
 x86_64) _vscode_arch=x64 ;;
@@ -142,10 +140,6 @@ package() {
   install -Dm644 "${srcdir}/vscodium.desktop" "${pkgdir}/usr/share/applications/${_pkgname}.desktop"
   install -Dm644 "${srcdir}/vscodium-uri-handler.desktop" "${pkgdir}/usr/share/applications/${_pkgname}-uri-handler.desktop"
   install -Dm644 "${_dist}/resources/app/resources/linux/code.png" "${pkgdir}/usr/share/pixmaps/${_pkgname}.png"
-
-  # Apply XDG MIME type patches
-  sh "${srcdir}/apply-xdg-patch.sh" "${pkgdir}/usr/share/applications/${_pkgname}.desktop"
-  sh "${srcdir}/apply-xdg-patch.sh" "${pkgdir}/usr/share/applications/${_pkgname}-uri-handler.desktop"
 
   # Install shell completions
   ln -s "/usr/lib/${_pkgname}/completions/zsh/_codium" "${pkgdir}/usr/share/zsh/site-functions/_vscodium"
