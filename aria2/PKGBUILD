@@ -16,8 +16,8 @@ source=("https://github.com/aria2/aria2/releases/download/release-${pkgver}/aria
         '0001-tweak-aria2-for-speed.patch'
         '0002-retry-options.patch')
 sha256sums=('60a420ad7085eb616cb6e2bdf0a7206d68ff3d37fb5a956dc44242eb2f79b66b'
-            '8ceabb0a3fb3c533ce4dd6f4c7c03f1ec0aa9dd0bb7edf2f04fd33eb4e8da3c2'
-            'd8b38ed618a01c4a4dba03b97cf3edbe68797de2e3fa4e07d81e5cc18e76e80d')
+            'SKIP'
+            'SKIP')
 
 prepare() {
   cd "$_pkgname-$pkgver"

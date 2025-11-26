@@ -29,6 +29,10 @@ prepare() {
 
   # Prepare binary directory
   mkdir -p bin
+}
+
+build() {
+  cd $_pkgname-$pkgver.$_upstream_pkgrel
   cp -a "$srcdir/p7zip" bin/
 }
 
