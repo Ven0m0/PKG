@@ -1,6 +1,6 @@
 # Maintainer: ven0m0
 # Merged from: vscodium-electron & local patches
-pkgname=vscodium
+
 _pkgname=vscodium
 _electron=electron38
 _nodejs="22.15.1"
@@ -34,12 +34,14 @@ source=(
 )
 sha256sums=('SKIP'
   '338d678e199b53f06d10ac9c82567c4baceb7ff3bd3c0017d4b2ef4a801ae99a'
-  'SKIP' 'SKIP' 'SKIP'
-  '9abc6d2cfe7ae1a955accebd0836effbd6ddecdf984aea6f6102b53814d15deb'
-  '28a271ba5b2e50b11259abd794ad2ab083612c78bee2d617bb5a8702932c8f44'
+  '2aa74b7477edb3517d7afb1294aae96ee3341e9d85ce0872e2e509ff8a70c02a'
+  'cec939c5a41c34a5677086e171279372e6c1e80eb5d12b7241f6a1b7dc5f6a29'
+  'e16070daa44d9bfdf70e6f68392a4fab359e8cd05493f80c0b9ea33d8030db83'
+  'fc63453bb4a5deb880c4791eaab3018a309c92f6d8ec1209857de82d66ac1857'
+  '5340ae24cda3b558a970b9460152111214d2e1ec0f3855beab31d214481fac35'
   '3a5bc109974fcf408855c13965f6d6be0997655c5b359de0bfd19a678c00844e'
   '6eef345b65bf2679c928c763529540435ab9c6e1836917319810a7a2d484ae1b'
-  'SKIP')
+  '0322f049a2aed0b4767ff752246156b12909a7729f8d450e0265910fe746c009')
 
 case "$CARCH" in
 x86_64) _vscode_arch=x64 ;;
@@ -55,87 +57,100 @@ _ensure_local_nvm() {
 }
 
 prepare() {
+  # Verify electron is available
   command -v "$_electron" &>/dev/null || {
-    echo "Error: $_electron missing."
+    echo "Error: $_electron not found" >&2
     exit 1
-
   }
-  # 1. Setup Launcher Scripts
+
+  # Setup launcher scripts
   sed "s/@ELECTRON@/${_electron}/" "$srcdir/vscodium.sh" >"$srcdir/vscodium-electron.sh"
   sed "s/@ELECTRON@/${_electron}/" "$srcdir/vscodium.js" >"$srcdir/vscodium-electron.js"
-  # 2. Clean previous build
-  cd "$srcdir/vscodium" || exit
+
+  cd "$srcdir/vscodium" || exit 1
+
+  # Clean previous build artifacts
   [[ -d vscode ]] && rm -rf vscode VSCode*
-  # 3. Patch Build System (System Electron)
+
+  # Patch build system for system Electron
   patch -Nu build.sh -i "$srcdir/vscodium-electron.patch"
-  # 4. Apply Feature Patches (Translucency, Microphone)
-  # Note: Offsets may vary with version updates; inspect failures manually.
-  # We apply these to the vscode submodule *after* the build script initializes it,
-  # but since vscodium's build.sh clones vscode fresh, we must inject patches via
-  # a hook or apply them after 'get_repo.sh' logic if we were running it manually.
-  #
-  # VSCodium's build.sh handles cloning. To patch 'vscode' sources safely, we
-  # patch the patches.txt mechanism OR let the build run 'prepare_vscode.sh'.
-  #
-  # SIMPLIFICATION: VSCodium supports a 'patches' dir. We copy ours there.
+
+  # Copy feature patches (VSCodium will apply them during build)
   cp "$srcdir/translucent.patch" patches/
   cp "$srcdir/microphone.patch" patches/
-  # Update patches list (VSCodium applies patches in alphabetical order from patches/ dir)
-  # If we need strict ordering or these are raw git patches for the vscode subdir:
-  # The translucent/microphone patches look like git diffs for the vscode repo.
 }
 
 build() {
+  # Setup Node.js environment
   _ensure_local_nvm
   nvm install "$_nodejs"
   nvm use "$_nodejs"
   npm install --global node-gyp
+
+  cd "$srcdir/vscodium" || exit 1
+
+  # Configure build environment
   export HOME="$srcdir"
-  cd "$srcdir/vscodium" || exit
-  export DISABLE_UPDATE="yes" DISABLE_V8_COMPILE_CACHE=0
-  export SHOULD_BUILD="yes" SHOULD_BUILD_REH="no" CI_BUILD="no" OS_NAME="linux" VSCODE_PLATFORM="linux"
-  export VSCODE_ARCH="x64" VSCODE_QUALITY="stable" RELEASE_VERSION="$pkgver"
-  rustup default stable
+  export DISABLE_UPDATE="yes"
+  export DISABLE_V8_COMPILE_CACHE=0
+  export SHOULD_BUILD="yes"
+  export SHOULD_BUILD_REH="no"
+  export CI_BUILD="no"
+  export OS_NAME="linux"
+  export VSCODE_PLATFORM="linux"
+  export VSCODE_ARCH="x64"
+  export VSCODE_QUALITY="stable"
+  export RELEASE_VERSION="$pkgver"
   export CARGO_TARGET_DIR="${srcdir}/${_pkgname}/vscode/cli/target"
-  # Build
+
+  # Setup Rust toolchain
+  rustup default stable
+
+  # Run build
   . dev/build.sh
 }
 
 package() {
+  local _dist="${srcdir}/${_pkgname}/VSCode-linux-${_vscode_arch}"
+
+  # Create directory structure
   install -d -m755 "${pkgdir}/usr/bin"
-  install -d -m755 "${pkgdir}/usr/share/${_pkgname}"
+  install -d -m755 "${pkgdir}/usr/lib/${_pkgname}"
   install -d -m755 "${pkgdir}/usr/share/applications"
   install -d -m755 "${pkgdir}/usr/share/pixmaps"
-  install -d -m755 "${pkgdir}/usr/lib/${_pkgname}"
   install -d -m755 "${pkgdir}/usr/share/licenses/${_pkgname}"
-  # Resources
-  local _dist="${srcdir}/${_pkgname}/VSCode-linux-${_vscode_arch}"
-  # Swap product.json for MS Marketplace version
+  install -d -m755 "${pkgdir}/usr/share/zsh/site-functions"
+  install -d -m755 "${pkgdir}/usr/share/bash-completion/completions"
+
+  # Install application resources
   install -m644 "${srcdir}/product.json" "${_dist}/resources/app/product.json"
+  cp -r --no-preserve=ownership --preserve=mode "${_dist}/resources/app"/* "${pkgdir}/usr/lib/${_pkgname}/"
+  cp -r --no-preserve=ownership --preserve=mode "${_dist}/resources/completions" "${pkgdir}/usr/lib/${_pkgname}/"
+
+  # Install licenses
   install -Dm644 "${_dist}/resources/app/LICENSE.txt" -t "${pkgdir}/usr/share/licenses/${_pkgname}/"
   install -Dm644 "${_dist}/resources/app/ThirdPartyNotices.txt" -t "${pkgdir}/usr/share/licenses/${_pkgname}/"
-  cp -r --no-preserve=ownership --preserve=mode "${_dist}/resources/app"/* "${pkgdir}/usr/lib/${_pkgname}/"
-  # Clean redundant license files from lib
-  rm "${pkgdir}/usr/lib/${_pkgname}/LICENSE.txt"
-  rm "${pkgdir}/usr/lib/${_pkgname}/ThirdPartyNotices.txt"
-  cp -r --no-preserve=ownership --preserve=mode "${_dist}/resources/completions" "${pkgdir}/usr/lib/${_pkgname}/"
-  # Launcher
+  rm "${pkgdir}/usr/lib/${_pkgname}/LICENSE.txt" "${pkgdir}/usr/lib/${_pkgname}/ThirdPartyNotices.txt"
+
+  # Install launcher scripts
   install -Dm755 "${srcdir}/vscodium-electron.sh" "${pkgdir}/usr/bin/${_pkgname}"
   install -Dm755 "${srcdir}/vscodium-electron.js" "${pkgdir}/usr/lib/${_pkgname}/vscodium.js"
   ln -s "/usr/bin/${_pkgname}" "${pkgdir}/usr/bin/code"
   ln -s "/usr/bin/${_pkgname}" "${pkgdir}/usr/bin/codium"
-  # Desktop & Icons
-  install -D -m644 "${srcdir}/vscodium.desktop" "${pkgdir}/usr/share/applications/${_pkgname}.desktop"
-  install -D -m644 "${srcdir}/vscodium-uri-handler.desktop" "${pkgdir}/usr/share/applications/${_pkgname}-uri-handler.desktop"
-  install -D -m644 "${_dist}/resources/app/resources/linux/code.png" "${pkgdir}/usr/share/pixmaps/${_pkgname}.png"
-  # Apply XDG Patch (Mime types)
+
+  # Install desktop files and icons
+  install -Dm644 "${srcdir}/vscodium.desktop" "${pkgdir}/usr/share/applications/${_pkgname}.desktop"
+  install -Dm644 "${srcdir}/vscodium-uri-handler.desktop" "${pkgdir}/usr/share/applications/${_pkgname}-uri-handler.desktop"
+  install -Dm644 "${_dist}/resources/app/resources/linux/code.png" "${pkgdir}/usr/share/pixmaps/${_pkgname}.png"
+
+  # Apply XDG MIME type patches
   sh "${srcdir}/apply-xdg-patch.sh" "${pkgdir}/usr/share/applications/${_pkgname}.desktop"
   sh "${srcdir}/apply-xdg-patch.sh" "${pkgdir}/usr/share/applications/${_pkgname}-uri-handler.desktop"
-  # Shell Completions
-  install -d -m755 "${pkgdir}/usr/share/zsh/site-functions"
-  install -d -m755 "${pkgdir}/usr/share/bash-completion/completions"
+
+  # Install shell completions
   ln -s "/usr/lib/${_pkgname}/completions/zsh/_codium" "${pkgdir}/usr/share/zsh/site-functions/_vscodium"
   ln -s "/usr/lib/${_pkgname}/completions/bash/codium" "${pkgdir}/usr/share/bash-completion/completions/vscodium"
-  # System Ripgrep
+
+  # Use system ripgrep
   ln -sf /usr/bin/rg "${pkgdir}/usr/lib/${_pkgname}/node_modules/@vscode/ripgrep/bin/rg"
 }
