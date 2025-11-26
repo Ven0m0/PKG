@@ -182,8 +182,8 @@ END
       # Placeholder profile path; user should generate profile_data.prof by running instrumented binary
       prof=profile_data/merged.prof
       if [[ -f "$prof" ]]; then
-        llvm-bolt "$bin" -o "${bin}.bolt" --data="$prof" || true
-        mv -f "${bin}.bolt" "$bin" || true
+        llvm-bolt "$bin" -o "${bin}.bolt" --data="$prof" || :
+        mv -f "${bin}.bolt" "$bin" || :
       fi
     done
   fi
