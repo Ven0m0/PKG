@@ -1,5 +1,6 @@
 # Maintainer: ven0m0
 # Merged from: vscodium-electron & local patches
+pkgname=vscodium
 _pkgname=vscodium
 _electron=electron38
 _nodejs="22.15.1"
@@ -7,8 +8,8 @@ pkgname=${_pkgname}-electron
 pkgver=1.106.27818
 pkgrel=1
 pkgdesc="VS Code (System Electron) + MS Marketplace + Translucency + Fixes"
-arch=('x86_64')
-url="https://github.com/VSCodium/vscodium"
+arch=('x86_64' 'aarch64' 'armv7h')
+url='https://github.com/VSCodium/vscodium.git'
 license=('MIT')
 options=(!strip !debug !emptydirs)
 depends=("$_electron" 'libsecret' 'libx11' 'libxkbfile' 'ripgrep')
@@ -20,7 +21,7 @@ makedepends=('git' 'python' 'nvm' 'jq' 'rustup')
 provides=('codium' 'vscodium' 'code')
 conflicts=('codium' 'vscodium' 'vscodium-bin' 'vscodium-git' 'code')
 source=(
-  "git+https://github.com/VSCodium/vscodium.git#tag=${pkgver}"
+  "git+${url}#depth=1#tag=${pkgver}"
   "vscodium-electron.patch"
   "translucent.patch"
   "microphone.patch"
@@ -42,7 +43,9 @@ sha256sums=('SKIP'
 
 case "$CARCH" in
   x86_64) _vscode_arch=x64 ;;
-  *) _vscode_arch=x64 ;;
+  aarch64) _vscode_arch=arm64 ;;
+  armv7h) _vscode_arch=arm ;;
+  *) _vscode_arch=DUMMY ;;
 esac
 
 _ensure_local_nvm() {
@@ -85,7 +88,9 @@ build() {
   npm install --global node-gyp
   export HOME="$srcdir"
   cd "$srcdir/vscodium"
-  export DISABLE_UPDATE="yes" DISABLE_V8_COMPILE_CACHE=0
+  export DISABLE_UPDATE="yes" DISABLE_V8_COMPILE_CACHE=0 
+  export SHOULD_BUILD="yes" SHOULD_BUILD_REH="no" CI_BUILD="no" OS_NAME="linux" VSCODE_PLATFORM="linux"
+  export VSCODE_ARCH="x64" VSCODE_QUALITY="stable" RELEASE_VERSION="${pkgver}"
   rustup default stable
   export CARGO_TARGET_DIR="${srcdir}/${_pkgname}/vscode/cli/target"
   # Build
