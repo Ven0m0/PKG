@@ -1,6 +1,5 @@
 # Maintainer: ven0m0
 # Merged from: vscodium-electron & local patches
-
 _pkgname=vscodium
 _electron=electron38
 _nodejs="22.15.1"
@@ -17,7 +16,7 @@ optdepends=(
   'gvfs: Trash support'
   'libdbusmenu-glib: KDE global menu'
 )
-makedepends=('git' 'python' 'nvm' 'jq' 'rustup')
+makedepends=('git' 'python' 'jq' 'rustup' 'fnm' 'bun' 'nvm')
 provides=('codium' 'vscodium' 'code')
 conflicts=('codium' 'vscodium' 'vscodium-bin' 'vscodium-git' 'code')
 source=(
@@ -40,53 +39,49 @@ sha256sums=('SKIP'
   '5340ae24cda3b558a970b9460152111214d2e1ec0f3855beab31d214481fac35'
   '3a5bc109974fcf408855c13965f6d6be0997655c5b359de0bfd19a678c00844e'
   '6eef345b65bf2679c928c763529540435ab9c6e1836917319810a7a2d484ae1b')
-
 case "$CARCH" in
-x86_64) _vscode_arch=x64 ;;
-aarch64) _vscode_arch=arm64 ;;
-armv7h) _vscode_arch=arm ;;
-*) _vscode_arch=DUMMY ;;
+  x86_64) _vscode_arch=x64 ;;
+  aarch64) _vscode_arch=arm64 ;;
+  armv7h) _vscode_arch=arm ;;
+  *) _vscode_arch=DUMMY ;;
 esac
-
-_ensure_local_nvm() {
-  command -v nvm >/dev/null && nvm deactivate && nvm unload
-  export NVM_DIR="${srcdir}/nvm"
-  source /usr/share/nvm/init-nvm.sh || [[ $? != 1 ]]
+_ensure_node() {
+  # Try fnm first
+  if command -v fnm &>/dev/null; then
+    eval "$(fnm env --use-on-cd)"
+    fnm install "$_nodejs"
+    fnm use "$_nodejs"; return 0
+  fi
+  # Fallback to nvm
+  if [[ -f /usr/share/nvm/init-nvm.sh ]]; then
+    command -v nvm >/dev/null && nvm deactivate && nvm unload
+    export NVM_DIR="${srcdir}/nvm"
+    source /usr/share/nvm/init-nvm.sh || [[ $? != 1 ]]
+    nvm install "$_nodejs"
+    nvm use "$_nodejs"; return 0
+  fi
+  printf "Error: neither fnm nor nvm found\n" >&2; return 1
 }
 
 prepare() {
   # Verify electron is available
-  command -v "$_electron" &>/dev/null || {
-    echo "Error: $_electron not found" >&2
-    exit 1
-  }
-
+  command -v "$_electron" &>/dev/null || { echo "Error: $_electron not found" >&2; exit 1; }
   # Setup launcher scripts
   sed "s/@ELECTRON@/${_electron}/" "$srcdir/vscodium.sh" >"$srcdir/vscodium-electron.sh"
   sed "s/@ELECTRON@/${_electron}/" "$srcdir/vscodium.js" >"$srcdir/vscodium-electron.js"
-
   cd "$srcdir/vscodium" || exit 1
-
   # Clean previous build artifacts
   [[ -d vscode ]] && rm -rf vscode VSCode*
-
   # Patch build system for system Electron
   patch -Nu build.sh -i "$srcdir/vscodium-electron.patch"
-
   # Copy feature patches (VSCodium will apply them during build)
   cp "$srcdir/translucent.patch" patches/
   cp "$srcdir/microphone.patch" patches/
 }
 
 build() {
-  # Setup Node.js environment
-  _ensure_local_nvm
-  nvm install "$_nodejs"
-  nvm use "$_nodejs"
-  npm install --global node-gyp
-
-  cd "$srcdir/vscodium" || exit 1
-
+  # Setup Node.js environment (fnm > nvm)
+  _ensure_node
   # Configure build environment
   export HOME="$srcdir"
   export DISABLE_UPDATE="yes"
@@ -101,16 +96,23 @@ build() {
   export RELEASE_VERSION="$pkgver"
   export CARGO_TARGET_DIR="${srcdir}/${_pkgname}/vscode/cli/target"
 
+  # Install node-gyp (bun > npm)
+  if command -v bun &>/dev/null; then
+    bun i -g node-gyp
+    # Ensure bun bin is in PATH if it installs to custom location in the temporary HOME
+    [[ -d "$HOME/.bun/bin" ]] && export PATH="$HOME/.bun/bin:$PATH"
+  else
+    npm install -g node-gyp
+  fi
   # Setup Rust toolchain
   rustup default stable
-
+  cd "$srcdir/vscodium" || exit 1
   # Run build
   . dev/build.sh
 }
 
 package() {
   local _dist="${srcdir}/${_pkgname}/VSCode-linux-${_vscode_arch}"
-
   # Create directory structure
   install -d -m755 "${pkgdir}/usr/bin"
   install -d -m755 "${pkgdir}/usr/lib/${_pkgname}"
@@ -119,32 +121,26 @@ package() {
   install -d -m755 "${pkgdir}/usr/share/licenses/${_pkgname}"
   install -d -m755 "${pkgdir}/usr/share/zsh/site-functions"
   install -d -m755 "${pkgdir}/usr/share/bash-completion/completions"
-
   # Install application resources
   install -m644 "${srcdir}/product.json" "${_dist}/resources/app/product.json"
   cp -r --no-preserve=ownership --preserve=mode "${_dist}/resources/app"/* "${pkgdir}/usr/lib/${_pkgname}/"
   cp -r --no-preserve=ownership --preserve=mode "${_dist}/resources/completions" "${pkgdir}/usr/lib/${_pkgname}/"
-
   # Install licenses
   install -Dm644 "${_dist}/resources/app/LICENSE.txt" -t "${pkgdir}/usr/share/licenses/${_pkgname}/"
   install -Dm644 "${_dist}/resources/app/ThirdPartyNotices.txt" -t "${pkgdir}/usr/share/licenses/${_pkgname}/"
   rm "${pkgdir}/usr/lib/${_pkgname}/LICENSE.txt" "${pkgdir}/usr/lib/${_pkgname}/ThirdPartyNotices.txt"
-
   # Install launcher scripts
   install -Dm755 "${srcdir}/vscodium-electron.sh" "${pkgdir}/usr/bin/${_pkgname}"
   install -Dm755 "${srcdir}/vscodium-electron.js" "${pkgdir}/usr/lib/${_pkgname}/vscodium.js"
   ln -s "/usr/bin/${_pkgname}" "${pkgdir}/usr/bin/code"
   ln -s "/usr/bin/${_pkgname}" "${pkgdir}/usr/bin/codium"
-
   # Install desktop files and icons
   install -Dm644 "${srcdir}/vscodium.desktop" "${pkgdir}/usr/share/applications/${_pkgname}.desktop"
   install -Dm644 "${srcdir}/vscodium-uri-handler.desktop" "${pkgdir}/usr/share/applications/${_pkgname}-uri-handler.desktop"
   install -Dm644 "${_dist}/resources/app/resources/linux/code.png" "${pkgdir}/usr/share/pixmaps/${_pkgname}.png"
-
   # Install shell completions
   ln -s "/usr/lib/${_pkgname}/completions/zsh/_codium" "${pkgdir}/usr/share/zsh/site-functions/_vscodium"
   ln -s "/usr/lib/${_pkgname}/completions/bash/codium" "${pkgdir}/usr/share/bash-completion/completions/vscodium"
-
   # Use system ripgrep
   ln -sf /usr/bin/rg "${pkgdir}/usr/lib/${_pkgname}/node_modules/@vscode/ripgrep/bin/rg"
 }
