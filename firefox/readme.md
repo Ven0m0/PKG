@@ -12,12 +12,22 @@
 - https://github.com/CYFARE/HellFire
 - https://github.com/VolRencs/PKGBUILDS/tree/Dev/firefox
 
-bash
 
-```
+
+```sh
 -mllvm=-pgo-temporal-instrumentation
 export CFLAGS="-O3 -ffp-contract=fast -march=native"
 
 ```
 
 - https://github.com/zen-browser/desktop/blob/e449fc6e2e89fa7bdbea89e0fa8e8a914186f24d/src/build/pgo/profileserver-py.patch#L7
+
+
+# Patches
+- https://raw.githubusercontent.com/openSUSE/firefox-maintenance/master/mozilla-pgo.patch
+- https://raw.githubusercontent.com/openSUSE/firefox-maintenance/master/mozilla-ntlm-full-path.patch
+- https://raw.githubusercontent.com/openSUSE/firefox-maintenance/master/mozilla-bmo1504834-part1.patch
+- https://raw.githubusercontent.com/openSUSE/firefox-maintenance/master/mozilla-bmo1746799.patch
+- https://raw.githubusercontent.com/openSUSE/firefox-maintenance/master/mozilla-silence-no-return-type.patch
+- https://raw.githubusercontent.com/openSUSE/firefox-maintenance/master/svg-rendering.patch
+- https://raw.githubusercontent.com/openSUSE/firefox-maintenance/master/mozilla-reduce-rust-debuginfo.patch
