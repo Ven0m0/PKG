@@ -239,6 +239,7 @@ pref("extensions.htmlaboutaddons.recommendations.enabled", false);
 pref("browser.discovery.enabled", false);
 pref("browser.gnome-search-provider.enabled", true);
 pref("services.settings.main.search-telemetry-v2.last_check", $(date +%s));
+pref("widget.use-xdg-desktop-portal.file-picker", 2)
 END
   install -Dm644 /dev/stdin "$pkgdir/usr/lib/$_pkgname/distribution/distribution.ini" <<END
 [Global]
