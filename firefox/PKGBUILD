@@ -79,6 +79,7 @@ _rustflags=(
   -Ctarget-cpu=native -Copt-level=3
   -Ccodegen-units=1 -Clto=fat -Cpanic=abort
   -Clink-arg=-fuse-ld=lld -Cllvm-args=-enable-dfa-jump-thread
+  -Cdebuginfo=0 -Cforce-frame-pointers=no
 )
 
 prepare() {
@@ -133,6 +134,11 @@ ac_add_options --enable-optimize="-O3 -march=native -mtune=native"
 ac_add_options --enable-rust-simd
 ac_add_options --enable-wasm-simd
 ac_add_options --enable-wasm-avx
+ac_add_options --enable-wasm-relaxed-simd
+ac_add_options --enable-wasm-memory64
+ac_add_options --enable-wasm-memory-control
+ac_add_options --enable-wasm-multi-memory
+ac_add_options --enable-wasm-branch-hinting
 ac_add_options --enable-linker=lld
 ac_add_options --enable-lto=full
 ac_add_options --disable-elf-hack
@@ -149,6 +155,7 @@ ac_add_options --enable-jemalloc
 # Stripping
 ac_add_options --enable-strip
 ac_add_options --enable-install-strip
+ac_add_options --enable-minify=properties
 export STRIP_FLAGS="--strip-debug --strip-unneeded"
 # Disable debug features
 ac_add_options --disable-tests
@@ -159,6 +166,9 @@ ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
 ac_add_options --disable-default-browser-agent
 ac_add_options --disable-parental-controls
+ac_add_options --disable-phc
+ac_add_options --disable-dmd
+ac_add_options --disable-valgrind
 # Wayland support
 ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
 ac_add_options --enable-wayland
@@ -180,6 +190,7 @@ ac_add_options --with-system-jpeg
 # Media features
 ac_add_options --enable-jxl
 ac_add_options --enable-av1
+ac_add_options --enable-raw
 ac_add_options --enable-pulseaudio
 ac_add_options --enable-alsa
 ac_add_options --enable-jack

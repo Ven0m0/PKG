@@ -25,8 +25,10 @@ ENABLE_BOLT=true makepkg -si
 ✅ **System library integration** (reduces size, improves compatibility)
 ✅ **Privacy-focused** (all telemetry disabled)
 ✅ **KDE integration patches** included
-✅ **WASM SIMD/AVX** optimizations enabled
+✅ **WASM SIMD/AVX/Memory64** optimizations enabled
 ✅ **sccache support** (auto-detected)
+✅ **Firefox Vanilla optimizations** (Enhanced WASM, aggressive module disabling)
+✅ **RAW image format support** enabled
 
 ## Build Options
 
@@ -81,6 +83,7 @@ This ultimate PKGBUILD is merged from multiple optimized Firefox builds:
 - **Floorp PKGBUILD** - PGO profile reuse, smart core limiting
 - **Flowfox** - Clean build patterns
 - **Waterfox** - Additional optimization techniques
+- **[Firefox Vanilla](https://github.com/Ven0m0/firefox-vanilla)** - Enhanced WASM optimizations, aggressive performance tuning
 
 ### Additional Credits
 - https://build.opensuse.org/package/show/mozilla:Factory/MozillaFirefox
@@ -112,7 +115,7 @@ CFLAGS="-O3 -march=native -mtune=native -fomit-frame-pointer -ffunction-sections
 LDFLAGS="-Wl,-O3 -Wl,--gc-sections -Wl,--sort-common -Wl,--as-needed -Wl,-z,pack-relative-relocs -Wl,-z,relro -Wl,-z,now -flto -fuse-linker-plugin"
 
 # Rust flags
-RUSTFLAGS="-Ctarget-cpu=native -Copt-level=3 -Clto=fat -Ccodegen-units=1 -Cpanic=abort -Clink-arg=-fuse-ld=lld -Cllvm-args=-enable-dfa-jump-thread"
+RUSTFLAGS="-Ctarget-cpu=native -Copt-level=3 -Clto=fat -Ccodegen-units=1 -Cpanic=abort -Clink-arg=-fuse-ld=lld -Cllvm-args=-enable-dfa-jump-thread -Cdebuginfo=0 -Cforce-frame-pointers=no"
 
 # Polly (optional)
 -mllvm -polly -mllvm -polly-vectorizer=stripmine

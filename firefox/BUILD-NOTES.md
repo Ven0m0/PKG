@@ -10,6 +10,9 @@ This is an ultimate optimized Firefox PKGBUILD merged from multiple variants, fe
 - **Optional LLVM BOLT**: Post-link binary optimization (requires llvm-bolt)
 - **Smart core limiting**: Automatically limits parallel builds based on available RAM
 - **sccache support**: Auto-detected for faster compilation
+- **Enhanced WASM optimizations**: Memory64, multi-memory, branch hinting, relaxed SIMD
+- **Aggressive optimization flags**: Disabled security hardening features (PHC, DMD) for maximum performance
+- **Rust optimizations**: Target-cpu=native, LTO, zero debug info, no frame pointers
 
 ### Hardware Acceleration
 - **VA-API**: Hardware video decoding (force-enabled)
@@ -20,8 +23,9 @@ This is an ultimate optimized Firefox PKGBUILD merged from multiple variants, fe
 ### System Integration
 - **System libraries**: Uses system nspr, nss, vpx, webp, icu, av1, harfbuzz, graphite
 - **Wayland native**: Full Wayland support
-- **WASM optimizations**: SIMD/AVX support enabled
+- **WASM optimizations**: SIMD/AVX/Memory64/Multi-memory/Branch hinting/Relaxed SIMD enabled
 - **KDE integration**: Patches included for better KDE desktop integration
+- **Image format support**: JXL (JPEG XL), RAW, AV1 image formats enabled
 
 ### Privacy & Enhancements
 - **Telemetry disabled**: All tracking and telemetry disabled by default
@@ -207,6 +211,23 @@ ENABLE_PGO_REUSE=true makepkg -si
 | Telemetry | Enabled | Disabled |
 | KDE integration | ✗ | ✓ |
 
+## Optimizations from Firefox Vanilla
+
+This build now incorporates advanced optimizations from the [Firefox Vanilla](https://github.com/Ven0m0/firefox-vanilla) project:
+
+- **Enhanced WASM support**: Added memory64, multi-memory, branch hinting, and relaxed SIMD features
+- **Aggressive module disabling**: Disabled PHC (Probabilistic Heap Checker), DMD (Dark Matter Detector), and Valgrind integration
+- **Property minification**: JavaScript property minification for smaller binaries
+- **RAW image support**: Native support for RAW image formats
+- **Optimized Rust compilation**: Enhanced RUSTFLAGS with debuginfo=0 and no frame pointers
+
+These optimizations are based on Firefox Vanilla's ESR 140 branch, which showed benchmark improvements of:
+- Octane 2.0: +0.38%
+- Speedometer 2.1: +2.00%
+- Speedometer 3.0: +2.17%
+- JetStream 3.0: +3.81%
+- MotionMark 1.3.1: +15.50%
+
 ## Credits
 
 This PKGBUILD is merged from:
@@ -215,6 +236,7 @@ This PKGBUILD is merged from:
 - firefox-kde-opensuse (KDE integration, system libs)
 - Floorp PKGBUILD (PGO reuse, smart core limiting)
 - Flowfox and Waterfox PKGBUILDs
+- [Firefox Vanilla](https://github.com/Ven0m0/firefox-vanilla) (Advanced optimizations, WASM enhancements)
 
 ## License
 
