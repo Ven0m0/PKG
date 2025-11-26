@@ -1,0 +1,94 @@
+# Maintainer:
+## options
+: ${_install_path:=usr/share}
+: ${_electron_builder_version:=<26}
+_pkgname="legcord"
+pkgname="$_pkgname"
+pkgver=1.1.6
+pkgrel=1
+pkgdesc="Discord client with builtin client mod and theme support"
+url="https://github.com/Legcord/Legcord"
+license=('OSL-3.0')
+arch=('any')
+depends=('electron')
+makedepends=('git' 'nodejs')
+optdepends=(
+  'libnotify: Notifications'
+  'xdg-utils: Open links, files, etc'
+  'bun: install via bun'
+  'pnpm: install via pnpm'
+  'npm: install via npm'
+)
+_pkgsrc="$_pkgname"
+source=("$_pkgsrc"::"git+$url.git#tag=v$pkgver")
+sha256sums=('28b45a17d144968b9c7297c3273c92e8886c6afd49c5ca5997c1e0efb057f5be')
+
+build() (
+  # avoid cluttering user home
+  export HOME="${srcdir}/tmp_home"
+  export XDG_CACHE_HOME="${srcdir}/tmp_cache" XDG_CONFIG_HOME="${srcdir}/tmp_config"
+  export XDG_DATA_HOME="${srcdir}/tmp_data" XDG_STATE_HOME="${srcdir}/tmp_state"
+  local _electron_version=$(cat /usr/lib/electron/version)
+  sed -E -e 's#("electron"): "[^"]+",#\1: "'${_electron_version}'",#' -i "$_pkgsrc/package.json"
+  [[ -n "$_electron_builder_version" ]] && sed -E -e 's#("electron-builder"): "[^"]+",#\1: "'${_electron_builder_version}'",#' -i "$_pkgsrc/package.json"
+  local _electron_builder_options=(--linux dir --publish never
+    -c.electronDist="/usr/lib/electron${_electron_version%%.*}" -c.electronVersion="$_electron_version")
+
+  cd "$_pkgsrc"
+  if command -v bun &>/dev/null; then
+    NODE_ENV=development bun install # --ignore-scripts
+    NODE_ENV=production bun run build
+    NODE_ENV=production bun electron-builder "${_electron_builder_options[@]}"
+  elif command -v pnpm &>/dev/null; then
+    NODE_ENV=development pnpm install # --ignore-scripts
+    NODE_ENV=production pnpm run build
+    NODE_ENV=production pnpm electron-builder "${_electron_builder_options[@]}"
+  else
+    NODE_ENV=development npm install # --ignore-scripts
+    NODE_ENV=production npm run build
+    NODE_ENV=production npm electron-builder "${_electron_builder_options[@]}"
+  fi
+)
+
+package() {
+  local _electron_version=$(cat /usr/lib/electron/version)
+  depends=("electron${_electron_version%%.*}")
+  # asar
+  install -Dm644 "$_pkgsrc/dist/linux-unpacked/resources/app.asar" -t "$pkgdir/$_install_path/$_pkgname/"
+  # icon
+  install -Dm644 "$_pkgsrc/build/icon.png" "$pkgdir/$_install_path/pixmaps/$_pkgname.png"
+  # license
+  install -Dm644 "$_pkgsrc/license.txt" "$pkgdir/$_install_path/licenses/$pkgname/LICENSE"
+  # script
+  install -Dm755 /dev/stdin "$pkgdir/usr/bin/$_pkgname" << END
+#!/usr/bin/env bash
+
+name=$_pkgname
+flags_file="\${XDG_CONFIG_HOME:-\$HOME/.config}/\${name}-flags.conf"
+lines=()
+[[ -f "\${flags_file}" ]] && mapfile -t lines < "\${flags_file}"
+flags=()
+for line in "\${lines[@]}"; do
+  if [[ ! "\${line}" =~ ^[[:space:]]*#.* ]] && [[ -n "\${line}" ]]; then
+    flags+=("\${line}")
+  fi
+done
+: \${ELECTRON_IS_DEV:=0}
+export ELECTRON_IS_DEV
+: \${ELECTRON_FORCE_IS_PACKAGED:=true}
+export ELECTRON_FORCE_IS_PACKAGED
+
+exec electron${_electron_version%%.*} "/$_install_path/\${name}/app.asar" "\${flags[@]}" "\$@"
+END
+
+  # launcher
+  install -Dm644 /dev/stdin "$pkgdir/$_install_path/applications/$_pkgname.desktop" << END
+[Desktop Entry]
+Type=Application
+Name=${_pkgname^}
+Comment=$pkgdesc
+Exec=$_pkgname
+Icon=$_pkgname
+Categories=Internet;Network;InstantMessaging;
+END
+}
