@@ -63,8 +63,8 @@ makedepends=(
   "${_guideps[@]}"
 )
 options=('!lto') # https://bugs.archlinux.org/task/72600
-source=("HandBrake::git+https://github.com/HandBrake/HandBrake.git" "HandBrake-SVT-AV1-Essential::git+https://github.com/nekotrix/HandBrake-SVT-AV1-Essential.git")
-sha256sums=('SKIP' 'SKIP')
+source=("HandBrake::git+https://github.com/HandBrake/HandBrake.git")
+sha256sums=('SKIP')
 
 pkgver() { cd "${srcdir}/HandBrake"; git describe --long | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'; git gc --auto --prune=now; }
 
@@ -85,7 +85,7 @@ setup_compiler() {
 }
 
 build() {
-  ./HandBrake-SVT-AV1-Essential/patch.sh
+  "${startdir}/patch.sh"
   setup_compiler
   local -a CONFIGURE_OPTIONS=(
     --launch-jobs=0 --prefix=/usr
