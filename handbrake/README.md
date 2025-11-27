@@ -21,7 +21,7 @@ Based on Ven0m0/HandBrake-SVT-AV1-Essential, this integration additionally inclu
 
 ### Credits and Source Forks
 This integration is based on and merges features from:
-* [Ven0m0/HandBrake-SVT-AV1-Essential](https://github.com/Ven0m0/HandBrake-SVT-AV1-Essential) - Base Essential integration with named presets
+* [nekotrix/HandBrake-SVT-AV1-Essential](https://github.com/nekotrix/HandBrake-SVT-AV1-Essential) - Base Essential integration with named presets
 * [Uranite/HandBrake-SVT-AV1-HDR](https://github.com/Uranite/HandBrake-SVT-AV1-HDR) - HDR optimizations and grain tune support
 * [Nj0be/HandBrake-SVT-AV1-PSY](https://github.com/Nj0be/HandBrake-SVT-AV1-PSY) - PSY optimizations, subjective ssim tune support, and extended CRF
 
@@ -31,7 +31,7 @@ Builds are available through the PKGBUILD for Arch Linux users, or can be manual
 ### Testing
 Help for testing on all platforms would be greatly appreciated.
 
-### Special Thank
+### Special Thanks
 * [nekotrix](https://github.com/nekotrix) for original HandBrake-SVT-AV1-Essential and SVT-AV1-Essential encoder builds
 * [Uranite](https://github.com/Uranite) for HandBrake-SVT-AV1-HDR
 * [Nj0be](https://github.com/Nj0be) for HandBrake-SVT-AV1-PSY
