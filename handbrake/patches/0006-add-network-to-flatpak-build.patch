@@ -1,0 +1,12 @@
+diff --git a/pkg/linux/flatpak/fr.handbrake.ghb.json b/pkg/linux/flatpak/fr.handbrake.ghb.json
+index 266a1c4da..0c619f955 100644
+--- a/pkg/linux/flatpak/fr.handbrake.ghb.json
++++ b/pkg/linux/flatpak/fr.handbrake.ghb.json
+@@ -65,6 +65,7 @@
+                 "--flatpak"
+             ],
+             "build-options": {
++                "build-args": [ "--share=network" ]
+             },
+             "builddir": true,
+             "post-install": ["install -d /app/extensions"],
