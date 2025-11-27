@@ -13,7 +13,7 @@ This is an ultimate optimized Firefox PKGBUILD merged from multiple variants, fe
 - **sccache support**: Auto-detected for faster compilation
 - **Enhanced WASM optimizations**: Memory64, multi-memory, branch hinting, relaxed SIMD
 - **Aggressive optimization flags**: Disabled security hardening features (PHC, DMD) for maximum performance
-- **Rust optimizations**: Target-cpu=native, LTO, zero debug info, no frame pointers, inline threshold=2000, SLP vectorization
+- **Rust optimizations**: Target-cpu=native, LTO, zero debug info, no frame pointers
 
 ### Hardware Acceleration
 - **VA-API**: Hardware video decoding (force-enabled)
