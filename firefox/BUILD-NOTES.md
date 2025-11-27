@@ -6,6 +6,7 @@ This is an ultimate optimized Firefox PKGBUILD merged from multiple variants, fe
 
 ### Performance Optimizations
 - **Profile-Guided Optimization (PGO)**: Enabled by default with profile reuse for faster rebuilds
+- **Optional 3-Stage Context-Sensitive PGO**: Advanced PGO with context-sensitive profiling (1-3% additional performance)
 - **Aggressive compiler flags**: -O3, march=native, LTO, Polly loop optimization
 - **Optional LLVM BOLT**: Post-link binary optimization (requires llvm-bolt)
 - **Smart core limiting**: Automatically limits parallel builds based on available RAM
@@ -29,6 +30,8 @@ This is an ultimate optimized Firefox PKGBUILD merged from multiple variants, fe
 
 ### Privacy & Enhancements
 - **Telemetry disabled**: All tracking and telemetry disabled by default
+- **Ghostery patches**: Firefox View removed, experiments/Nimbus reporting disabled
+- **Enhanced binary stripping**: Aggressive stripping with .comment and .note section removal
 - **JXL support**: JPEG XL image format enabled
 - **Privacy preferences**: Privacy-focused vendor.js
 - **No startup pages**: Forced homepage removed
@@ -46,6 +49,10 @@ ENABLE_PGO=true
 
 # Reuse previous PGO profiles for faster rebuilds (default: true)
 ENABLE_PGO_REUSE=true
+
+# 3-stage context-sensitive PGO (default: false)
+# Provides 1-3% additional performance but adds ~50% to build time
+ENABLE_PGO_3STAGE=false
 
 # LLVM BOLT optimization - requires llvm-bolt (default: false)
 ENABLE_BOLT=false
@@ -85,10 +92,19 @@ Once you've built with PGO once, subsequent builds will reuse the profiles:
 makepkg -si  # Much faster on subsequent builds!
 ```
 
-### Maximum optimization (with BOLT)
+### Maximum optimization (with 3-stage PGO)
+For the absolute best performance (+1-3% over standard PGO):
+```bash
+ENABLE_PGO_3STAGE=true makepkg -si
+```
+**Note**: First 3-stage build takes significantly longer (~50% more than 2-stage), but profiles are reusable.
+
+### Ultimate optimization (with BOLT)
 Requires `llvm-bolt` to be installed:
 ```bash
 ENABLE_BOLT=true makepkg -si
+# Or combine with 3-stage PGO for maximum performance
+ENABLE_PGO_3STAGE=true ENABLE_BOLT=true makepkg -si
 ```
 
 ### Low memory build
@@ -108,6 +124,8 @@ BUILD_LIMIT_CORES=2 makepkg -si
 2. **0002-remove-nvidia-blocklist.patch**: Removes NVIDIA blocklist for VA-API
 3. **0018-bmo-1516081-Disable-watchdog-during-PGO-builds.patch**: Improves PGO reliability
 4. **0024-Add-KDE-integration-to-Firefox.patch**: Better KDE desktop integration
+5. **ghostery/0039-Remove-Firefox-View.patch**: Removes Firefox View feature (size reduction)
+6. **ghostery/0040-Disable-experiments-reporting.patch**: Disables Nimbus experiments (size reduction)
 
 ## Hardware Acceleration Setup
 
