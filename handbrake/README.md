@@ -1,24 +1,33 @@
-# HandBrake-SVT-AV1-Essential
+# HandBrake-SVT-AV1-HDR+PSY
 ### Purpose of the project
-This project contains the patches needed to replace SVT-AV1 with SVT-AV1-Essential inside HandBrake.\
-In addition, using GitHub Actions, nightly build of patched executables will be released.
+This project contains the patches needed to integrate SVT-AV1-PSY with HandBrake, combining features from both HandBrake-SVT-AV1-HDR and HandBrake-SVT-AV1-PSY forks.\
+This merged integration provides enhanced support for HDR content and psycho-visual optimizations.
+### Features
+This merged integration includes:
+* **SVT-AV1-PSY encoder**: Psycho-visual optimizations for better perceived quality
+* **Extended tune options**: Support for both HDR-focused "grain" tune and PSY-focused "subjective ssim" tune, plus "still picture" tune
+* **Extended CRF range**: Support for CRF values from 0-70 with 0.25 granularity (vs standard 0-63 with 1.0 granularity)
+* **Additional presets**: Extended preset range including -2 and -3 for ultra-slow, highest-quality encoding
+* **Neon optimizations**: Fixed compatibility for ARM platforms
+
 ### Instructions to patch/build
 * Run ```patch.sh``` on linux. The script will patch the previously cloned HandBrake repo. If you want to also clone it you can use ```--clone``` argument.
 * Compile for the desired platform using the commands provided on the HandBrake wiki ([BSD](https://handbrake.fr/docs/en/latest/developer/build-bsd.html), [Linux](https://handbrake.fr/docs/en/latest/developer/build-linux.html), [Mac](https://handbrake.fr/docs/en/latest/developer/build-mac.html), [Windows](https://handbrake.fr/docs/en/latest/developer/build-windows.html))
-### Downloads and Build Status
-| Operating System  | Download        | Build Status *1 |
-| ----------------- | --------------- | ------------- |
-| Windows           | [Download](https://github.com/nekotrix/HandBrake-SVT-AV1-Essential/releases/tag/win) | [![Windows Build](https://github.com/nekotrix/HandBrake-SVT-AV1-Essential/actions/workflows/nightly-win.yml/badge.svg)](https://github.com/nekotrix/HandBrake-SVT-AV1-Essential/actions/workflows/nightly-win.yml)  |
-| macOS             | [Download](https://github.com/nekotrix/HandBrake-SVT-AV1-Essential/releases/tag/mac) | [![macOS build](https://github.com/nekotrix/HandBrake-SVT-AV1-Essential/actions/workflows/nightly-mac.yml/badge.svg)](https://github.com/nekotrix/HandBrake-SVT-AV1-Essential/actions/workflows/nightly-mac.yml)  |
-| Linux (Flatpak)   | [Download](https://github.com/nekotrix/HandBrake-SVT-AV1-Essential/releases/tag/flatpak) | [![Flatpak Build](https://github.com/nekotrix/HandBrake-SVT-AV1-Essential/actions/workflows/nightly-flatpak.yml/badge.svg)](https://github.com/nekotrix/HandBrake-SVT-AV1-Essential/actions/workflows/nightly-flatpak.yml) |
-| Ubuntu            | [Download](https://github.com/nekotrix/HandBrake-SVT-AV1-Essential/releases/tag/ubuntu) | [![Flatpak Build](https://github.com/nekotrix/HandBrake-SVT-AV1-Essential/actions/workflows/nightly-ubuntu.yml/badge.svg)](https://github.com/nekotrix/HandBrake-SVT-AV1-Essential/actions/workflows/nightly-ubuntu.yml) |
-| Arch Linux        | [Download](https://github.com/nekotrix/HandBrake-SVT-AV1-Essential/releases/tag/arch) | [![Flatpak Build](https://github.com/nekotrix/HandBrake-SVT-AV1-Essential/actions/workflows/nightly-arch.yml/badge.svg)](https://github.com/nekotrix/HandBrake-SVT-AV1-Essential/actions/workflows/nightly-arch.yml) |
 
-*1 Please note that if a build is marked as failed, previous builds may still be available for download!
+### Credits and Source Forks
+This integration merges features from:
+* [Uranite/HandBrake-SVT-AV1-HDR](https://github.com/Uranite/HandBrake-SVT-AV1-HDR) - HDR optimizations and grain tune support
+* [Nj0be/HandBrake-SVT-AV1-PSY](https://github.com/Nj0be/HandBrake-SVT-AV1-PSY) - PSY optimizations and subjective ssim tune support
+
+### Downloads and Build Status
+Builds are available through the PKGBUILD for Arch Linux users, or can be manually compiled following the instructions above.
+
 ### Testing
-Help for testing on all platforms would be helpful.
-### Contributing
-I'm looking for people more acquainted than I am with Handbrake's code to implement some -Essential features to the GUI like support for the `--quality` presets
-### Special thanks
-A special thanks to [vincejv (Docker container for HandBrake)](https://github.com/vincejv/docker-handbrake) from which I took inspiration for some patches.
+Help for testing on all platforms would be greatly appreciated.
+
+### Special Thanks
+* [Uranite](https://github.com/Uranite) for HandBrake-SVT-AV1-HDR
+* [Nj0be](https://github.com/Nj0be) for HandBrake-SVT-AV1-PSY
+* [nekotrix](https://github.com/nekotrix) for HandBrake-SVT-AV1-Essential (base project)
+* [vincejv](https://github.com/vincejv/docker-handbrake) for Docker container inspiration
 
