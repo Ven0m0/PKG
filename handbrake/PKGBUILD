@@ -3,7 +3,7 @@
 # Contributor: Giovanni Scafora <giovanni@archlinux.org>
 # Contributor: Sebastien Piccand <sebcactus gmail com>
 
-pkgname=('handbrake-svt-av1-hdr-psy-llvm-optimized' 'handbrake-svt-av1-hdr-psy-llvm-optimized-cli')
+pkgname=('handbrake-svt-av1-essential-llvm-optimized' 'handbrake-svt-av1-essential-llvm-optimized-cli')
 pkgver=1.9.0
 pkgrel=2
 arch=('x86_64')
@@ -98,8 +98,8 @@ build() {
   make -C build
 }
 
-package_handbrake-svt-av1-hdr-psy-llvm-optimized() {
-  pkgdesc="Multithreaded video transcoder with SVT-AV1-PSY (HDR+PSY optimizations), LLVM-optimized"
+package_handbrake-svt-av1-essential-llvm-optimized() {
+  pkgdesc="Multithreaded video transcoder with SVT-AV1-Essential (with HDR+PSY enhancements), LLVM-optimized"
   depends=('desktop-file-utils' 'hicolor-icon-theme'
     "${_commondeps[@]}" "${_guideps[@]}")
   optdepends=('gst-plugins-good: for video previews' 'libdvdcss: for decoding encrypted DVDs'
@@ -110,8 +110,8 @@ package_handbrake-svt-av1-hdr-psy-llvm-optimized() {
   rm "${pkgdir}/usr/bin/HandBrakeCLI"
 }
 
-package_handbrake-svt-av1-hdr-psy-llvm-optimized-cli() {
-  pkgdesc="Multithreaded video transcoder with SVT-AV1-PSY (HDR+PSY optimizations), LLVM-optimized (CLI)"
+package_handbrake-svt-av1-essential-llvm-optimized-cli() {
+  pkgdesc="Multithreaded video transcoder with SVT-AV1-Essential (with HDR+PSY enhancements), LLVM-optimized (CLI)"
   depends=("${_commondeps[@]}")
   optdepends=('intel-media-sdk: Intel QuickSync support'
     'libdvdcss: for decoding encrypted DVDs')
