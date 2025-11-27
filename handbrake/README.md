@@ -31,10 +31,8 @@ Builds are available through the PKGBUILD for Arch Linux users, or can be manual
 ### Testing
 Help for testing on all platforms would be greatly appreciated.
 
-### Special Thanks
-* [Ven0m0](https://github.com/Ven0m0) for HandBrake-SVT-AV1-Essential (base fork)
+### Special Thank
 * [nekotrix](https://github.com/nekotrix) for original HandBrake-SVT-AV1-Essential and SVT-AV1-Essential encoder builds
 * [Uranite](https://github.com/Uranite) for HandBrake-SVT-AV1-HDR
 * [Nj0be](https://github.com/Nj0be) for HandBrake-SVT-AV1-PSY
 * [vincejv](https://github.com/vincejv/docker-handbrake) for Docker container inspiration
-
