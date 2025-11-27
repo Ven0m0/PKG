@@ -46,12 +46,15 @@ source=(
   patches/0002-remove-nvidia-blocklist.patch
   patches/0018-bmo-1516081-Disable-watchdog-during-PGO-builds.patch
   patches/0024-Add-KDE-integration-to-Firefox.patch
+  patches/ghostery/0039-Remove-Firefox-View.patch
+  patches/ghostery/0040-Disable-experiments-reporting.patch
 )
-sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
+sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
 # Tunables - set these in your environment to control build behavior
 : "${NATIVE_ARCH:=native}"       # CPU architecture to optimize for
 : "${ENABLE_PGO:=true}"           # Profile-Guided Optimization (recommended)
 : "${ENABLE_PGO_REUSE:=true}"     # Reuse previous PGO profiles
+: "${ENABLE_PGO_3STAGE:=false}"   # 3-stage context-sensitive PGO (higher performance, 50% longer build)
 : "${ENABLE_BOLT:=false}"         # LLVM BOLT optimization (requires llvm-bolt)
 : "${ENABLE_POLLY:=true}"         # Polly loop optimization
 : "${ENABLE_VAAPI:=true}"         # Hardware video acceleration
@@ -80,6 +83,9 @@ _rustflags=(
   -Ccodegen-units=1 -Clto=fat -Cpanic=abort
   -Clink-arg=-fuse-ld=lld -Cllvm-args=-enable-dfa-jump-thread
   -Cdebuginfo=0 -Cforce-frame-pointers=no
+  -Cembed-bitcode=yes
+  -Cllvm-args=--inline-threshold=2000
+  -Cllvm-args=--vectorize-slp-max-reg-size=64
 )
 
 prepare() {
@@ -156,7 +162,7 @@ ac_add_options --enable-jemalloc
 ac_add_options --enable-strip
 ac_add_options --enable-install-strip
 ac_add_options --enable-minify=properties
-export STRIP_FLAGS="--strip-debug --strip-unneeded"
+export STRIP_FLAGS="--strip-debug --strip-unneeded --remove-section=.comment --remove-section=.note"
 # Disable debug features
 ac_add_options --disable-tests
 ac_add_options --disable-debug
@@ -279,23 +285,40 @@ build() {
   local _pgo_cache="${SRCDEST:-$srcdir/.pgo-cache}"
   mkdir -p "$_pgo_cache"
   local _pgo_profdata="$_pgo_cache/firefox-$pkgver-merged.profdata"
+  local _pgo_profdata_cs="$_pgo_cache/firefox-$pkgver-merged-cs.profdata"
   local _pgo_jarlog="$_pgo_cache/firefox-$pkgver-jarlog"
+
   if [[ "${ENABLE_PGO}" == "true" ]]; then
-    # Try to reuse existing profile
-    if [[ "${ENABLE_PGO_REUSE}" == "true" ]] && [[ -s "$_pgo_profdata" ]]; then
-      echo "Reusing existing PGO profile data..."
-      cp "$_pgo_profdata" merged.profdata
-      [[ -s "$_pgo_jarlog" ]] && cp "$_pgo_jarlog" jarlog
+    # Determine which profile to use
+    local _final_profile="merged.profdata"
+    if [[ "${ENABLE_PGO_3STAGE}" == "true" ]]; then
+      _final_profile="merged-cs.profdata"
+      echo "3-stage context-sensitive PGO enabled"
     fi
-    # Generate new profile if needed
+
+    # Try to reuse existing profile
+    if [[ "${ENABLE_PGO_REUSE}" == "true" ]]; then
+      if [[ "${ENABLE_PGO_3STAGE}" == "true" ]] && [[ -s "$_pgo_profdata_cs" ]]; then
+        echo "Reusing existing 3-stage PGO profile data..."
+        cp "$_pgo_profdata_cs" merged-cs.profdata
+        cp "$_pgo_profdata" merged.profdata 2>/dev/null || true
+        [[ -s "$_pgo_jarlog" ]] && cp "$_pgo_jarlog" jarlog
+      elif [[ "${ENABLE_PGO_3STAGE}" == "false" ]] && [[ -s "$_pgo_profdata" ]]; then
+        echo "Reusing existing 2-stage PGO profile data..."
+        cp "$_pgo_profdata" merged.profdata
+        [[ -s "$_pgo_jarlog" ]] && cp "$_pgo_jarlog" jarlog
+      fi
+    fi
+
+    # Stage 1: Generate initial profile if needed
     if [[ ! -s merged.profdata ]]; then
-      echo "Building instrumented browser for PGO..."
+      echo "==> PGO Stage 1: Building instrumented browser..."
       cat > .mozconfig ../mozconfig - <<END
 ac_add_options --enable-profile-generate=cross
 export MOZ_ENABLE_FULL_SYMBOLS=1
 END
       ./mach build --priority normal
-      echo "Profiling instrumented browser..."
+      echo "==> PGO Stage 1: Profiling instrumented browser..."
       ./mach package
       LLVM_PROFDATA=llvm-profdata \
         JARLOG_FILE="$PWD/jarlog" \
@@ -303,25 +326,73 @@ END
         dbus-run-session \
         xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
         ./mach python build/pgo/profileserver.py
+
       if [[ -s merged.profdata ]]; then
-        stat -c "Profile data generated (%s bytes)" merged.profdata
-        # Save for future builds
+        stat -c "Stage 1 profile generated (%s bytes)" merged.profdata
         cp merged.profdata "$_pgo_profdata"
         [[ -s jarlog ]] && cp jarlog "$_pgo_jarlog"
-        echo "Cleaning instrumented build..."
+        echo "==> Cleaning Stage 1 build..."
         ./mach clobber objdir
       else
-        echo "WARNING: PGO profile generation failed, continuing without PGO"
+        echo "WARNING: PGO Stage 1 failed, continuing without PGO"
         ENABLE_PGO=false
       fi
     fi
-    # Build with PGO profile if available
-    if [[ "${ENABLE_PGO}" == "true" ]] && [[ -s merged.profdata ]]; then
-      echo "Building optimized browser with PGO..."
+
+    # Stage 2: Context-sensitive profiling (only if 3-stage is enabled)
+    if [[ "${ENABLE_PGO}" == "true" ]] && [[ "${ENABLE_PGO_3STAGE}" == "true" ]] && [[ ! -s merged-cs.profdata ]]; then
+      echo "==> PGO Stage 2: Building with Stage 1 profile for context-sensitive profiling..."
+      cat > .mozconfig ../mozconfig - <<END
+ac_add_options --enable-profile-generate=cross
+ac_add_options --enable-profile-use=cross
+ac_add_options --with-pgo-profile-path=${PWD@Q}/merged.profdata
+export MOZ_ENABLE_FULL_SYMBOLS=1
+END
+      if [[ -s jarlog ]]; then
+        echo "ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog" >> .mozconfig
+      fi
+
+      ./mach build --priority normal
+      echo "==> PGO Stage 2: Profiling context-sensitive build..."
+      ./mach package
+      LLVM_PROFDATA=llvm-profdata \
+        LIBGL_ALWAYS_SOFTWARE=true \
+        dbus-run-session \
+        xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
+        ./mach python build/pgo/profileserver.py
+
+      # Merge Stage 1 and Stage 2 profiles
+      if ls *.profraw &>/dev/null; then
+        echo "==> Merging Stage 1 and Stage 2 profiles into context-sensitive profile..."
+        llvm-profdata merge --sparse=true merged.profdata *.profraw -o merged-cs.profdata
+        if [[ -s merged-cs.profdata ]]; then
+          stat -c "Context-sensitive profile generated (%s bytes)" merged-cs.profdata
+          cp merged-cs.profdata "$_pgo_profdata_cs"
+          echo "==> Cleaning Stage 2 build..."
+          ./mach clobber objdir
+        else
+          echo "WARNING: Context-sensitive profile merge failed, falling back to 2-stage PGO"
+          ENABLE_PGO_3STAGE=false
+          _final_profile="merged.profdata"
+        fi
+      else
+        echo "WARNING: No Stage 2 profraw files found, falling back to 2-stage PGO"
+        ENABLE_PGO_3STAGE=false
+        _final_profile="merged.profdata"
+      fi
+    fi
+
+    # Final build with PGO profile
+    if [[ "${ENABLE_PGO}" == "true" ]] && [[ -s "$_final_profile" ]]; then
+      if [[ "${ENABLE_PGO_3STAGE}" == "true" ]]; then
+        echo "==> PGO Stage 3: Building final optimized browser with context-sensitive profile..."
+      else
+        echo "==> Building final optimized browser with PGO..."
+      fi
       cat > .mozconfig ../mozconfig - <<END
 ac_add_options --enable-lto=cross,full
 ac_add_options --enable-profile-use=cross
-ac_add_options --with-pgo-profile-path=${PWD@Q}/merged.profdata
+ac_add_options --with-pgo-profile-path=${PWD@Q}/$_final_profile
 END
       if [[ -s jarlog ]]; then
         echo "ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog" >> .mozconfig
