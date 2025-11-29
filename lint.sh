@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -e; shopt -s globstar nullglob
 LC_ALL=C LANG=C
-pkgs=("$(find -O2 . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||')")
+mapfile -t pkgs < <(find -O2 . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||')
 errs=()
 original_dir="$PWD"
 
 for pkg in "${pkgs[@]}"; do
   [[ -d $pkg ]] || continue
-  cd "$original_dir/$pkg" && echo "==> $pkg"
+  cd "$original_dir/$pkg" || { errs+=("$pkg: cd failed"); continue; }
+  echo "==> $pkg"
   if [[ ! -f PKGBUILD ]]; then
     errs+=("$pkg: no PKGBUILD")
     continue

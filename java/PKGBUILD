@@ -99,11 +99,6 @@ build() {
     jvm_features="zgc,shenandoahgc,jvmci,g1gc,parallelgc"
   fi
 
-
-# Optimizations
-  _CFLAGS=${CFLAGS/-fexceptions/}
-  _CXXFLAGS=${CXXFLAGS/-fexceptions/}
-
   COMPRESS_JARS=true
 
   bash configure \
