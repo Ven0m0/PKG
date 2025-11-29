@@ -10,6 +10,3 @@
 [submodule "ffmpeg/patches/svt-av1-essential"]
 	path = ffmpeg/patches/svt-av1-essential
 	url = https://github.com/nekotrix/FFmpeg-Builds-SVT-AV1-Essential.git
-[submodule "PKG/ffmpeg/patches/negativo17"]
-	path = PKG/ffmpeg/patches/negativo17
-	url = https://github.com/negativo17/ffmpeg.git
