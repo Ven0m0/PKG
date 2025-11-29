@@ -10,7 +10,7 @@ url="https://github.com/jedisct1/etchdns"
 license=('MIT')
 options=('strip')
 source=("$pkgname-$pkgver.tar.gz::https://github.com/jedisct1/$pkgname/archive/refs/tags/$pkgver.tar.gz")
-sha256sums=('SKIP')
+sha256sums=('654171449ecd6f82ee543ed3c3e36f768ad9b9bfed40bbacf9ee0258b432bf57')
 
 prepare() {
   cd "$pkgname-$pkgver"

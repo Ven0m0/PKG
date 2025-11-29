@@ -47,7 +47,7 @@ options=('strip')
 source=(
   "https://ffmpeg.org/releases/ffmpeg-${pkgver}.tar.xz"
 )
-sha256sums=('SKIP')
+sha256sums=('40973d44970dbc83ef302b0609f2e74982be2d85916dd2ee7472d30678a7abe6')
 
 prepare() {
   cd "$_pkgname-$pkgver"

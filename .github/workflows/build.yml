@@ -53,7 +53,7 @@ jobs:
       matrix:
         pkg: ${{ fromJSON(needs.matrix.outputs.pkgs) }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
       - name: Determine build method
         id: build_method
@@ -70,7 +70,7 @@ jobs:
 
       - name: Free disk space for Docker builds
         if: steps.build_method.outputs.needs_space == 'true'
-        uses: AdityaGarg8/remove-unwanted-software@v5
+        uses: AdityaGarg8/remove-unwanted-software@v4
         with:
           remove-android: 'true'
           remove-dotnet: 'true'
@@ -90,7 +90,7 @@ jobs:
       - name: Build package (standard)
         if: steps.build_method.outputs.method == 'standard'
         id: makepkg_standard
-        uses: 2m/arch-pkgbuild-builder@v1.21
+        uses: 2m/arch-pkgbuild-builder@v1.25
         with:
           target: pkgbuild
           pkgname: ${{ matrix.pkg }}
@@ -103,32 +103,45 @@ jobs:
         if: steps.build_method.outputs.method == 'docker'
         run: |
           pkg="${{ matrix.pkg }}"
-
-          # Package-specific dependencies
-          case "$pkg" in
-            obs-studio)
-              deps="ffmpeg pipewire rnnoise libxcomposite libxinerama libxkbcommon-x11 pciutils mbedtls vulkan-headers qt6-svg uthash cmake extra-cmake-modules ffnvcodec-headers nlohmann-json simde"
-              ;;
-            firefox)
-              deps="alsa-lib at-spi2-core bash cairo dbus ffmpeg fontconfig freetype2 gdk-pixbuf2 glib2 glibc gtk3 hicolor-icon-theme libpulse libx11 libxcb libxcomposite libxdamage libxext libxfixes libxrandr libxss mime-types nspr nss pango ttf-font clang lld llvm mesa nasm nodejs python rust unzip yasm zip cbindgen libice libsm libxt"
-              ;;
-            egl-wayland2)
-              deps="eglexternalplatform glibc libdrm wayland git libglvnd meson wayland-protocols"
-              ;;
-            onlyoffice)
-              deps="gtk3 gstreamer gst-plugins-base-libs libxss nss nspr desktop-file-utils hicolor-icon-theme wget unzip git libarchive"
-              ;;
-          esac
+          
+          # Dynamically extract dependencies from PKGBUILD
+          # We use a temporary container or simple parsing since we are on Ubuntu host
+          # But the easiest way is to let the docker container parse it.
+          # We'll modify the docker run command to do the parsing inside.
 
           docker run --rm -v "$(pwd):/workspace:rw" -w /workspace archlinux:latest bash -c "
+<<<<<<< Updated upstream
             set -euo pipefail
+||||||| Stash base
+            set -e
+<<<<<<< Updated upstream
+=======
+            set -e
+            # Update and install base tools first
+>>>>>>> Stashed changes
+||||||| Stash base
+=======
+            # Update and install base tools first
+>>>>>>> Stashed changes
             pacman -Syu --noconfirm --needed
-            pacman -S --noconfirm --needed sudo base-devel $deps
+            pacman -S --noconfirm --needed sudo base-devel pacman-contrib
+
+            # Parse dependencies inside the container where tools are available
+            cd '$pkg'
+            # Get Depends and MakeDepends using makepkg --printsrcinfo (safer than sourcing)
+            # We filter out architecture specific depends if needed, but simplistic approach works for most
+            deps=\$(makepkg --printsrcinfo | awk '/^\s*(make)?depends\s*=/ { \$1=\"\"; print \$0 }' | tr '\n' ' ')
+            
+            echo \"Detected dependencies: \$deps\"
+            
+            # Install them
+            pacman -S --noconfirm --needed \$deps || echo \"Warning: Some deps might be AUR packages or missing\"
+
             useradd -m builder
             echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/builder
             chmod 440 /etc/sudoers.d/builder
             chown -R builder:builder /workspace
-            sudo -u builder bash -c \"cd '$pkg' && makepkg --noconfirm --needed\"
+            sudo -u builder bash -c \"makepkg --noconfirm --needed\"
           "
       - name: Extract package info
         id: pkg_info
@@ -157,7 +170,7 @@ jobs:
           echo "Package: $PKGFILE (Tag: v${PKGVER}-${PKGREL})"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.pkg }}
           path: ${{ matrix.pkg }}/${{ steps.pkg_info.outputs.PKGFILE }}

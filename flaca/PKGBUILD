@@ -9,7 +9,7 @@ pkgdesc="Brute-force, lossless GIF, JPEG, and PNG compression."
 license=('WTFPL')
 options=('strip')
 source=("$pkgname-$pkgver.tar.gz::https://github.com/Blobfolio/$pkgname/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('SKIP')
+sha256sums=('1253c99523c57ee5d21bb099689130c41595e85cf712fb321e8855bbef40115c')
 
 prepare() {
   cd "$pkgname-$pkgver"

@@ -20,7 +20,7 @@ jobs:
     outputs:
       pkgs: ${{ steps.set.outputs.pkgs }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - id: set
         run: |
           pkgs=$(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | jq -Rsc 'split("\n")[:-1]')
@@ -34,9 +34,9 @@ jobs:
       matrix:
         pkg: ${{ fromJSON(needs.matrix.outputs.pkgs) }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - name: Build and lint package
-        uses: 2m/arch-pkgbuild-builder@v1.21
+        uses: 2m/arch-pkgbuild-builder@v1.25
         with:
           target: pkgbuild
           pkgname: ${{ matrix.pkg }}
@@ -51,7 +51,7 @@ jobs:
   megalinter:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -66,7 +66,7 @@ jobs:
             ${{ runner.os }}-megalinter-
 
       - name: Run MegaLinter
-        uses: oxsecurity/megalinter@v9
+        uses: oxsecurity/megalinter@v8
         env:
           VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'workflow_dispatch' }}
           GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
