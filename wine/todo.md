@@ -1,3 +1,3 @@
 - https://github.com/Kron4ek/Wine-Builds
 - https://github.com/Etaash-mathamsetty/wine-valve
-- 
+- https://github.com/pythonlover02/wine-ge-custom-sk
