@@ -25,6 +25,7 @@ permissions:
 env:
   DEBIAN_FRONTEND: noninteractive
   GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+  DOCKER_BUILD_PACKAGES: obs-studio,firefox,egl-wayland2,onlyoffice
 jobs:
   # Find all packages to build
   matrix:
@@ -58,16 +59,14 @@ jobs:
         id: build_method
         run: |
           pkg="${{ matrix.pkg }}"
-          case "$pkg" in
-            obs-studio|firefox|egl-wayland2|onlyoffice)
-              echo "method=docker" >> $GITHUB_OUTPUT
-              echo "needs_space=true" >> $GITHUB_OUTPUT
-              ;;
-            *)
-              echo "method=standard" >> $GITHUB_OUTPUT
-              echo "needs_space=false" >> $GITHUB_OUTPUT
-              ;;
-          esac
+          docker_pkgs="${DOCKER_BUILD_PACKAGES//,/|}"
+          if [[ "$pkg" =~ ^($docker_pkgs)$ ]]; then
+            echo "method=docker" >> $GITHUB_OUTPUT
+            echo "needs_space=true" >> $GITHUB_OUTPUT
+          else
+            echo "method=standard" >> $GITHUB_OUTPUT
+            echo "needs_space=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Free disk space for Docker builds
         if: steps.build_method.outputs.needs_space == 'true'
@@ -96,6 +95,10 @@ jobs:
           target: pkgbuild
           pkgname: ${{ matrix.pkg }}
 
+      - name: Set up Docker Buildx
+        if: steps.build_method.outputs.method == 'docker'
+        uses: docker/setup-buildx-action@v3
+
       - name: Build package (Docker)
         if: steps.build_method.outputs.method == 'docker'
         run: |
@@ -118,7 +121,7 @@ jobs:
           esac
 
           docker run --rm -v "$(pwd):/workspace:rw" -w /workspace archlinux:latest bash -c "
-            set -e
+            set -euo pipefail
             pacman -Syu --noconfirm --needed
             pacman -S --noconfirm --needed sudo base-devel $deps
             useradd -m builder
@@ -163,7 +166,7 @@ jobs:
       - name: Create GitHub release
         if: |
           github.event.inputs.create_release == 'true' &&
-          contains(fromJSON('["obs-studio", "firefox", "egl-wayland2", "onlyoffice"]'), matrix.pkg)
+          contains(env.DOCKER_BUILD_PACKAGES, matrix.pkg)
         run: |
           sudo chown -R $(whoami):$(whoami) .git
           git config user.name "GitHub Actions"
@@ -178,7 +181,7 @@ jobs:
       - name: Publish release
         if: |
           github.event.inputs.create_release == 'true' &&
-          contains(fromJSON('["obs-studio", "firefox", "egl-wayland2", "onlyoffice"]'), matrix.pkg)
+          contains(env.DOCKER_BUILD_PACKAGES, matrix.pkg)
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.pkg_info.outputs.TAG }}

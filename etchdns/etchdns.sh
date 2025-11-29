@@ -78,8 +78,8 @@ block_private_ips = false
 block_loopback_ips = false
 min_client_port = 1024
 blocked_ip_ranges = []
-user = "$USER"
-group = "$(id -gn $USER)"
+user = "root"
+group = "root"
 EOF
 
 # Create service

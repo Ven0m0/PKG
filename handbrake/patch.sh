@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 BASEDIR=$(dirname "$0")
 src_dir="HandBrake"

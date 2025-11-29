@@ -6,7 +6,6 @@
 # PGO Version: Laio O. Seman <laio@ieee.org>
 pkgbase=rust
 pkgname=rust-opt
-_pkgname=
 pkgver=1.90.0
 pkgrel=1
 epoch=1
