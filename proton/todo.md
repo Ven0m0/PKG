@@ -1,2 +1,3 @@
 - https://github.com/Etaash-mathamsetty/Proton
 - https://github.com/luxtorpeda-dev/luxtorpeda
+- https://github.com/pythonlover02/Proton-Sarek
