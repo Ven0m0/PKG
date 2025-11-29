@@ -2,34 +2,19 @@ name: Lint and Format
 on:
   workflow_dispatch:
   push:
-    paths:
-      - '**/PKGBUILD'
-      - '**/.SRCINFO'
-      - '**.sh'
-      - '**.py'
-      - '**.json'
-      - '**.y*ml'
+    paths: ['**/PKGBUILD', '**/.SRCINFO', '**.sh', '**.py', '**.json', '**.y*ml']
   pull_request:
-    paths:
-      - '**/PKGBUILD'
-      - '**/.SRCINFO'
-      - '**.sh'
-      - '**.py'
-      - '**.json'
-      - '**.y*ml'
+    paths: ['**/PKGBUILD', '**/.SRCINFO', '**.sh', '**.py', '**.json', '**.y*ml']
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 permissions:
   contents: write
-  issues: write
   pull-requests: write
-  statuses: write
 env:
   DEBIAN_FRONTEND: noninteractive
   GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
 jobs:
-  # Job to find all PKGBUILD files
   matrix:
     runs-on: ubuntu-latest
     outputs:
@@ -40,7 +25,7 @@ jobs:
         run: |
           pkgs=$(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | jq -Rsc 'split("\n")[:-1]')
           echo "pkgs=$pkgs" >>$GITHUB_OUTPUT
-  # Lint PKGBUILD files
+
   pkgbuild-lint:
     needs: matrix
     runs-on: ubuntu-latest
@@ -62,7 +47,7 @@ jobs:
           pkgver: true
           namcap: true
           aur: true
-  # General code linting with MegaLinter
+
   megalinter:
     runs-on: ubuntu-latest
     steps:
