@@ -52,7 +52,8 @@ jobs:
       matrix:
         pkg: ${{ fromJSON(needs.matrix.outputs.pkgs) }}
     steps:
-      # Check if this is a specialized package requiring Docker build
+      - uses: actions/checkout@v6
+
       - name: Determine build method
         id: build_method
         run: |
@@ -67,8 +68,8 @@ jobs:
               echo "needs_space=false" >> $GITHUB_OUTPUT
               ;;
           esac
-      # Free disk space only for Docker builds
-      - name: Maximize build space
+
+      - name: Free disk space for Docker builds
         if: steps.build_method.outputs.needs_space == 'true'
         uses: AdityaGarg8/remove-unwanted-software@v5
         with:
@@ -77,18 +78,16 @@ jobs:
           remove-haskell: 'true'
           remove-codeql: 'true'
           remove-docker-images: 'true'
-      - name: Free disk space
+
+      - name: Additional cleanup for Docker builds
         if: steps.build_method.outputs.needs_space == 'true'
         run: |
-          df -h
           sudo apt-get autoclean -y
           sudo apt-get autoremove --purge -y
           sudo rm -f /var/lib/man-db/auto-update
           sudo rm -rf /var/lib/apt/lists/* /opt/ghc /usr/local/.ghcup /usr/local/lib/android /usr/share/dotnet
           echo "force-unsafe-io" | sudo tee -a /etc/dpkg/dpkg.cfg.d/force-unsafe-io
-          echo -e "\nFree space:"; df -h
-      - uses: actions/checkout@v6
-      # Standard build for most packages
+          df -h
       - name: Build package (standard)
         if: steps.build_method.outputs.method == 'standard'
         id: makepkg_standard
@@ -96,7 +95,7 @@ jobs:
         with:
           target: pkgbuild
           pkgname: ${{ matrix.pkg }}
-      # Docker build for specialized packages
+
       - name: Build package (Docker)
         if: steps.build_method.outputs.method == 'docker'
         run: |
@@ -128,72 +127,61 @@ jobs:
             chown -R builder:builder /workspace
             sudo -u builder bash -c \"cd '$pkg' && makepkg --noconfirm --needed\"
           "
-      # Extract package info for artifacts and releases
       - name: Extract package info
         id: pkg_info
         run: |
           cd "${{ matrix.pkg }}"
 
+          # Extract package metadata
           PKGNAME=$(grep "^pkgname=" PKGBUILD | head -1 | cut -d= -f2 | tr -d ' ')
           PKGVER=$(grep "^pkgver=" PKGBUILD | head -1 | cut -d= -f2 | tr -d ' ')
           PKGREL=$(grep "^pkgrel=" PKGBUILD | head -1 | cut -d= -f2 | tr -d ' ')
 
-          # Find the built package file
-          if [[ -n "${{ steps.makepkg_standard.outputs.pkgfile0 }}" ]]; then
-            PKGFILE="${{ steps.makepkg_standard.outputs.pkgfile0 }}"
-          else
-            PKGFILE=$(find . -maxdepth 1 -name "*.pkg.tar.zst" | head -1 | sed 's|^\./||')
-            [[ -z "$PKGFILE" ]] && PKGFILE="${PKGNAME}-${PKGVER}-${PKGREL}-x86_64.pkg.tar.zst"
-          fi
+          # Find built package (prefer standard build output, fallback to search)
+          PKGFILE="${{ steps.makepkg_standard.outputs.pkgfile0 }}"
+          [[ -z "$PKGFILE" ]] && PKGFILE=$(find . -maxdepth 1 -name "*.pkg.tar.zst" | head -1 | sed 's|^\./||')
+          [[ -z "$PKGFILE" ]] && PKGFILE="${PKGNAME}-${PKGVER}-${PKGREL}-x86_64.pkg.tar.zst"
 
-          echo "PKGNAME=$PKGNAME" >> $GITHUB_OUTPUT
-          echo "PKGVER=$PKGVER" >> $GITHUB_OUTPUT
-          echo "PKGREL=$PKGREL" >> $GITHUB_OUTPUT
-          echo "PKGFILE=$PKGFILE" >> $GITHUB_OUTPUT
-          echo "TAG=v${PKGVER}-${PKGREL}" >> $GITHUB_OUTPUT
+          # Output variables
+          {
+            echo "PKGNAME=$PKGNAME"
+            echo "PKGVER=$PKGVER"
+            echo "PKGREL=$PKGREL"
+            echo "PKGFILE=$PKGFILE"
+            echo "TAG=v${PKGVER}-${PKGREL}"
+          } >> $GITHUB_OUTPUT
 
-          echo "Package: $PKGFILE"
-          echo "Tag: v${PKGVER}-${PKGREL}"
-      # Upload artifacts for all builds
+          echo "Package: $PKGFILE (Tag: v${PKGVER}-${PKGREL})"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.pkg }}
           path: ${{ matrix.pkg }}/${{ steps.pkg_info.outputs.PKGFILE }}
           compression-level: 0
-      # Create release for specialized packages (when requested)
-      - name: Check if release is needed
-        id: check_release
+
+      - name: Create GitHub release
+        if: |
+          github.event.inputs.create_release == 'true' &&
+          contains(fromJSON('["obs-studio", "firefox", "egl-wayland2", "onlyoffice"]'), matrix.pkg)
         run: |
-          if [[ "${{ github.event.inputs.create_release }}" == "true" ]] && \
-             [[ "${{ matrix.pkg }}" =~ ^(obs-studio|firefox|egl-wayland2|onlyoffice)$ ]]; then
-            echo "enabled=true" >> $GITHUB_OUTPUT
-          else
-            echo "enabled=false" >> $GITHUB_OUTPUT
-          fi
-      - name: Fix permissions for Git
-        if: steps.check_release.outputs.enabled == 'true'
-        run: sudo chown -R $(whoami):$(whoami) .git
-      - name: Create and push Git tag
-        if: steps.check_release.outputs.enabled == 'true'
-        run: |
+          sudo chown -R $(whoami):$(whoami) .git
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
           TAG="${{ steps.pkg_info.outputs.TAG }}"
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG already exists, skipping."
-          else
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
             git tag -a "$TAG" -m "Release $TAG - ${{ matrix.pkg }}"
             git push origin "$TAG"
           fi
-      - name: Publish Release
-        if: steps.check_release.outputs.enabled == 'true'
+
+      - name: Publish release
+        if: |
+          github.event.inputs.create_release == 'true' &&
+          contains(fromJSON('["obs-studio", "firefox", "egl-wayland2", "onlyoffice"]'), matrix.pkg)
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.pkg_info.outputs.TAG }}
           name: ${{ steps.pkg_info.outputs.PKGNAME }} ${{ steps.pkg_info.outputs.TAG }}
           files: ${{ matrix.pkg }}/${{ steps.pkg_info.outputs.PKGFILE }}
           generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
