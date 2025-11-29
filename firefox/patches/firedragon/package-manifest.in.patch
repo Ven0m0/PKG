@@ -1,0 +1,15 @@
+diff --git a/browser/installer/package-manifest.in b/browser/installer/package-manifest.in
+index b884f0167e5d..a9aadc4dc464 100644
+--- a/browser/installer/package-manifest.in
++++ b/browser/installer/package-manifest.in
+@@ -385,10 +396,6 @@ bin/libfreebl_64int_3.so
+ @BINPATH@/crashhelper@BIN_SUFFIX@
+ #endif
+ 
+-; [ Ping Sender ]
+-;
+-@BINPATH@/pingsender@BIN_SUFFIX@
+-
+ ; [ Native Messaging Host Proxy ]
+ ;
+ #if defined(XP_WIN) || defined(XP_MACOSX)
