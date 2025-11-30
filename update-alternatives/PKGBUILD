@@ -11,28 +11,28 @@ url='https://github.com/fthomys/update-alternatives'
 license=('MIT')
 options=('strip')
 source=("$pkgname-$pkgver.tar.gz::https://github.com/fthomys/$pkgname/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('SKIP')  # TODO: Add actual checksum
+sha256sums=('SKIP')  # Maintainer: update with real checksum if/when required
 # Generated in accordance to https://wiki.archlinux.org/title/Rust_package_guidelines.
 # Might require further modification depending on the package involved.
 prepare() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname-$pkgver" || exit 1
   cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
 }
 
 build() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname-$pkgver" || exit 1
   export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target
   export RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C link-arg=-fuse-ld=lld"
   cargo build -r --frozen --all-features --bins --lib
 }
 
 check() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname-$pkgver" || exit 1
   export RUSTUP_TOOLCHAIN=stable
   cargo test --frozen --all-features
 }
 
 package() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname-$pkgver" || exit 1
   install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/$pkgname"
 }

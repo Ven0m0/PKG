@@ -2,7 +2,7 @@
 # Maintainer: Frederik Schwan <freswa at archlinux dot org>
 # Contributor: Guillaume ALAUX <guillaume@archlinux.org>
 
-# TODO add test, see about packaging jtreg and using it here
+### Developer note: Consider adding tests and packaging jtreg in the future if feasible.
 
 pkgbase=java-openjdk
 pkgname=('jre-openjdk-headless' 'jre-openjdk' 'jdk-openjdk' 'openjdk-src' 'openjdk-doc')
@@ -25,7 +25,7 @@ makedepends=('java-environment>=22' 'cpio' 'unzip' 'zip' 'libelf' 'libcups' 'lib
              'libnet' 'bash' 'harfbuzz' 'gcc-libs' 'glibc')
 optdepends=(
   'gvfs: open links e.g. hyperlinks'
-)             
+)
 source=(https://github.com/openjdk/jdk${_majorver}u/archive/${_git_tag}.tar.gz
         freedesktop-java.desktop
         freedesktop-jconsole.desktop
@@ -54,7 +54,7 @@ _commondeps=('java-runtime-common>=3' 'ca-certificates-utils' 'nss' 'libjpeg-tur
            'glibc' 'gcc-libs')
 
 build() {
-  cd ${_jdkdir}
+  cd "${_jdkdir}" || exit 1
 
   NUM_PROC_OPT=''
   MAKEFLAG_J=$(echo ${MAKEFLAGS} | sed -En 's/.*-j([0-9]+).*/\1/p')
@@ -75,7 +75,7 @@ build() {
     _CXXFLAGS=${CXXFLAGS/-fno-plt/}
   fi
 
-  # TODO: Should be rechecked for the next releases
+  # Developer note: Should be rechecked for the next releases
   # compiling with -fexceptions leads to:
   # /usr/bin/ld: /build/java-openjdk/src/jdk17u-jdk-17.0.3-2/build/linux-x86_64-server-release/hotspot/variant-server/libjvm/objs/zPhysicalMemory.o: in function `ZList<ZMemory>::~ZList()':
   # /build/java-openjdk/src/jdk17u-jdk-17.0.3-2/src/hotspot/share/gc/z/zList.hpp:54: undefined reference to `ZListNode<ZMemory>::~ZListNode()'
@@ -131,7 +131,7 @@ build() {
 
 check() {
   cd ${_jdkdir}
-  # TODO package jtreg
+  # Developer note: Consider packaging jtreg
   # make -k check
 }
 

@@ -1,9 +1,11 @@
 #!/usr/bin/@ELECTRON@
 
 const name = "vscodium";
-import { app } from "electron/main";
-import * as path from "node:path";
+
 import * as fs from "node:fs";
+import * as path from "node:path";
+import { app } from "electron/main";
+
 // Change command name.
 const fd = fs.openSync("/proc/self/comm", fs.constants.O_WRONLY);
 fs.writeSync(fd, name);
@@ -22,10 +24,10 @@ const packageJson = JSON.parse(
 	fs.readFileSync(new URL("./package.json", import.meta.url)),
 );
 app.setAppPath(appPath);
-app.setDesktopName(name + ".desktop");
+app.setDesktopName(`${name}.desktop`);
 app.setName(name);
 app.setPath("userCache", path.join(app.getPath("cache"), name));
 app.setPath("userData", path.join(app.getPath("appData"), name));
 app.setVersion(packageJson.version);
 // Run the application.
-await import(appPath + "/out/main.js");
+await import(`${appPath}/out/main.js`);
