@@ -431,7 +431,7 @@ build () {
     # intel_hasvk removal for legacy trees
     if ( cd "$srcdir/$_mesa_srcdir" && ! git merge-base --is-ancestor 50013ca9a57c42114044f593c981bbad8c405cc9 HEAD ); then
       # Use parameter expansion instead of echo | sed | tr for efficiency
-      _vulkan_drivers="${_vulkan_drivers//,intel_hasvk/}"
+      _vulkan_drivers="${_vulkan_drivers//,intel_hasvk}"
     fi
 
     # xvmc toggle for legacy trees
@@ -582,7 +582,7 @@ build () {
         # lib32 nvk fails with native
         warning "lib32 nvk forcefully disabled when using _rusticl32_bypass=\"false\""
         # Use parameter expansion instead of echo | sed | tr for efficiency
-        _vulkan_drivers="${_vulkan_drivers//,nouveau/}"
+        _vulkan_drivers="${_vulkan_drivers//,nouveau}"
       else
         _rusticl_32="$_rusticl"
         _crossfile_flag="--cross-file lib32"
