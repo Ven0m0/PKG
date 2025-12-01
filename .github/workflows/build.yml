@@ -34,7 +34,7 @@ jobs:
     outputs:
       pkgs: ${{ steps.set.outputs.pkgs }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0 # Required for git diff
       - id: set
@@ -79,7 +79,7 @@ jobs:
       matrix:
         pkg: ${{ fromJSON(needs.matrix.outputs.pkgs) }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Determine build method
         id: build_method
         run: |
@@ -94,7 +94,7 @@ jobs:
           fi
       - name: Free disk space
         if: steps.build_method.outputs.needs_space == 'true'
-        uses: AdityaGarg8/remove-unwanted-software@v4
+        uses: AdityaGarg8/remove-unwanted-software@v5
         with:
           remove-android: 'true'
           remove-dotnet: 'true'
