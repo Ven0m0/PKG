@@ -3,6 +3,8 @@ ac_add_options --prefix=/usr
 ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
 export MOZ_INCLUDE_SOURCE_INFO=1
 
+# TODO: investigate "ac_add_options --enable-geckoview-lite"
+
 ac_add_options --enable-application=browser
 ac_add_options --enable-release
 ac_add_options --enable-strip
