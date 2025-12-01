@@ -207,7 +207,7 @@ package_sqlite-doc() {
     provides=("sqlite3-doc=$pkgver")
     replaces=("sqlite3-doc")
 
-    cd "sqlite-doc-${_docver}"
+    cd "sqlite-doc-${_docver}" || exit
     mkdir -p "${pkgdir}/usr/share/doc/${pkgbase}"
     cp -R -- * "${pkgdir}/usr/share/doc/${pkgbase}/"
 

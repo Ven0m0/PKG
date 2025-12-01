@@ -22,7 +22,7 @@ sha256sums=('SKIP'
   '48d744037c553eea8f9b76bf46f6dcac753e52871f49b2c1a2580757f723a1b7')
 
 prepare() {
-  cd "${pkgname}-${pkgver}-sources"
+  cd "${pkgname}-${pkgver}-sources" || exit
   patch -Np1 -i "${srcdir}/12328.patch" || :
 }
 

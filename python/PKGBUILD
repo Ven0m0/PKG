@@ -138,9 +138,9 @@ package_python-tests() {
   pkgdesc="Regression tests packages for Python"
   depends=('python')
 
-  cd Python-${pkgver}
+  cd Python-"${pkgver}" || exit
 
   make DESTDIR="${pkgdir}" EXTRA_CFLAGS="$CFLAGS" libinstall
-  cd "$pkgdir"/usr/lib/python*/
+  cd "$pkgdir"/usr/lib/python*/ || exit
   rm -r !(test)
 }

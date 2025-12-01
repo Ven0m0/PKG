@@ -128,7 +128,7 @@ check() {
 }
 
 package() {
-    cd "${pkgname}"
+    cd "${pkgname}" || exit
 
     if $_staging; then
         export CFLAGS+=" -fno-semantic-interposition -flto=thin"

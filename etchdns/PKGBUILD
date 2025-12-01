@@ -25,13 +25,13 @@ build() {
 }
 
 check() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname-$pkgver" || exit
   export RUSTUP_TOOLCHAIN=stable
   cargo test --frozen --all-features
 }
 
 package() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname-$pkgver" || exit
   install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/$pkgname"
 
   # Install systemd service file

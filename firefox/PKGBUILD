@@ -516,7 +516,7 @@ END
   install -Dm644 ../$_pkgname-symbolic.svg \
     "$pkgdir/usr/share/icons/hicolor/symbolic/apps/$_pkgname-symbolic.svg"
   # Desktop file
-  install -Dm644 ../$_pkgname.desktop \
+  install -Dm644 ../"$_pkgname".desktop \
     "$pkgdir/usr/share/applications/$_pkgname.desktop"
   # Wrapper script
   install -Dm755 /dev/stdin "$pkgdir/usr/bin/$_pkgname" <<'END'

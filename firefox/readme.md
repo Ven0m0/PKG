@@ -48,6 +48,7 @@ Control build behavior with environment variables:
 ## Performance
 
 Compared to stock Firefox:
+
 - ~20% faster (with PGO)
 - ~15% better memory usage (march=native optimizations)
 - Hardware video decoding enabled
@@ -62,6 +63,7 @@ Compared to stock Firefox:
 ## Documentation
 
 See **BUILD-NOTES.md** for:
+
 - Detailed feature list
 - Build tunable options
 - Hardware acceleration setup
@@ -71,17 +73,18 @@ See **BUILD-NOTES.md** for:
 ## Applied Patches
 
 1. **0001-enable-vaapi.patch** - VA-API hardware acceleration
-2. **0002-remove-nvidia-blocklist.patch** - NVIDIA VA-API support
-3. **0018-bmo-1516081-Disable-watchdog-during-PGO-builds.patch** - PGO reliability
-4. **0024-Add-KDE-integration-to-Firefox.patch** - KDE desktop integration
-5. **ghostery/0039-Remove-Firefox-View.patch** - Remove Firefox View (size reduction)
-6. **ghostery/0040-Disable-experiments-reporting.patch** - Disable Nimbus experiments (size reduction)
+1. **0002-remove-nvidia-blocklist.patch** - NVIDIA VA-API support
+1. **0018-bmo-1516081-Disable-watchdog-during-PGO-builds.patch** - PGO reliability
+1. **0024-Add-KDE-integration-to-Firefox.patch** - KDE desktop integration
+1. **ghostery/0039-Remove-Firefox-View.patch** - Remove Firefox View (size reduction)
+1. **ghostery/0040-Disable-experiments-reporting.patch** - Disable Nimbus experiments (size reduction)
 
 ## Credits
 
 This ultimate PKGBUILD is merged from multiple optimized Firefox builds:
 
 ### Primary Sources
+
 - **Arch Linux Official** - Base structure and dependencies
 - **firefox-vaapi** - VA-API patches and hardware acceleration
 - **firefox-kde-opensuse** - KDE integration, system libraries (harfbuzz, graphite, icu)
@@ -91,6 +94,7 @@ This ultimate PKGBUILD is merged from multiple optimized Firefox builds:
 - **[Firefox Vanilla](https://github.com/Ven0m0/firefox-vanilla)** - Enhanced WASM optimizations, aggressive performance tuning
 
 ### Additional Credits
+
 - https://build.opensuse.org/package/show/mozilla:Factory/MozillaFirefox
 - https://gitlab.com/garuda-linux/firedragon
 - [Firefox-opt](https://github.com/Ven0m0/Firefox-opt)
@@ -105,6 +109,7 @@ This ultimate PKGBUILD is merged from multiple optimized Firefox builds:
 - https://github.com/zen-browser/desktop
 
 ### Patches Sources
+
 - openSUSE Firefox maintenance repository
 - Arch Linux Firefox patches
 - Custom VA-API enablement patches
@@ -126,7 +131,7 @@ RUSTFLAGS="-Ctarget-cpu=native -Copt-level=3 -Clto=fat -Ccodegen-units=1 -Cpanic
 -mllvm -polly -mllvm -polly-vectorizer=stripmine
 ```
 
----
+______________________________________________________________________
 
 **Note**: First PGO build takes longer but subsequent builds reuse profiles for faster compilation.
 

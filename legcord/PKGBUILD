@@ -34,7 +34,7 @@ build() (
   local _electron_builder_options=(--linux dir --publish never
     -c.electronDist="/usr/lib/electron${_electron_version%%.*}" -c.electronVersion="$_electron_version")
 
-  cd "$_pkgsrc"
+  cd "$_pkgsrc" || exit
   if command -v bun &>/dev/null; then
     NODE_ENV=development bun install # --ignore-scripts
     NODE_ENV=production bun run build

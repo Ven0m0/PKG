@@ -24,7 +24,7 @@ sha512sums=('7d046b44ee059384cf95aced62c354bf5401aaeea286df113ef74c1b0c186210e9b
             '57b1603729122bbfad15e591da1d1bbadc9cbe5f6bcd1525c5045ef341c71993a5c6fef277bac60e841401b42d8c98b8e82e43a090d8b3917c155ac9f590b968')
 
 package() {
-	cd "${srcdir}"
+	cd "${srcdir}" || exit
 	make PREFIX=/usr DESTDIR=${pkgdir} install
 }
 

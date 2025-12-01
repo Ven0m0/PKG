@@ -45,7 +45,7 @@ prepare() {
   patch -Np1 -i "${srcdir}/bolt2.patch"
 
 }
-    cd Python-${pkgver} || exit 1
+    cd Python-"${pkgver}" || exit 1
 
 build() {
   cd Python-${pkgver}

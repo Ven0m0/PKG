@@ -30,7 +30,7 @@ check() {
 }
 
 package() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname-$pkgver" || exit
   install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/gix"
   install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/ein"
 }

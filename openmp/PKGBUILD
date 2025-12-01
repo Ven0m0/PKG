@@ -47,7 +47,7 @@ build() {
 }
 
 package() {
-  cd openmp-$pkgver.src/build
+  cd openmp-"$pkgver".src/build || exit
 
   DESTDIR="$pkgdir" ninja install
   install -Dm644 ../LICENSE.TXT "$pkgdir/usr/share/licenses/$pkgname/LICENSE"

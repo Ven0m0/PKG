@@ -28,7 +28,7 @@ prepare() {
 }
 
 build() {
-  cd "$_pkgname-$pkgver"
+  cd "$_pkgname-$pkgver" || exit
 
   # Optimized build flags
   export CFLAGS="${CFLAGS/-O2/-O3} -pipe -fno-plt -fstack-protector-strong"
@@ -46,12 +46,12 @@ build() {
 }
 
 check() {
-  cd "$_pkgname-$pkgver"
+  cd "$_pkgname-$pkgver" || exit
   make check
 }
 
 package() {
-  cd "$_pkgname-$pkgver"
+  cd "$_pkgname-$pkgver" || exit
 
   make DESTDIR="$pkgdir" install
 
