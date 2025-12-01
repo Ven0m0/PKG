@@ -57,7 +57,12 @@ build() {
   cd "${_jdkdir}" || exit 1
 
   NUM_PROC_OPT=''
-  MAKEFLAG_J=$(echo ${MAKEFLAGS} | sed -En 's/.*-j([0-9]+).*/\1/p')
+  # Use parameter expansion instead of echo | sed for better efficiency
+  if [[ ${MAKEFLAGS} =~ -j([0-9]+) ]]; then
+    MAKEFLAG_J="${BASH_REMATCH[1]}"
+  else
+    MAKEFLAG_J=""
+  fi
   if [ -n "${MAKEFLAG_J}" ]; then
     # http://hg.openjdk.java.net/jdk10/jdk10/file/85e6cb013b98/make/InitSupport.gmk#l105
     echo "Removing '-j${MAKEFLAG_J}' from MAKEFLAGS to prevent build fail. Passing it directly to ./configure."

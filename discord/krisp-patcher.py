@@ -2,8 +2,8 @@ import sys
 import shutil
 
 from elftools.elf.elffile import ELFFile
-from capstone import *
-from capstone.x86 import *
+from capstone import Cs, CS_ARCH_X86, CS_MODE_64
+from capstone.x86 import X86_INS_CALL, X86_INS_TEST, X86_INS_JE, X86_INS_NOP, X86_OP_IMM
 
 if len(sys.argv) < 2:
     print(f"Usage: {sys.argv[0]} [path to discord_krisp.node]")
@@ -12,6 +12,7 @@ if len(sys.argv) < 2:
 
 executable = sys.argv[1]
 
+# Read all necessary data in a single file open (avoid multiple file operations)
 with open(executable, "rb") as elf_file:
     elf = ELFFile(elf_file)
     symtab = elf.get_section_by_name(".symtab")
@@ -27,18 +28,15 @@ with open(executable, "rb") as elf_file:
     # This seems to always be zero (.text starts at the right offset in the file). Do it just in case?
     address_to_file = text_start_file - text_start
 
-krisp_initialize_offset = krisp_initialize_address - address_to_file
-isSignedByDiscord_offset = isSignedByDiscord_address - address_to_file
+    krisp_initialize_offset = krisp_initialize_address - address_to_file
 
-with open(executable, "rb") as f:
-    f.seek(krisp_initialize_offset)
-    krisp_initialize = f.read(256)
+    # Read krisp_initialize data in the same file handle (avoid reopening file)
+    elf_file.seek(krisp_initialize_offset)
+    krisp_initialize = elf_file.read(256)
 
 # States
 found_issigned_by_discord_call = False
 found_issigned_by_discord_test = False
-found_issigned_by_discord_je = False
-found_already_patched = False
 je_location = None
 je_size = 0
 
@@ -49,25 +47,18 @@ md = Cs(CS_ARCH_X86, CS_MODE_64)
 md.detail = True
 for i in md.disasm(krisp_initialize, krisp_initialize_address):
     if i.id == X86_INS_CALL:
-        if i.operands[0].type == X86_OP_IMM:
-            if i.operands[0].imm == isSignedByDiscord_address:
-                found_issigned_by_discord_call = True
-
-    if i.id == X86_INS_TEST:
-        if found_issigned_by_discord_call:
-            found_issigned_by_discord_test = True
-
-    if i.id == X86_INS_JE:
-        if found_issigned_by_discord_test:
-            found_issigned_by_discord_je = True
-            je_location = i.address
-            je_size = len(i.bytes)
-            break
-
-    if i.id == X86_INS_NOP:
-        if found_issigned_by_discord_test:
-            found_already_patched = True
-            break
+        if i.operands[0].type == X86_OP_IMM and i.operands[0].imm == isSignedByDiscord_address:
+            found_issigned_by_discord_call = True
+    elif i.id == X86_INS_TEST and found_issigned_by_discord_call:
+        found_issigned_by_discord_test = True
+    elif i.id == X86_INS_JE and found_issigned_by_discord_test:
+        je_location = i.address
+        je_size = len(i.bytes)
+        break
+    elif i.id == X86_INS_NOP and found_issigned_by_discord_test:
+        # Already patched
+        print("Couldn't find patch location - already patched.")
+        sys.exit(0)
 
 if je_location:
     print(f"Found patch location: 0x{je_location:x}")
@@ -77,7 +68,4 @@ if je_location:
         f.seek(je_location - address_to_file)
         f.write(b"\x90" * je_size)  # je can be larger than 2 bytes given a large enough displacement :(
 else:
-    if found_already_patched:
-        print("Couldn't find patch location - already patched.")
-    else:
-        print("Couldn't find patch location - review manually. Sorry.")
+    print("Couldn't find patch location - review manually. Sorry.")

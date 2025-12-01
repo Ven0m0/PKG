@@ -5,6 +5,11 @@ mapfile -t pkgs < <(find -O2 . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\
 errs=()
 original_dir="$PWD"
 
+# Cache tool availability checks once (avoid repeated command lookups in loop)
+has_shellcheck=false; command -v shellcheck &>/dev/null && has_shellcheck=true
+has_shellharden=false; command -v shellharden &>/dev/null && has_shellharden=true
+has_shfmt=false; command -v shfmt &>/dev/null && has_shfmt=true
+
 for pkg in "${pkgs[@]}"; do
   [[ -d $pkg ]] || continue
   cd "$original_dir/$pkg" || { errs+=("$pkg: cd failed"); continue; }
@@ -13,13 +18,13 @@ for pkg in "${pkgs[@]}"; do
     errs+=("$pkg: no PKGBUILD")
     continue
   fi
-  if command -v shellcheck &>/dev/null; then
+  if $has_shellcheck; then
     shellcheck -x -a -s bash -f diff PKGBUILD | patch -Np1 || errs+=("$pkg: shellcheck failed")
   fi
-  if command -v shellharden &>/dev/null; then
+  if $has_shellharden; then
     shellharden --replace PKGBUILD || errs+=("$pkg: shellharden failed")
   fi
-  if command -v shfmt &>/dev/null; then
+  if $has_shfmt; then
     shfmt -ln bash -bn -s -i 2 -w PKGBUILD || errs+=("$pkg: shfmt failed")
   fi
   if [[ -f .SRCINFO ]]; then
