@@ -26,60 +26,61 @@ env:
   DEBIAN_FRONTEND: noninteractive
   GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
   DOCKER_BUILD_PACKAGES: obs-studio,firefox,egl-wayland2,onlyoffice
+  SCCACHE_GHA_ENABLED: 'true'
+  RUSTC_WRAPPER: sccache
+  CC: clang
+  CXX: clang++
 
 jobs:
-  # Find packages to build
   matrix:
     runs-on: ubuntu-latest
     outputs:
-      pkgs: ${{ steps.set.outputs.pkgs }}
+      pkgs: ${{ steps.set. outputs.pkgs }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Required for git diff
+          fetch-depth: 0
+
       - id: set
         name: Determine modified packages
         run: |
           pkgs=()
           event="${{ github.event_name }}"
           manual_pkg="${{ inputs.package }}"
+
           if [[ "$event" == "workflow_dispatch" ]]; then
             if [[ -n "$manual_pkg" ]]; then
-              # Manual: Single package
               pkgs+=("$manual_pkg")
             else
-              # Manual: All packages
-              mapfile -t pkgs < <(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | sort)
+              mapfile -t pkgs < <(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | sort -u)
             fi
           else
-            # Push/PR: Dynamic detection
             base="HEAD~1"
             [[ "$event" == "pull_request" ]] && base="origin/${{ github.base_ref }}"
             echo "Checking changes against: $base"
-            # Find directories with changes that contain a PKGBUILD
+
             while IFS= read -r dir; do
-              # Traverse up if file is in subdir (optional, safe default is direct dir)
               if [[ -f "$dir/PKGBUILD" ]]; then
                 pkgs+=("$dir")
               fi
             done < <(git diff --name-only "$base" HEAD 2>/dev/null | xargs -r dirname | sort -u)
           fi
-          # Output as JSON
+
           json_out=$(printf '%s\n' "${pkgs[@]}" | jq -Rsc 'split("\n")[:-1]')
           echo "Found packages: $json_out"
           echo "pkgs=$json_out" >> "$GITHUB_OUTPUT"
 
-  # Build packages
   build:
     needs: matrix
-    if: ${{ needs.matrix.outputs.pkgs != '[]' && needs.matrix.outputs.pkgs != '' }}
+    if: ${{ needs.matrix. outputs.pkgs != '[]' && needs.matrix.outputs.pkgs != '' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         pkg: ${{ fromJSON(needs.matrix.outputs.pkgs) }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
+
       - name: Determine build method
         id: build_method
         run: |
@@ -92,23 +93,57 @@ jobs:
             echo "method=standard" >> "$GITHUB_OUTPUT"
             echo "needs_space=false" >> "$GITHUB_OUTPUT"
           fi
+
       - name: Free disk space
         if: steps.build_method.outputs.needs_space == 'true'
-        uses: AdityaGarg8/remove-unwanted-software@v5
+        uses: AdityaGarg8/remove-unwanted-software@v4
         with:
           remove-android: 'true'
           remove-dotnet: 'true'
           remove-haskell: 'true'
           remove-codeql: 'true'
           remove-docker-images: 'true'
+
       - name: Additional cleanup
         if: steps.build_method.outputs.needs_space == 'true'
         run: |
           sudo apt-get autoclean -y
           sudo apt-get autoremove --purge -y
           sudo rm -f /var/lib/man-db/auto-update
-          sudo rm -rf /var/lib/apt/lists/* /opt/ghc /usr/local/.ghcup /usr/share/dotnet
+          sudo rm -rf /var/lib/apt/lists/* /opt/ghc /usr/local/. ghcup /usr/share/dotnet
           df -h
+
+      - name: Cache APT packages
+        if: steps.build_method.outputs.method == 'standard'
+        uses: awalsh128/cache-apt-pkgs-action@v1
+        with:
+          packages: build-essential pkg-config
+          version: 1.0
+
+      - name: Install LLVM and Clang
+        if: steps.build_method.outputs.method == 'standard'
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: '18'
+          cached: true
+
+      - name: Setup sccache
+        if: steps. build_method.outputs.method == 'standard'
+        uses: mozilla-actions/sccache-action@v0.0.6
+
+      - name: Cache Rust artifacts
+        if: steps.build_method.outputs.method == 'standard'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
       - name: Build package (standard)
         if: steps.build_method.outputs.method == 'standard'
         id: makepkg_standard
@@ -116,43 +151,84 @@ jobs:
         with:
           target: pkgbuild
           pkgname: ${{ matrix.pkg }}
+        env:
+          CC: clang
+          CXX: clang++
+          RUSTC_WRAPPER: sccache
+
       - name: Set up Docker Buildx
-        if: steps.build_method.outputs.method == 'docker'
+        if: steps.build_method.outputs. method == 'docker'
         uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        if: steps. build_method.outputs.method == 'docker'
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ matrix.pkg }}-${{ hashFiles(format('{0}/PKGBUILD', matrix.pkg)) }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-${{ matrix.pkg }}-
+            ${{ runner.os }}-buildx-
+
       - name: Build package (Docker)
         if: steps.build_method.outputs.method == 'docker'
         run: |
           pkg="${{ matrix.pkg }}"
-          docker run --rm -v "$(pwd):/workspace:rw" -w /workspace archlinux:latest bash -c "
-            # Update and install base tools
+          docker run --rm \
+            -v "$(pwd):/workspace:rw" \
+            -v /tmp/.buildx-cache:/cache \
+            -e CCACHE_DIR=/cache/ccache \
+            -e SCCACHE_DIR=/cache/sccache \
+            -e CC=clang \
+            -e CXX=clang++ \
+            -e RUSTC_WRAPPER=sccache \
+            -w /workspace \
+            archlinux:latest bash -c "
+            set -Eeuo pipefail
+
+            # Update system
             pacman -Syu --noconfirm --needed
-            pacman -S --noconfirm --needed sudo base-devel pacman-contrib
-            cd \"\$pkg\"
-            # Safe dependency extraction
-            deps=\$(makepkg --printsrcinfo | awk '/^\s*(make)?depends\s*=/ { \$1=\"\"; print \$0 }' | tr '\n' ' ')
+            pacman -S --noconfirm --needed sudo base-devel pacman-contrib clang llvm sccache ccache
+
+            cd \"$pkg\"
+
+            # Extract dependencies
+            deps=\$(makepkg --printsrcinfo | awk '/^\s*(make)? depends\s*=/ { \$1=\"\"; print \$0 }' | tr '\n' ' ')
             echo \"Dependencies: \$deps\"
-            # Install deps (ignore failures for AUR pkgs)
-            pacman -S --noconfirm --needed \$deps || echo \"Warning: Missing AUR/Repo deps\"
-            # Build as user
+
+            # Install deps (ignore AUR failures)
+            pacman -S --noconfirm --needed \$deps 2>/dev/null || echo \"Warning: Some deps unavailable\"
+
+            # Setup build user
             useradd -m builder
-            echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/builder
-            chmod 440 /etc/sudoers.d/builder
-            chown -R builder:builder /workspace
-            sudo -u builder bash -c \"makepkg --noconfirm --needed\"
+            echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers. d/builder
+            chmod 440 /etc/sudoers. d/builder
+            chown -R builder:builder /workspace /cache
+
+            # Build with caching
+            sudo -u builder bash -c '
+              export CC=clang
+              export CXX=clang++
+              export RUSTC_WRAPPER=sccache
+              export CCACHE_DIR=/cache/ccache
+              export SCCACHE_DIR=/cache/sccache
+              makepkg --noconfirm --needed
+            '
           "
+
+      - name: Display sccache stats
+        if: steps.build_method.outputs.method == 'standard'
+        run: sccache --show-stats || true
 
       - name: Extract package info
         id: pkg_info
         run: |
           cd "${{ matrix.pkg }}"
-          # Get metadata using makepkg (safer/cleaner than grep)
           source PKGBUILD
-          
-          # Find output file
+
           PKGFILE="${{ steps.makepkg_standard.outputs.pkgfile0 }}"
           [[ -z "$PKGFILE" ]] && PKGFILE=$(find . -maxdepth 1 -name "*.pkg.tar.zst" -printf '%f\n' | head -1)
 
-          # Outputs
           {
             echo "PKGNAME=${pkgname}"
             echo "PKGVER=${pkgver}"
@@ -160,24 +236,28 @@ jobs:
             echo "PKGFILE=${PKGFILE}"
             echo "TAG=v${pkgver}-${pkgrel}"
           } >> "$GITHUB_OUTPUT"
+
       - name: Upload artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.pkg }}
-          path: ${{ matrix.pkg }}/${{ steps.pkg_info.outputs.PKGFILE }}
+          name: ${{ matrix. pkg }}
+          path: ${{ matrix.pkg }}/${{ steps.pkg_info.outputs. PKGFILE }}
           compression-level: 0
+
       - name: Create GitHub release
         if: |
           inputs.create_release == true &&
-          contains(env.DOCKER_BUILD_PACKAGES, matrix.pkg)
+          contains(env.DOCKER_BUILD_PACKAGES, matrix. pkg)
         run: |
-          TAG="${{ steps.pkg_info.outputs.TAG }}"
+          TAG="${{ steps.pkg_info. outputs.TAG }}"
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
-             git tag -a "$TAG" -m "Release $TAG"
-             git push origin "$TAG"
+
+          if !  git rev-parse "$TAG" >/dev/null 2>&1; then
+            git tag -a "$TAG" -m "Release $TAG"
+            git push origin "$TAG"
           fi
+
       - name: Publish release
         if: |
           inputs.create_release == true &&
