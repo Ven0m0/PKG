@@ -30,7 +30,6 @@ env:
   RUSTC_WRAPPER: sccache
   CC: clang
   CXX: clang++
-
 jobs:
   matrix:
     runs-on: ubuntu-latest
@@ -40,14 +39,12 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
       - id: set
         name: Determine modified packages
         run: |
           pkgs=()
           event="${{ github.event_name }}"
           manual_pkg="${{ inputs.package }}"
-
           if [[ "$event" == "workflow_dispatch" ]]; then
             if [[ -n "$manual_pkg" ]]; then
               pkgs+=("$manual_pkg")
@@ -58,14 +55,12 @@ jobs:
             base="HEAD~1"
             [[ "$event" == "pull_request" ]] && base="origin/${{ github.base_ref }}"
             echo "Checking changes against: $base"
-
             while IFS= read -r dir; do
               if [[ -f "$dir/PKGBUILD" ]]; then
                 pkgs+=("$dir")
               fi
             done < <(git diff --name-only "$base" HEAD 2>/dev/null | xargs -r dirname | sort -u)
           fi
-
           json_out=$(printf '%s\n' "${pkgs[@]}" | jq -Rsc 'split("\n")[:-1]')
           echo "Found packages: $json_out"
           echo "pkgs=$json_out" >> "$GITHUB_OUTPUT"
@@ -80,7 +75,6 @@ jobs:
         pkg: ${{ fromJSON(needs.matrix.outputs.pkgs) }}
     steps:
       - uses: actions/checkout@v6
-
       - name: Determine build method
         id: build_method
         run: |
@@ -93,7 +87,6 @@ jobs:
             echo "method=standard" >> "$GITHUB_OUTPUT"
             echo "needs_space=false" >> "$GITHUB_OUTPUT"
           fi
-
       # ============================================================
       # Mirror Optimization (runs early for max benefit)
       # ============================================================
@@ -104,7 +97,6 @@ jobs:
           speedtests: 5
           parallel_downloads: 8
           cache_apt_lists: true
-
       - name: Free disk space
         if: steps.build_method.outputs.needs_space == 'true'
         uses: AdityaGarg8/remove-unwanted-software@v5
@@ -113,8 +105,7 @@ jobs:
           remove-dotnet: 'true'
           remove-haskell: 'true'
           remove-codeql: 'true'
-          remove-docker-images: 'true'
-
+          remove-docker-images: 'false'
       - name: Additional cleanup
         if: steps.build_method.outputs.needs_space == 'true'
         run: |
@@ -123,25 +114,21 @@ jobs:
           sudo rm -f /var/lib/man-db/auto-update
           sudo rm -rf /var/lib/apt/lists/* /opt/ghc /usr/local/. ghcup /usr/share/dotnet
           df -h
-
       - name: Cache APT packages
         if: steps.build_method.outputs.method == 'standard'
         uses: awalsh128/cache-apt-pkgs-action@v1
         with:
           packages: build-essential pkg-config
           version: 1.0
-
       - name: Install LLVM and Clang
         if: steps.build_method.outputs.method == 'standard'
         uses: KyleMayes/install-llvm-action@v2
         with:
-          version: '18'
+          version: '21'
           cached: true
-
       - name: Setup sccache
         if: steps. build_method.outputs.method == 'standard'
         uses: mozilla-actions/sccache-action@v0.0.9
-
       - name: Cache Rust artifacts
         if: steps.build_method.outputs.method == 'standard'
         uses: actions/cache@v4
@@ -154,7 +141,6 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
-
       - name: Build package (standard)
         if: steps. build_method.outputs.method == 'standard'
         id: makepkg_standard
@@ -166,11 +152,9 @@ jobs:
           CC: clang
           CXX: clang++
           RUSTC_WRAPPER: sccache
-
       - name: Set up Docker Buildx
         if: steps.build_method.outputs. method == 'docker'
         uses: docker/setup-buildx-action@v3
-
       - name: Cache Docker layers
         if: steps. build_method.outputs.method == 'docker'
         uses: actions/cache@v4.3.0
@@ -180,12 +164,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-${{ matrix.pkg }}-
             ${{ runner.os }}-buildx-
-
       - name: Build package (Docker)
         if: steps.build_method.outputs.method == 'docker'
         run: |
-          pkg="${{ matrix.pkg }}"
-          
+          pkg="${{ matrix.pkg }}"        
           # Create optimized Dockerfile with fast mirrors
           cat > /tmp/Dockerfile. build <<'DOCKERFILE'
           FROM archlinux:latest
@@ -197,11 +179,9 @@ jobs:
               pacman -S --noconfirm --needed sudo base-devel pacman-contrib clang llvm sccache ccache
           
           WORKDIR /workspace
-          DOCKERFILE
-          
+          DOCKERFILE      
           # Build optimized base image (cached)
-          docker build -t archlinux-buildenv:latest -f /tmp/Dockerfile.build .
-          
+          docker build -t archlinux-buildenv:latest -f /tmp/Dockerfile.build .        
           # Run build in container
           docker run --rm \
             -v "$(pwd):/workspace:rw" \
@@ -215,25 +195,20 @@ jobs:
             -w "/workspace/$pkg" \
             archlinux-buildenv:latest bash -c '
             set -Eeuo pipefail
-
             # Extract and install dependencies
             deps=$(makepkg --printsrcinfo | awk "/^\s*(make)? depends\s*=/ { \$1=\"\"; print \$0 }" | tr "\n" " ")
             echo "Dependencies: $deps"
             pacman -S --noconfirm --needed $deps 2>/dev/null || echo "Warning: Some deps unavailable"
-
             # Setup build user
             useradd -m builder
             echo "builder ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers. d/builder
             chmod 440 /etc/sudoers. d/builder
             chown -R builder:builder /workspace /cache
-
             # Build with all optimizations
             sudo -u builder bash -c "
-              export CC=clang
-              export CXX=clang++
+              export CC=clang CXX=clang++ 
               export RUSTC_WRAPPER=sccache
-              export CCACHE_DIR=/cache/ccache
-              export SCCACHE_DIR=/cache/sccache
+              export CCACHE_DIR=/cache/ccache SCCACHE_DIR=/cache/sccache 
               export MAKEFLAGS=\"-j\$(nproc)\"
               export CARGO_BUILD_JOBS=\$(nproc)
               makepkg --noconfirm --needed
@@ -243,16 +218,13 @@ jobs:
       - name: Display sccache stats
         if: steps. build_method.outputs.method == 'standard'
         run: sccache --show-stats || true
-
       - name: Extract package info
         id: pkg_info
         run: |
           cd "${{ matrix.pkg }}"
           source PKGBUILD
-
           PKGFILE="${{ steps.makepkg_standard.outputs.pkgfile0 }}"
           [[ -z "$PKGFILE" ]] && PKGFILE=$(find . -maxdepth 1 -name "*.pkg.tar.zst" -printf '%f\n' | head -1)
-
           {
             echo "PKGNAME=${pkgname}"
             echo "PKGVER=${pkgver}"
@@ -268,7 +240,6 @@ jobs:
           path: ${{ matrix.pkg }}/${{ steps. pkg_info.outputs. PKGFILE }}
           compression-level: 0
           retention-days: 30
-
       - name: Create GitHub release
         if: |
           inputs.create_release == true &&
@@ -281,7 +252,6 @@ jobs:
             git tag -a "$TAG" -m "Release $TAG"
             git push origin "$TAG"
           fi
-
       - name: Publish release
         if: |
           inputs.create_release == true &&
