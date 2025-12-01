@@ -10,7 +10,9 @@ _staging=true
 pkgname=pacman
 pkgver=6.0.2
 _pkgver=6.0.2
-_sqlitever=$(curl -s 'https://archlinux.org/packages/search/json/?name=sqlite' | grep -oP '"pkgver":\s*"\K[^"]+' | head -n 1 | awk -F. '{ 
+# Use jq for direct JSON parsing (more efficient than grep -P | awk pipeline)
+_sqlitever=$(curl -s 'https://archlinux.org/packages/search/json/?name=sqlite' | \
+  jq -r '.results[0].pkgver // empty' | awk -F. '{ 
     printf "%d%02d%02d", $1, $2, $3; 
     if (NF == 4) { printf "%02d", $4 } 
     else { printf "00" }

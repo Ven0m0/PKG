@@ -60,7 +60,7 @@ pgo_profiler() {
         echo 3 | sudo tee /proc/sys/vm/drop_caches
 
         echo "$query"
-        for i in $(seq 1 "$TRIES"); do
+        for ((i = 1; i <= TRIES; i++)); do
             LLVM_PROFILE_FILE=${PGO_PROFILE_DIR}/_%m_%p.profraw "$SQLITE_DIR"/sqlite3 mydb <<<"${query}"
         done
     done < queries.sql
