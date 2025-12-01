@@ -37,7 +37,7 @@ jobs:
     outputs:
       pkgs: ${{ steps.set. outputs.pkgs }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -72,14 +72,14 @@ jobs:
 
   build:
     needs: matrix
-    if: ${{ needs.matrix. outputs.pkgs != '[]' && needs.matrix.outputs.pkgs != '' }}
+    if: ${{ needs.matrix.outputs.pkgs != '[]' && needs.matrix.outputs.pkgs != '' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         pkg: ${{ fromJSON(needs.matrix.outputs.pkgs) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Determine build method
         id: build_method
@@ -94,9 +94,20 @@ jobs:
             echo "needs_space=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # ============================================================
+      # Mirror Optimization (runs early for max benefit)
+      # ============================================================
+      - name: Optimize APT mirrors
+        uses: vegardit/fast-apt-mirror.sh@v1
+        with:
+          healthchecks: 10
+          speedtests: 5
+          parallel_downloads: 8
+          cache_apt_lists: true
+
       - name: Free disk space
         if: steps.build_method.outputs.needs_space == 'true'
-        uses: AdityaGarg8/remove-unwanted-software@v4
+        uses: AdityaGarg8/remove-unwanted-software@v5
         with:
           remove-android: 'true'
           remove-dotnet: 'true'
@@ -145,9 +156,9 @@ jobs:
             ${{ runner.os }}-cargo-
 
       - name: Build package (standard)
-        if: steps.build_method.outputs.method == 'standard'
+        if: steps. build_method.outputs.method == 'standard'
         id: makepkg_standard
-        uses: 2m/arch-pkgbuild-builder@v1.25
+        uses: 2m/arch-pkgbuild-builder@v1. 25
         with:
           target: pkgbuild
           pkgname: ${{ matrix.pkg }}
@@ -162,7 +173,7 @@ jobs:
 
       - name: Cache Docker layers
         if: steps. build_method.outputs.method == 'docker'
-        uses: actions/cache@v4
+        uses: actions/cache@v4.3.0
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ matrix.pkg }}-${{ hashFiles(format('{0}/PKGBUILD', matrix.pkg)) }}
@@ -174,50 +185,63 @@ jobs:
         if: steps.build_method.outputs.method == 'docker'
         run: |
           pkg="${{ matrix.pkg }}"
+          
+          # Create optimized Dockerfile with fast mirrors
+          cat > /tmp/Dockerfile. build <<'DOCKERFILE'
+          FROM archlinux:latest
+          # Configure parallel downloads and fastest mirrors
+          RUN printf '[options]\nParallelDownloads = 8\n' >> /etc/pacman.conf && \
+              pacman -Sy --noconfirm --needed reflector && \
+              reflector --latest 20 --protocol https --sort rate --save /etc/pacman.d/mirrorlist && \
+              pacman -Syu --noconfirm --needed && \
+              pacman -S --noconfirm --needed sudo base-devel pacman-contrib clang llvm sccache ccache
+          
+          WORKDIR /workspace
+          DOCKERFILE
+          
+          # Build optimized base image (cached)
+          docker build -t archlinux-buildenv:latest -f /tmp/Dockerfile.build .
+          
+          # Run build in container
           docker run --rm \
             -v "$(pwd):/workspace:rw" \
-            -v /tmp/.buildx-cache:/cache \
+            -v /tmp/. buildx-cache:/cache \
             -e CCACHE_DIR=/cache/ccache \
             -e SCCACHE_DIR=/cache/sccache \
             -e CC=clang \
             -e CXX=clang++ \
             -e RUSTC_WRAPPER=sccache \
-            -w /workspace \
-            archlinux:latest bash -c "
+            -e MAKEFLAGS="-j$(nproc)" \
+            -w "/workspace/$pkg" \
+            archlinux-buildenv:latest bash -c '
             set -Eeuo pipefail
 
-            # Update system
-            pacman -Syu --noconfirm --needed
-            pacman -S --noconfirm --needed sudo base-devel pacman-contrib clang llvm sccache ccache
-
-            cd \"$pkg\"
-
-            # Extract dependencies
-            deps=\$(makepkg --printsrcinfo | awk '/^\s*(make)? depends\s*=/ { \$1=\"\"; print \$0 }' | tr '\n' ' ')
-            echo \"Dependencies: \$deps\"
-
-            # Install deps (ignore AUR failures)
-            pacman -S --noconfirm --needed \$deps 2>/dev/null || echo \"Warning: Some deps unavailable\"
+            # Extract and install dependencies
+            deps=$(makepkg --printsrcinfo | awk "/^\s*(make)? depends\s*=/ { \$1=\"\"; print \$0 }" | tr "\n" " ")
+            echo "Dependencies: $deps"
+            pacman -S --noconfirm --needed $deps 2>/dev/null || echo "Warning: Some deps unavailable"
 
             # Setup build user
             useradd -m builder
-            echo 'builder ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers. d/builder
+            echo "builder ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers. d/builder
             chmod 440 /etc/sudoers. d/builder
             chown -R builder:builder /workspace /cache
 
-            # Build with caching
-            sudo -u builder bash -c '
+            # Build with all optimizations
+            sudo -u builder bash -c "
               export CC=clang
               export CXX=clang++
               export RUSTC_WRAPPER=sccache
               export CCACHE_DIR=/cache/ccache
               export SCCACHE_DIR=/cache/sccache
+              export MAKEFLAGS=\"-j\$(nproc)\"
+              export CARGO_BUILD_JOBS=\$(nproc)
               makepkg --noconfirm --needed
-            '
-          "
+            "
+          '
 
       - name: Display sccache stats
-        if: steps.build_method.outputs.method == 'standard'
+        if: steps. build_method.outputs.method == 'standard'
         run: sccache --show-stats || true
 
       - name: Extract package info
@@ -238,21 +262,21 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
-          name: ${{ matrix. pkg }}
-          path: ${{ matrix.pkg }}/${{ steps.pkg_info.outputs. PKGFILE }}
+          name: ${{ matrix.pkg }}
+          path: ${{ matrix.pkg }}/${{ steps. pkg_info.outputs. PKGFILE }}
           compression-level: 0
+          retention-days: 30
 
       - name: Create GitHub release
         if: |
           inputs.create_release == true &&
-          contains(env.DOCKER_BUILD_PACKAGES, matrix. pkg)
+          contains(env.DOCKER_BUILD_PACKAGES, matrix.pkg)
         run: |
-          TAG="${{ steps.pkg_info. outputs.TAG }}"
+          TAG="${{ steps.pkg_info.outputs.TAG }}"
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-
           if !  git rev-parse "$TAG" >/dev/null 2>&1; then
             git tag -a "$TAG" -m "Release $TAG"
             git push origin "$TAG"
@@ -264,6 +288,7 @@ jobs:
           contains(env.DOCKER_BUILD_PACKAGES, matrix.pkg)
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.pkg_info.outputs.TAG }}
-          files: ${{ matrix.pkg }}/${{ steps.pkg_info.outputs.PKGFILE }}
+          tag_name: ${{ steps.pkg_info. outputs.TAG }}
+          files: ${{ matrix.pkg }}/${{ steps.pkg_info.outputs. PKGFILE }}
           generate_release_notes: true
+          fail_on_unmatched_files: false
