@@ -37,7 +37,7 @@ jobs:
     outputs:
       pkgs: ${{ steps.set. outputs.pkgs }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -79,7 +79,7 @@ jobs:
       matrix:
         pkg: ${{ fromJSON(needs.matrix.outputs.pkgs) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Determine build method
         id: build_method
@@ -262,7 +262,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.pkg }}
           path: ${{ matrix.pkg }}/${{ steps. pkg_info.outputs. PKGFILE }}

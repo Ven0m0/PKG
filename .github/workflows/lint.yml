@@ -26,7 +26,7 @@ jobs:
       pkgs: ${{ steps.set.outputs.pkgs }}
       files: ${{ steps.set.outputs.files }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -69,7 +69,7 @@ jobs:
       matrix:
         pkg: ${{ fromJSON(needs.matrix.outputs. pkgs) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Cache APT packages
         uses: awalsh128/cache-apt-pkgs-action@v1
@@ -96,7 +96,7 @@ jobs:
     if: ${{ needs.matrix. outputs.files != '[]' && needs.matrix.outputs.files != '' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -153,7 +153,7 @@ jobs:
   megalinter:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -168,7 +168,7 @@ jobs:
             ${{ runner.os }}-megalinter-
 
       - name: Run MegaLinter
-        uses: oxsecurity/megalinter@v8
+        uses: oxsecurity/megalinter@v9
         env:
           VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'workflow_dispatch' }}
           GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
