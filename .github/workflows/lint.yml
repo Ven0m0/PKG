@@ -6,7 +6,7 @@ on:
   pull_request:
     paths: ['**/PKGBUILD', '**/.SRCINFO', '**.sh', '**.py', '**.json', '**.y*ml']
 concurrency:
-  group: ${{ github. workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 permissions:
   contents: write
@@ -27,8 +27,7 @@ jobs:
       - id: set
         name: Determine modified packages and files
         run: |
-          pkgs=()
-          files=()
+          pkgs=(); files=()
           event="${{ github.event_name }}"
           if [[ "$event" == "workflow_dispatch" ]]; then
             mapfile -t pkgs < <(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | sort -u)
@@ -38,9 +37,7 @@ jobs:
             [[ "$event" == "pull_request" ]] && base="origin/${{ github.base_ref }}"
             echo "Diffing against: $base"
             while IFS= read -r dir; do
-              if [[ -f "$dir/PKGBUILD" ]]; then
-                pkgs+=("$dir")
-              fi
+              [[ -f "$dir/PKGBUILD" ]] && pkgs+=("$dir")
             done < <(git diff --name-only "$base" HEAD 2>/dev/null | xargs -r dirname | sort -u)
             mapfile -t files < <(git diff --name-only "$base" HEAD 2>/dev/null | grep -E '\.(sh|py|json|ya? ml)$' || true)
           fi
@@ -51,12 +48,12 @@ jobs:
 
   pkgbuild-lint:
     needs: matrix
-    if: ${{ needs.matrix.outputs.pkgs != '[]' && needs. matrix.outputs.pkgs != '' }}
+    if: ${{ needs.matrix.outputs.pkgs != '[]' && needs.matrix.outputs.pkgs != '' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        pkg: ${{ fromJSON(needs.matrix.outputs. pkgs) }}
+        pkg: ${{ fromJSON(needs.matrix.outputs.pkgs) }}
     steps:
       - uses: actions/checkout@v6
       - name: Cache APT packages
@@ -65,12 +62,12 @@ jobs:
           packages: shellcheck
           version: 1.0
       - name: Build and lint ${{ matrix.pkg }}
-        uses: 2m/arch-pkgbuild-builder@v1.25
+        uses: 2m/arch-pkgbuild-builder@v1.21
         with:
           target: pkgbuild
-          pkgname: ${{ matrix. pkg }}
+          pkgname: ${{ matrix.pkg }}
       - name: Validate package
-        uses: heyhusen/archlinux-package-action@v2
+        uses: heyhusen/archlinux-package-action@v2.4.0
         with:
           pkgrel: true
           pkgver: true
@@ -104,12 +101,12 @@ jobs:
         run: |
           mapfile -t sh_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '. []' | grep '\.sh$' || true)
           if [[ ${#sh_files[@]} -gt 0 ]]; then
-            shellcheck --format=gcc "${sh_files[@]}" || true
+            shellcheck --format=gcc "${sh_files[@]}" || :
           fi
       - name: Lint Python files
-        if: contains(needs. matrix.outputs.files, '.py')
+        if: contains(needs.matrix.outputs.files, '.py')
         run: |
-          mapfile -t py_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep '\.py$' || true)
+          mapfile -t py_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep '\.py$' || :)
           if [[ ${#py_files[@]} -gt 0 ]]; then
             ruff check "${py_files[@]}" || true
             black --check "${py_files[@]}" || true
@@ -117,14 +114,14 @@ jobs:
       - name: Lint YAML files
         if: contains(needs.matrix.outputs.files, '.yml') || contains(needs.matrix.outputs.files, '.yaml')
         run: |
-          mapfile -t yaml_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep -E '\.ya?ml$' || true)
+          mapfile -t yaml_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep -E '\.ya?ml$' || :)
           if [[ ${#yaml_files[@]} -gt 0 ]]; then
             yamllint -f parsable "${yaml_files[@]}" || :
           fi
       - name: Lint JSON files
         if: contains(needs.matrix.outputs.files, '.json')
         run: |
-          mapfile -t json_files < <(echo '${{ needs.matrix. outputs.files }}' | jq -r '.[]' | grep '\.json$' || true)
+          mapfile -t json_files < <(echo '${{ needs.matrix. outputs.files }}' | jq -r '.[]' | grep '\.json$' || :)
           if [[ ${#json_files[@]} -gt 0 ]]; then
             prettier --check "${json_files[@]}" || :
           fi
@@ -149,4 +146,4 @@ jobs:
         env:
           VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'workflow_dispatch' }}
           GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
-          FILTER_REGEX_EXCLUDE: '(. github|. git|.cache|go|node_modules|. var|.rustup|.wine|.zim|.void-editor|. vscode|.claude)/.*'
+          FILTER_REGEX_EXCLUDE: '(.github|.git|.cache|go|node_modules|.var|.rustup|.wine|.vscode|.claude)/.*'
