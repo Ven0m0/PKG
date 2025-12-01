@@ -100,7 +100,7 @@ jobs:
             ${{ runner.os }}-megalinter-
 
       - name: Run MegaLinter
-        uses: oxsecurity/megalinter@v8
+        uses: oxsecurity/megalinter@v9
         env:
           # Only validate all on manual trigger; otherwise defaults to git diff
           VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'workflow_dispatch' }}
