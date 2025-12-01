@@ -94,7 +94,7 @@ jobs:
           fi
       - name: Free disk space
         if: steps.build_method.outputs.needs_space == 'true'
-        uses: AdityaGarg8/remove-unwanted-software@v4
+        uses: AdityaGarg8/remove-unwanted-software@v5
         with:
           remove-android: 'true'
           remove-dotnet: 'true'
