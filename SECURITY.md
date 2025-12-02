@@ -2,20 +2,19 @@
 
 ## Supported Versions
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+This repository contains PKGBUILDs for Arch Linux packages. Security updates are provided for the latest version of each package.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+| Package | Supported |
+| ------- | --------- |
+| All packages in this repo | Latest version only |
 
 ## Reporting a Vulnerability
 
-Use this section to tell people how to report a vulnerability.
+If you discover a security vulnerability in any of the PKGBUILDs or build scripts:
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+1. **Do not** open a public issue
+2. Email the maintainer directly or use GitHub's private vulnerability reporting feature
+3. Include details about the vulnerability and steps to reproduce
+4. Allow reasonable time for a fix before public disclosure
+
+For vulnerabilities in upstream software, please report them to the respective upstream projects.
