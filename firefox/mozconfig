@@ -85,6 +85,7 @@ ac_add_options --disable-bits-download
 
 # Other
 ac_add_options --enable-linker=lld
+ac_add_options --enable-clang-plugin
 export AR=/usr/bin/llvm-ar
 export CC=/usr/bin/clang
 export CXX=/usr/bin/clang++
