@@ -2,34 +2,38 @@ diff --git a/libhb/encsvtav1.c b/libhb/encsvtav1.c
 index 54f52a117..22b59d4e3 100644
 --- a/libhb/encsvtav1.c
 +++ b/libhb/encsvtav1.c
-@@ -188,6 +190,22 @@ int encsvtInit(hb_work_object_t *w, hb_job_t *job)
+@@ -188,6 +188,22 @@ int encsvtInit(hb_work_object_t *w, hb_job_t *job)
      {
          param->tune = 2;
      }
 +    // SVT-AV1-HDR tune option
-+    else if (job->encoder_tune != NULL && strstr("grain", job->encoder_tune) != NULL)
++    else if (job->encoder_tune != NULL && strstr(job->encoder_tune, "grain") != NULL)
 +    {
 +        param->tune = 3;
 +    }
 +    // SVT-AV1-PSY tune option (alternative to grain, same tune value)
-+    else if (job->encoder_tune != NULL && strstr("subjective ssim", job->encoder_tune) != NULL)
++    else if (job->encoder_tune != NULL && strstr(job->encoder_tune, "subjective ssim") != NULL)
 +    {
 +        param->tune = 3;
 +    }
 +    // Available in both SVT-AV1-HDR and SVT-AV1-PSY
-+    else if (job->encoder_tune != NULL && strstr("still picture", job->encoder_tune) != NULL)
++    else if (job->encoder_tune != NULL && strstr(job->encoder_tune, "still picture") != NULL)
 +    {
 +        param->tune = 4;
 +    }
-     else if (job->encoder_tune != NULL && strstr("psnr", job->encoder_tune) != NULL)
+     else if (job->encoder_tune != NULL && strstr(job->encoder_tune, "psnr") != NULL)
      {
          param->tune = 1;
+diff --git a/libhb/hb.c b/libhb/hb. c
+index 0d9e8f3a2..1c2b5e6f3 100644
+--- a/libhb/hb. c
++++ b/libhb/hb.c
 @@ -31,7 +31,7 @@ static const char * const hb_av1_svt_preset_names[] =
-
+ 
  static const char * const hb_av1_svt_tune_names[] =
  {
 -    "vq", "psnr", "ssim", "fastdecode", NULL
 +    "vq", "psnr", "ssim", "grain", "subjective ssim", "still picture", "fastdecode", NULL
  };
-
+ 
  static const char * const hb_av1_svt_profile_names[] =
