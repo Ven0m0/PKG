@@ -2,7 +2,6 @@
 # Merged from multiple optimized Firefox PKGBUILDs
 # Features: Aggressive optimization, PGO, VA-API, system libraries, hardware acceleration
 
-
 pkgname=firefox-custom
 _pkgname=firefox
 pkgver=145.0.2
@@ -149,6 +148,7 @@ ac_add_options --enable-wasm-memory-control
 ac_add_options --enable-wasm-multi-memory
 ac_add_options --enable-wasm-branch-hinting
 ac_add_options --enable-linker=lld
+ac_add_options --enable-clang-plugin
 ac_add_options --enable-lto=full
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
