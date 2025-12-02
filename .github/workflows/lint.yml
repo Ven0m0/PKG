@@ -76,7 +76,7 @@ jobs:
 
   fast-lint:
     needs: matrix
-    if: ${{ needs.matrix. outputs.files != '[]' && needs.matrix.outputs.files != '' }}
+    if: ${{ needs.matrix.outputs.files != '[]' && needs.matrix.outputs.files != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -121,7 +121,7 @@ jobs:
       - name: Lint JSON files
         if: contains(needs.matrix.outputs.files, '.json')
         run: |
-          mapfile -t json_files < <(echo '${{ needs.matrix. outputs.files }}' | jq -r '.[]' | grep '\.json$' || :)
+          mapfile -t json_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep '\.json$' || :)
           if [[ ${#json_files[@]} -gt 0 ]]; then
             prettier --check "${json_files[@]}" || :
           fi
