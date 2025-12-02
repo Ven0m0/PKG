@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASEDIR=$(dirname "$0")
+BASEDIR=$(realpath "$(dirname "${BASH_SOURCE[0]}")")
 src_dir="HandBrake"
 help="Usage: patch.sh [src_dir=\"HandBrake\"] [options]
 
@@ -39,6 +39,10 @@ for (( i=1; i <= "$#"; i++ )); do
       ;;
   esac
 done
+
+# Resolve src_dir: if relative, make it relative to $PWD (not $BASEDIR)
+[[ "$src_dir" = /* ]] || src_dir="$PWD/$src_dir"
+
 if [[ !  -d "$src_dir" ]]; then
   echo "Error: $src_dir directory doesn't exist!"
   echo "$help"
