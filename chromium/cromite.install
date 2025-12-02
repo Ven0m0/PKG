@@ -1,0 +1,10 @@
+post_install() {
+  cat << EOF
+
+==> To make Widevine work, you may need to run the following manually:
+==>
+==> mkdir -p ~/.config/chromium/WidevineCdm
+==> echo '{"Path":"/usr/lib/cromite/WidevineCdm"}' > ~/.config/chromium/WidevineCdm/latest-component-updated-widevine-cdm
+
+EOF
+}

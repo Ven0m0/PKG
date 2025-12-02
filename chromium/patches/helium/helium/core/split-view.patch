@@ -1,0 +1,654 @@
+--- a/chrome/browser/ui/ui_features.cc
++++ b/chrome/browser/ui/ui_features.cc
+@@ -107,14 +107,14 @@ BASE_FEATURE(kReloadSelectionModel, base
+ // Enforces close tab hotkey to only close the active view of a split tab,
+ // when it is the only tab in selection model.
+ BASE_FEATURE(kCloseActiveTabInSplitViewViaHotkey,
+-             base::FEATURE_DISABLED_BY_DEFAULT);
++             base::FEATURE_ENABLED_BY_DEFAULT);
+ 
+ #if BUILDFLAG(IS_MAC)
+ // Add tab group colours when viewing tab groups using the top mac OS menu bar.
+ BASE_FEATURE(kShowTabGroupsMacSystemMenu, base::FEATURE_DISABLED_BY_DEFAULT);
+ #endif  // BUILDFLAG(IS_MAC)
+ 
+-BASE_FEATURE(kSideBySide, base::FEATURE_DISABLED_BY_DEFAULT);
++BASE_FEATURE(kSideBySide, base::FEATURE_ENABLED_BY_DEFAULT);
+ 
+ // The delay before showing the drop target for the side-by-side drag-and-drop
+ // entrypoint.
+@@ -132,17 +132,17 @@ BASE_FEATURE_PARAM(int,
+                    kSideBySideDropTargetMinWidth,
+                    &kSideBySide,
+                    "drop_target_min_width",
+-                   120);
++                   50);
+ BASE_FEATURE_PARAM(int,
+                    kSideBySideDropTargetMaxWidth,
+                    &kSideBySide,
+                    "drop_target_max_width",
+-                   360);
++                   200);
+ BASE_FEATURE_PARAM(int,
+                    kSideBySideDropTargetTargetWidthPercentage,
+                    &kSideBySide,
+                    "drop_target_width_percentage",
+-                   30);
++                   10);
+ BASE_FEATURE_PARAM(int,
+                    kSideBySideDropTargetHideForOSWidth,
+                    &kSideBySide,
+@@ -243,7 +243,7 @@ BASE_FEATURE_PARAM(int,
+ 
+ // When enabled along with SideBySide flag, split tabs will be restored on
+ // startup.
+-BASE_FEATURE(kSideBySideSessionRestore, base::FEATURE_DISABLED_BY_DEFAULT);
++BASE_FEATURE(kSideBySideSessionRestore, base::FEATURE_ENABLED_BY_DEFAULT);
+ 
+ bool IsRestoringSplitViewEnabled() {
+   return base::FeatureList::IsEnabled(features::kSideBySide) &&
+@@ -252,7 +252,7 @@ bool IsRestoringSplitViewEnabled() {
+ 
+ BASE_FEATURE(kSideBySideLinkMenuNewBadge, base::FEATURE_DISABLED_BY_DEFAULT);
+ 
+-BASE_FEATURE(kSideBySideKeyboardShortcut, base::FEATURE_DISABLED_BY_DEFAULT);
++BASE_FEATURE(kSideBySideKeyboardShortcut, base::FEATURE_ENABLED_BY_DEFAULT);
+ 
+ bool IsSideBySideKeyboardShortcutEnabled() {
+   return base::FeatureList::IsEnabled(features::kSideBySide) &&
+--- a/chrome/browser/ui/views/frame/multi_contents_resize_area.cc
++++ b/chrome/browser/ui/views/frame/multi_contents_resize_area.cc
+@@ -24,8 +24,8 @@
+ namespace {
+ const int kHandleCornerRadius = 2;
+ const int kHandleHeight = 24;
+-const int kHandlePadding = 6;
+-const int kHandleWidth = 4;
++const int kHandlePadding = 4;
++const int kHandleWidth = 2;
+ }  // namespace
+ 
+ DEFINE_CLASS_ELEMENT_IDENTIFIER_VALUE(MultiContentsResizeHandle,
+--- a/chrome/browser/ui/views/frame/multi_contents_view.h
++++ b/chrome/browser/ui/views/frame/multi_contents_view.h
+@@ -26,7 +26,6 @@ class MultiContentsDropTargetView;
+ class MultiContentsResizeArea;
+ class MultiContentsViewDelegate;
+ class MultiContentsViewDropTargetController;
+-class MultiContentsViewMiniToolbar;
+ 
+ namespace content {
+ class WebContents;
+@@ -56,7 +55,7 @@ class MultiContentsView : public views::
+     double end_width = 0;
+   };
+ 
+-  static constexpr int kSplitViewContentInset = 8;
++  static constexpr int kSplitViewContentInset = 0;
+ 
+   MultiContentsView(BrowserView* browser_view,
+                     std::unique_ptr<MultiContentsViewDelegate> delegate);
+@@ -168,10 +167,6 @@ class MultiContentsView : public views::
+     return contents_container_views_[1]->contents_view();
+   }
+ 
+-  MultiContentsViewMiniToolbar* mini_toolbar_for_testing(int index) const {
+-    return contents_container_views_[index]->mini_toolbar();
+-  }
+-
+   MultiContentsBackgroundView* background_view_for_testing() const {
+     return background_view_;
+   }
+@@ -280,10 +275,6 @@ class MultiContentsView : public views::
+   // Nullopt if not currently resizing.
+   std::optional<double> initial_start_width_on_resize_;
+ 
+-  // Insets of the start and end contents view when in split view
+-  gfx::Insets start_contents_view_inset_;
+-  gfx::Insets end_contents_view_inset_;
+-
+   bool active_contents_view_highlighted_ = false;
+ 
+   std::optional<int> min_contents_width_for_testing_ = std::nullopt;
+--- a/chrome/browser/resources/tab_search/split_view/app.css
++++ b/chrome/browser/resources/tab_search/split_view/app.css
+@@ -50,7 +50,7 @@ picture {
+ 
+ .body {
+   align-self: center;
+-  color: var(--cr-primary-text-color);
++  color: var(--cr-secondary-text-color);
+   font-size: 14px;
+   font-weight: 400;
+   line-height: 20px;
+--- a/chrome/browser/ui/views/frame/multi_contents_view.cc
++++ b/chrome/browser/ui/views/frame/multi_contents_view.cc
+@@ -26,7 +26,6 @@
+ #include "chrome/browser/ui/views/frame/multi_contents_resize_area.h"
+ #include "chrome/browser/ui/views/frame/multi_contents_view_delegate.h"
+ #include "chrome/browser/ui/views/frame/multi_contents_view_drop_target_controller.h"
+-#include "chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.h"
+ #include "chrome/browser/ui/views/frame/scrim_view.h"
+ #include "chrome/browser/ui/views/frame/top_container_background.h"
+ #include "chrome/browser/ui/views/new_tab_footer/footer_web_view.h"
+@@ -57,11 +56,7 @@ MultiContentsView::MultiContentsView(
+     BrowserView* browser_view,
+     std::unique_ptr<MultiContentsViewDelegate> delegate)
+     : browser_view_(browser_view),
+-      delegate_(std::move(delegate)),
+-      start_contents_view_inset_(
+-          gfx::Insets(kSplitViewContentInset).set_top(0).set_right(0)),
+-      end_contents_view_inset_(
+-          gfx::Insets(kSplitViewContentInset).set_top(0).set_left(0)) {
++      delegate_(std::move(delegate)) {
+   SetLayoutManager(std::make_unique<views::DelegatingLayoutManager>(this));
+   SetProperty(views::kElementIdentifierKey, kMultiContentsViewElementId);
+ 
+@@ -360,11 +355,8 @@ void MultiContentsView::OnResize(int res
+         std::make_optional(contents_container_views_[0]->size().width());
+   }
+   double total_width = contents_container_views_[0]->size().width() +
+-                       contents_container_views_[0]->GetInsets().width() +
+-                       contents_container_views_[1]->size().width() +
+-                       contents_container_views_[1]->GetInsets().width();
++                       contents_container_views_[1]->size().width();
+   double end_width = (initial_start_width_on_resize_.value() +
+-                      contents_container_views_[0]->GetInsets().width() +
+                       static_cast<double>(resize_amount));
+ 
+   // If end_width is within the snap point widths, update to the snap point.
+@@ -473,11 +465,6 @@ views::ProposedLayout MultiContentsView:
+   gfx::Rect end_rect(resize_rect.top_right(),
+                      gfx::Size(widths.end_width, available_space.height()));
+ 
+-  if (IsInSplitView()) {
+-    start_rect.Inset(start_contents_view_inset_);
+-    end_rect.Inset(end_contents_view_inset_);
+-  }
+-
+   layouts.child_layouts.emplace_back(contents_container_views_[0],
+                                      contents_container_views_[0]->GetVisible(),
+                                      start_rect);
+@@ -612,8 +599,10 @@ MultiContentsView::ViewWidths MultiConte
+     widths.resize_width = resize_area_->GetPreferredSize().width();
+     widths.start_width =
+         start_ratio_ * (available_space.width() - widths.resize_width);
++
++    // +1 to overcorrect for rounding errors that cause a gap on the very edge
+     widths.end_width =
+-        available_space.width() - widths.start_width - widths.resize_width;
++        available_space.width() - widths.start_width - widths.resize_width + 1;
+   } else {
+     CHECK(!contents_container_views_[1]->GetVisible());
+     widths.start_width = available_space.width();
+@@ -686,10 +675,6 @@ void MultiContentsView::SetShouldShowTop
+     return;
+   }
+   contents_separators_.should_show_top = should_show;
+-  start_contents_view_inset_.set_top(
+-      should_show ? 0 : MultiContentsView::kSplitViewContentInset);
+-  end_contents_view_inset_.set_top(
+-      should_show ? 0 : MultiContentsView::kSplitViewContentInset);
+ 
+   InvalidateLayout();
+ }
+@@ -699,8 +684,6 @@ void MultiContentsView::SetShouldShowLea
+     return;
+   }
+   contents_separators_.should_show_leading = should_show;
+-  start_contents_view_inset_.set_left(
+-      should_show ? 0 : MultiContentsView::kSplitViewContentInset);
+ 
+   InvalidateLayout();
+ }
+@@ -710,8 +693,6 @@ void MultiContentsView::SetShouldShowTra
+     return;
+   }
+   contents_separators_.should_show_trailing = should_show;
+-  end_contents_view_inset_.set_right(
+-      should_show ? 0 : MultiContentsView::kSplitViewContentInset);
+ 
+   InvalidateLayout();
+ }
+--- a/chrome/browser/ui/views/frame/contents_container_view.cc
++++ b/chrome/browser/ui/views/frame/contents_container_view.cc
+@@ -20,7 +20,6 @@
+ #include "chrome/browser/ui/views/frame/contents_container_outline.h"
+ #include "chrome/browser/ui/views/frame/contents_separator.h"
+ #include "chrome/browser/ui/views/frame/contents_web_view.h"
+-#include "chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.h"
+ #include "chrome/browser/ui/views/frame/scrim_view.h"
+ #include "chrome/browser/ui/views/frame/tab_modal_dialog_host.h"
+ #include "chrome/browser/ui/views/frame/top_container_view.h"
+@@ -51,10 +50,6 @@
+ #endif
+ 
+ namespace {
+-constexpr float kContentCornerRadius = 6;
+-constexpr gfx::RoundedCornersF kContentRoundedCorners{kContentCornerRadius};
+-constexpr int kSplitViewContentPadding = 4;
+-
+ constexpr int kNewTabFooterSeparatorHeight = 1;
+ constexpr int kNewTabFooterHeight = 56;
+ }  // namespace
+@@ -122,14 +117,6 @@ ContentsContainerView::ContentsContainer
+   }
+ #endif
+ 
+-  if (base::FeatureList::IsEnabled(features::kSideBySide)) {
+-    mini_toolbar_ = AddChildView(std::make_unique<MultiContentsViewMiniToolbar>(
+-        browser_view, contents_view_));
+-
+-    container_outline_ =
+-        AddChildView(std::make_unique<ContentsContainerOutline>(mini_toolbar_));
+-  }
+-
+   view_bounds_observer_.Observe(contents_view_);
+ }
+ 
+@@ -152,110 +139,11 @@ std::vector<views::View*> ContentsContai
+ void ContentsContainerView::UpdateBorderAndOverlay(bool is_in_split,
+                                                    bool is_active,
+                                                    bool is_highlighted) {
+-  is_in_split_ = is_in_split;
+-
+-  // The border, mini toolbar, and scrim should not be visible if not in a
+-  // split.
+-  if (!is_in_split) {
+-    SetBorder(nullptr);
+-    ClearBorderRoundedCorners();
+-    mini_toolbar_->SetVisible(false);
+-    container_outline_->SetVisible(false);
+-    return;
+-  }
+-
+-  SetBorder(views::CreateEmptyBorder(gfx::Insets(
+-      kSplitViewContentPadding + ContentsContainerOutline::kThickness)));
+-  UpdateBorderRoundedCorners();
+-
+-  container_outline_->UpdateState(is_active, is_highlighted);
+-  // Mini toolbar should only be visible for the inactive contents
+-  // container view or both depending on configuration.
+-  mini_toolbar_->UpdateState(is_active, is_highlighted);
+-}
+-
+-void ContentsContainerView::UpdateBorderRoundedCorners() {
+-  // Update devtools rounded corners. Note, devtools exists behind the contents
+-  // view so all devtools corners are rounded.
+-  devtools_web_view_->holder()->SetCornerRadii(kContentRoundedCorners);
+-  devtools_scrim_view_->SetRoundedCorners(kContentRoundedCorners);
+-
+-  const bool devtools_in_upper_left =
+-      devtools_web_view_->GetVisible() &&
+-      current_devtools_docked_placement_ == DevToolsDockedPlacement::kLeft;
+-  const bool devtools_in_upper_right =
+-      devtools_web_view_->GetVisible() &&
+-      current_devtools_docked_placement_ == DevToolsDockedPlacement::kRight;
+-  const bool devtools_in_lower_left =
+-      devtools_web_view_->GetVisible() &&
+-      (current_devtools_docked_placement_ == DevToolsDockedPlacement::kBottom ||
+-       current_devtools_docked_placement_ == DevToolsDockedPlacement::kLeft);
+-  const bool devtools_in_lower_right =
+-      devtools_web_view_->GetVisible() &&
+-      (current_devtools_docked_placement_ == DevToolsDockedPlacement::kBottom ||
+-       current_devtools_docked_placement_ == DevToolsDockedPlacement::kRight);
+-
+-  const gfx::RoundedCornersF content_upper_rounded_corners =
+-      gfx::RoundedCornersF{devtools_in_upper_left ? 0 : kContentCornerRadius,
+-                           devtools_in_upper_right ? 0 : kContentCornerRadius,
+-                           0, 0};
+-  const gfx::RoundedCornersF content_lower_rounded_corners =
+-      gfx::RoundedCornersF{0, 0,
+-                           devtools_in_lower_right ? 0 : kContentCornerRadius,
+-                           devtools_in_lower_left ? 0 : kContentCornerRadius};
+-  const gfx::RoundedCornersF content_rounded_corners =
+-      gfx::RoundedCornersF{devtools_in_upper_left ? 0 : kContentCornerRadius,
+-                           devtools_in_upper_right ? 0 : kContentCornerRadius,
+-                           devtools_in_lower_right ? 0 : kContentCornerRadius,
+-                           devtools_in_lower_left ? 0 : kContentCornerRadius};
+-
+-  auto radii = new_tab_footer_view_ && new_tab_footer_view_->GetVisible()
+-                   ? content_upper_rounded_corners
+-                   : content_rounded_corners;
+-
+-  contents_view_->SetBackgroundRadii(radii);
+-  contents_view_->holder()->SetCornerRadii(radii);
+-  contents_scrim_view_->SetRoundedCorners(kContentRoundedCorners);
+-
+-  if (new_tab_footer_view_) {
+-    new_tab_footer_view_->holder()->SetCornerRadii(
+-        content_lower_rounded_corners);
+-  }
+-
+-#if BUILDFLAG(ENABLE_GLIC)
+-  if (glic_border_) {
+-    glic_border_->SetRoundedCorners(content_rounded_corners);
+-  }
+-#endif
+-}
+-
+-void ContentsContainerView::ClearBorderRoundedCorners() {
+-  constexpr gfx::RoundedCornersF kNoRoundedCorners = gfx::RoundedCornersF{0};
+-
+-  devtools_web_view_->holder()->SetCornerRadii(kNoRoundedCorners);
+-  devtools_scrim_view_->SetRoundedCorners(kNoRoundedCorners);
+-
+-  contents_view_->SetBackgroundRadii(kNoRoundedCorners);
+-  contents_view_->holder()->SetCornerRadii(kNoRoundedCorners);
+-
+-  if (new_tab_footer_view_) {
+-    new_tab_footer_view_->holder()->SetCornerRadii(kNoRoundedCorners);
+-  }
+-
+-  contents_scrim_view_->SetRoundedCorners(kNoRoundedCorners);
+-
+-#if BUILDFLAG(ENABLE_GLIC)
+-  if (glic_border_) {
+-    glic_border_->SetRoundedCorners(kNoRoundedCorners);
+-  }
+-#endif
++  SetBorder(nullptr);
+ }
+ 
+ void ContentsContainerView::ChildVisibilityChanged(View* child) {
+-  if ((child == new_tab_footer_view_ || child == devtools_web_view_) &&
+-      is_in_split_) {
+-    UpdateBorderRoundedCorners();
+-  }
++  return;
+ }
+ 
+ void ContentsContainerView::Layout(PassKey pass_key) {
+@@ -269,9 +157,6 @@ void ContentsContainerView::Layout(PassK
+ void ContentsContainerView::OnViewBoundsChanged(View* observed_view) {
+   if (observed_view == contents_view_) {
+     UpdateDevToolsDockedPlacement();
+-    if (is_in_split_) {
+-      UpdateBorderRoundedCorners();
+-    }
+   }
+ }
+ 
+@@ -523,30 +408,6 @@ views::ProposedLayout ContentsContainerV
+         non_devtools_contents_bounds, size_bounds);
+   }
+ 
+-  if (mini_toolbar_) {
+-    // |mini_toolbar_| should be offset in the bottom right corner, overlapping
+-    // the outline. Shrink the available space by corner radius to ensure we
+-    // have space to draw it at the corners.
+-    views::SizeBounds available_space(width, height);
+-    available_space.Enlarge(-ContentsContainerOutline::kCornerRadius,
+-                            -ContentsContainerOutline::kCornerRadius);
+-    gfx::Size mini_toolbar_size =
+-        mini_toolbar_->GetPreferredSize(available_space);
+-    const int offset_x = width - mini_toolbar_size.width();
+-    const int offset_y = height - mini_toolbar_size.height();
+-    const gfx::Rect mini_toolbar_rect =
+-        gfx::Rect(offset_x, offset_y, mini_toolbar_size.width(),
+-                  mini_toolbar_size.height());
+-    layouts.child_layouts.emplace_back(
+-        mini_toolbar_.get(), mini_toolbar_->GetVisible(), mini_toolbar_rect);
+-  }
+-
+-  if (container_outline_) {
+-    layouts.child_layouts.emplace_back(container_outline_.get(),
+-                                       container_outline_->GetVisible(),
+-                                       gfx::Rect(0, 0, width, height));
+-  }
+-
+   layouts.host_size = gfx::Size(width, height);
+   return layouts;
+ }
+--- a/chrome/browser/ui/views/frame/contents_container_view.h
++++ b/chrome/browser/ui/views/frame/contents_container_view.h
+@@ -71,7 +71,6 @@ class ContentsContainerView : public vie
+   std::vector<views::View*> GetAccessiblePanes();
+ 
+   ContentsWebView* contents_view() { return contents_view_; }
+-  MultiContentsViewMiniToolbar* mini_toolbar() { return mini_toolbar_; }
+   ScrimView* contents_scrim_view() { return contents_scrim_view_; }
+   views::WebView* devtools_web_view() { return devtools_web_view_; }
+   ScrimView* devtools_scrim_view() { return devtools_scrim_view_; }
+@@ -91,9 +90,6 @@ class ContentsContainerView : public vie
+   enterprise_watermark::WatermarkView* watermark_view() {
+     return watermark_view_;
+   }
+-  const ContentsContainerOutline* contents_outline_view() const {
+-    return container_outline_;
+-  }
+   TabModalDialogHost* web_contents_modal_dialog_host() {
+     return &web_contents_modal_dialog_host_;
+   }
+@@ -131,9 +127,6 @@ class ContentsContainerView : public vie
+   // container that holds both contents_webview and devtools_webview.
+   void UpdateDevToolsDockedPlacement();
+ 
+-  void UpdateBorderRoundedCorners();
+-  void ClearBorderRoundedCorners();
+-
+   // views::View:
+   void ChildVisibilityChanged(View* child) override;
+   void Layout(PassKey) override;
+@@ -180,10 +173,6 @@ class ContentsContainerView : public vie
+   // The glic browser view that renders around the web contents area.
+   raw_ptr<glic::GlicBorderView> glic_border_ = nullptr;
+ 
+-  raw_ptr<MultiContentsViewMiniToolbar> mini_toolbar_ = nullptr;
+-
+-  raw_ptr<ContentsContainerOutline> container_outline_ = nullptr;
+-
+   std::unique_ptr<views::Widget> capture_contents_border_widget_;
+   std::optional<gfx::Rect> dynamic_capture_content_border_bounds_;
+ 
+--- a/chrome/browser/ui/views/frame/multi_contents_drop_target_view.cc
++++ b/chrome/browser/ui/views/frame/multi_contents_drop_target_view.cc
+@@ -42,11 +42,9 @@
+ 
+ namespace {
+ 
+-constexpr float kInnerCornerRadius = 6;
+-constexpr int kOuterPadding = 8;
+ constexpr int kIconSize = 24;
+-constexpr int kAnimationDurationMs = 450;
+-constexpr gfx::Insets kInnerContainerMargins = gfx::Insets::VH(24, 10);
++constexpr gfx::Insets kInnerContainerMargins = gfx::Insets::VH(32, 10);
++constexpr int kAnimationDurationMs = 300;
+ 
+ }  // namespace
+ 
+@@ -61,19 +59,12 @@ MultiContentsDropTargetView::MultiConten
+       ->SetOrientation(views::LayoutOrientation::kVertical)
+       .SetMainAxisAlignment(views::LayoutAlignment::kCenter)
+       .SetCrossAxisAlignment(views::LayoutAlignment::kCenter)
+-      .SetInteriorMargin(gfx::Insets(kOuterPadding))
+       .SetDefault(
+           views::kFlexBehaviorKey,
+           views::FlexSpecification(views::MinimumFlexSizeRule::kScaleToZero,
+                                    views::MaximumFlexSizeRule::kUnbounded));
+ 
+   auto inner_container = std::make_unique<views::View>();
+-  inner_container->SetPaintToLayer(ui::LAYER_SOLID_COLOR);
+-  inner_container->layer()->SetName(
+-      "MultiContentsDropTargetView/InnerContainer");
+-  inner_container->layer()->SetRoundedCornerRadius(
+-      gfx::RoundedCornersF(kInnerCornerRadius));
+-  inner_container->layer()->SetIsFastRoundedCorner(true);
+ 
+   inner_container_layout_ =
+       &inner_container->SetLayoutManager(std::make_unique<views::FlexLayout>())
+@@ -92,13 +83,13 @@ MultiContentsDropTargetView::MultiConten
+   icon_view_->SetPaintToLayer(ui::LAYER_TEXTURED);
+   icon_view_->layer()->SetFillsBoundsOpaquely(false);
+   icon_view_->SetImage(ui::ImageModel::FromVectorIcon(
+-      kAddCircleIcon, ui::kColorSysPrimary, kIconSize));
++      kAddCircleIcon, ui::kColorMenuIcon, kIconSize));
+ 
+   label_ = inner_container->AddChildView(std::make_unique<views::Label>(
+       l10n_util::GetStringUTF16(IDS_SPLIT_VIEW_DRAG_ENTRYPOINT_LABEL)));
+   label_->SetPaintToLayer(ui::LAYER_TEXTURED);
+   label_->layer()->SetFillsBoundsOpaquely(false);
+-  label_->SetEnabledColor(ui::kColorSysPrimary);
++  label_->SetEnabledColor(ui::kColorMenuIcon);
+   label_->SetElideBehavior(gfx::NO_ELIDE);
+   label_->SetSubpixelRenderingEnabled(false);
+ 
+@@ -279,8 +270,6 @@ void MultiContentsDropTargetView::Disabl
+ 
+ void MultiContentsDropTargetView::OnThemeChanged() {
+   views::View::OnThemeChanged();
+-  inner_container_->layer()->SetColor(
+-      GetColorProvider()->GetColor(ui::kColorSysSurface3));
+ }
+ 
+ bool MultiContentsDropTargetView::GetDropFormats(
+--- a/chrome/browser/ui/views/frame/browser_view_layout.cc
++++ b/chrome/browser/ui/views/frame/browser_view_layout.cc
+@@ -874,27 +874,6 @@ void BrowserViewLayout::LayoutContentsCo
+                           !layout_result.side_panel_right_aligned);
+     left_aligned_side_panel_separator_->SetBoundsRect(
+         layout_result.separator_bounds);
+-
+-    SetViewVisibility(side_panel_rounded_corner_,
+-                      layout_result.side_panel_visible);
+-    if (layout_result.side_panel_visible) {
+-      // Adjust the rounded corner bounds based on the side panel bounds.
+-      const int corner_size =
+-          side_panel_rounded_corner_->GetPreferredSize().width();
+-
+-      const int top_separator_height = views::Separator::kThickness;
+-      if (layout_result.contents_container_after_side_panel) {
+-        side_panel_rounded_corner_->SetBounds(
+-            layout_result.side_panel_bounds.right(),
+-            layout_result.side_panel_bounds.y() - top_separator_height,
+-            corner_size, corner_size);
+-      } else {
+-        side_panel_rounded_corner_->SetBounds(
+-            layout_result.side_panel_bounds.x() - corner_size,
+-            layout_result.side_panel_bounds.y() - top_separator_height,
+-            corner_size, corner_size);
+-      }
+-    }
+   }
+ }
+ 
+--- a/chrome/browser/ui/views/frame/browser_view.cc
++++ b/chrome/browser/ui/views/frame/browser_view.cc
+@@ -136,7 +136,6 @@
+ #include "chrome/browser/ui/views/frame/multi_contents_view.h"
+ #include "chrome/browser/ui/views/frame/multi_contents_view_delegate.h"
+ #include "chrome/browser/ui/views/frame/multi_contents_view_drop_target_controller.h"
+-#include "chrome/browser/ui/views/frame/multi_contents_view_mini_toolbar.h"
+ #include "chrome/browser/ui/views/frame/scrim_view.h"
+ #include "chrome/browser/ui/views/frame/tab_modal_dialog_host.h"
+ #include "chrome/browser/ui/views/frame/tab_strip_region_view.h"
+@@ -2290,12 +2289,6 @@ void BrowserView::UpdateToolbar(content:
+   if (toolbar_) {
+     toolbar_->Update(contents);
+   }
+-  if (multi_contents_view_) {
+-    for (ContentsContainerView* contents_container :
+-         multi_contents_view_->contents_container_views()) {
+-      contents_container->mini_toolbar()->UpdateContents();
+-    }
+-  }
+ }
+ 
+ bool BrowserView::UpdateToolbarSecurityState() {
+--- a/chrome/browser/ui/tabs/split_tab_menu_model.cc
++++ b/chrome/browser/ui/tabs/split_tab_menu_model.cc
+@@ -11,7 +11,6 @@
+ #include "base/metrics/histogram_functions.h"
+ #include "base/notreached.h"
+ #include "chrome/app/vector_icons/vector_icons.h"
+-#include "chrome/browser/feedback/show_feedback_page.h"
+ #include "chrome/browser/profiles/profile.h"
+ #include "chrome/browser/ui/browser.h"
+ #include "chrome/browser/ui/browser_list.h"
+@@ -125,16 +124,6 @@ SplitTabMenuModel::SplitTabMenuModel(Tab
+   SetElementIdentifierAt(
+       GetIndexOfCommandId(GetCommandIdInt(CommandId::kExitSplit)).value(),
+       kExitSplitMenuItem);
+-
+-  // Only render feedback in the toolbar button menu.
+-  if (menu_source == MenuSource::kToolbarButton &&
+-      tab_strip_model->profile()->GetPrefs()->GetBoolean(
+-          prefs::kUserFeedbackAllowed)) {
+-    AddSeparator(ui::MenuSeparatorType::NORMAL_SEPARATOR);
+-    AddItemWithStringIdAndIcon(GetCommandIdInt(CommandId::kSendFeedback),
+-                               IDS_SPLIT_TAB_SEND_FEEDBACK,
+-                               ui::ImageModel::FromVectorIcon(kReportIcon));
+-  }
+ }
+ 
+ SplitTabMenuModel::~SplitTabMenuModel() = default;
+@@ -216,9 +205,6 @@ void SplitTabMenuModel::ExecuteCommand(i
+     case CommandId::kExitSplit:
+       tab_strip_model_->RemoveSplit(split_id);
+       break;
+-    case CommandId::kSendFeedback:
+-      SendFeedback();
+-      break;
+   }
+ 
+   base::UmaHistogramEnumeration(
+@@ -260,10 +246,3 @@ void SplitTabMenuModel::CloseTabAtIndex(
+       index, TabCloseTypes::CLOSE_USER_GESTURE |
+                  TabCloseTypes::CLOSE_CREATE_HISTORICAL_TAB);
+ }
+-
+-void SplitTabMenuModel::SendFeedback() {
+-  Browser* const browser = GetBrowserWithTabStripModel(tab_strip_model_);
+-  CHECK(browser);
+-  chrome::ShowFeedbackPage(browser, feedback::kFeedbackSourceSplitView, "", "",
+-                           "split_view", "");
+-}
+--- a/chrome/browser/ui/tabs/split_tab_menu_model.h
++++ b/chrome/browser/ui/tabs/split_tab_menu_model.h
+@@ -47,8 +47,7 @@ class SplitTabMenuModel : public ui::Sim
+     kCloseStartTab,
+     kCloseEndTab,
+     kExitSplit,
+-    kSendFeedback,
+-    kMaxValue = kSendFeedback,
++    kMaxValue = kExitSplit,
+   };
+   // LINT.ThenChange(//tools/metrics/histograms/metadata/tab/enums.xml:SplitViewMenuEntry)
+ 
+@@ -78,7 +77,6 @@ class SplitTabMenuModel : public ui::Sim
+       split_tabs::SplitTabActiveLocation active_split_tab_location) const;
+   split_tabs::SplitTabLayout GetSplitLayout() const;
+   void CloseTabAtIndex(int index);
+-  void SendFeedback();
+ 
+   raw_ptr<TabStripModel> tab_strip_model_ = nullptr;
+ 
+--- a/chrome/browser/ui/browser_commands.cc
++++ b/chrome/browser/ui/browser_commands.cc
+@@ -500,8 +500,12 @@ void ReloadInternal(BrowserWindowInterfa
+   WebContents* const active_contents = tab_strip_model->GetActiveWebContents();
+ 
+   std::vector<WebContents*> tabs_to_reload;
++  const bool only_active_split_tab_selected =
++      browser->GetTabStripModel()->IsActiveTabSplit() &&
++      browser->GetTabStripModel()->selection_model().size() == 2;
+ 
+-  if (base::FeatureList::IsEnabled(features::kReloadSelectionModel)) {
++  if (base::FeatureList::IsEnabled(features::kReloadSelectionModel) ||
++        only_active_split_tab_selected) {
+     tabs_to_reload.push_back(active_contents);
+   } else {
+     // Reloading a tab may change the selection (see crbug.com/339061099), so
+--- a/chrome/browser/renderer_context_menu/render_view_context_menu.cc
++++ b/chrome/browser/renderer_context_menu/render_view_context_menu.cc
+@@ -4944,8 +4944,8 @@ void RenderViewContextMenu::OpenLinkInSp
+ 
+   TabStripModel* const tab_strip_model = browser->tab_strip_model();
+   tabs::TabInterface* const source_tab =
+-      tabs::TabInterface::GetFromContents(source_web_contents_);
+-  if (source_tab->IsSplit()) {
++      tabs::TabInterface::MaybeGetFromContents(source_web_contents_);
++  if (source_tab && source_tab->IsSplit()) {
+     // Navigate the inactive tab to the URL
+     const split_tabs::SplitTabId split_id = source_tab->GetSplit().value();
+     for (tabs::TabInterface* tab :

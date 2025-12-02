@@ -1,0 +1,258 @@
+--- a/chrome/browser/ui/browser_actions.cc
++++ b/chrome/browser/ui/browser_actions.cc
+@@ -43,8 +43,6 @@
+ #include "chrome/browser/ui/passwords/passwords_model_delegate.h"
+ #include "chrome/browser/ui/performance_controls/memory_saver_bubble_controller.h"
+ #include "chrome/browser/ui/qrcode_generator/qrcode_generator_bubble_controller.h"
+-#include "chrome/browser/ui/send_tab_to_self/send_tab_to_self_bubble.h"
+-#include "chrome/browser/ui/send_tab_to_self/send_tab_to_self_toolbar_icon_controller.h"
+ #include "chrome/browser/ui/tabs/public/tab_features.h"
+ #include "chrome/browser/ui/tabs/saved_tab_groups/saved_tab_group_utils.h"
+ #include "chrome/browser/ui/toolbar/cast/cast_toolbar_button_util.h"
+@@ -216,10 +214,6 @@ void BrowserActions::InitializeBrowserAc
+                   SidePanelEntryId::kBookmarks, IDS_BOOKMARK_MANAGER_TITLE,
+                   IDS_BOOKMARK_MANAGER_TITLE, kBookmarksSidePanelRefreshIcon,
+                   kActionSidePanelShowBookmarks, bwi, true),
+-              SidePanelAction(SidePanelEntryId::kReadingList,
+-                              IDS_READ_LATER_TITLE, IDS_READ_LATER_TITLE,
+-                              kReadingListIcon, kActionSidePanelShowReadingList,
+-                              bwi, true),
+               SidePanelAction(SidePanelEntryId::kAboutThisSite,
+                               IDS_PAGE_INFO_ABOUT_THIS_PAGE_TITLE,
+                               IDS_PAGE_INFO_ABOUT_THIS_PAGE_TITLE,
+@@ -229,17 +223,7 @@ void BrowserActions::InitializeBrowserAc
+                               IDS_SIDE_PANEL_CUSTOMIZE_CHROME_TITLE,
+                               IDS_SIDE_PANEL_CUSTOMIZE_CHROME_TITLE,
+                               vector_icons::kEditChromeRefreshIcon,
+-                              kActionSidePanelShowCustomizeChrome, bwi, false),
+-              SidePanelAction(SidePanelEntryId::kShoppingInsights,
+-                              IDS_SHOPPING_INSIGHTS_SIDE_PANEL_TITLE,
+-                              IDS_SHOPPING_INSIGHTS_SIDE_PANEL_TITLE,
+-                              vector_icons::kShoppingBagIcon,
+-                              kActionSidePanelShowShoppingInsights, bwi, false),
+-              SidePanelAction(SidePanelEntryId::kMerchantTrust,
+-                              IDS_MERCHANT_TRUST_SIDE_PANEL_TITLE,
+-                              IDS_MERCHANT_TRUST_SIDE_PANEL_TITLE,
+-                              vector_icons::kStorefrontIcon,
+-                              kActionSidePanelShowMerchantTrust, bwi, false))
++                              kActionSidePanelShowCustomizeChrome, bwi, false))
+           .Build());
+ 
+   if (side_panel::history_clusters::
+@@ -268,40 +252,6 @@ void BrowserActions::InitializeBrowserAc
+                       kActionSidePanelShowReadAnything, bwi, true)
+           .Build());
+ 
+-  if (lens::features::IsLensOverlayEnabled()) {
+-    actions::ActionItem::InvokeActionCallback callback = base::BindRepeating(
+-        [](base::WeakPtr<BrowserWindowInterface> bwi, actions::ActionItem* item,
+-           actions::ActionInvocationContext context) {
+-          if (!bwi) {
+-            return;
+-          }
+-          lens::LensOverlayEntryPointController::InvokeAction(
+-              bwi->GetActiveTabInterface(), context);
+-        },
+-        bwi->GetWeakPtr());
+-    const gfx::VectorIcon& icon =
+-#if BUILDFLAG(GOOGLE_CHROME_BRANDING)
+-        vector_icons::kGoogleLensMonochromeLogoIcon;
+-#else
+-        vector_icons::kSearchChromeRefreshIcon;
+-#endif
+-    root_action_item_->AddChild(
+-        actions::ActionItem::Builder(callback)
+-            .SetActionId(kActionSidePanelShowLensOverlayResults)
+-            .SetText(l10n_util::GetStringUTF16(
+-                lens::GetLensOverlayEntrypointLabelAltIds(
+-                    IDS_SHOW_LENS_OVERLAY)))
+-            .SetTooltipText(l10n_util::GetStringUTF16(
+-                lens::GetLensOverlayEntrypointLabelAltIds(
+-                    IDS_SIDE_PANEL_LENS_OVERLAY_TOOLBAR_TOOLTIP)))
+-            .SetImage(ui::ImageModel::FromVectorIcon(
+-                icon, ui::kColorIcon, ui::SimpleMenuModel::kDefaultIconSize))
+-            .SetProperty(actions::kActionItemPinnableKey,
+-                         std::underlying_type_t<actions::ActionPinnableState>(
+-                             actions::ActionPinnableState::kPinnable))
+-            .Build());
+-  }
+-
+   root_action_item_->AddChild(
+       actions::ActionItem::Builder(
+           base::BindRepeating(
+@@ -547,44 +497,6 @@ void BrowserActions::InitializeBrowserAc
+           kActionDevTools, IDS_DEV_TOOLS, IDS_DEV_TOOLS, kDeveloperToolsIcon)
+           .Build());
+ 
+-  if (send_tab_to_self::SendTabToSelfToolbarIconController::CanShowOnBrowser(
+-          bwi)) {
+-    root_action_item_->AddChild(
+-        ChromeMenuAction(
+-            base::BindRepeating(
+-                [](BrowserWindowInterface* bwi, TabStripModel* tab_strip_model,
+-                   actions::ActionItem* item,
+-                   actions::ActionInvocationContext context) {
+-                  auto* const bubble_controller =
+-                      bwi->GetFeatures()
+-                          .send_tab_to_self_toolbar_bubble_controller();
+-                  if (bubble_controller->IsBubbleShowing()) {
+-                    bubble_controller->HideBubble();
+-                  } else {
+-                    send_tab_to_self::ShowBubble(
+-                        tab_strip_model->GetActiveWebContents());
+-                  }
+-                },
+-                bwi, tab_strip_model),
+-            kActionSendTabToSelf, IDS_SEND_TAB_TO_SELF, IDS_SEND_TAB_TO_SELF,
+-            kDevicesChromeRefreshIcon)
+-            .SetEnabled(chrome::CanSendTabToSelf(bwi))
+-            .SetVisible(!sharing_hub::SharingIsDisabledByPolicy(profile))
+-            .Build());
+-  }
+-
+-  root_action_item_->AddChild(
+-      ChromeMenuAction(
+-          base::BindRepeating(
+-              [](BrowserWindowInterface* bwi, actions::ActionItem* item,
+-                 actions::ActionInvocationContext context) {
+-                chrome::ShowTranslateBubble(bwi);
+-              },
+-              bwi),
+-          kActionShowTranslate, IDS_SHOW_TRANSLATE, IDS_TOOLTIP_TRANSLATE,
+-          kTranslateIcon)
+-          .Build());
+-
+   root_action_item_->AddChild(
+       ChromeMenuAction(
+           base::BindRepeating(
+@@ -599,56 +511,6 @@ void BrowserActions::InitializeBrowserAc
+           .SetVisible(!sharing_hub::SharingIsDisabledByPolicy(profile))
+           .Build());
+ 
+-  root_action_item_->AddChild(
+-      ChromeMenuAction(
+-          base::BindRepeating(
+-              [](BrowserWindowInterface* bwi, TabStripModel* tab_strip_model,
+-                 actions::ActionItem* item,
+-                 actions::ActionInvocationContext context) {
+-                auto* controller = autofill::AddressBubblesIconController::Get(
+-                    tab_strip_model->GetActiveWebContents());
+-                if (controller && controller->GetBubbleView()) {
+-                  controller->GetBubbleView()->Hide();
+-                } else {
+-                  chrome::ShowAddresses(bwi);
+-                }
+-              },
+-              bwi, tab_strip_model),
+-          kActionShowAddressesBubbleOrPage,
+-          IDS_ADDRESSES_AND_MORE_SUBMENU_OPTION,
+-          IDS_ADDRESSES_AND_MORE_SUBMENU_OPTION,
+-          vector_icons::kLocationOnChromeRefreshIcon)
+-          .SetEnabled(!is_guest_session)
+-          .Build());
+-
+-  root_action_item_->AddChild(
+-      ChromeMenuAction(
+-          base::BindRepeating(
+-              [](BrowserWindowInterface* bwi, TabStripModel* tab_strip_model,
+-                 actions::ActionItem* item,
+-                 actions::ActionInvocationContext context) {
+-                auto hide_bubble = [tab_strip_model](int command_id) -> bool {
+-                  auto* controller = autofill::SavePaymentIconController::Get(
+-                      tab_strip_model->GetActiveWebContents(), command_id);
+-                  if (controller && controller->GetPaymentBubbleView()) {
+-                    controller->GetPaymentBubbleView()->Hide();
+-                    return true;
+-                  }
+-                  return false;
+-                };
+-                const bool bubble_hidden =
+-                    hide_bubble(IDC_SAVE_CREDIT_CARD_FOR_PAGE) ||
+-                    hide_bubble(IDC_SAVE_IBAN_FOR_PAGE);
+-                if (!bubble_hidden) {
+-                  chrome::ShowPaymentMethods(bwi);
+-                }
+-              },
+-              bwi, tab_strip_model),
+-          kActionShowPaymentsBubbleOrPage, IDS_PAYMENT_METHOD_SUBMENU_OPTION,
+-          IDS_PAYMENT_METHOD_SUBMENU_OPTION, kCreditCardChromeRefreshIcon)
+-          .SetEnabled(!is_guest_session)
+-          .Build());
+-
+   // TODO(crbug.com/435220196): Ideally this action would have
+   // ChromeLabsCoordinator passed in as a dependency directly.
+   if (IsChromeLabsEnabled() && !bwi->GetAppBrowserController()) {
+@@ -666,34 +528,6 @@ void BrowserActions::InitializeBrowserAc
+   }
+ 
+   root_action_item_->AddChild(
+-      ChromeMenuAction(
+-          base::BindRepeating(
+-              [](BrowserWindowInterface* bwi, TabStripModel* tab_strip_model,
+-                 actions::ActionItem* item,
+-                 actions::ActionInvocationContext context) {
+-                content::WebContents* const web_contents =
+-                    tab_strip_model->GetActiveWebContents();
+-                if (PasswordsModelDelegateFromWebContents(web_contents)
+-                        ->GetState() == password_manager::ui::INACTIVE_STATE) {
+-                  chrome::ShowPasswordManager(bwi);
+-                } else {
+-                  auto* const controller =
+-                      ManagePasswordsUIController::FromWebContents(
+-                          web_contents);
+-                  if (controller->IsShowingBubble()) {
+-                    controller->HideBubble();
+-                  } else {
+-                    chrome::ManagePasswordsForPage(bwi);
+-                  }
+-                }
+-              },
+-              bwi, tab_strip_model),
+-          kActionShowPasswordsBubbleOrPage, IDS_VIEW_PASSWORDS,
+-          IDS_VIEW_PASSWORDS, vector_icons::kPasswordManagerIcon)
+-          .SetEnabled(!is_guest_session)
+-          .Build());
+-
+-  root_action_item_->AddChild(
+       actions::ActionItem::Builder(
+           base::BindRepeating(
+               [](TabStripModel* tab_strip_model, actions::ActionItem* item,
+--- a/chrome/browser/ui/views/translate/translate_bubble_controller.cc
++++ b/chrome/browser/ui/views/translate/translate_bubble_controller.cc
+@@ -40,11 +40,7 @@ const char kTranslatePartialTranslationS
+ 
+ actions::ActionItem* GetTranslateActionItem(
+     actions::ActionItem* root_action_item) {
+-  actions::ActionItem* translate_action_item =
+-      actions::ActionManager::Get().FindAction(kActionShowTranslate,
+-                                               root_action_item);
+-  CHECK(translate_action_item);
+-  return translate_action_item;
++  return nullptr;
+ }
+ 
+ }  // namespace
+--- a/chrome/browser/ui/web_applications/app_browser_controller.cc
++++ b/chrome/browser/ui/web_applications/app_browser_controller.cc
+@@ -380,7 +380,7 @@ std::vector<actions::ActionId> AppBrowse
+ #endif  // BUILDFLAG(IS_CHROMEOS)
+ 
+   std::vector<actions::ActionId> types_enabled = {
+-      kActionFind,       kActionShowPasswordsBubbleOrPage, kActionShowTranslate,
++      kActionFind,
+       kActionZoomNormal, kActionShowFileSystemAccess,
+   };
+ 
+@@ -403,12 +403,8 @@ AppBrowserController::GetTitleBarPageAct
+ 
+   std::vector<PageActionIconType> types_enabled;
+   types_enabled.push_back(PageActionIconType::kFind);
+-  types_enabled.push_back(PageActionIconType::kManagePasswords);
+-  types_enabled.push_back(PageActionIconType::kTranslate);
+   types_enabled.push_back(PageActionIconType::kZoom);
+   types_enabled.push_back(PageActionIconType::kFileSystemAccess);
+-  types_enabled.push_back(PageActionIconType::kCookieControls);
+-  types_enabled.push_back(PageActionIconType::kSaveCard);
+ 
+   return types_enabled;
+ }

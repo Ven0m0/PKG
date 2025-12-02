@@ -1,0 +1,51 @@
+From: uazo <uazo@users.noreply.github.com>
+Date: Tue, 14 Feb 2023 16:26:17 +0000
+Subject: Disable FedCm
+
+License: GPL-2.0-or-later - https://spdx.org/licenses/GPL-2.0-or-later.html
+---
+ .../content_settings/core/browser/content_settings_registry.cc  | 2 +-
+ .../content/public/common/content_features_cc/Disable-FedCm.inc | 1 +
+ .../third_party/blink/common/features_cc/Disable-FedCm.inc      | 1 +
+ .../blink/renderer/platform/runtime_enabled_features.json5      | 2 +-
+ 4 files changed, 4 insertions(+), 2 deletions(-)
+ create mode 100644 cromite_flags/content/public/common/content_features_cc/Disable-FedCm.inc
+ create mode 100644 cromite_flags/third_party/blink/common/features_cc/Disable-FedCm.inc
+
+diff --git a/components/content_settings/core/browser/content_settings_registry.cc b/components/content_settings/core/browser/content_settings_registry.cc
+--- a/components/content_settings/core/browser/content_settings_registry.cc
++++ b/components/content_settings/core/browser/content_settings_registry.cc
+@@ -671,7 +671,7 @@ void ContentSettingsRegistry::Init() {
+            PermissionSettingsInfo::EXCEPTIONS_ON_SECURE_ORIGINS_ONLY);
+ 
+   Register(ContentSettingsType::FEDERATED_IDENTITY_AUTO_REAUTHN_PERMISSION,
+-           "webid-auto-reauthn", CONTENT_SETTING_ALLOW,
++           "webid-auto-reauthn", CONTENT_SETTING_BLOCK, // requires user mediation
+            WebsiteSettingsInfo::UNSYNCABLE,
+            /*allowlisted_primary_schemes=*/{},
+            /*valid_settings=*/{CONTENT_SETTING_ALLOW, CONTENT_SETTING_BLOCK},
+diff --git a/cromite_flags/content/public/common/content_features_cc/Disable-FedCm.inc b/cromite_flags/content/public/common/content_features_cc/Disable-FedCm.inc
+new file mode 100644
+--- /dev/null
++++ b/cromite_flags/content/public/common/content_features_cc/Disable-FedCm.inc
+@@ -0,0 +1 @@
++SET_CROMITE_FEATURE_DISABLED(kFedCm);
+diff --git a/cromite_flags/third_party/blink/common/features_cc/Disable-FedCm.inc b/cromite_flags/third_party/blink/common/features_cc/Disable-FedCm.inc
+new file mode 100644
+--- /dev/null
++++ b/cromite_flags/third_party/blink/common/features_cc/Disable-FedCm.inc
+@@ -0,0 +1 @@
++// empty
+diff --git a/third_party/blink/renderer/platform/runtime_enabled_features.json5 b/third_party/blink/renderer/platform/runtime_enabled_features.json5
+--- a/third_party/blink/renderer/platform/runtime_enabled_features.json5
++++ b/third_party/blink/renderer/platform/runtime_enabled_features.json5
+@@ -2143,7 +2143,7 @@
+     {
+       name: "FedCm",
+       public: true,
+-      status: "stable",
++      status: "test",
+       base_feature: "none",
+     },
+     {
+--

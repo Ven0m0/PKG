@@ -1,0 +1,151 @@
+TODO: guard services_page.html with is_mac
+
+--- a/components/helium_services/pref_names.h
++++ b/components/helium_services/pref_names.h
+@@ -27,6 +27,9 @@ inline constexpr char kHeliumExtProxyEna
+ inline constexpr char kHeliumBangsEnabled[] =
+     "helium.services.bangs";
+ 
++inline constexpr char kHeliumUpdateFetchingEnabled[] =
++    "helium.services.browser_updates";
++
+ inline constexpr char kHeliumSpellcheckEnabled[] =
+     "helium.services.spellcheck_files";
+ 
+--- a/components/helium_services/helium_services_helpers.h
++++ b/components/helium_services/helium_services_helpers.h
+@@ -20,11 +20,13 @@ const char kHeliumDummyOrigin[] =
+ 
+ COMPONENT_EXPORT(HELIUM) bool ShouldFetchBangs(const PrefService& prefs);
+ COMPONENT_EXPORT(HELIUM) bool ShouldAccessExtensionService(const PrefService& prefs);
++COMPONENT_EXPORT(HELIUM) bool ShouldAccessUpdateService(const PrefService& prefs);
+ COMPONENT_EXPORT(HELIUM) GURL GetServicesBaseURL(const PrefService& prefs);
+ COMPONENT_EXPORT(HELIUM) GURL GetDummyURL();
+ COMPONENT_EXPORT(HELIUM) GURL GetExtensionUpdateURL(const PrefService& prefs);
+ COMPONENT_EXPORT(HELIUM) GURL GetWebstoreSnippetURL(const PrefService& prefs, std::string_view id);
+ COMPONENT_EXPORT(HELIUM) GURL GetSpellcheckURL(const PrefService& prefs);
++COMPONENT_EXPORT(HELIUM) GURL GetBrowserUpdateURL(const PrefService& prefs);
+ COMPONENT_EXPORT(HELIUM) std::optional<GURL> GetValidUserOverridenURL(std::string_view user_url_);
+ COMPONENT_EXPORT(HELIUM) void ConfigurePrefChangeRegistrarFor(std::string_view pref_name,
+                             PrefChangeRegistrar& registrar, const base::RepeatingClosure& observer);
+--- a/components/helium_services/helium_services_helpers.cc
++++ b/components/helium_services/helium_services_helpers.cc
+@@ -7,6 +7,7 @@
+ #include <optional>
+ 
+ #include "base/functional/bind.h"
++#include "base/strings/stringprintf.h"
+ #include "components/helium_services/pref_names.h"
+ #include "components/prefs/pref_service.h"
+ #include "net/base/url_util.h"
+@@ -15,6 +16,12 @@
+ 
+ namespace helium {
+ 
++#if defined(ARCH_CPU_ARM_FAMILY)
++constexpr std::string cpu_arch = "arm64";
++#else
++constexpr std::string cpu_arch = "x86_64";
++#endif
++
+ std::optional<GURL> GetValidUserOverridenURL(std::string_view user_url_) {
+     if (user_url_.empty()) {
+         return std::nullopt;
+@@ -76,6 +83,11 @@ bool ShouldFetchBangs(const PrefService&
+             prefs.GetBoolean(prefs::kHeliumBangsEnabled);
+ }
+ 
++bool ShouldAccessUpdateService(const PrefService& prefs) {
++    return ShouldAccessServices(prefs) &&
++            prefs.GetBoolean(prefs::kHeliumUpdateFetchingEnabled);
++}
++
+ GURL GetExtensionUpdateURL(const PrefService& prefs) {
+     if (!ShouldAccessExtensionService(prefs)) {
+         return GetDummyURL();
+@@ -101,6 +113,20 @@ GURL GetSpellcheckURL(const PrefService&
+     return GetServicesBaseURL(prefs).Resolve("/dict/");
+ }
+ 
++GURL GetBrowserUpdateURL(const PrefService& prefs) {
++    if (!ShouldAccessUpdateService(prefs)) {
++        return GetDummyURL();
++    }
++
++#if BUILDFLAG(IS_MAC)
++    std::string path = base::StringPrintf(
++        "/updates/mac/appcast-%s.xml", cpu_arch);
++    return GetServicesBaseURL(prefs).Resolve(path);
++#else
++    return GetDummyURL();
++#endif
++}
++
+ void ConfigurePrefChangeRegistrarFor(std::string_view pref_name,
+     PrefChangeRegistrar& registrar, const base::RepeatingClosure& observer) {
+   registrar.Add(prefs::kHeliumServicesEnabled, observer);
+--- a/chrome/browser/resources/settings/privacy_page/services_page.html
++++ b/chrome/browser/resources/settings/privacy_page/services_page.html
+@@ -62,6 +62,13 @@
+                     sub-label="$i18n{heliumSpellcheckToggleDescription}">
+                 </settings-toggle-button>
+             </if>
++            <if expr="is_macosx">
++                <settings-toggle-button id="updatesToggleButton"
++                    pref="{{prefs.helium.services.browser_updates}}"
++                    label="$i18n{heliumUpdatesToggle}"
++                    sub-label="$i18n{heliumUpdatesToggleDescription}">
++                </settings-toggle-button>
++            </if>
+         </cr-collapse>
+     </div>
+     </template>
+--- a/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
++++ b/chrome/browser/ui/webui/settings/settings_localized_strings_provider.cc
+@@ -1985,6 +1985,10 @@ void AddPrivacyStrings(content::WebUIDat
+         IDS_SETTINGS_HELIUM_SERVICES_EXT_PROXY_TOGGLE},
+       {"heliumExtProxyToggleDescription",
+         IDS_SETTINGS_HELIUM_SERVICES_EXT_PROXY_TOGGLE_DESCRIPTION},
++      {"heliumUpdatesToggle",
++        IDS_SETTINGS_HELIUM_SERVICES_UPDATE},
++      {"heliumUpdatesToggleDescription",
++        IDS_SETTINGS_HELIUM_SERVICES_UPDATE_DESCRIPTION},
+       {"heliumOriginOverride", IDS_SETTINGS_HELIUM_SERVICES_OVERRIDE},
+       {"heliumOriginOverrideDescription",
+         IDS_SETTINGS_HELIUM_SERVICES_OVERRIDE_DESCRIPTION},
+--- a/chrome/browser/extensions/api/settings_private/prefs_util.cc
++++ b/chrome/browser/extensions/api/settings_private/prefs_util.cc
+@@ -361,6 +361,8 @@ const PrefsUtil::TypedPrefMap& PrefsUtil
+       settings_api::PrefType::kBoolean;
+   (*s_allowlist)[::prefs::kHeliumSpellcheckEnabled] =
+       settings_api::PrefType::kBoolean;
++  (*s_allowlist)[::prefs::kHeliumUpdateFetchingEnabled] =
++      settings_api::PrefType::kBoolean;
+   (*s_allowlist)[::prefs::kHeliumServicesOrigin] =
+       settings_api::PrefType::kString;
+   (*s_allowlist)[::prefs::kHeliumServicesConsented] =
+--- a/chrome/browser/ui/browser_ui_prefs.cc
++++ b/chrome/browser/ui/browser_ui_prefs.cc
+@@ -214,6 +214,7 @@ void RegisterBrowserUserPrefs(user_prefs
+     registry->RegisterStringPref(prefs::kHeliumServicesOrigin, "");
+     registry->RegisterBooleanPref(prefs::kHeliumDidOnboarding, false);
+     registry->RegisterBooleanPref(prefs::kHeliumServicesConsented, false);
++    registry->RegisterBooleanPref(prefs::kHeliumUpdateFetchingEnabled, true);
+   }
+ 
+   registry->RegisterBooleanPref(
+--- a/chrome/app/settings_strings.grdp
++++ b/chrome/app/settings_strings.grdp
+@@ -1963,6 +1963,12 @@
+   <message name="IDS_SETTINGS_HELIUM_SERVICES_SPELLCHECK_TOGGLE_DESCRIPTION" desc="Description of the for enabling/disabling of downloading spellcheck files">
+     Helium will fetch dictionary files used for spell checking when requested. When disabled, spell checking will not work.
+   </message>
++  <message name="IDS_SETTINGS_HELIUM_SERVICES_UPDATE" desc="Toggle for automatic update downloads">
++    Allow automatic browser updates
++  </message>
++  <message name="IDS_SETTINGS_HELIUM_SERVICES_UPDATE_DESCRIPTION" desc="Description of the toggle for automatic update downloads">
++    Helium will automatically download and install browser updates as they become available. We recommend keeping this setting enabled to ensure you get the latest security patches and features.
++  </message>
+   <message name="IDS_SETTINGS_HELIUM_SERVICES_OVERRIDE" desc="Text input for overriding the Helium services server">
+     Use your own instance of Helium services
+   </message>

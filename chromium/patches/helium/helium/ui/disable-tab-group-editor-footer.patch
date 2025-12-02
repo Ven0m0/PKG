@@ -1,0 +1,10 @@
+--- a/chrome/browser/ui/views/tabs/tab_group_editor_bubble_view.cc
++++ b/chrome/browser/ui/views/tabs/tab_group_editor_bubble_view.cc
+@@ -812,6 +812,7 @@ bool TabGroupEditorBubbleView::IsGroupSh
+ }
+ 
+ bool TabGroupEditorBubbleView::ShouldShowSavedFooter() const {
++  return false;
+   PrefService* pref_service = browser_->profile()->GetPrefs();
+   return (CanSaveGroups() && pref_service &&
+           saved_tab_group_prefs::GetLearnMoreFooterShownCount(pref_service) <

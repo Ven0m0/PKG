@@ -1,0 +1,73 @@
+From: uazo <uazo@users.noreply.github.com>
+Date: Wed, 23 Aug 2023 13:49:19 +0000
+Subject: Enable Android Dynamic Performance Framework
+
+License: GPL-2.0-or-later - https://spdx.org/licenses/GPL-2.0-or-later.html
+---
+ chrome/version.gni                                      | 4 ++--
+ components/viz/common/features.cc                       | 2 ++
+ components/viz/service/performance_hint/hint_session.cc | 5 +----
+ 3 files changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/chrome/version.gni b/chrome/version.gni
+--- a/chrome/version.gni
++++ b/chrome/version.gni
+@@ -82,7 +82,7 @@ if (target_os == "android") {
+     _version_dictionary_template +=
+         "trichrome_auto_64_version_code = \"@TRICHROME_AUTO_64_VERSION_CODE@\" "
+     _version_dictionary_template += "trichrome_desktop_64_version_code = \"@TRICHROME_DESKTOP_64_VERSION_CODE@\" "
+-    if (target_cpu == "arm64") {
++    if (target_cpu == "arm64" || target_cpu == "x64") {
+       _version_dictionary_template += "trichrome_64_32_high_version_code = \"@TRICHROME_64_32_HIGH_VERSION_CODE@\" "
+       _version_dictionary_template += "trichrome_auto_64_32_high_version_code = \"@TRICHROME_AUTO_64_32_HIGH_VERSION_CODE@\" "
+     }
+@@ -220,7 +220,7 @@ if (is_mac) {
+   chrome_version_name = chrome_version_full
+ 
+   # There is a different version code only for arm64.
+-  if (is_high_end_android && target_cpu != "arm64") {
++  if (is_high_end_android && target_cpu == "x64") {
+     trichrome_64_32_high_beta_version_code = trichrome_64_32_beta_version_code
+     trichrome_64_32_high_version_code = trichrome_64_32_version_code
+     trichrome_auto_64_32_high_version_code = trichrome_auto_64_32_version_code
+diff --git a/components/viz/common/features.cc b/components/viz/common/features.cc
+--- a/components/viz/common/features.cc
++++ b/components/viz/common/features.cc
+@@ -186,6 +186,7 @@ const base::FeatureParam<std::string> kWebViewADPFSocManufacturerBlocklist{
+ // HWUI. This feature works only when WebViewEnableADPF is enabled, otherwise
+ // this is a no-op.
+ BASE_FEATURE(kWebViewEnableADPFRendererMain, base::FEATURE_DISABLED_BY_DEFAULT);
++SET_CROMITE_FEATURE_ENABLED(kWebViewEnableADPFRendererMain);
+ 
+ // If enabled, the GPU Main thread is included in the set of threads reported
+ // to the HWUI. This feature works only when WebViewEnableADPF is enabled,
+@@ -286,6 +287,7 @@ BASE_FEATURE(kEnableADPFSeparateRendererMainSession,
+ // If enabled, Chrome uses SetThreads instead of recreating an
+ // ADPF(Android Dynamic Performance Framework) hint session when the set of
+ // threads in the session changes.
++// see https://source.chromium.org/chromium/chromium/src/+/e7507d15614ac7f499fb89086b3a09772fa8deb4
+ BASE_FEATURE(kEnableADPFSetThreads, base::FEATURE_ENABLED_BY_DEFAULT);
+ 
+ // If enabled, Chrome uses notifyWorkloadReset method on viz wakeup instead of
+diff --git a/components/viz/service/performance_hint/hint_session.cc b/components/viz/service/performance_hint/hint_session.cc
+--- a/components/viz/service/performance_hint/hint_session.cc
++++ b/components/viz/service/performance_hint/hint_session.cc
+@@ -335,16 +335,13 @@ bool IsAdpfEnabled() {
+           switches::kDisableAdpf)) {
+     return false;
+   }
+-  if (base::android::android_info::sdk_int() <
+-      base::android::android_info::SDK_VERSION_S) {
+-    return false;
+-  }
+   if (!AdpfMethods::Get().supported) {
+     return false;
+   }
+   if (!base::FeatureList::IsEnabled(features::kAdpf)) {
+     return false;
+   }
++  if ((true)) return true;
+ 
+   std::string soc_allowlist = features::kADPFSocManufacturerAllowlist.Get();
+   std::string soc_blocklist = features::kADPFSocManufacturerBlocklist.Get();
+--

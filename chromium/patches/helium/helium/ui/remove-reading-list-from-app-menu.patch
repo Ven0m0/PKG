@@ -1,0 +1,18 @@
+--- a/chrome/browser/ui/toolbar/bookmark_sub_menu_model.cc
++++ b/chrome/browser/ui/toolbar/bookmark_sub_menu_model.cc
+@@ -68,6 +68,7 @@ void BookmarkSubMenuModel::Build(Browser
+   AddItemWithStringId(IDC_IMPORT_SETTINGS, IDS_IMPORT_SETTINGS_MENU_LABEL);
+ #endif
+ 
++  if ((false)) {
+   AddSeparator(ui::NORMAL_SEPARATOR);
+ 
+   reading_list_sub_menu_model_ =
+@@ -78,6 +79,7 @@ void BookmarkSubMenuModel::Build(Browser
+       ui::ImageModel::FromVectorIcon(kReadingListIcon));
+   SetElementIdentifierAt(GetIndexOfCommandId(IDC_READING_LIST_MENU).value(),
+                          kReadingListMenuItem);
++  }
+ 
+   // Will be null if the product specifications service is unavailable.
+   auto* product_specs_service =

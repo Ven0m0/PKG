@@ -1,0 +1,94 @@
+#!/bin/bash
+
+set -e
+
+readonly VERSION=$1
+if [[ -z $VERSION ]]; then
+  echo >&2 'No version given as an argument'
+  exit 1
+fi
+
+mkdir -p chromium-checkout
+cd chromium-checkout
+
+rm -rf depot_tools
+git clone --depth=1 https://chromium.googlesource.com/chromium/tools/depot_tools
+export PATH+=":$PWD/depot_tools" DEPOT_TOOLS_UPDATE=0
+# export VPYTHON_BYPASS='manually managed python not supported by chrome operations'
+unset VPYTHON_BYPASS
+
+CHR_SOURCE=https://github.com/chromium/chromium.git
+
+if [ ! -d src ]; then
+mkdir -p src
+git -C src init
+git -C src remote add origin $CHR_SOURCE
+git -C src config --add remote.origin.fetch '+refs/tags/*:refs/tags/*'
+fi
+git -C src fetch --depth 2 $CHR_SOURCE +refs/tags/$VERSION:chromium_$VERSION
+git -C src clean -fd
+git -C src reset --hard $VERSION
+git -C src submodule foreach --recursive git clean -fd
+git -C src submodule foreach --recursive git reset --hard
+git -C src submodule update --remote --checkout
+VERSION_SHA=$(git -C src show-ref -s $VERSION | head -n1)
+
+cat >.gclient <<EOF
+solutions = [
+  {
+    "name": "src",
+    "url": "$CHR_SOURCE@$VERSION_SHA",
+    "deps_file": 'DEPS',
+    "managed": True,
+    "custom_deps": {
+      "src/third_party/apache-windows-arm64": None,
+      "src/third_party/updater/chrome_win_x86": None,
+      "src/third_party/updater/chrome_win_x86_64": None,
+      "src/third_party/updater/chromium_win_x86": None,
+      "src/third_party/updater/chromium_win_x86_64": None,
+      "src/third_party/gperf": None,
+      "src/third_party/lighttpd": None,
+      "src/third_party/lzma_sdk/bin/host_platform": None,
+      "src/third_party/lzma_sdk/bin/win64": None,
+      "src/third_party/perl": None,
+      "src/tools/skia_goldctl/win": None,
+      "src/third_party/screen-ai/windows_amd64": None,
+      "src/third_party/screen-ai/windows_386": None,
+    },
+    "custom_hooks": [
+      { 'name': 'ciopfs_linux', 'pattern': '.', 'action': ['echo', 'ciopfs_linux hook override'] },
+      { 'name': 'win_toolchain', 'pattern': '.', 'action': ['echo', 'win_toolchain hook override'] },
+      { 'name': 'rc_win', 'pattern': '.', 'action': ['echo', 'rc_win hook override'] },
+      { 'name': 'rc_linux', 'pattern': '.', 'action': ['echo', 'rc_linux hook override'] },
+      { 'name': 'apache_win32', 'pattern': '.', 'action': ['echo', 'apache_win32 hook override'] },
+    ],
+    "custom_vars": {
+      "checkout_android_prebuilts_build_tools": True,
+      "checkout_pgo_profiles": True,
+      "checkout_telemetry_dependencies": False,
+      "codesearch": 'Debug',
+    },
+  },
+]
+target_os = ['android', 'win']
+EOF
+
+gclient sync -D --no-history --nohooks
+gclient runhooks
+src/build/util/lastchange.py -o src/build/util/LASTCHANGE
+src/build/util/lastchange.py -m GPU_LISTS_VERSION \
+  --revision-id-only --header src/gpu/config/gpu_lists_version.h
+src/build/util/lastchange.py -m SKIA_COMMIT_HASH \
+  -s src/third_party/skia --header src/skia/ext/skia_commit_hash.h
+src/build/util/lastchange.py \
+  -s src/third_party/dawn --revision src/gpu/webgpu/DAWN_VERSION
+src/tools/update_pgo_profiles.py --target=linux update \
+  --gs-url-base=chromium-optimization-profiles/pgo_profiles
+
+# https://gitlab.archlinux.org/archlinux/packaging/packages/electron32/-/issues/1
+src/third_party/node/update_npm_deps
+
+find src/third_party/jdk/current -type f -delete
+
+cd ..
+ln -sf chromium-checkout/src chromium-$VERSION

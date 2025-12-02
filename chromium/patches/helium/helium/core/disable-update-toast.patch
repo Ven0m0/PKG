@@ -1,0 +1,11 @@
+--- a/chrome/browser/ui/ui_features.cc
++++ b/chrome/browser/ui/ui_features.cc
+@@ -627,7 +627,7 @@ bool HasTabSearchToolbarButton() {
+   return is_tab_search_moving;
+ }
+ 
+-BASE_FEATURE(kNonMilestoneUpdateToast, base::FEATURE_ENABLED_BY_DEFAULT);
++BASE_FEATURE(kNonMilestoneUpdateToast, base::FEATURE_DISABLED_BY_DEFAULT);
+ 
+ BASE_FEATURE(kBookmarkTabGroupConversion, base::FEATURE_DISABLED_BY_DEFAULT);
+ 

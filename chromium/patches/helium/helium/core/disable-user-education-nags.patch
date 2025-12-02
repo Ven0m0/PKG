@@ -1,0 +1,28 @@
+--- a/chrome/browser/user_education/user_education_service_factory.cc
++++ b/chrome/browser/user_education/user_education_service_factory.cc
+@@ -112,6 +112,7 @@ UserEducationServiceFactory::BuildServic
+ 
+ // static
+ bool UserEducationServiceFactory::ProfileAllowsUserEducation(Profile* profile) {
++  return false;
+ #if BUILDFLAG(CHROME_FOR_TESTING)
+   // IPH is always disabled in Chrome for Testing.
+   return false;
+--- a/components/user_education/common/tutorial/tutorial_registry.cc
++++ b/components/user_education/common/tutorial/tutorial_registry.cc
+@@ -26,7 +26,6 @@ bool TutorialRegistry::IsTutorialRegiste
+ 
+ const TutorialDescription* TutorialRegistry::GetTutorialDescription(
+     TutorialIdentifier id) const {
+-  DCHECK(tutorial_registry_.size() > 0);
+   auto pair = tutorial_registry_.find(id);
+   if (pair == tutorial_registry_.end()) {
+     return nullptr;
+@@ -36,7 +35,6 @@ const TutorialDescription* TutorialRegis
+ 
+ const std::vector<TutorialIdentifier> TutorialRegistry::GetTutorialIdentifiers()
+     const {
+-  DCHECK(tutorial_registry_.size() > 0);
+   std::vector<TutorialIdentifier> id_strings;
+   std::ranges::transform(tutorial_registry_, std::back_inserter(id_strings),
+                          &Registry::value_type::first);
