@@ -139,12 +139,13 @@ prepare() {
   rm -f Android-Pixel-Perfect-Mode.patch
   popd
 
-  for patch in $(cat $srcdir/cromite-$pkgver-$_commit/build/cromite_patches_list.txt); do
-    if [ -f $srcdir/cromite-$pkgver-$_commit/build/patches/$patch ]; then
+  while IFS= read -r patch; do
+    [[ -z "$patch" ]] && continue
+    if [[ -f "$srcdir/cromite-$pkgver-$_commit/build/patches/$patch" ]]; then
       echo "Applying: $patch"
-      git apply $srcdir/cromite-$pkgver-$_commit/build/patches/$patch
+      git apply "$srcdir/cromite-$pkgver-$_commit/build/patches/$patch"
     fi
-  done
+  done < "$srcdir/cromite-$pkgver-$_commit/build/cromite_patches_list.txt"
 
   # Widevine fixes from Debian
   patch -Np1 -i $srcdir/widevine-revision.patch
@@ -381,7 +382,7 @@ package() {
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/cromite/LICENSE"
 
   cp -a $srcdir/WidevineCdm "$pkgdir/usr/lib/cromite/"
-  find "$pkgdir/usr/lib/cromite/WidevineCdm" -name '*.so' -exec chmod +x {} \;
+  find "$pkgdir/usr/lib/cromite/WidevineCdm" -name '*.so' -exec chmod +x {} +
   install -Dm644 $srcdir/WidevineCdm/LICENSE \
     "$pkgdir/usr/share/licenses/cromite/LICENSE.widevine"
 }

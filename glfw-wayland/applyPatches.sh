@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 PS1="$"
-basedir=`pwd`
+basedir="$PWD"
 echo "Rebuilding Forked projects.... "
 
 function applyPatch {
@@ -14,7 +14,7 @@ function applyPatch {
     git branch -f upstream >/dev/null
 
     cd "$basedir"
-    if [ ! -d  "$basedir/$target" ]; then
+    if [[ ! -d  "$basedir/$target" ]]; then
         git clone $1 $target -b upstream
     fi
     cd "$basedir/$target"
@@ -24,13 +24,13 @@ function applyPatch {
     git checkout master >/dev/null 2>&1
     git fetch upstream >/dev/null 2>&1
     git reset --hard upstream/upstream
-    if [ -z "$(ls -A $basedir/patches/)" ]; then
+    if [[ -z "$(find "$basedir/patches/" -maxdepth 1 -name '*.patch' -print -quit)" ]]; then
         echo "  No patches found for $target"
     else
         echo "  Applying patches to $target..."
         git am --abort
         git am --3way "$basedir/patches/"*.patch
-        if [ "$?" != "0" ]; then
+        if [[ "$?" != "0" ]]; then
             echo "  Something did not apply cleanly to $target."
             echo "  Please review above details and finish the apply then"
             echo "  save the changes with rebuildPatches.sh"
