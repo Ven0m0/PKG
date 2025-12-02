@@ -342,14 +342,27 @@ build () {
     fi
 
     # Selector fixes
+    # Cache git merge-base results to avoid repeated expensive git operations (performance optimization)
+    declare -A _commit_cache
+    _has_commit() {
+      local commit="$1"
+      if [[ -z "${_commit_cache[$commit]+isset}" ]]; then
+        if ( cd "$srcdir/$_mesa_srcdir" && git merge-base --is-ancestor "$commit" HEAD 2>/dev/null ); then
+          _commit_cache[$commit]=1
+        else
+          _commit_cache[$commit]=0
+        fi
+      fi
+      [[ "${_commit_cache[$commit]}" == "1" ]]
+    }
 
     # dri drivers moved to the amber branch
-    if [ "$_mesa_branch" = "amber" ] || ( cd "$srcdir/$_mesa_srcdir" && ! git merge-base --is-ancestor cdde031ac2c8124721655532ee6f4149e20e9c61 HEAD ); then
+    if [ "$_mesa_branch" = "amber" ] || ! _has_commit cdde031ac2c8124721655532ee6f4149e20e9c61; then
       _dri_inc="-D dri-drivers=${_dri_drivers} "
     fi
 
     # Syntax legacy compat
-    if ( cd "$srcdir/$_mesa_srcdir" && git merge-base --is-ancestor 138c003d22739b0d1e6860ed398dd511a44cde04 HEAD ); then
+    if _has_commit 138c003d22739b0d1e6860ed398dd511a44cde04; then
       _enabled_="enabled"
       _disabled_="disabled"
     else
@@ -387,23 +400,23 @@ build () {
     fi
 
     # legacy compat
-    if ( cd "$srcdir/$_mesa_srcdir" && git merge-base --is-ancestor e00adef34a5ce485e2c9216a268ca05e89a5fc98 HEAD ); then
+    if _has_commit e00adef34a5ce485e2c9216a268ca05e89a5fc98; then
       _platforms="x11,wayland"
     else
       _platforms="x11,wayland,drm,surfaceless"
     fi
-    if ( cd "$srcdir/$_mesa_srcdir" && ! git merge-base --is-ancestor e2de00876a7033b6923f912af8d2b0bbd100e113 HEAD ); then
+    if ! _has_commit e2de00876a7033b6923f912af8d2b0bbd100e113; then
       _legacy_switches="-D swr-arches=avx,avx2"
     fi
 
     # microsoft clc
-    if ( cd "$srcdir/$_mesa_srcdir" && git merge-base --is-ancestor a5227465c13ae74651a932a82aeae65683f4a063 HEAD ); then
+    if _has_commit a5227465c13ae74651a932a82aeae65683f4a063; then
       _microsoft_clc="-D microsoft-clc=${_disabled_}"
     fi
 
     # osmesa
-    if ( cd "$srcdir/$_mesa_srcdir" && ! git merge-base --is-ancestor 027ccd963b1f8f288bef4224aedcddc1557e4f8a HEAD ); then
-      if ( cd "$srcdir/$_mesa_srcdir" && git merge-base --is-ancestor ee802372180a2b4460cc7abb53438e45c6b6f1e4 HEAD ); then
+    if ! _has_commit 027ccd963b1f8f288bef4224aedcddc1557e4f8a; then
+      if _has_commit ee802372180a2b4460cc7abb53438e45c6b6f1e4; then
         if [ "$_osmesa" != "false" ]; then
           _osmesa="-D osmesa=true"
         else
@@ -415,12 +428,12 @@ build () {
     fi
 
     # optional codecs after 7ab05e3
-    if ( cd "$srcdir/$_mesa_srcdir" && git merge-base --is-ancestor 7ab05e3c3fe34ea7f8d7345b9229c163e42c3600 HEAD ); then
+    if _has_commit 7ab05e3c3fe34ea7f8d7345b9229c163e42c3600; then
       _optional_codecs="-D video-codecs=${_codecs}"
     fi
 
     # layer selector
-    if ( cd "$srcdir/$_mesa_srcdir" && git merge-base --is-ancestor 54fe5b0482df0f066384b274796d4081c2a1968c HEAD ); then
+    if _has_commit 54fe5b0482df0f066384b274796d4081c2a1968c; then
       _layers="-D vulkan-layers=device-select,overlay,anti-lag"
       _lib32layers="-D vulkan-layers=device-select,overlay"
     else
@@ -429,23 +442,23 @@ build () {
     fi
 
     # intel_hasvk removal for legacy trees
-    if ( cd "$srcdir/$_mesa_srcdir" && ! git merge-base --is-ancestor 50013ca9a57c42114044f593c981bbad8c405cc9 HEAD ); then
+    if ! _has_commit 50013ca9a57c42114044f593c981bbad8c405cc9; then
       # Use parameter expansion instead of echo | sed | tr for efficiency
       _vulkan_drivers="${_vulkan_drivers//,intel_hasvk}"
     fi
 
     # xvmc toggle for legacy trees
-    if ( cd "$srcdir/$_mesa_srcdir" && ! git merge-base --is-ancestor 8cc766d8f7eac26b7c029a2fac1bdfdba4776c29 HEAD ); then
+    if ! _has_commit 8cc766d8f7eac26b7c029a2fac1bdfdba4776c29; then
       _xvmc="-D gallium-xvmc=${_disabled_}"
     fi
 
     # android-libbacktrace was enabled with 6291d4d but only affects android. Let's disable.
-    if ( cd "$srcdir/$_mesa_srcdir" && git merge-base --is-ancestor 6291d4d33978f14e59e64a4b66ef92ee891babc3 HEAD ); then
+    if _has_commit 6291d4d33978f14e59e64a4b66ef92ee891babc3; then
       _android_libbacktrace="-D android-libbacktrace=disabled"
     fi
 
     # intel-rt
-    if ( cd "$srcdir/$_mesa_srcdir" && git merge-base --is-ancestor 876db9135048be34d84bd74b18411678e15c7c3f HEAD ); then
+    if _has_commit 876db9135048be34d84bd74b18411678e15c7c3f; then
       if [[ ${_vulkan_drivers[*]} =~ "intel" ]]; then
         _intel_rt="-D intel-rt=enabled"
       else
@@ -455,7 +468,7 @@ build () {
     fi
 
     # intel-clc cross compile fix
-    if ( cd "$srcdir/$_mesa_srcdir" && git merge-base --is-ancestor 28c1053c07c177854520f6283fa665f17618adb5 HEAD ); then
+    if _has_commit 28c1053c07c177854520f6283fa665f17618adb5; then
       if [[ "$_lib32" == "true" ]]; then
          _intel_clc_32="-D intel-clc=system"
         # Workaround cross compilation error by using intel_clc binary from _build64
@@ -464,38 +477,38 @@ build () {
     fi
 
     # omx removal
-    if ( cd "$srcdir/$_mesa_srcdir" && ! git merge-base --is-ancestor 9b6c27a320ab4b0fcf1fb16220ae7c3d3f06f7df HEAD ); then
+    if ! _has_commit 9b6c27a320ab4b0fcf1fb16220ae7c3d3f06f7df; then
       _omx="-D gallium-omx=${_gallium_omx}"
       _omx_32="-D gallium-omx=${_disabled_}"
     fi
 
     # dri3 removal
-    if ( cd "$srcdir/$_mesa_srcdir" && ! git merge-base --is-ancestor 8f6fca89aa1812b03da6d9f7fac3966955abc41e HEAD ); then
+    if ! _has_commit 8f6fca89aa1812b03da6d9f7fac3966955abc41e; then
       _dri3="-D dri3=${_enabled_}"
     fi
 
     # gallium-nine deprecation
-    if ( cd "$srcdir/$_mesa_srcdir" && ! git merge-base --is-ancestor 6b6cb825e92ad3bf33b1e032151e32c7b79d8323 HEAD ); then
+    if ! _has_commit 6b6cb825e92ad3bf33b1e032151e32c7b79d8323; then
       _galliumnine="-D gallium-nine=true"
     fi
 
     # gallium-xa deprecation
-    if ( cd "$srcdir/$_mesa_srcdir" && ! git merge-base --is-ancestor cf40099730c4af304227c30c891834cec220abff HEAD ); then
+    if ! _has_commit cf40099730c4af304227c30c891834cec220abff; then
       _galliumxa="-D gallium-xa=${_gallium_xa}"
     fi
 
     # shared-glapi option removal
-    if ( cd "$srcdir/$_mesa_srcdir" && ! git merge-base --is-ancestor fefb1a6fb3cff1b227e835c2f67accd33fb96b2a HEAD ); then
+    if ! _has_commit fefb1a6fb3cff1b227e835c2f67accd33fb96b2a; then
       _sharedglapi="-D shared-glapi=${_enabled_}"
     fi
 
     # gallium-opencl deprecation
-    if ( cd "$srcdir/$_mesa_srcdir" && ! git merge-base --is-ancestor 5844dea31620f36c41ac738e17fefd57084b2dbb HEAD ); then
+    if ! _has_commit 5844dea31620f36c41ac738e17fefd57084b2dbb; then
       _galliumopencl="-D gallium-opencl=icd"
     fi
 
     # Windows-only feature gallium-mediafoundation needs explicit disabling on Linux because reasons
-    if ( cd "$srcdir/$_mesa_srcdir" && git merge-base --is-ancestor d348fd5fb5b50edfbdf00f12fd900f77fd658a52 HEAD ); then
+    if _has_commit d348fd5fb5b50edfbdf00f12fd900f77fd658a52; then
       _mediafoundation="-D gallium-mediafoundation=disabled"
     fi
 
@@ -549,7 +562,7 @@ build () {
     # quoted from https://www.mesa3d.org/meson.html
     # Note: autotools automatically updated translation files (used by the DRI configuration tool) as part of the build process, Meson does not do this. 
     # Instead, you will need do this:
-    if ( cd "$srcdir/$_mesa_srcdir" && ! git merge-base --is-ancestor 2ef983dca61b549a9242afd9008200b231a26e90 HEAD ); then
+    if ! _has_commit 2ef983dca61b549a9242afd9008200b231a26e90; then
       ninja $NINJAFLAGS -C _build64 xmlpool-pot xmlpool-update-po xmlpool-gmo
     fi
     #
@@ -621,7 +634,7 @@ build () {
       # quoted from https://www.mesa3d.org/meson.html
       # Note: autotools automatically updated translation files (used by the DRI configuration tool) as part of the build process, Meson does not do this. 
       # Instead, you will need do this:
-      if ( cd "$srcdir/$_mesa_srcdir" && ! git merge-base --is-ancestor 2ef983dca61b549a9242afd9008200b231a26e90 HEAD ); then
+      if ! _has_commit 2ef983dca61b549a9242afd9008200b231a26e90; then
         ninja $NINJAFLAGS -C _build32 xmlpool-pot xmlpool-update-po xmlpool-gmo
       fi
       #

@@ -1,24 +1,23 @@
 #!/usr/bin/env bash
 
 PS1="$"
-basedir=`pwd`
+basedir="$PWD"
 echo "Rebuilding patch files from current fork state..."
 
 function cleanupPatches {
     cd "$1"
     for patch in *.patch; do
-        gitver=$(tail -n 2 $patch | grep -ve "^$" | tail -n 1)
-        diffs=$(git diff --staged $patch | grep -E "^(\+|\-)" | grep -Ev "(From [a-z0-9]{32,}|\-\-\- a|\+\+\+ b|.index)")
+        gitver=$(tail -n 2 "$patch" | grep -ve "^$" | tail -n 1)
+        diffs=$(git diff --staged "$patch" | grep -E "^(\+|\-)" | grep -Ev "(From [a-z0-9]{32,}|\-\-\- a|\+\+\+ b|.index)")
 
-        testver=$(echo "$diffs" | tail -n 2 | grep -ve "^$" | tail -n 1 | grep "$gitver")
-        if [ "x$testver" != "x" ]; then
-            diffs=$(echo "$diffs" | head -n -2)
+        # More efficient: use grep -q to test and avoid extra tail call
+        if grep -qF "$gitver" <<< "${diffs##*$'\n'}"; then
+            diffs=$(head -n -2 <<< "$diffs")
         fi
-        
 
-        if [ "x$diffs" == "x" ] ; then
-            git reset HEAD $patch >/dev/null
-            git checkout -- $patch >/dev/null
+        if [[ -z "$diffs" ]]; then
+            git reset HEAD "$patch" >/dev/null
+            git checkout -- "$patch" >/dev/null
         fi
     done
 }
