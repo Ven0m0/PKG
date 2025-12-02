@@ -2,6 +2,7 @@
 # Merged from multiple optimized Firefox PKGBUILDs
 # Features: Aggressive optimization, PGO, VA-API, system libraries, hardware acceleration
 
+
 pkgname=firefox-custom
 _pkgname=firefox
 pkgver=145.0.2
@@ -59,6 +60,8 @@ sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
 : "${ENABLE_POLLY:=true}"         # Polly loop optimization
 : "${ENABLE_VAAPI:=true}"         # Hardware video acceleration
 : "${BUILD_LIMIT_CORES:=true}"    # Auto-limit cores based on available RAM
+: ${_build_lto:=true}
+: ${_build_system_libs:=true}
 # Aggressive optimization flags
 _cflags=(
   -O3
