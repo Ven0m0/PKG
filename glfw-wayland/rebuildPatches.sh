@@ -10,9 +10,10 @@ function cleanupPatches {
         gitver=$(tail -n 2 "$patch" | grep -ve "^$" | tail -n 1)
         diffs=$(git diff --staged "$patch" | grep -E "^(\+|\-)" | grep -Ev "(From [a-z0-9]{32,}|\-\-\- a|\+\+\+ b|.index)")
 
-        # More efficient: use grep -q to test and avoid extra tail call
-        if grep -qF "$gitver" <<< "${diffs##*$'\n'}"; then
-            diffs=$(head -n -2 <<< "$diffs")
+        # Check if gitver appears in the last non-empty lines and strip if so
+        testver=$(echo "$diffs" | tail -n 2 | grep -ve "^$" | tail -n 1 | grep -F "$gitver" || true)
+        if [[ -n "$testver" ]]; then
+            diffs=$(echo "$diffs" | head -n -2)
         fi
 
         if [[ -z "$diffs" ]]; then

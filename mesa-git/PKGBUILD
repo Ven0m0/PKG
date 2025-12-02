@@ -353,7 +353,7 @@ build () {
           _commit_cache[$commit]=0
         fi
       fi
-      [[ "${_commit_cache[$commit]}" == "1" ]]
+      (( _commit_cache[$commit] == 1 ))
     }
 
     # dri drivers moved to the amber branch
