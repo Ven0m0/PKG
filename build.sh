@@ -20,24 +20,32 @@ find_pkgs(){
   fi
 }
 
+validate_pkg(){
+  local pkg="$1"
+  if [[ ! -d "$pkg" ]]; then
+    err "Package directory '$pkg' does not exist"; return 1
+  fi
+  if [[ ! -f "$pkg/PKGBUILD" ]]; then
+    err "No PKGBUILD found in '$pkg'"; return 1
+  fi
+  if !  bash -n "$pkg/PKGBUILD" 2>/dev/null; then
+    err "PKGBUILD syntax error in '$pkg'"; return 1
+  fi
+  return 0
+}
+
 # Build logic
 build_pkg(){
-  local pkg="$1"
-  local method="standard"
-
+  local pkg="$1" method="standard"
   # Detect method
   if [[ "$pkg" =~ $DOCKER_REGEX ]]; then
     method="docker"
   fi
-
   log "Building $pkg (Method: $method)"
-
   if [[ "$method" == "docker" ]]; then
     if ! has docker; then
-      err "Docker required for $pkg but not found. Skipping."
-      return 1
+      err "Docker required for $pkg but not found. Skipping."; return 1
     fi
-
     # Replicates CI Docker logic
     docker run --rm -it \
       -v "${PWD}:/ws:rw" \
@@ -64,8 +72,7 @@ build_pkg(){
     # -s: install deps, -r: remove deps after, -C: clean
     if ! makepkg -srC --noconfirm; then
       err "Failed to build $pkg"
-      popd >/dev/null
-      return 1
+      popd >/dev/null; return 1
     fi
     popd >/dev/null
   fi
@@ -73,7 +80,6 @@ build_pkg(){
 
 main(){
   local targets=()
-
   # Parse args
   if [[ $# -gt 0 ]]; then
     targets=("$@")
@@ -81,17 +87,12 @@ main(){
     log "No package specified, detecting all..."
     mapfile -t targets < <(find_pkgs)
   fi
-
   if [[ ${#targets[@]} -eq 0 ]]; then
-    err "No packages found."
-    exit 1
+    err "No packages found."; exit 1
   fi
-
   log "Queue: ${targets[*]}"
-
   for pkg in "${targets[@]}"; do
     build_pkg "$pkg"
   done
 }
-
 main "$@"
