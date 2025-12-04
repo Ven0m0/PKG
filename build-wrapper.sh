@@ -20,7 +20,6 @@ if [[ "$method" == "docker" ]]; then
   "
 else
   # Standard build
-  cd "$pkg"
-  makepkg -s --noconfirm
+  cd "$pkg"; makepkg -si --noconfirm
 fi
 echo "::endgroup::"
