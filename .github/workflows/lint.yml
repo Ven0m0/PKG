@@ -67,14 +67,14 @@ jobs:
           target: pkgbuild
           pkgname: ${{ matrix.pkg }}
       - name: Validate package
-        uses: heyhusen/archlinux-package-action@v2.4.0
+        uses: MotorTruck1221/arch-linux-pkgbuild-package@v2.2.1
         with:
           pkgrel: true
           pkgver: true
           namcap: true
           updpkgsums: true
           aur: true
-          flags: '-si --noconfirm'
+          flags: '-cfsi --noconfirm'
 
   fast-lint:
     needs: matrix
