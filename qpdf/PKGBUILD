@@ -28,7 +28,7 @@ build() {
     -D REQUIRE_CRYPTO_OPENSSL:BOOL=ON \
     -D ZOPFLI:BOOL=ON \
     -D ENABLE_QTC:BOOL=ON \
-    -D BUILD_DOC:BOOL=OFF
+    -D BUILD_DOC:BOOL=OFF \
     -D CMAKE_BUILD_TYPE=Release
   make -C build
 }
