@@ -79,7 +79,6 @@ _ldflags=(
   -flto -fuse-linker-plugin
   -Wl,-plugin-opt=emit-llvm
 )
-
 _rustflags=(
   -Ctarget-cpu=native -Copt-level=3
   -Ccodegen-units=1 -Clto=fat -Cpanic=abort
@@ -89,10 +88,24 @@ _rustflags=(
   -Cllvm-args=--inline-threshold=2000
   -Cllvm-args=--vectorize-slp-max-reg-size=64
 )
+# Google API keys (see http://www.chromium.org/developers/how-tos/api-keys)
+# Note: These are for Arch Linux use ONLY. For your own distribution, please
+# get your own set of keys. Feel free to contact foutrelis@archlinux.org for
+# more information.
+_google_api_key=AIzaSyDwr302FpOSkGRpLlUpPThNTDPbXcIn_FM
+# Mozilla API keys (see https://location.services.mozilla.com/api)
+# Note: These are for Arch Linux use ONLY. For your own distribution, please
+# get your own set of keys. Feel free to contact heftig@archlinux.org for
+# more information.
+_mozilla_api_key=16674381-f021-49de-8622-3021c5942aff
 
 prepare() {
   mkdir -p mozbuild
   cd "$_pkgname-$pkgver"
+  # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
+  sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
+  echo -n "$_google_api_key" >google-api-key
+  echo -n "$_mozilla_api_key" >mozilla-api-key
   # Apply any patches
   local src
   for src in "${source[@]}"; do
@@ -219,8 +232,13 @@ export CFLAGS+=" -g0"
 export CXXFLAGS+=" -g0"
 export LDFLAGS+=" -Wl,--no-keep-memory"
 export RUSTFLAGS="-Cdebuginfo=0 -Ctarget-cpu=native -Copt-level=3"
+# Keys
+ac_add_options --with-google-location-service-api-keyfile=${PWD@Q}/google-api-key
+ac_add_options --with-google-safebrowsing-api-keyfile=${PWD@Q}/google-api-key
+ac_add_options --with-mozilla-api-keyfile=${PWD@Q}/mozilla-api-key
 END
-
+  # See https://github.com/glandium/git-cinnabar/issues/311
+  git config remote.origin.mirror false
   # Optional: use sccache if available
   if command -v sccache &>/dev/null; then
     echo 'ac_add_options --with-ccache=sccache' >> ../mozconfig
