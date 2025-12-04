@@ -72,7 +72,9 @@ jobs:
           pkgrel: true
           pkgver: true
           namcap: true
+          updpkgsums: true
           aur: true
+          flags: '-si --noconfirm'
 
   fast-lint:
     needs: matrix
