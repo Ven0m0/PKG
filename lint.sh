@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-set -e; shopt -s globstar nullglob
-LC_ALL=C LANG=C
+set -euo pipefail
+IFS=$'\n\t'
+shopt -s globstar nullglob
+export LC_ALL=C LANG=C
 mapfile -t pkgs < <(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||')
 errs=()
 original_dir="$PWD"

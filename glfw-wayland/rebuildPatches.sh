@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
 
 PS1="$"
 basedir="$PWD"
 echo "Rebuilding patch files from current fork state..."
 
-function cleanupPatches {
+cleanupPatches() {
     cd "$1"
     for patch in *.patch; do
         gitver=$(tail -n 2 "$patch" | grep -ve "^$" | tail -n 1)
@@ -23,7 +25,7 @@ function cleanupPatches {
     done
 }
 
-function savePatches {
+savePatches() {
     what=$1
     target=$2
     cd "$basedir/$target"

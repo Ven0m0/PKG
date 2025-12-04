@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-set -uo pipefail; shopt -s nullglob globstar; IFS=$'\n\t'; LC_ALL=C
+set -euo pipefail
+IFS=$'\n\t'
+shopt -s nullglob globstar
+export LC_ALL=C
 R=$'\e[31m' G=$'\e[32m' Y=$'\e[33m' D=$'\e[0m'
 warn(){ printf '%b\n' "${Y}WARN:${D} $*" >&2; }
 die(){ printf '%b\n' "${R}ERR:${D} $*" >&2; exit "${2:-1}"; }
