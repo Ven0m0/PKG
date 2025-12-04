@@ -11,6 +11,56 @@ err(){ printf "\e[31m✘ %s\e[0m\n" "$*" >&2; }
 log(){ printf "\e[32m➜ %s\e[0m\n" "$*"; }
 has(){ command -v "$1" &>/dev/null; }
 
+# Display usage information
+usage(){
+  cat <<EOF
+Usage: $0 [OPTIONS] [PACKAGE...]
+
+Build Arch Linux packages from PKGBUILDs with automatic dependency handling.
+
+OPTIONS:
+  -h, --help     Display this help message and exit
+
+ARGUMENTS:
+  PACKAGE...     One or more package names to build
+                 If no packages specified, builds all packages in repository
+
+BUILD METHODS:
+  Standard       Local build using makepkg (default)
+                 - Fast for most packages
+                 - Uses system dependencies
+                 - Flags: -srC (install deps, remove after, clean build)
+
+  Docker         Containerized build for complex packages
+                 - Used for: obs-studio, firefox, egl-wayland2, onlyoffice
+                 - Requires Docker to be installed
+                 - Isolated environment with archlinux:latest
+                 - Automatic dependency extraction and installation
+
+EXAMPLES:
+  # Build a single package
+  $0 aria2
+
+  # Build multiple specific packages
+  $0 aria2 firefox
+
+  # Build all packages in repository
+  $0
+
+  # Display help
+  $0 --help
+
+REQUIREMENTS:
+  - base-devel (Arch Linux build tools)
+  - makepkg, pacman
+  - docker (optional, for Docker-based builds)
+  - fd (optional, faster package detection)
+
+For more information, see README.md and CLAUDE.md
+EOF
+}
+
+
 # Detect packages
 find_pkgs(){
   if has fd; then
@@ -82,6 +132,11 @@ main(){
   local targets=()
   # Parse args
   if [[ $# -gt 0 ]]; then
+    # Check for help flag
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+      usage
+      exit 0
+    fi
     targets=("$@")
   else
     log "No package specified, detecting all..."
