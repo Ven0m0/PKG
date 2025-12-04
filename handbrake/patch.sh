@@ -4,16 +4,13 @@ set -euo pipefail
 BASEDIR=$(realpath "$(dirname "${BASH_SOURCE[0]}")")
 src_dir="HandBrake"
 help="Usage: patch.sh [src_dir=\"HandBrake\"] [options]
-
 The src_dir is the directory that contains the HandBrake source code (defaults to \"HandBrake\")
 -c --clone -> option that clone the repo to src_dir
 -h --help  -> print usage message
-
 If no directory is found, the program exits"
 
 if [[ "$#" -gt 2 ]]; then
-  echo "$help"
-  exit 1
+  echo "$help"; exit 1
 fi
 for (( i=1; i <= "$#"; i++ )); do
   case ${!i} in
