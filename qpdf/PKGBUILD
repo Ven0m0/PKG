@@ -20,7 +20,7 @@ source=("https://github.com/qpdf/qpdf/releases/download/v$pkgver/${_pkgname}-${p
 sha256sums=('b3d1575b2218badc3549d6977524bb0f8c468c6528eebc8967bbe3078cf2cace')
 
 build() {
-  cd ${_pkgname}-${pkgver}
+  cd "${_pkgname}-${pkgver}"
   cmake -B build \
     -DCMAKE_INSTALL_PREFIX:PATH=/usr \
     -D BUILD_STATIC_LIBS:BOOL=OFF \
@@ -34,12 +34,12 @@ build() {
 }
 
 check() {
-  cd ${_pkgname}-${pkgver}
+  cd "${_pkgname}-${pkgver}"
   make -C build test
 }
 
 package() {
-  cd ${_pkgname}-${pkgver}
+  cd "${_pkgname}-${pkgver}"
   make -C build DESTDIR="${pkgdir}" install
   install -Dm644 completions/bash/qpdf "${pkgdir}/usr/share/bash-completion/completions/qpdf"
   install -Dm644 completions/zsh/_qpdf "${pkgdir}/usr/share/zsh/site-functions/_qpdf"

@@ -56,7 +56,7 @@ sha256sums=('088be97d0e3e14874b23436e3eb9ecf9a1df47453a988c7cd8a3b3aa099589bd'
             '853457ad70492fec9d7d020b9e067e2aec2ca419c0a5cddd5d93c5fab354c87a')
 
 prepare() {
-  cd ${pkgname}-${pkgver}
+  cd "${pkgname}-${pkgver}"
   patch -Np1 --ignore-whitespace --fuzz=3 -i ../watchman-destdir.patch
   # Use system CMake config instead of bundled module, incompatible with glog
   sed -i 's/find_package(Glog REQUIRED)/find_package(Glog CONFIG REQUIRED)/' \
@@ -79,7 +79,7 @@ END
 }
 
 build() {
-  cd ${pkgname}-${pkgver}
+  cd "${pkgname}-${pkgver}"
   export RUSTUP_TOOLCHAIN=stable
   cmake -S . -B build \
     -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr \
@@ -91,12 +91,12 @@ build() {
 }
 
 check() {
-  cd ${pkgname}-${pkgver}
+  cd "${pkgname}-${pkgver}"
   ctest --test-dir build --output-on-failure --exclude-regex "[Bb]ig|[Ii]ntegration"
 }
 
 package() {
-  cd $pkgname-$pkgver
+  cd "$pkgname-$pkgver"
   DESTDIR="$pkgdir" cmake --install build
   install -Dm644 /dev/stdin "$pkgdir/usr/lib/tmpfiles.d/watchman.conf" <<END
 d /run/watchman 1777 root root

@@ -25,19 +25,19 @@ sha256sums=('b2fa9db70232661ff962bab631ff88e56a894caf0c15fae5070135f18408d5b9'
             '4db7e3a938675b97a9a3440b9c7127d8a990390df2dfe0da7dcabe654abb3579')
 
 prepare() {
-  cd $_pkgname-$pkgver.$_upstream_pkgrel
+  cd "$_pkgname-$pkgver.$_upstream_pkgrel"
 
   # Prepare binary directory
   mkdir -p bin
 }
 
 build() {
-  cd $_pkgname-$pkgver.$_upstream_pkgrel
+  cd "$_pkgname-$pkgver.$_upstream_pkgrel"
   cp -a "$srcdir/p7zip" bin/
 }
 
 package() {
-  cd $_pkgname-$pkgver.$_upstream_pkgrel
+  cd "$_pkgname-$pkgver.$_upstream_pkgrel"
 
   make install \
     DEST_DIR="$pkgdir" \
