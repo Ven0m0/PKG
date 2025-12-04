@@ -56,10 +56,9 @@ sha256sums=('088be97d0e3e14874b23436e3eb9ecf9a1df47453a988c7cd8a3b3aa099589bd'
             '853457ad70492fec9d7d020b9e067e2aec2ca419c0a5cddd5d93c5fab354c87a')
 
 prepare() {
-  cd $pkgname-$pkgver
+  cd ${pkgname}-${pkgver}
   patch -Np1 --ignore-whitespace --fuzz=3 -i ../watchman-destdir.patch
   # Use system CMake config instead of bundled module, incompatible with glog
-  # v0.7.0+
   sed -i 's/find_package(Glog REQUIRED)/find_package(Glog CONFIG REQUIRED)/' \
     CMakeLists.txt
   python <<END
@@ -80,7 +79,7 @@ END
 }
 
 build() {
-  cd $pkgname-$pkgver
+  cd ${pkgname}-${pkgver}
   export RUSTUP_TOOLCHAIN=stable
   cmake -S . -B build \
     -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr \
@@ -92,17 +91,45 @@ build() {
 }
 
 check() {
-  cd $pkgname-$pkgver
+  cd ${pkgname}-${pkgver}
   ctest --test-dir build --output-on-failure --exclude-regex "[Bb]ig|[Ii]ntegration"
 }
 
 package() {
   cd $pkgname-$pkgver
   DESTDIR="$pkgdir" cmake --install build
-  install -vDm644 -t "$pkgdir/usr/lib/tmpfiles.d" "$srcdir/watchman.conf"
-  install -vDm644 -t "$pkgdir/etc" "$srcdir/watchman.json"
-  install -vDm644 -t "$pkgdir/usr/lib/systemd/user" \
-    "$srcdir/watchman.service" "$srcdir/watchman.socket"
+  install -Dm644 /dev/stdin "$pkgdir/usr/lib/tmpfiles.d/watchman.conf" <<END
+d /run/watchman 1777 root root
+END
+  echo '{}' | install -Dm644 /dev/stdin "$pkgdir/etc/watchman.json.default"
+  install -Dm644 /dev/stdin "$pkgdir/usr/lib/systemd/user/watchman.service" <<END
+[Unit]
+Description=File watching service
+Documentation=$url
+Requires=watchman.socket
+
+[Service]
+ExecStart=/usr/bin/watchman --foreground --inetd --logfile=-
+StandardInput=socket
+StandardOutput=journal
+StandardError=inherit
+
+[Install]
+WantedBy=default.target
+END
+  install -Dm644 /dev/stdin "$pkgdir/usr/lib/systemd/user/watchman.socket" <<END
+[Unit]
+Description=File watching service socket
+Documentation=$url
+
+[Socket]
+ListenStream=/run/watchman/%u-state/sock
+SocketMode=0600
+DirectoryMode=0700
+
+[Install]
+WantedBy=sockets.target
+END
   #cmake install does not catch these shared libs
   install -vDm644 build/lib*.so -t "$pkgdir/usr/lib"
   install -vDm644 -t "$pkgdir/usr/share/licenses/$pkgname" LICENSE
