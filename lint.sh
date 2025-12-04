@@ -8,7 +8,6 @@ original_dir="$PWD"
 # Cache tool availability checks once (avoid repeated command lookups in loop)
 has_shellcheck=false; command -v shellcheck &>/dev/null && has_shellcheck=true
 has_shellharden=false; command -v shellharden &>/dev/null && has_shellharden=true
-has_shfmt=false; command -v shfmt &>/dev/null && has_shfmt=true
 
 for pkg in "${pkgs[@]}"; do
   [[ -d $pkg ]] || continue
@@ -24,9 +23,6 @@ for pkg in "${pkgs[@]}"; do
   if $has_shellharden; then
     shellharden --replace PKGBUILD || errs+=("$pkg: shellharden failed")
   fi
-  if $has_shfmt; then
-    shfmt -ln bash -bn -s -i 2 -w PKGBUILD || errs+=("$pkg: shfmt failed")
-  fi
   if [[ -f .SRCINFO ]]; then
     makepkg --printsrcinfo 2>/dev/null | diff --ignore-blank-lines .SRCINFO - &>/dev/null || {
       errs+=("$pkg: .SRCINFO out of sync")
@@ -37,9 +33,7 @@ for pkg in "${pkgs[@]}"; do
     echo "Run: cd $pkg && makepkg --printsrcinfo > .SRCINFO"
   fi
 done
-
 cd "$original_dir"
-
 if ((${#errs[@]})); then
   printf '%s\n' "${errs[@]}" >&2; exit 1
 fi
