@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
 
 PS1="$"
 basedir="$PWD"
 echo "Rebuilding Forked projects.... "
 
-function applyPatch {
+applyPatch() {
     what=$1
     target=$2
     branch=$3

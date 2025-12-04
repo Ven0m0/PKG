@@ -2,9 +2,9 @@ name: Lint and Format
 on:
   workflow_dispatch:
   push:
-    paths: ['**/PKGBUILD', '**/.SRCINFO', '**.sh', '**.py', '**.json', '**.y*ml']
+    paths: ['**/PKGBUILD', '**/.SRCINFO', '**.sh', '**.py', '**.json', '**.y?ml']
   pull_request:
-    paths: ['**/PKGBUILD', '**/.SRCINFO', '**.sh', '**.py', '**.json', '**.y*ml']
+    paths: ['**/PKGBUILD', '**/.SRCINFO', '**.sh', '**.py', '**.json', '**.y?ml']
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -62,7 +62,7 @@ jobs:
           packages: shellcheck
           version: 1.0
       - name: Build and lint ${{ matrix.pkg }}
-        uses: 2m/arch-pkgbuild-builder@v1.21
+        uses: 2m/arch-pkgbuild-builder@v1.25
         with:
           target: pkgbuild
           pkgname: ${{ matrix.pkg }}
@@ -108,7 +108,7 @@ jobs:
       - name: Lint Python files
         if: contains(needs.matrix.outputs.files, '.py')
         run: |
-          mapfile -t py_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep '\.py$' || :)
+          mapfile -t py_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep '\.py$' || true)
           if [[ ${#py_files[@]} -gt 0 ]]; then
             ruff check "${py_files[@]}" || true
             black --check "${py_files[@]}" || true
@@ -116,14 +116,14 @@ jobs:
       - name: Lint YAML files
         if: contains(needs.matrix.outputs.files, '.yml') || contains(needs.matrix.outputs.files, '.yaml')
         run: |
-          mapfile -t yaml_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep -E '\.ya?ml$' || :)
+          mapfile -t yaml_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep -E '\.ya?ml$' || true)
           if [[ ${#yaml_files[@]} -gt 0 ]]; then
             yamllint -f parsable "${yaml_files[@]}" || :
           fi
       - name: Lint JSON files
         if: contains(needs.matrix.outputs.files, '.json')
         run: |
-          mapfile -t json_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep '\.json$' || :)
+          mapfile -t json_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep '\.json$' || true)
           if [[ ${#json_files[@]} -gt 0 ]]; then
             prettier --check "${json_files[@]}" || :
           fi

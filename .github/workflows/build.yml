@@ -144,7 +144,7 @@ jobs:
       - name: Build package (standard)
         if: steps.build_method.outputs.method == 'standard'
         id: makepkg_standard
-        uses: 2m/arch-pkgbuild-builder@v1.21
+        uses: 2m/arch-pkgbuild-builder@v1.25
         with:
           target: pkgbuild
           pkgname: ${{ matrix.pkg }}
@@ -157,7 +157,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - name: Cache Docker layers
         if: steps.build_method.outputs.method == 'docker'
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v4
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ matrix.pkg }}-${{ hashFiles(format('{0}/PKGBUILD', matrix.pkg)) }}
@@ -196,7 +196,7 @@ jobs:
             archlinux-buildenv:latest bash -c '
             set -Eeuo pipefail
             # Extract and install dependencies
-            deps=$(makepkg --printsrcinfo | awk "/^\s*(make)? depends\s*=/ { \$1=\"\"; print \$0 }" | tr "\n" " ")
+            deps=$(makepkg --printsrcinfo | awk "/^\s*(make)?depends\s*=/ { \$1=\"\"; print \$0 }" | tr "\n" " ")
             echo "Dependencies: $deps"
             pacman -S --noconfirm --needed $deps 2>/dev/null || echo "Warning: Some deps unavailable"
             # Setup build user
