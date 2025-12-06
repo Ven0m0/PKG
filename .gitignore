@@ -1,3 +1,25 @@
+*.tar
+*.tar.*
+*.jar
+*.exe
+*.msi
+*.deb
+*.zip
+*.tgz
+*.log
+*.log.*
+*.sig
+
+pkg/
+src/
+
+# Skip readmes
+*/*.md
+!CLAUDE.md
+# Git
+*/.git
+
+# Rest
 **/*.rs.bk
 **/mutants.out*/
 *-prefix/
@@ -19,7 +41,6 @@
 *.tgz
 *.tmp
 *.zip
-*/.git
 *~
 .Trash-*
 .directory
