@@ -3,18 +3,18 @@ on:
   workflow_dispatch:
     inputs:
       create_release:
-        description: 'Create GitHub release for built packages'
+        description: "Create GitHub release for built packages"
         required: false
         type: boolean
         default: false
       package:
-        description: 'Specific package to build (leave empty for all)'
+        description: "Specific package to build (leave empty for all)"
         required: false
         type: string
   push:
-    paths: ['**/PKGBUILD']
+    paths: ["**/PKGBUILD"]
   pull_request:
-    paths: ['**/PKGBUILD']
+    paths: ["**/PKGBUILD"]
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -26,7 +26,7 @@ env:
   DEBIAN_FRONTEND: noninteractive
   GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
   DOCKER_BUILD_PACKAGES: obs-studio,firefox,egl-wayland2,onlyoffice
-  SCCACHE_GHA_ENABLED: 'true'
+  SCCACHE_GHA_ENABLED: "true"
   RUSTC_WRAPPER: sccache
   CC: clang
   CXX: clang++
@@ -101,11 +101,11 @@ jobs:
         if: steps.build_method.outputs.needs_space == 'true'
         uses: AdityaGarg8/remove-unwanted-software@v5
         with:
-          remove-android: 'true'
-          remove-dotnet: 'true'
-          remove-haskell: 'true'
-          remove-codeql: 'true'
-          remove-docker-images: 'false'
+          remove-android: "true"
+          remove-dotnet: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          remove-docker-images: "false"
       - name: Additional cleanup
         if: steps.build_method.outputs.needs_space == 'true'
         run: |
@@ -124,7 +124,7 @@ jobs:
         if: steps.build_method.outputs.method == 'standard'
         uses: KyleMayes/install-llvm-action@v2
         with:
-          version: '21'
+          version: "21"
           cached: true
       - name: Setup sccache
         if: steps.build_method.outputs.method == 'standard'
@@ -177,7 +177,7 @@ jobs:
               reflector --latest 20 --protocol https --sort rate --save /etc/pacman.d/mirrorlist && \
               pacman -Syu --noconfirm --needed && \
               pacman -S --noconfirm --needed sudo base-devel pacman-contrib clang llvm sccache ccache
-          
+
           WORKDIR /workspace
           DOCKERFILE      
           # Build optimized base image (cached)
