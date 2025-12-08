@@ -1,0 +1,464 @@
+# Maintainer: Ven0m0
+# Based on: Linux Catgirl Edition by a-catgirl-dev
+# Upstream: https://github.com/Ven0m0/Linux-Kernel-Patches
+
+# This is a simplified PKGBUILD that pulls from the Linux-Kernel-Patches repository
+# For full configuration options, see the upstream repository
+
+# =============================================================================
+# Configuration Options
+# =============================================================================
+
+# Kernel version configuration
+# Leave empty to auto-detect latest CachyOS kernel version
+: "${_major:=}"
+: "${_minor:=}"
+
+# CPU Scheduler (bore, bmq, eevdf, rt, rt-bore)
+: "${_cpusched:=bore}"
+
+# Enable O3 optimization
+: "${_cflags_O3:=yes}"
+
+# LLVM LTO mode (none, thin, full)
+: "${_use_llvm_lto:=thin}"
+
+# Tickrate in Hz (100, 250, 300, 500, 600, 750, 1000)
+: "${_HZ_ticks:=1000}"
+
+# Preemption type (full, lazy, voluntary, none)
+: "${_preempt:=lazy}"
+
+# Processor optimization (native, x86-64, x86-64-v2, x86-64-v3, znver4, etc.)
+: "${_processor_opt:=native}"
+
+# Enable TCP BBR3
+: "${_tcp_bbr3:=yes}"
+
+# Build headers package
+: "${_package_headers:=yes}"
+
+# Interactive configuration
+: "${_makenconfig:=no}"
+
+# Use modprobed-db for local module configuration
+: "${_localmodcfg:=no}"
+: "${_localmodcfg_path:=$HOME/.config/modprobed.db}"
+
+# =============================================================================
+# Helper functions
+# =============================================================================
+
+_get_latest_cachyos_major() {
+  local versions
+  versions=$(curl -fsSL "https://api.github.com/repos/CachyOS/kernel-patches/contents/" 2>/dev/null |
+    grep -oP '"name":\s*"\K[0-9]+\.[0-9]+(?=")' | sort -V)
+
+  if [ -z "$versions" ]; then
+    echo "6.17"
+    return
+  fi
+
+  local stable_releases
+  stable_releases=$(curl -fsSL "https://www.kernel.org/releases.json" 2>/dev/null |
+    grep -oP "\"version\":\s*\"\K[0-9]+\.[0-9]+\.[0-9]+" || echo "")
+
+  while IFS= read -r ver; do
+    if echo "$stable_releases" | grep -q "^${ver}\."; then
+      echo "$ver"
+      return
+    fi
+  done <<< "$(echo "$versions" | tac)"
+
+  echo "$versions" | tail -1
+}
+
+_get_latest_patch_version() {
+  local major="$1"
+  local latest
+  latest=$(curl -fsSL "https://www.kernel.org/releases.json" 2>/dev/null |
+    grep -oP "\"version\":\s*\"\K${major}\.[0-9]+" | head -1)
+
+  if [ -n "$latest" ]; then
+    echo ".${latest##*.}"
+  else
+    echo ".0"
+  fi
+}
+
+_is_lto_kernel() {
+  [[ "$_use_llvm_lto" = "thin" || "$_use_llvm_lto" = "full" ]]
+  return $?
+}
+
+# Auto-detect kernel version if not set
+if [ -z "${_major}" ]; then
+  _major=$(_get_latest_cachyos_major)
+  echo "Auto-detected CachyOS kernel major version: $_major"
+fi
+
+if [ -z "${_minor}" ]; then
+  _minor=$(_get_latest_patch_version "$_major")
+  echo "Auto-detected kernel patch version: $_minor"
+fi
+
+# =============================================================================
+# Package metadata
+# =============================================================================
+
+_pkgsuffix=catgirl-edition
+pkgbase="linux-$_pkgsuffix"
+pkgver=${_major}${_minor}
+_stable=${_major}
+_srcname=linux-${pkgver}
+pkgdesc='Linux kernel with performance optimizations from CachyOS, Clear Linux, and XanMod'
+pkgrel=1
+_kernver="$pkgver-$pkgrel"
+_kernuname="${pkgver}-${_pkgsuffix}"
+arch=('x86_64')
+url="https://github.com/Ven0m0/Linux-Kernel-Patches"
+license=('GPL-2.0-only')
+options=('!strip' '!debug' '!lto')
+makedepends=(
+  bc
+  cpio
+  gettext
+  libelf
+  pahole
+  perl
+  python
+  tar
+  xz
+  zstd
+)
+
+# Add LLVM tools if using LTO
+if _is_lto_kernel; then
+  makedepends+=(clang llvm lld)
+  BUILD_FLAGS=(
+    CC=clang
+    LD=ld.lld
+    LLVM=1
+    LLVM_IAS=1
+    KCFLAGS=-march=${_processor_opt}
+  )
+fi
+
+_patchsource_cachyos="https://raw.githubusercontent.com/cachyos/kernel-patches/master/${_major}"
+_patchsource_xanmod="https://gitlab.com/xanmod/linux-patches/-/raw/master/linux-6.16.y-xanmod"
+_patchsource_clear="https://raw.githubusercontent.com/a-catgirl-dev/linux-catgirl-edition/refs/heads/dev/patches"
+
+source=(
+  "https://cdn.kernel.org/pub/linux/kernel/v${pkgver%%.*}.x/${_srcname}.tar.xz"
+  "https://raw.githubusercontent.com/Ven0m0/Linux-Kernel-Patches/main/build/catgirl-edition/config"
+  "${_patchsource_cachyos}/all/0001-cachyos-base-all.patch"
+  "${_patchsource_clear}/clear-linux-patchset.patch"
+  "${_patchsource_xanmod}/xanmod/0010-XANMOD-block-Set-rq_affinity-to-force-complete-I-O-r.patch"
+  "${_patchsource_xanmod}/xanmod/0014-XANMOD-mm-Raise-max_map_count-default-value.patch"
+  "${_patchsource_xanmod}/xanmod/0016-XANMOD-sched-autogroup-Add-kernel-parameter-and-conf.patch"
+)
+
+# Add scheduler patches
+case "$_cpusched" in
+  bore | rt-bore | hardened)
+    source+=("${_patchsource_cachyos}/sched/0001-bore-cachy.patch")
+    ;;&
+  bmq)
+    source+=("${_patchsource_cachyos}/sched/0001-prjc-cachy.patch")
+    ;;
+  hardened)
+    source+=("${_patchsource_cachyos}/misc/0001-hardened.patch")
+    ;;
+  rt | rt-bore)
+    source+=("${_patchsource_cachyos}/misc/0001-rt-i915.patch")
+    ;;
+esac
+
+# Add DKMS clang patch for LTO builds
+if _is_lto_kernel; then
+  source+=("${_patchsource_cachyos}/misc/dkms-clang.patch")
+fi
+
+export KBUILD_BUILD_USER="$pkgbase"
+export KBUILD_BUILD_TIMESTAMP="$(date -Ru${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH})"
+
+_die() {
+  error "$@"
+  exit 1
+}
+
+prepare() {
+  cd "$_srcname" || exit
+
+  echo "Setting version..."
+  echo "-$pkgrel" > localversion.10-pkgrel
+  echo "${pkgbase#linux}" > localversion.20-pkgname
+
+  echo "Applying patches..."
+  local src
+  for src in "${source[@]}"; do
+    src="${src%%::*}"
+    src="${src##*/}"
+    src="${src%.zst}"
+    [[ $src = *.patch ]] || continue
+    echo "Applying patch $src..."
+    patch -Np1 < "../$src"
+  done
+
+  echo "Setting config..."
+  cp ../config .config
+
+  # Enable CachyOS patches
+  scripts/config -e CACHY
+
+  # Configure CPU scheduler
+  case "$_cpusched" in
+    bore | hardened) scripts/config -e SCHED_BORE ;;
+    bmq) scripts/config -e SCHED_ALT -e SCHED_BMQ ;;
+    eevdf) ;;
+    rt) scripts/config -e PREEMPT_RT ;;
+    rt-bore) scripts/config -e SCHED_BORE -e PREEMPT_RT ;;
+    *) _die "Invalid CPU scheduler: $_cpusched" ;;
+  esac
+
+  echo "Selecting ${_cpusched^^} CPU scheduler..."
+
+  # Configure LTO
+  case "$_use_llvm_lto" in
+    thin) scripts/config -e LTO_CLANG_THIN ;;
+    full) scripts/config -e LTO_CLANG_FULL ;;
+    none) scripts/config -e LTO_NONE ;;
+    *) _die "Invalid LTO mode: $_use_llvm_lto" ;;
+  esac
+
+  echo "Selecting '$_use_llvm_lto' LLVM level..."
+
+  # Configure tick rate
+  case "$_HZ_ticks" in
+    100 | 250 | 500 | 600 | 750 | 1000)
+      scripts/config -d HZ_300 -e "HZ_${_HZ_ticks}" --set-val HZ "${_HZ_ticks}"
+      ;;
+    300)
+      scripts/config -e HZ_300 --set-val HZ 300
+      ;;
+    *)
+      _die "Invalid tick rate: $_HZ_ticks"
+      ;;
+  esac
+
+  echo "Setting tick rate to ${_HZ_ticks}Hz..."
+
+  # Configure preemption (skip for RT kernels)
+  if [[ "$_cpusched" != "rt" && "$_cpusched" != "rt-bore" ]]; then
+    case "$_preempt" in
+      full) scripts/config -e PREEMPT_DYNAMIC -e PREEMPT -d PREEMPT_VOLUNTARY -d PREEMPT_LAZY -d PREEMPT_NONE ;;
+      lazy) scripts/config -e PREEMPT_DYNAMIC -d PREEMPT -d PREEMPT_VOLUNTARY -e PREEMPT_LAZY -d PREEMPT_NONE ;;
+      voluntary) scripts/config -d PREEMPT_DYNAMIC -d PREEMPT -e PREEMPT_VOLUNTARY -d PREEMPT_LAZY -d PREEMPT_NONE ;;
+      none) scripts/config -d PREEMPT_DYNAMIC -d PREEMPT -d PREEMPT_VOLUNTARY -d PREEMPT_LAZY -e PREEMPT_NONE ;;
+      *) _die "Invalid preemption type: $_preempt" ;;
+    esac
+
+    echo "Selecting '$_preempt' preempt type..."
+  fi
+
+  # Enable O3 optimization
+  if [ "$_cflags_O3" = "yes" ]; then
+    echo "Enabling O3 optimization..."
+    scripts/config -d CC_OPTIMIZE_FOR_PERFORMANCE -e CC_OPTIMIZE_FOR_PERFORMANCE_O3
+  fi
+
+  # Enable TCP BBR3
+  if [ "$_tcp_bbr3" = "yes" ]; then
+    echo "Enabling TCP BBR3..."
+    scripts/config -m TCP_CONG_CUBIC \
+      -d DEFAULT_CUBIC \
+      -e TCP_CONG_BBR \
+      -e DEFAULT_BBR \
+      --set-str DEFAULT_TCP_CONG bbr \
+      -m NET_SCH_FQ_CODEL \
+      -e NET_SCH_FQ \
+      -d CONFIG_DEFAULT_FQ_CODEL \
+      -e CONFIG_DEFAULT_FQ
+  fi
+
+  # Enable unprivileged user namespaces
+  echo "Enable USER_NS_UNPRIVILEGED"
+  scripts/config -e USER_NS
+
+  # Use modprobed-db if enabled
+  if [ "$_localmodcfg" = "yes" ]; then
+    if [ -e "$_localmodcfg_path" ]; then
+      echo "Running make localmodconfig with modprobed-db..."
+      make "${BUILD_FLAGS[@]}" LSMOD="${_localmodcfg_path}" localmodconfig
+    else
+      _die "modprobed.db not found at $_localmodcfg_path"
+    fi
+  fi
+
+  # Rewrite configuration
+  echo "Rewriting configuration..."
+  make "${BUILD_FLAGS[@]}" prepare
+  yes "" | make "${BUILD_FLAGS[@]}" config >/dev/null
+
+  # Prepared version
+  make -s kernelrelease > version
+  echo "Prepared $pkgbase version $(<version)"
+
+  # Interactive configuration
+  if [ "$_makenconfig" = "yes" ]; then
+    make "${BUILD_FLAGS[@]}" nconfig
+  fi
+}
+
+build() {
+  cd "$_srcname" || exit
+  make "${BUILD_FLAGS[@]}" -j"$(nproc)" all
+
+  if [ "$_package_headers" = "yes" ]; then
+    make -C tools/bpf/bpftool vmlinux.h feature-clang-bpf-co-re=1
+  fi
+}
+
+_package() {
+  pkgdesc="Linux kernel with performance optimizations from CachyOS, Clear Linux, and XanMod"
+  depends=('coreutils' 'kmod' 'initramfs')
+  optdepends=(
+    'wireless-regdb: set correct wireless channels for your country'
+    'linux-firmware: firmware images for various devices'
+  )
+  provides=(
+    WIREGUARD-MODULE
+    KSMBD-MODULE
+    V4L2LOOPBACK-MODULE
+    NTSYNC-MODULE
+    VHBA-MODULE
+  )
+
+  cd "$_srcname" || exit
+
+  local modulesdir="$pkgdir/usr/lib/modules/$(<version)"
+
+  echo "Installing boot image..."
+  install -Dm644 "$(make -s image_name)" "$modulesdir/vmlinuz"
+
+  echo "$pkgbase" | install -Dm644 /dev/stdin "$modulesdir/pkgbase"
+
+  echo "Installing modules..."
+  ZSTD_CLEVEL=19 make "${BUILD_FLAGS[@]}" \
+    INSTALL_MOD_PATH="$pkgdir/usr" \
+    INSTALL_MOD_STRIP=1 \
+    DEPMOD=/doesnt/exist \
+    modules_install
+
+  rm "$modulesdir"/build
+}
+
+_package-headers() {
+  pkgdesc="Headers for building kernel modules for linux-catgirl-edition"
+  depends=('pahole' "${pkgbase}")
+
+  if [[ $_package_headers == "no" ]]; then
+    echo "Skipping header packaging"
+    return 0
+  fi
+
+  cd "${_srcname}" || exit
+  local builddir="$pkgdir/usr/lib/modules/$(<version)/build"
+
+  echo "Installing build files..."
+  install -Dt "$builddir" -m644 .config Makefile Module.symvers System.map \
+    localversion.* version vmlinux
+
+  if [ "$_package_headers" = "yes" ]; then
+    install -Dt "$builddir" -m644 tools/bpf/bpftool/vmlinux.h
+  fi
+
+  install -Dt "$builddir/kernel" -m644 kernel/Makefile
+  install -Dt "$builddir/arch/x86" -m644 arch/x86/Makefile
+  cp -t "$builddir" -a scripts
+  ln -srt "$builddir" "$builddir/scripts/gdb/vmlinux-gdb.py"
+
+  install -Dt "$builddir/tools/objtool" tools/objtool/objtool
+
+  if [ -f tools/bpf/resolve_btfids/resolve_btfids ]; then
+    install -Dt "$builddir/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids
+  fi
+
+  echo "Installing headers..."
+  cp -t "$builddir" -a include
+  cp -t "$builddir/arch/x86" -a arch/x86/include
+  install -Dt "$builddir/arch/x86/kernel" -m644 arch/x86/kernel/asm-offsets.s
+
+  install -Dt "$builddir/drivers/md" -m644 drivers/md/*.h
+  install -Dt "$builddir/net/mac80211" -m644 net/mac80211/*.h
+
+  install -Dt "$builddir/drivers/media/i2c" -m644 drivers/media/i2c/msp3400-driver.h
+  install -Dt "$builddir/drivers/media/usb/dvb-usb" -m644 drivers/media/usb/dvb-usb/*.h
+  install -Dt "$builddir/drivers/media/dvb-frontends" -m644 drivers/media/dvb-frontends/*.h
+  install -Dt "$builddir/drivers/media/tuners" -m644 drivers/media/tuners/*.h
+  install -Dt "$builddir/drivers/iio/common/hid-sensors" -m644 drivers/iio/common/hid-sensors/*.h
+
+  echo "Installing KConfig files..."
+  find . -name 'Kconfig*' -exec install -Dm644 {} "$builddir/{}" \;
+
+  echo "Removing unneeded architectures..."
+  local arch
+  for arch in "$builddir"/arch/*/; do
+    [[ $arch = */x86/ ]] && continue
+    echo "Removing $(basename "$arch")"
+    rm -r "$arch"
+  done
+
+  echo "Removing documentation..."
+  rm -r "$builddir/Documentation"
+
+  echo "Removing broken symlinks..."
+  find -L "$builddir" -type l -printf 'Removing %P\n' -delete
+
+  echo "Removing loose objects..."
+  find "$builddir" -type f -name '*.o' -printf 'Removing %P\n' -delete
+
+  echo "Stripping build tools..."
+  local file
+  while read -rd '' file; do
+    case "$(file -Sib "$file")" in
+      application/x-sharedlib\;*)
+        strip -v "$STRIP_SHARED" "$file"
+        ;;
+      application/x-archive\;*)
+        strip -v "$STRIP_STATIC" "$file"
+        ;;
+      application/x-executable\;*)
+        strip -v "$STRIP_BINARIES" "$file"
+        ;;
+      application/x-pie-executable\;*)
+        strip -v "$STRIP_SHARED" "$file"
+        ;;
+    esac
+  done < <(find "$builddir" -type f -perm -u+x ! -name vmlinux -print0)
+
+  echo "Stripping vmlinux..."
+  strip -v "$STRIP_STATIC" "$builddir/vmlinux"
+
+  echo "Adding symlink..."
+  mkdir -p "$pkgdir/usr/src"
+  ln -sr "$builddir" "$pkgdir/usr/src/$pkgbase"
+}
+
+pkgname=("$pkgbase")
+[ "$_package_headers" = "yes" ] && pkgname+=("$pkgbase-headers")
+
+for _p in "${pkgname[@]}"; do
+  eval "package_$_p() {
+    $(declare -f "_package${_p#$pkgbase}")
+    _package${_p#$pkgbase}
+  }"
+done
+
+sha256sums=('SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP')
