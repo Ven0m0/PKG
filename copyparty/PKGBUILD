@@ -24,20 +24,17 @@ source=("https://github.com/9001/${pkgname}/releases/download/v${pkgver}/${pkgna
 backup=("etc/${pkgname}/copyparty.conf" )
 sha256sums=('050ccc34554e59210aca7a67d87a186e69b3f4dbe013d5ee2f11a22c259a82a6')
 
-build() {
+build(){
     cd "${srcdir}/${pkgname}-${pkgver}/copyparty/web"
     make
-
     cd "${srcdir}/${pkgname}-${pkgver}"
     python -m build --wheel --no-isolation
 }
 
-package() {
+package(){
     cd "${srcdir}/${pkgname}-${pkgver}"
     python -m installer --destdir="$pkgdir" dist/*.whl
-
     sed -i s/python3/python/g bin/prisonparty.sh contrib/systemd/*.service
-
     install -dm755 "${pkgdir}/etc/${pkgname}"
     install -Dm755 "bin/prisonparty.sh" "${pkgdir}/usr/bin/prisonparty"
     install -Dm644 "contrib/systemd/${pkgname}.conf" "${pkgdir}/etc/${pkgname}/copyparty.conf"
