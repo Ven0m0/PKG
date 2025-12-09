@@ -49,9 +49,8 @@ source=(
 )
 sha256sums=('40973d44970dbc83ef302b0609f2e74982be2d85916dd2ee7472d30678a7abe6')
 
-prepare() {
+prepare(){
   cd "$_pkgname-$pkgver"
-
   # Apply patches if any
   local src
   for src in "${source[@]}"; do
@@ -63,9 +62,8 @@ prepare() {
   done
 }
 
-build() {
+build(){
   cd "$_pkgname-$pkgver"
-
   # Compiler settings for optimization (based on FFmpeg-Builds optimizations)
   # -O3: Maximum optimization level for performance
   # -march=native: Optimize for current CPU architecture (enables AVX512 if available)
@@ -79,89 +77,14 @@ build() {
   # -fvisibility=hidden: Hide symbols by default (reduces binary size)
   # -fno-semantic-interposition: Allow more aggressive optimizations
   # -D_FORTIFY_SOURCE=2: Runtime buffer overflow detection
-  export CFLAGS="-O3 -march=native -mtune=native -pipe -fno-plt -flto=auto \
--fexceptions -Wp,-D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security \
--fstack-clash-protection -fstack-protector-strong -fcf-protection \
--fvisibility=hidden -fno-semantic-interposition"
-  export CXXFLAGS="$CFLAGS"
-  export LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now -flto=auto"
-
-  ./configure \
-    --prefix=/usr \
-    --disable-debug \
-    --disable-static \
-    --disable-stripping \
-    --enable-shared \
-    --enable-gpl \
-    --enable-version3 \
-    --enable-nonfree \
-    --enable-lto \
-    --enable-fontconfig \
-    --enable-gmp \
-    --enable-gnutls \
-    --enable-ladspa \
-    --enable-libaom \
-    --enable-libaribb24 \
-    --enable-libass \
-    --enable-libbluray \
-    --enable-libbs2b \
-    --enable-libdav1d \
-    --enable-libdrm \
-    --enable-libdvdnav \
-    --enable-libdvdread \
-    --enable-libfreetype \
-    --enable-libfribidi \
-    --enable-libgsm \
-    --enable-libiec61883 \
-    --enable-libjack \
-    --enable-libjxl \
-    --enable-libmodplug \
-    --enable-libmp3lame \
-    --enable-libopencore_amrnb \
-    --enable-libopencore_amrwb \
-    --enable-libopenjpeg \
-    --enable-libopenmpt \
-    --enable-libopus \
-    --enable-libplacebo \
-    --enable-libpulse \
-    --enable-librav1e \
-    --enable-librsvg \
-    --enable-librubberband \
-    --enable-libsnappy \
-    --enable-libsoxr \
-    --enable-libspeex \
-    --enable-libssh \
-    --enable-libsvtav1 \
-    --enable-libtheora \
-    --enable-libv4l2 \
-    --enable-libvidstab \
-    --enable-libvmaf \
-    --enable-libvorbis \
-    --enable-libvpl \
-    --enable-libvpx \
-    --enable-libwebp \
-    --enable-libx264 \
-    --enable-libx265 \
-    --enable-libxcb \
-    --enable-libxml2 \
-    --enable-libxvid \
-    --enable-libzimg \
-    --enable-nvdec \
-    --enable-nvenc \
-    --enable-opencl \
-    --enable-opengl \
-    --enable-vapoursynth \
-    --enable-vaapi \
-    --enable-vdpau \
-    --enable-vulkan
-
+  export CFLAGS="-O3 -march=native -mtune=native -pipe -fno-plt -flto=auto -fexceptions -Wp,-D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security -fstack-clash-protection -fstack-protector-strong -fcf-protection -fvisibility=hidden -fno-semantic-interposition" CXXFLAGS="$CFLAGS" LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now -flto=auto"
+  ./configure --prefix=/usr --disable-debug --disable-static --disable-stripping --enable-shared --enable-gpl --enable-version3 --enable-nonfree --enable-lto --enable-fontconfig --enable-gmp --enable-gnutls --enable-ladspa --enable-libaom --enable-libaribb24 --enable-libass --enable-libbluray --enable-libbs2b --enable-libdav1d --enable-libdrm --enable-libdvdnav --enable-libdvdread --enable-libfreetype --enable-libfribidi --enable-libgsm --enable-libiec61883 --enable-libjack --enable-libjxl --enable-libmodplug --enable-libmp3lame --enable-libopencore_amrnb --enable-libopencore_amrwb --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-libplacebo --enable-libpulse --enable-librav1e --enable-librsvg --enable-librubberband --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libssh --enable-libsvtav1 --enable-libtheora --enable-libv4l2 --enable-libvidstab --enable-libvmaf --enable-libvorbis --enable-libvpl --enable-libvpx --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxcb --enable-libxml2 --enable-libxvid --enable-libzimg --enable-nvdec --enable-nvenc --enable-opencl --enable-opengl --enable-vapoursynth --enable-vaapi --enable-vdpau --enable-vulkan
   make -j"$(nproc)"
   make tools/qt-faststart
 }
 
-package() {
+package(){
   cd "$_pkgname-$pkgver"
-
   make DESTDIR="$pkgdir" install
   install -Dm755 tools/qt-faststart "$pkgdir/usr/bin/qt-faststart"
 }
