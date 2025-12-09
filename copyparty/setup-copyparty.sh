@@ -1,29 +1,17 @@
 #!/usr/bin/env bash
 # shellcheck enable=all shell=bash source-path=SCRIPTDIR external-sources=true
-# Setup Copyparty with network access and Samba support (Debian/Raspbian)
 set -euo pipefail
 shopt -s nullglob globstar
+export LC_ALL=C HOME="/home/${SUDO_USER:-${USER:-$(id -un)}}" DEBIAN_FRONTEND=noninteractive
 IFS=$'\n\t'
-export LC_ALL=C LANG=C HOME="/home/${SUDO_USER:-${USER:-$(id -un)}}" DEBIAN_FRONTEND=noninteractive
-SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
-cd "$SCRIPT_DIR" && SCRIPT_DIR="$(pwd -P)" || exit 1
-readonly COPYPARTY_PORT=3923
-readonly COPYPARTY_DIR="$HOME/Public"
-printf '%s\n' "Setting up Copyparty with network access and Samba support..."
-# Install necessary packages (apt for Debian/Raspbian)
-printf '%s\n' "Installing packages..."
-sudo apt-get update && sudo apt-get install -y python3-pip samba avahi-daemon libnss-mdns || {
-  printf '%s\n' "Error: Failed to install required packages" >&2
-  exit 1
-}
-# Install copyparty via pip if not available
-if ! command -v copyparty &>/dev/null; then
-  printf '%s\n' "Installing copyparty via pip..."
-  pip3 install --user copyparty
-fi
-# Create config directory
+s=${BASH_SOURCE[0]}; [[ $s != /* ]] && s=$PWD/$s; cd -P -- "${s%/*}"
+has(){ command -v -- "$1" &>/dev/null; }
+
+readonly COPYPARTY_PORT=3923 COPYPARTY_DIR="$HOME/Public"
+printf 'Setting up Copyparty with network access and Samba support...\nInstalling packages...\n'
+sudo apt-get update && sudo apt-get install -y python3-pip samba avahi-daemon libnss-mdns || { printf 'Error: Failed to install required packages\n' >&2; exit 1; }
+has copyparty || { printf 'Installing copyparty via pip...\n'; pip3 install --user copyparty; }
 mkdir -p ~/.config/copyparty
-# Configure copyparty
 cat >~/.config/copyparty/config.py <<'EOF'
 #!/usr/bin/env python3
 """copyparty config"""
@@ -54,11 +42,9 @@ users = {
 }
 EOF
 chmod +x ~/.config/copyparty/config.py
-# Create directories
 mkdir -p ~/Public/uploads ~/Public/share
-# Configure Samba
-printf '%s\n' "Configuring Samba..."
-CURRENT_USER="$(whoami)"
+printf 'Configuring Samba...\n'
+CURRENT_USER=$(whoami)
 sudo tee /etc/samba/smb.conf >/dev/null <<EOF
 [global]
   workgroup = WORKGROUP
@@ -79,7 +65,6 @@ sudo tee /etc/samba/smb.conf >/dev/null <<EOF
   create mask = 0644
   directory mask = 0755
 EOF
-# Create systemd user service
 mkdir -p ~/.config/systemd/user
 cat >~/.config/systemd/user/copyparty.service <<'EOF'
 [Unit]
@@ -96,34 +81,14 @@ RestartSec=5
 [Install]
 WantedBy=default.target
 EOF
-# Enable services
-printf '%s\n' "Enabling and starting services..."
-sudo systemctl enable --now smbd nmbd avahi-daemon || printf '%s\n' "Warning: Failed to enable some system services" >&2
+printf 'Enabling and starting services...\n'
+sudo systemctl enable --now smbd nmbd avahi-daemon || printf 'Warning: Failed to enable some system services\n' >&2
 systemctl --user daemon-reload
 systemctl --user enable copyparty.service
-systemctl --user start copyparty.service || {
-  printf '%s\n' "Error: Failed to start copyparty service" >&2
-  printf '%s\n' "Check logs with: systemctl --user status copyparty.service" >&2
-  exit 1
-}
-# Enable linger
+systemctl --user start copyparty.service || { printf 'Error: Failed to start copyparty service\nCheck logs with: systemctl --user status copyparty.service\n' >&2; exit 1; }
 sudo loginctl enable-linger "$(whoami)"
-# Configure firewall if active
-systemctl is-active --quiet ufw && {
-  printf '%s\n' "Configuring ufw..."
-  sudo ufw allow "$COPYPARTY_PORT"/tcp
-  sudo ufw allow Samba
-}
-# Get local IP
+systemctl is-active --quiet ufw && { printf 'Configuring ufw...\n'; sudo ufw allow "$COPYPARTY_PORT"/tcp; sudo ufw allow Samba; }
 IP=$(ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1)
-printf '\n%.0s' {1..2}
-printf '%s\n' "=============================================="
-printf '%s\n' "Copyparty setup complete!"
-printf '%s\n' "=============================================="
-printf '%s\n' "Access: http://${IP}:${COPYPARTY_PORT}"
-printf '\n'
-printf '%s\n' "IMPORTANT: Change admin password in ~/.config/copyparty/config.py"
-printf '%s\n' "Then restart: systemctl --user restart copyparty.service"
-printf '\n'
-printf '%s\n' "Status: systemctl --user status copyparty.service"
-printf '%s\n' "=============================================="
+printf '\n\n==============================================\nCopyparty setup complete!\n==============================================\n'
+printf 'Access: http://%s:%s\n\nIMPORTANT: Change admin password in ~/.config/copyparty/config.py\nThen restart: systemctl --user restart copyparty.service\n\n' "$IP" "$COPYPARTY_PORT"
+printf 'Status: systemctl --user status copyparty.service\n==============================================\n'
