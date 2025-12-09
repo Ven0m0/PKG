@@ -15,30 +15,27 @@ options=('strip')
 source=("git+https://github.com/facebook/${_pkgname}/")
 sha256sums=('SKIP')
 
-pkgver() {
+pkgver(){
   cd "${_pkgname}"
   printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
 }
 
-prepare() {
+prepare(){
   cd "${_pkgname}"
   sed -i 's/ANDROID_SDK/ANDROID_HOME/g' redex.py
 }
 
-build() {
+build(){
   cd "${_pkgname}"
-
-  # Optimized compiler flags
   export CFLAGS="${CFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt -flto=auto"
   export CXXFLAGS="${CXXFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt -flto=auto"
   export LDFLAGS="${LDFLAGS} -Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
-
   autoreconf -ivf
   ./configure --prefix=/usr
   make -j"$(nproc)"
 }
 
-package() {
+package(){
   cd "${_pkgname}"
   make DESTDIR="$pkgdir/" install
 }
