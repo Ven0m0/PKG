@@ -55,12 +55,10 @@ sha256sums=('088be97d0e3e14874b23436e3eb9ecf9a1df47453a988c7cd8a3b3aa099589bd'
             '5b4b032b68d87d648e268c5c08b4d56993d5c1a661e3925b39f54bdef2dfbc42'
             '853457ad70492fec9d7d020b9e067e2aec2ca419c0a5cddd5d93c5fab354c87a')
 
-prepare() {
+prepare(){
   cd "${pkgname}-${pkgver}"
   patch -Np1 --ignore-whitespace --fuzz=3 -i ../watchman-destdir.patch
-  # Use system CMake config instead of bundled module, incompatible with glog
-  sed -i 's/find_package(Glog REQUIRED)/find_package(Glog CONFIG REQUIRED)/' \
-    CMakeLists.txt
+  sed -i 's/find_package(Glog REQUIRED)/find_package(Glog CONFIG REQUIRED)/' CMakeLists.txt
   python <<END
 from pathlib import Path
 data = Path("bin/watchman").read_bytes()
@@ -78,24 +76,19 @@ END
   patchelf --set-rpath /usr/lib/watchman bin/* lib/*
 }
 
-build() {
+build(){
   cd "${pkgname}-${pkgver}"
   export RUSTUP_TOOLCHAIN=stable
-  cmake -S . -B build \
-    -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr \
-    -DCMAKE_CXX_STANDARD=20 -Wno-dev \
-    -DBUILD_SHARED_LIBS=ON -DUSE_SYS_PYTHON=ON -DENABLE_EDEN_SUPPORT=ON \
-    -DWATCHMAN_STATE_DIR=/var/run/watchman -DWATCHMAN_VERSION_OVERRIDE=$pkgver \
-    -DCMAKE_CXX_FLAGS="-include variant -include cstdint"
+  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_CXX_STANDARD=20 -Wno-dev -DBUILD_SHARED_LIBS=ON -DUSE_SYS_PYTHON=ON -DENABLE_EDEN_SUPPORT=ON -DWATCHMAN_STATE_DIR=/var/run/watchman -DWATCHMAN_VERSION_OVERRIDE=$pkgver -DCMAKE_CXX_FLAGS="-include variant -include cstdint"
   cmake --build build
 }
 
-check() {
+check(){
   cd "${pkgname}-${pkgver}"
   ctest --test-dir build --output-on-failure --exclude-regex "[Bb]ig|[Ii]ntegration"
 }
 
-package() {
+package(){
   cd "$pkgname-$pkgver"
   DESTDIR="$pkgdir" cmake --install build
   install -Dm644 /dev/stdin "$pkgdir/usr/lib/tmpfiles.d/watchman.conf" <<END
