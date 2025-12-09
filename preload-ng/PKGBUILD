@@ -13,33 +13,20 @@ makedepends=('git' 'base-devel' 'pkgconfig' 'sh')
 source=("${pkgname}::git+${url}.git#tag=v${pkgver}")
 # Use SKIP since this is a VCS source
 sha256sums=('SKIP')
-
 # The directory where the source code (including the Makefile) is located
 _srcdir="${srcdir}/${pkgname}/preload-src"
 
 build() {
-  # Change to the preload-src directory to run the build process
   cd "${_srcdir}"
-  
-  # The Makefile handles compilation and runs the post_build script 
-  # to generate the preload.conf file.
-  # This config file is essential for packaging.
+  # Makefile handles compilation and runs the post_build script 
   make
 }
-
 package() {
-  # Change to the build directory
   cd "${_srcdir}"
-  
-  # 1. Install Binary
   # Install the main daemon executable to the standard sbin directory.
   install -Dm755 "preload" "${pkgdir}/usr/sbin/preload"
-
-  # 2. Install Configuration File
   # The config file is generated during the 'make' step in build().
   install -Dm644 "preload.conf" "${pkgdir}/etc/preload.conf"
-
-  # 3. Install Systemd Service File
   # We embed the service content here to avoid needing a separate file.
   install -d "${pkgdir}/usr/lib/systemd/system"
   cat <<'EOF' > "${pkgdir}/usr/lib/systemd/system/preload-ng.service"
@@ -66,8 +53,6 @@ ReadWritePaths=/var/log
 [Install]
 WantedBy=multi-user.target
 EOF
-
-  # 4. Create State Directory Placeholder
   # Although StateDirectory=preload is used, we ensure the path exists for non-systemd environments.
   install -d "${pkgdir}/var/lib/preload"
 }
