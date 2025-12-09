@@ -1,159 +1,97 @@
 #!/usr/bin/env bash
-set -euo pipefail; shopt -s nullglob; IFS=$'\n\t'
+set -euo pipefail; shopt -s nullglob extglob; IFS=$'\n\t'
+
 # ═══════════════════════════════════════════════════════════════════════════
-# Build Script - Arch Linux Package Builder with Docker Support
+# Build Script - Arch Linux Package Builder
 # ═══════════════════════════════════════════════════════════════════════════
-# ─── Configuration ─────────────────────────────────────────────────────────
+
+# ─── Config ────────────────────────────────────────────────────────────────
 readonly IMAGE="archlinux:latest"
-# Use associative array for O(1) lookup instead of regex matching
-declare -A DOCKER_PKGS=(
-  [obs-studio]=1
-  [firefox]=1
-  [egl-wayland2]=1
-  [onlyoffice]=1
-)
-# ─── Color & Logging Helpers ───────────────────────────────────────────────
+declare -A DOCKER_PKGS=([obs-studio]=1 [firefox]=1 [egl-wayland2]=1 [onlyoffice]=1)
+
+# ─── Helpers ───────────────────────────────────────────────────────────────
 readonly R=$'\e[31m' G=$'\e[32m' Y=$'\e[33m' D=$'\e[0m'
 err(){ printf '%b\n' "${R}✘ $*${D}" >&2; }
 log(){ printf '%b\n' "${G}➜ $*${D}"; }
 warn(){ printf '%b\n' "${Y}⚠ $*${D}" >&2; }
 has(){ command -v "$1" &>/dev/null; }
-# ─── Usage Documentation ───────────────────────────────────────────────────
+
 usage(){
   cat <<'EOF'
 Usage: build.sh [OPTIONS] [PACKAGE...]
-Build Arch Linux packages from PKGBUILDs with automatic dependency handling.
-OPTIONS:
-  -h, --help     Display this help message and exit
-ARGUMENTS:
-  PACKAGE...     One or more package names to build
-                 If no packages specified, builds all packages in repository
-BUILD METHODS:
-  Standard       Local build using makepkg (default)
-                 - Fast for most packages
-                 - Uses system dependencies
-                 - Flags: -srC (install deps, remove after, clean build)
-
-  Docker         Containerized build for complex packages
-                 - Used for: obs-studio, firefox, egl-wayland2, onlyoffice
-                 - Requires Docker to be installed
-                 - Isolated environment with archlinux:latest
-                 - Automatic dependency extraction and installation
-EXAMPLES:
-  # Build a single package
-  build.sh aria2
-
-  # Build multiple specific packages
-  build.sh aria2 firefox
-
-  # Build all packages in repository
-  build.sh
-
-  # Display help
-  build.sh --help
-REQUIREMENTS:
-  - base-devel (Arch Linux build tools)
-  - makepkg, pacman
-  - docker (optional, for Docker-based builds)
-  - fd (optional, faster package detection)
-For more information, see README.md and CLAUDE.md
+Build Arch Linux packages via makepkg or Docker.
+OPTIONS: -h, --help  Show help
 EOF
 }
-# ─── Package Discovery ─────────────────────────────────────────────────────
+
+# ─── Discovery ─────────────────────────────────────────────────────────────
 find_pkgs(){
-  if has fd; then
-    fd -t f -g 'PKGBUILD' -x printf '%{//}\n' | sort -u
-  else
-    find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | sort -u
-  fi
-}
-# ─── Package Validation ────────────────────────────────────────────────────
-validate_pkg(){
-  local pkg="$1"
-  if [[ ! -d "$pkg" ]]; then
-    err "Package directory '$pkg' does not exist"; return 1
-  fi
-  if [[ ! -f "$pkg/PKGBUILD" ]]; then
-    err "No PKGBUILD found in '$pkg'"; return 1
-  fi
-  if ! bash -n "$pkg/PKGBUILD" 2>/dev/null; then
-    err "PKGBUILD syntax error in '$pkg'"; return 1
-  fi; return 0
+  if has fd; then fd -t f -g 'PKGBUILD' -x printf '%{//}\n' | sort -u
+  else find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | sort -u; fi
 }
 
-# ─── Build Methods ─────────────────────────────────────────────────────────
+# ─── Builders ──────────────────────────────────────────────────────────────
 build_docker(){
   local pkg="$1"
-  if ! has docker; then
-    err "Docker required for $pkg but not found. Skipping."; return 1
-  fi
-  log "Building $pkg (Method: docker)"
-  docker run --rm -it \
-    -v "${PWD}:/ws:rw" \
-    -w "/ws/$pkg" \
-    "$IMAGE" \
-    bash -c '
-      set -euo pipefail
-      pacman -Syu --noconfirm --needed base-devel pacman-contrib sudo
-      # Dynamic dependency extraction
-      deps=$(makepkg --printsrcinfo | awk "/^\s*(make)?depends\s*=/ { \$1=\"\"; print \$0 }" | tr "\n" " ")
-      [[ -n "$deps" ]] && pacman -S --noconfirm --needed $deps
-      # Build as non-root user
-      useradd -m builder
-      echo "builder ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/builder
-      chmod 440 /etc/sudoers.d/builder
-      chown -R builder:builder .
-      sudo -u builder makepkg -fs --noconfirm
-    '
-}
-build_standard(){
-  local pkg="$1"
-  log "Building $pkg (Method: standard)"
-  pushd "$pkg" >/dev/null || return 1
-  # -s: install deps, -r: remove deps after, -C: clean build
-  if ! makepkg -srC --noconfirm; then
-    err "Failed to build $pkg"
-    popd >/dev/null; return 1
-  fi
-  popd >/dev/null
-}
-build_pkg(){
-  local pkg="$1"
-  # O(1) lookup instead of regex match
-  if [[ -n "${DOCKER_PKGS[$pkg]:-}" ]]; then
-    build_docker "$pkg"
-  else
-    build_standard "$pkg"
-  fi
+  has docker || { err "Docker required for $pkg"; return 1; }
+  log "Building $pkg (Docker)"
+
+  docker run --rm -v "${PWD}:/ws:rw" -w "/ws/$pkg" "$IMAGE" bash -c '
+    set -euo pipefail; shopt -s extglob
+    pacman -Syu --noconfirm --needed base-devel pacman-contrib sudo
+    
+    # Robust dependency extraction
+    mapfile -t deps < <(makepkg --printsrcinfo 2>/dev/null | \
+      awk "/^\s*(make)?depends\s*=/ { \$1=\"\"; print \$0 }")
+    
+    # Trim whitespace
+    deps=("${deps[@]##+([[:space:]])}")
+    
+    if [[ ${#deps[@]} -gt 0 ]]; then
+      pacman -S --noconfirm --needed "${deps[@]}"
+    fi
+
+    # Build as user
+    useradd -m builder
+    echo "builder ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/builder
+    chmod 440 /etc/sudoers.d/builder
+    chown -R builder:builder .
+    sudo -u builder makepkg -fs --noconfirm
+  '
 }
 
-# ─── Main Entry Point ──────────────────────────────────────────────────────
+build_standard(){
+  local pkg="$1"
+  log "Building $pkg (Standard)"
+  builtin cd "$pkg" || return 1
+  if ! makepkg -srC --noconfirm; then
+    err "Failed to build $pkg"
+    builtin cd ..; return 1
+  fi
+  builtin cd ..
+}
+
+# ─── Main ──────────────────────────────────────────────────────────────────
 main(){
   local -a targets=()
-  # Parse arguments
-  if [[ $# -gt 0 ]]; then
-    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-      usage; exit 0
-    fi
-    targets=("$@")
-  else
-    log "No package specified, detecting all..."
-    mapfile -t targets < <(find_pkgs)
-  fi
-  if [[ ${#targets[@]} -eq 0 ]]; then
-    err "No packages found."; exit 1
-  fi
-  log "Queue: ${targets[*]}"
+  [[ "${1:-}" =~ ^(-h|--help)$ ]] && { usage; exit 0; }
+
+  if [[ $# -gt 0 ]]; then targets=("$@")
+  else log "Detecting packages..."; mapfile -t targets < <(find_pkgs); fi
+
+  [[ ${#targets[@]} -eq 0 ]] && { err "No packages found"; exit 1; }
+
   local failed=0
   for pkg in "${targets[@]}"; do
-    if ! build_pkg "$pkg"; then
-      ((failed++)) || true
-    fi
+    [[ ! -f "$pkg/PKGBUILD" ]] && { err "Missing PKGBUILD: $pkg"; ((failed++)); continue; }
+    
+    # O(1) Dispatch
+    if [[ -n "${DOCKER_PKGS[$pkg]:-}" ]]; then build_docker "$pkg"
+    else build_standard "$pkg"; fi || ((failed++))
   done
-  if [[ $failed -gt 0 ]]; then
-    err "$failed package(s) failed to build"; exit 1
-  fi
-  log "All packages built successfully"
+
+  [[ $failed -gt 0 ]] && { err "$failed package(s) failed"; exit 1; }
+  log "Success"
 }
 
 main "$@"
