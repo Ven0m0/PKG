@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
+shopt -s nullglob globstar
+IFS=$'\n\t'
 
 # Clone Rust repository
 if [[ ! -d rust ]]; then
   git clone --depth=1 https://github.com/rust-lang/rust.git
 fi
 
-cd rust
+cd rust || exit 1
 
 # Configure Rust build with optimizations
 ./configure \

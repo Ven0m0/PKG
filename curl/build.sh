@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
+set -euo pipefail
+shopt -s nullglob globstar
+IFS=$'\n\t'
+
+# References:
 # https://github.com/curl/curl/blob/master/GIT-INFO.md
 # https://curl.se/docs/install.html
-#
 # https://gitlab.archlinux.org/archlinux/packaging/packages/curl-rustls/-/blob/main/PKGBUILD
-#
 # https://github.com/stunnel/static-curl
-#
 # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=curl-http3
 # https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=curl-c-ares
-
-set -euo pipefail
 
 ./configure \
   --prefix=/usr \
@@ -42,12 +42,9 @@ set -euo pipefail
 make -j"$(nproc)"
 sudo make install
 
-
 # % git clone https://github.com/wolfSSL/wolfssl.git
 # % cd wolfssl
 # % autoreconf -fi
 # % ./configure --prefix=<somewhere1> --enable-quic --enable-session-ticket --enable-earlydata --enable-psk --enable-harden --enable-altcertchains
 # % make
 # % make install
-
- 

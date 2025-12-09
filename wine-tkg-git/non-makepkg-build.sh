@@ -1,4 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
+shopt -s nullglob globstar
+IFS=$'\n\t'
 
 # ===========================================================================================================================================================================
 # non-makepkg-build.sh - A non-makepkg build script for wine-tkg-git
@@ -54,23 +57,23 @@ _DEPSHELPER=${_DEPSHELPER:-0}
 ACTION="build"
 
 # Print a basic message (included for compatibility with makepkg)
-msg() {
-  echo -e " \033[1;34m->\033[1;0m $1" >&2
+msg(){
+  printf ' \033[1;34m->\033[1;0m %s\n' "$1" >&2
 }
 
 # Print a message with a prefix (included for compatibility with makepkg)
-msg2() {
-  echo -e " \033[1;34m=>\033[1;0m \033[1;1m$1\033[1;0m" >&2
+msg2(){
+  printf ' \033[1;34m=>\033[1;0m \033[1;1m%s\033[1;0m\n' "$1" >&2
 }
 
 # Print a warning message (included for compatibility with makepkg)
-warning() {
-  echo -e " \033[1;33m==> WARNING: $1\033[1;0m" >&2
+warning(){
+  printf ' \033[1;33m==> WARNING: %s\033[1;0m\n' "$1" >&2
 }
 
 # Print an error message (included for compatibility with makepkg)
-error() {
-  echo -e " \033[1;31m===> ERROR: $1\033[1;0m" >&2
+error(){
+  printf ' \033[1;31m===> ERROR: %s\033[1;0m\n' "$1" >&2
 }
 
 pkgver() {

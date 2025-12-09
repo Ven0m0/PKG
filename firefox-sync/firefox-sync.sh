@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-shopt -s nullglob
+shopt -s nullglob globstar
 IFS=$'\n\t'
 
 readonly STATIC=main
@@ -11,14 +11,22 @@ detect_profile(){
   local profiles
   mapfile -t profiles < <(find -H ~/.mozilla/firefox -maxdepth 1 -type d -name "*.default*" -printf "%f\n")
   case ${#profiles[@]} in
-    0) printf 'Error: No Firefox profile found\n' >&2; exit 1 ;;
+    0)
+      printf 'Error: No Firefox profile found\n' >&2
+      exit 1
+      ;;
     1) LINK=${profiles[0]} ;;
-    *) printf 'Multiple profiles found. Use -p:\n' >&2
-       printf '  %s\n' "${profiles[@]}" >&2; exit 1 ;;
+    *)
+      printf 'Multiple profiles found. Use -p:\n' >&2
+      printf '  %s\n' "${profiles[@]}" >&2
+      exit 1
+      ;;
   esac
 }
 
-usage(){ printf 'Usage: firefox-sync [-dhrp profile]\n'; }
+usage(){
+  printf 'Usage: firefox-sync [-dhrp profile]\n'
+}
 
 longhelp(){
   usage

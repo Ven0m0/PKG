@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-set -euo pipefail; shopt -s nullglob extglob; IFS=$'\n\t'
+set -euo pipefail
+shopt -s nullglob extglob globstar
+IFS=$'\n\t'
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Build Script - Arch Linux Package Builder
@@ -37,23 +39,24 @@ build_docker(){
   log "Building $pkg (Docker)"
 
   docker run --rm -v "${PWD}:/ws:rw" -w "/ws/$pkg" "$IMAGE" bash -c '
-    set -euo pipefail; shopt -s extglob
+    set -euo pipefail
+    shopt -s extglob
     pacman -Syu --noconfirm --needed base-devel pacman-contrib sudo
-    
+
     # Robust dependency extraction
     mapfile -t deps < <(makepkg --printsrcinfo 2>/dev/null | \
       awk "/^\s*(make)?depends\s*=/ { \$1=\"\"; print \$0 }")
-    
+
     # Trim whitespace
     deps=("${deps[@]##+([[:space:]])}")
-    
+
     if [[ ${#deps[@]} -gt 0 ]]; then
       pacman -S --noconfirm --needed "${deps[@]}"
     fi
 
     # Build as user
     useradd -m builder
-    echo "builder ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/builder
+    echo "builder ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/builder
     chmod 440 /etc/sudoers.d/builder
     chown -R builder:builder .
     sudo -u builder makepkg -fs --noconfirm
