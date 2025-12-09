@@ -1,72 +1,93 @@
 #!/usr/bin/env bash
-set -euo pipefail; shopt -s globstar nullglob
-IFS=$'\n\t'
+set -euo pipefail; shopt -s globstar nullglob; IFS=$'\n\t'
 export LC_ALL=C LANG=C
+
 # ═══════════════════════════════════════════════════════════════════════════
 # Lint Script - PKGBUILD & Shell Script Quality Enforcement
 # ═══════════════════════════════════════════════════════════════════════════
-readonly original_dir="$PWD"
-declare -a errs=()
-# ─── Tool Availability Cache ───────────────────────────────────────────────
-readonly has_shellcheck=$(command -v shellcheck &>/dev/null && echo true || echo false)
-readonly has_shellharden=$(command -v shellharden &>/dev/null && echo true || echo false)
-readonly has_shfmt=$(command -v shfmt &>/dev/null && echo true || echo false)
-readonly has_namcap=$(command -v namcap &>/dev/null && echo true || echo false)
-# ─── Color Helpers ─────────────────────────────────────────────────────────
+
+# ─── Helpers ───────────────────────────────────────────────────────────────
 readonly R=$'\e[31m' G=$'\e[32m' Y=$'\e[33m' D=$'\e[0m'
 err(){ printf '%b\n' "${R}✘ $*${D}" >&2; }
 ok(){ printf '%b\n' "${G}✓ $*${D}"; }
 warn(){ printf '%b\n' "${Y}⚠ $*${D}" >&2; }
-# ─── Package Discovery ─────────────────────────────────────────────────────
-mapfile -t pkgs < <(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | sort -u)
-# ─── Linting Pipeline ──────────────────────────────────────────────────────
-for pkg in "${pkgs[@]}"; do
-  [[ -d $pkg ]] || continue
-  cd "$original_dir/$pkg" || { errs+=("$pkg: cd failed"); continue; }
-  echo "==> $pkg"
-  [[ ! -f PKGBUILD ]] && { errs+=("$pkg: no PKGBUILD"); continue; }
-  # ShellCheck: Static analysis with auto-fix
-  if [[ "$has_shellcheck" == "true" ]]; then
-    if ! shellcheck -x -a -s bash -f diff PKGBUILD 2>/dev/null | patch -Np1 --silent 2>/dev/null; then
-      warn "$pkg: shellcheck had suggestions"
-    fi
-  fi
-  # Shellharden: Safety improvements
-  if [[ "$has_shellharden" == "true" ]]; then
-    if ! shellharden --replace PKGBUILD 2>/dev/null; then
-      errs+=("$pkg: shellharden failed")
-    fi
-  fi
-  # shfmt: Code formatting
-  if [[ "$has_shfmt" == "true" ]]; then
-    if ! shfmt -ln bash -bn -ci -s -i 2 -w PKGBUILD 2>/dev/null; then
-      warn "$pkg: shfmt formatting failed"
-    fi
-  fi
-  # namcap: PKGBUILD linting
-  if [[ "$has_namcap" == "true" ]]; then
-    if ! namcap PKGBUILD >/dev/null 2>&1; then
-      warn "$pkg: namcap warnings (non-fatal)"
-    fi
-  fi
-  # .SRCINFO validation
-  if [[ -f .SRCINFO ]]; then
-    if ! makepkg --printsrcinfo 2>/dev/null | diff --ignore-blank-lines .SRCINFO - &>/dev/null; then
-      errs+=("$pkg: .SRCINFO out of sync")
-      echo "Run: cd $pkg && makepkg --printsrcinfo > .SRCINFO"
-    fi
-  else
-    errs+=("$pkg: missing .SRCINFO")
-    echo "Run: cd $pkg && makepkg --printsrcinfo > .SRCINFO"
-  fi
-done
-# ─── Results ───────────────────────────────────────────────────────────────
-cd "$original_dir"
-if [[ ${#errs[@]} -gt 0 ]]; then
-  echo
-  err "Found ${#errs[@]} error(s):"
-  printf '  %s\n' "${errs[@]}" >&2
-  exit 1
-fi
+has(){ command -v "$1" &>/dev/null; }
 
-ok "All checks passed"
+# ─── Main ──────────────────────────────────────────────────────────────────
+main(){
+  local root="$PWD"
+  local -a pkgs errs=()
+  local diff_out
+
+  # Discovery (Prioritize fd)
+  if has fd; then
+    mapfile -t pkgs < <(fd -t f -g 'PKGBUILD' -x printf '%{//}\n' | sort -u)
+  else
+    mapfile -t pkgs < <(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | sort -u)
+  fi
+
+  # Tool Availability
+  local sc=0 sh=0 sf=0 nc=0
+  has shellcheck && sc=1
+  has shellharden && sh=1
+  has shfmt && sf=1
+  has namcap && nc=1
+
+  for pkg in "${pkgs[@]}"; do
+    [[ -d "$pkg" ]] || continue
+    printf '==> %s\n' "$pkg"
+    
+    # Context switch
+    builtin cd "$pkg" || { errs+=("$pkg: cd failed"); continue; }
+    [[ ! -f PKGBUILD ]] && { errs+=("$pkg: no PKGBUILD"); builtin cd "$root"; continue; }
+
+    # ShellCheck: Fix safely (avoid pipefail on clean files)
+    if [[ $sc -eq 1 ]]; then
+      diff_out=$(shellcheck -x -a -s bash -f diff PKGBUILD 2>/dev/null || true)
+      if [[ -n "$diff_out" ]]; then
+        if echo "$diff_out" | patch -Np1 --silent 2>/dev/null; then
+          warn "$pkg: shellcheck auto-fixed"
+        else
+          warn "$pkg: shellcheck manual fixes needed"
+        fi
+      fi
+    fi
+
+    # Shellharden
+    if [[ $sh -eq 1 ]]; then
+      shellharden --replace PKGBUILD &>/dev/null || errs+=("$pkg: shellharden failed")
+    fi
+
+    # shfmt
+    if [[ $sf -eq 1 ]]; then
+      shfmt -ln bash -bn -ci -s -i 2 -w PKGBUILD &>/dev/null || warn "$pkg: shfmt failed"
+    fi
+
+    # namcap
+    if [[ $nc -eq 1 ]]; then
+      namcap PKGBUILD &>/dev/null || warn "$pkg: namcap issues"
+    fi
+
+    # .SRCINFO sync
+    if [[ -f .SRCINFO ]]; then
+      if ! makepkg --printsrcinfo 2>/dev/null | diff -B .SRCINFO - &>/dev/null; then
+        errs+=("$pkg: .SRCINFO dirty")
+        printf '    Run: makepkg --printsrcinfo > .SRCINFO\n' >&2
+      fi
+    else
+      errs+=("$pkg: missing .SRCINFO")
+    fi
+
+    builtin cd "$root"
+  done
+
+  if [[ ${#errs[@]} -gt 0 ]]; then
+    printf '\n%bFound %s error(s):%b\n' "$R" "${#errs[@]}" "$D" >&2
+    printf '  %s\n' "${errs[@]}" >&2
+    exit 1
+  fi
+
+  ok "All checks passed"
+}
+
+main "$@"
