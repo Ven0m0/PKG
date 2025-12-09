@@ -61,7 +61,7 @@ _pkgsrc="xiota.primehack"
 source=("$_pkgsrc"::"git+$url.git#branch=$_branch")
 sha256sums=('SKIP')
 
-prepare() {
+prepare(){
   cd "$_pkgsrc"
   git rm -r 'Externals/FFmpeg-bin'
   git rm -r 'Externals/Qt'
@@ -86,8 +86,8 @@ prepare() {
     -i Source/Core/DolphinQt/CMakeLists.txt
 }
 
-pkgver() {
-  cd "$_pkgsrc" || exit
+pkgver(){
+  cd "$_pkgsrc"
   git describe --long --tags --abbrev=7 | sed -E 's/([^-]*-g)/r\1/;s/-/./g'
 }
 
@@ -143,9 +143,8 @@ END
   cmake --build build -j"$(nproc)"
 )
 
-package() {
+package(){
   DESTDIR="${pkgdir}" cmake --install build
-  install -Dm644 "${srcdir}/${_pkgsrc}/Data/51-usb-device.rules" \
-    "${pkgdir}/usr/lib/udev/rules.d/51-usb-device-primehack.rules"
+  install -Dm644 "${srcdir}/${_pkgsrc}/Data/51-usb-device.rules" "${pkgdir}/usr/lib/udev/rules.d/51-usb-device-primehack.rules"
   rm -rf "${pkgdir}"/usr/{include,lib/libdiscord-rpc.a}
 }
