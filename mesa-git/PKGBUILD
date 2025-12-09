@@ -239,27 +239,21 @@ case $MESA_WHICH_LLVM in
     *)
 esac
 
-pkgver() {
-    cd "$_mesa_srcdir"
-    _ver=$( cat VERSION )
-    echo ${_ver/-/_}.$(git rev-list --count HEAD).$(git rev-parse --short HEAD)
+pkgver(){
+  cd "$_mesa_srcdir"
+  _ver=$( cat VERSION )
+  echo ${_ver/-/_}.$(git rev-list --count HEAD).$(git rev-parse --short HEAD)
 }
 
-prepare() {
-    # cleanups
-    cd "$srcdir/$_mesa_srcdir"
-    git reset --hard HEAD
-    git clean -xdf
-    if [ -n "$_mesa_commit" ]; then
-      git checkout "${_mesa_commit}"
-    fi
-    msg2 "Tree cleaned"
-
-    # copy userpatches inside the PKGBUILD's dir
-    for _file in "$_where"/mesa-userpatches/*.mymesa*
-    do
-        [ -e "$_file" ] && cp "$_file" "$_where"
-    done
+prepare(){
+  cd "$srcdir/$_mesa_srcdir"
+  git reset --hard HEAD
+  git clean -xdf
+  [ -n "$_mesa_commit" ] && git checkout "${_mesa_commit}"
+  msg2 "Tree cleaned"
+  for _file in "$_where"/mesa-userpatches/*.mymesa*; do
+    [ -e "$_file" ] && cp "$_file" "$_where"
+  done
 
     if [ -n "$_mesa_prs" ]; then
       for _pr in ${_mesa_prs[@]}; do

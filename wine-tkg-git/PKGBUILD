@@ -18,7 +18,7 @@ _makepkg_options=()
 source "$_where"/wine-tkg-scripts/prepare.sh
 source "$_where"/wine-tkg-scripts/build.sh
 
-exit_cleanup() {
+exit_cleanup(){
   _exit_cleanup
   remove_deps || true
 }
@@ -308,31 +308,26 @@ nonuser_patcher() {
   fi
 }
 
-pkgver() {
-	if [ "$_use_staging" = "true" ] && [[ "$_custom_wine_source" != *"ValveSoftware"* ]]; then
-	  cd "${srcdir}/${_stgsrcdir}"
-	else
-	  cd "${srcdir}/${_winesrcdir}"
-	fi
-
-	# retrieve current wine version - if staging is enabled, staging version will be used instead
-	_ismakepkg="true" _describe_wine
+pkgver(){
+  if [ "$_use_staging" = "true" ] && [[ "$_custom_wine_source" != *"ValveSoftware"* ]]; then
+    cd "${srcdir}/${_stgsrcdir}"
+  else
+    cd "${srcdir}/${_winesrcdir}"
+  fi
+  _ismakepkg="true" _describe_wine
 }
 
-prepare() {
-	# Handle unbranched bleeding version
-	if [ "$_LOCAL_PRESET" = "valve-exp-bleeding" ]; then
-	  (
-	  cd "${srcdir}/${_winesrcdir}"
-	  if [ -z "$_bleeding_tag" ]; then
-	    _bleeding_tag=$(git tag -l --sort=-v:refname | grep "bleeding" | head -n 1)
-	    echo "_bleeding_tag='$_bleeding_tag'" >> "$_where"/temp
-	  fi
-	  _bleeding_commit=$(git rev-list -n 1 "${_bleeding_tag}")
-	  _plain_commit="${_bleeding_commit}"
-	  git -c advice.detachedHead=false checkout "${_bleeding_commit}"
-	  )
-	fi
+prepare(){
+  [ "$_LOCAL_PRESET" = "valve-exp-bleeding" ] && (
+    cd "${srcdir}/${_winesrcdir}"
+    [ -z "$_bleeding_tag" ] && {
+      _bleeding_tag=$(git tag -l --sort=-v:refname | grep "bleeding" | head -n 1)
+      echo "_bleeding_tag='$_bleeding_tag'" >> "$_where"/temp
+    }
+    _bleeding_commit=$(git rev-list -n 1 "${_bleeding_tag}")
+    _plain_commit="${_bleeding_commit}"
+    git -c advice.detachedHead=false checkout "${_bleeding_commit}"
+  )
 
 	# Fixed ?
 	#if msg2; then # Arch chroot workaround for even more looping fun
@@ -408,9 +403,8 @@ prepare() {
     fi
 }
 
-build() {
+build(){
   _prebuild_common
-
   local _prefix=/usr
   local _lib64name="lib"
   if (cd "${srcdir}"/"${_winesrcdir}" && git merge-base --is-ancestor 8c3f205696571558a6fae42314370fbd7cc14a12 HEAD); then
@@ -462,16 +456,9 @@ build() {
   fi
 }
 
-package() {
-  if [ "$_allow_server_rt_prio" = "true" ]; then
-    install=wine-tkg.install
-  else
-    install=wine.install
-  fi
-
-  if [ "$_NOCOMPILE" != "true" ]; then
-    _package_makepkg
-  fi
+package(){
+  [ "$_allow_server_rt_prio" = "true" ] && install=wine-tkg.install || install=wine.install
+  [ "$_NOCOMPILE" != "true" ] && _package_makepkg
 }
 
 trap exit_cleanup EXIT
