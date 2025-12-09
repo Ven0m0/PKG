@@ -13,19 +13,11 @@ source=("assets/99-intel-ucode-scan.hook"
         "intel-ucode-scan.install")
 sha256sums=('SKIP' 'SKIP' 'SKIP')
 
-build() {
+build(){
   return 0
 }
 
-package() {
-  # install hook
-  install -Dm644 "$srcdir/assets/99-intel-ucode-scan.hook" \
-    "$pkgdir/etc/pacman.d/hooks/99-intel-ucode-scan.hook"
-
-  # install helper script (preserve earlier chosen path)
-  install -Dm755 "$srcdir/assets/intel-ucode-scan.sh" \
-    "$pkgdir/usr/local/bin/intel-ucode-scan.sh"
-
-  # keep .install in srcdir (makepkg will pack it automatically)
-  # no other runtime files needed
+package(){
+  install -Dm644 "$srcdir/assets/99-intel-ucode-scan.hook" "$pkgdir/etc/pacman.d/hooks/99-intel-ucode-scan.hook"
+  install -Dm755 "$srcdir/assets/intel-ucode-scan.sh" "$pkgdir/usr/local/bin/intel-ucode-scan.sh"
 }
