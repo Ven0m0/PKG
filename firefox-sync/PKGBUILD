@@ -16,17 +16,14 @@ sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP')
 
 prepare(){
   local profile_dir="$HOME/.mozilla/firefox" current_link existing_profile
-  
-  if [[ -f /usr/bin/${pkgname} ]]; then
+  [[ -f /usr/bin/${pkgname} ]] && {
     current_link=$(grep -m1 '^LINK=' "/usr/bin/${pkgname}" | cut -d= -f2)
     [[ -n $current_link ]] && sed -i "s|^LINK=.*|LINK=$current_link|" "${pkgname}.sh" && return
-  fi
-  
+  }
   [[ ! -d $profile_dir ]] && {
     printf 'Warning: Set LINK in /usr/bin/firefox-sync after install\n' >&2
     return 0
   }
-  
   existing_profile=$(find -H "$profile_dir" -maxdepth 1 -type d -name "*.default*" -printf "%f\n" | head -n1)
   [[ -n $existing_profile ]] && sed -i "s|^LINK=.*|LINK=$existing_profile|" "${pkgname}.sh"
 }
