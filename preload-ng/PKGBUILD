@@ -16,18 +16,15 @@ sha256sums=('SKIP')
 # The directory where the source code (including the Makefile) is located
 _srcdir="${srcdir}/${pkgname}/preload-src"
 
-build() {
+build(){
   cd "${_srcdir}"
-  # Makefile handles compilation and runs the post_build script 
   make
 }
-package() {
+
+package(){
   cd "${_srcdir}"
-  # Install the main daemon executable to the standard sbin directory.
   install -Dm755 "preload" "${pkgdir}/usr/sbin/preload"
-  # The config file is generated during the 'make' step in build().
   install -Dm644 "preload.conf" "${pkgdir}/etc/preload.conf"
-  # We embed the service content here to avoid needing a separate file.
   install -d "${pkgdir}/usr/lib/systemd/system"
   cat <<'EOF' > "${pkgdir}/usr/lib/systemd/system/preload-ng.service"
 [Unit]
@@ -53,7 +50,5 @@ ReadWritePaths=/var/log
 [Install]
 WantedBy=multi-user.target
 EOF
-  # Although StateDirectory=preload is used, we ensure the path exists for non-systemd environments.
   install -d "${pkgdir}/var/lib/preload"
-  sudo systemctl enable --now preload-ng.service
 }
