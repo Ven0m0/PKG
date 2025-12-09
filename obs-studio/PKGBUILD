@@ -21,35 +21,19 @@ source=(
 sha256sums=('SKIP'
   '48d744037c553eea8f9b76bf46f6dcac753e52871f49b2c1a2580757f723a1b7')
 
-prepare() {
-  cd "${pkgname}-${pkgver}-sources" || exit
+prepare(){
+  cd "${pkgname}-${pkgver}-sources"
   patch -Np1 -i "${srcdir}/12328.patch" || :
 }
 
-build() {
-  # Optimized compiler flags
+build(){
   export CFLAGS="${CFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt -flto=auto"
   export CXXFLAGS="${CXXFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt -flto=auto -Wno-error=deprecated-declarations"
   export LDFLAGS="${LDFLAGS} -Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
-
-  cmake -B build -S "${pkgname}-${pkgver}-sources" \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX=/usr \
-    -DENABLE_JACK=ON \
-    -DENABLE_SNDIO=OFF \
-    -DENABLE_BROWSER=OFF \
-    -DENABLE_VST=OFF \
-    -DENABLE_VLC=OFF \
-    -DENABLE_LIBFDK=OFF \
-    -DENABLE_WEBRTC=OFF \
-    -DENABLE_WEBSOCKET=OFF \
-    -DENABLE_NEW_MPEGTS_OUTPUT=OFF \
-    -DENABLE_AJA=OFF \
-    -DENABLE_SCRIPTING=OFF \
-    -DOBS_VERSION_OVERRIDE="$pkgver" \
-    -Wno-dev
+  cmake -B build -S "${pkgname}-${pkgver}-sources" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DENABLE_JACK=ON -DENABLE_SNDIO=OFF -DENABLE_BROWSER=OFF -DENABLE_VST=OFF -DENABLE_VLC=OFF -DENABLE_LIBFDK=OFF -DENABLE_WEBRTC=OFF -DENABLE_WEBSOCKET=OFF -DENABLE_NEW_MPEGTS_OUTPUT=OFF -DENABLE_AJA=OFF -DENABLE_SCRIPTING=OFF -DOBS_VERSION_OVERRIDE="$pkgver" -Wno-dev
   cmake --build build --target all -j"$(nproc)"
 }
-package() {
+
+package(){
   DESTDIR="$pkgdir" cmake --install build
 }
