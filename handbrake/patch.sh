@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
+# shellcheck enable=all shell=bash source-path=SCRIPTDIR external-sources=true
 set -euo pipefail
 shopt -s nullglob globstar
+export LC_ALL=C
 IFS=$'\n\t'
+s=${BASH_SOURCE[0]}; [[ $s != /* ]] && s=$PWD/$s; cd -P -- "${s%/*}"
 
-readonly BASEDIR="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
+readonly BASEDIR="$PWD"
 src_dir="HandBrake"
 readonly help="Usage: patch.sh [src_dir=\"HandBrake\"] [options]
 The src_dir is the directory that contains the HandBrake source code (defaults to \"HandBrake\")
@@ -11,54 +14,27 @@ The src_dir is the directory that contains the HandBrake source code (defaults t
 -h --help  -> print usage message
 If no directory is found, the program exits"
 
-if [[ "$#" -gt 2 ]]; then
-  echo "$help"
-  exit 1
-fi
+[[ $# -gt 2 ]] && { printf '%s\n' "$help"; exit 1; }
 
 for arg in "$@"; do
-  case "$arg" in
-    -h | --help)
-      echo "$help"
-      exit 0
-      ;;
-    -c | --clone)
-      rm -rf HandBrake
-      git clone https://github.com/HandBrake/HandBrake.git
-      ;;
-    -*)
-      echo "${arg} option doesn't exist!"
-      echo "$help"
-      exit 1
-      ;;
-    *)
-      src_dir="$arg"
-      ;;
+  case $arg in
+    -h | --help) printf '%s\n' "$help"; exit 0 ;;
+    -c | --clone) rm -rf HandBrake; git clone https://github.com/HandBrake/HandBrake.git ;;
+    -*) printf '%s option does not exist!\n%s\n' "$arg" "$help" >&2; exit 1 ;;
+    *) src_dir=$arg ;;
   esac
 done
 
-# Resolve src_dir: if relative, make it relative to $PWD (not $BASEDIR)
-[[ "$src_dir" = /* ]] || src_dir="$PWD/$src_dir"
+[[ $src_dir = /* ]] || src_dir=$PWD/$src_dir
 
-if [[ ! -d "$src_dir" ]]; then
-  echo "Error: $src_dir directory doesn't exist!"
-  echo "$help"
-  exit 1
-fi
+[[ ! -d $src_dir ]] && { printf 'Error: %s directory does not exist!\n%s\n' "$src_dir" "$help" >&2; exit 1; }
+[[ ! -d $BASEDIR/patches ]] && { printf 'Error: patches directory does not exist!\n' >&2; exit 1; }
 
-if [[ ! -d "$BASEDIR/patches" ]]; then
-  echo "Error: patches directory doesn't exist!"
-  exit 1
-fi
-
-cd "$src_dir" || exit 1
+builtin cd "$src_dir" || exit 1
 
 for filename in "$BASEDIR"/patches/*.patch; do
-  [[ ! -f "$filename" ]] && {
-    echo "Warning: No patch files found in $BASEDIR/patches/"
-    break
-  }
-  echo "Applying patch: $(basename "$filename")"
+  [[ ! -f $filename ]] && { printf 'Warning: No patch files found in %s/patches/\n' "$BASEDIR" >&2; break; }
+  printf 'Applying patch: %s\n' "$(basename "$filename")"
   git apply "$filename" || exit 1
 done
 
