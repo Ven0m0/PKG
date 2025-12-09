@@ -11,42 +11,26 @@ makedepends=('openssl' 'rustls' 'wolfssl' 'pkg-config' 'autoconf' 'automake' 'li
 source=("https://curl.se/download/curl-${pkgver}.tar.xz")
 sha256sums=('db59cf0d671ca6e7f5c2c5ec177084a33a79e04c97e71cf183a5cdea235054eb')
 
-prepare() {
+prepare(){
   cd "curl-$pkgver"
   autoreconf -fi
 }
 
-build() {
+build(){
   cd "curl-$pkgver"
   export CFLAGS="-O3 -march=native -mtune=native -flto=auto -ffat-lto-objects -pipe -fno-plt"
   export LDFLAGS="-flto=auto -Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now,-z,pack-relative-relocs"
-  local -A tls=(
-    [rustls]="--with-rustls"
-    [openssl]="--with-openssl"
-    [wolfssl]="--with-wolfssl"
-  )
+  local -A tls=([rustls]="--with-rustls" [openssl]="--with-openssl" [wolfssl]="--with-wolfssl")
   for b in rustls openssl wolfssl; do
     mkdir -p "build-$b"
     cd "build-$b"
-    ../configure \
-      --prefix=/usr \
-      --disable-shared \
-      --disable-manual \
-      --enable-ipv6 \
-      --enable-threaded-resolver \
-      --enable-http2 \
-      --enable-quic \
-      --with-quiche \
-      --with-zlib \
-      --with-brotli \
-      --with-zstd \
-      ${tls[$b]}
+    ../configure --prefix=/usr --disable-shared --disable-manual --enable-ipv6 --enable-threaded-resolver --enable-http2 --enable-quic --with-quiche --with-zlib --with-brotli --with-zstd ${tls[$b]}
     make -j"$(nproc)"
     cd ..
   done
 }
 
-package_curl-rustls() {
+package_curl-rustls(){
   pkgdesc="URL transfer (rustls TLS + HTTP/3)"
   depends=('ca-certificates' 'brotli' 'librustls' 'zlib' 'zstd' 'quiche')
   provides=('curl')
@@ -55,7 +39,7 @@ package_curl-rustls() {
   make DESTDIR="$pkgdir" install
 }
 
-package_curl-openssl() {
+package_curl-openssl(){
   pkgdesc="URL transfer (OpenSSL TLS + HTTP/3)"
   depends=('ca-certificates' 'brotli' 'openssl' 'zlib' 'zstd' 'quiche')
   provides=('curl')

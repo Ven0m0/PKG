@@ -23,9 +23,9 @@ sha512sums=('7d046b44ee059384cf95aced62c354bf5401aaeea286df113ef74c1b0c186210e9b
             'cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e'
             '57b1603729122bbfad15e591da1d1bbadc9cbe5f6bcd1525c5045ef341c71993a5c6fef277bac60e841401b42d8c98b8e82e43a090d8b3917c155ac9f590b968')
 
-package() {
-	cd "${srcdir}" || exit
-	make PREFIX=/usr DESTDIR=${pkgdir} install
+package(){
+  cd "${srcdir}"
+  make PREFIX=/usr DESTDIR=${pkgdir} install
 }
 
 # vim: ts=2 sw=2 et:
