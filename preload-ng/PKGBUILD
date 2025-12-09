@@ -1,0 +1,39 @@
+# Maintainer: Your Name <youremail@example.com>
+pkgname=preload-ng
+pkgver=0.6.7
+pkgrel=1
+pkgdesc="An adaptive readahead daemon that prefetches files to reduce application startup times on Linux systems."
+arch=('i686' 'x86_64' 'arm' 'aarch64')
+url="https://github.com/miguel-b-p/preload-ng"
+license=('GPL2')
+depends=('glib2')
+makedepends=('git' 'base-devel' 'pkgconfig')
+source=("${pkgname}::git+${url}.git#tag=v${pkgver}")
+sha256sums=('SKIP')
+# The Makefile runs a post-build script that generates preload.conf, 
+# so we must execute 'make' in the preload-src directory.
+build() {
+  cd "${srcdir}/${pkgname}/preload-src"
+  # Use standard CFLAGS for packaging (e.g., -march=x86-64)
+  # The Makefile automatically includes the necessary CFLAGS from pkg-config
+  make
+}
+package() {
+  # Change to the build directory where the binary and generated config are located
+  cd "${srcdir}/${pkgname}/preload-src"
+  # 1. Install Binary
+  # Install the main daemon executable to the standard sbin directory.
+  install -Dm755 "preload" "${pkgdir}/usr/sbin/preload"
+  # 2. Install Configuration File
+  # The program uses a generated preload.conf.in/confkeys.h to make preload.conf.
+  # This file is generated during the 'make' step in build().
+  install -Dm644 "preload.conf" "${pkgdir}/etc/preload.conf"
+  # 3. Install Systemd Service File
+  # Use the bundled service file and install it to the systemd directory.
+  install -Dm644 "../scripts/preload-ng.service" "${pkgdir}/usr/lib/systemd/system/preload-ng.service"
+  # 4. Create State Directory
+  # The program expects its state to be saved in PKGLOCALSTATEDIR, which is /var/lib/preload.
+  # Systemd's StateDirectory=preload handles /var/lib/preload creation, 
+  # but for non-systemd setups, we create it here.
+  install -d "${pkgdir}/var/lib/preload"
+}
