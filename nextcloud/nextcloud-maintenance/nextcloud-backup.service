@@ -1,0 +1,9 @@
+[Unit]
+Description=Nextcloud data backup service
+Documentation=https://docs.nextcloud.com/server/latest/admin_manual/maintenance/backup.html
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/share/nextcloud-maintenance/nextcloud-backup.sh
