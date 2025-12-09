@@ -33,9 +33,8 @@ validpgpkeys=(
   108F66205EAEB0AAA8DD5E1C85AB96E6FA1BE5FE  # Rust Language (Tag and Release Signing Key) <rust-key@rust-lang.org>
 )
 
-prepare() {
+prepare(){
   cd rust
-
   cat >config.toml <<END
 profile = 'dist'
 changelog-seen = 2
@@ -110,40 +109,17 @@ compression-profile = 'balanced'
 END
 }
 
-build() {
-    cd rust && mkdir -p pgo
-    export CC=clang CXX=clang++ CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=clang
-    export HOSTS=x86_64-unknown-linux-gnu
-    export PATH=$HOME/install/bin/:$PATH
-    export CMAKE_BUILD_TYPE=Release
-
-    python3 ./x.py build --set rust.debug=false opt-dist 
-    ./build/$HOSTS/stage0-tools-bin/opt-dist local \
-      --target-triple=$HOSTS --checkout-dir=$PWD --artifact-dir=$PWD/pgo \
-      --skipped-tests=tests/assembly \
-      --skipped-tests=tests/codegen \
-      --skipped-tests=tests/codegen-units \
-      --skipped-tests=tests/incremental \
-      --skipped-tests=tests/mir-opt \
-      --skipped-tests=tests/pretty \
-      --skipped-tests=tests/run-pass-valgrind \
-      --skipped-tests=tests/ui \
-      --llvm-dir=$HOME/install/ -- python3 \
-      ./x.py dist --host $HOSTS --target $HOSTS \
-      --include-default-paths \
-      build-manifest bootstrap
+build(){
+  cd rust && mkdir -p pgo
+  export CC=clang CXX=clang++ CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=clang HOSTS=x86_64-unknown-linux-gnu PATH=$HOME/install/bin/:$PATH CMAKE_BUILD_TYPE=Release
+  python3 ./x.py build --set rust.debug=false opt-dist
+  ./build/$HOSTS/stage0-tools-bin/opt-dist local --target-triple=$HOSTS --checkout-dir=$PWD --artifact-dir=$PWD/pgo --skipped-tests=tests/assembly --skipped-tests=tests/codegen --skipped-tests=tests/codegen-units --skipped-tests=tests/incremental --skipped-tests=tests/mir-opt --skipped-tests=tests/pretty --skipped-tests=tests/run-pass-valgrind --skipped-tests=tests/ui --llvm-dir=$HOME/install/ -- python3 ./x.py dist --host $HOSTS --target $HOSTS --include-default-paths build-manifest bootstrap
 }
 
-package_rust() {
-  optdepends=(
-    'gdb: rust-gdb script'
-    'lldb: rust-lldb script'
-  )
-  echo $PWD
+package_rust(){
+  optdepends=('gdb: rust-gdb script' 'lldb: rust-lldb script')
   cd rust/build/dist
   tar -xf rust-nightly-x86_64-unknown-linux-gnu.tar.xz
-  echo $PWD
   cd rust-nightly-x86_64-unknown-linux-gnu
   ./install.sh --prefix=/opt/rust --destdir=$pkgdir
-  #cp -a dest-rust/* "$pkgdir"
 }
