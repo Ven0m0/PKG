@@ -25,7 +25,6 @@ PKG/
 │   ├── patches/            # Custom patches (if applicable)
 │   └── *.patch             # Individual patch files
 ├── build.sh                # Universal build script
-├── build-wrapper.sh        # Build wrapper utility
 ├── lint.sh                 # Linting and formatting script
 ├── .editorconfig           # Editor configuration
 ├── .shellcheckrc           # ShellCheck linting rules
