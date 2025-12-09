@@ -1,9 +1,10 @@
 #!/bin/sh
 # VSCodium launcher script for system Electron
 
-ELECTRON=@ELECTRON@
-CLI_PATH=/usr/lib/vscodium/vscodium.js
-NAME=vscodium
+set -eu
+
+readonly ELECTRON=@ELECTRON@
+readonly CLI_PATH=/usr/lib/vscodium/vscodium.js
 
 if [ ! -x "/usr/bin/$ELECTRON" ]; then
   echo "Error: $ELECTRON not found or not executable" >&2

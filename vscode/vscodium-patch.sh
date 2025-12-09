@@ -1,23 +1,50 @@
 #!/usr/bin/env bash
 set -euo pipefail
-IFS=$'\n\t'
 shopt -s nullglob globstar
+IFS=$'\n\t'
 export LC_ALL=C
-R=$'\e[31m' G=$'\e[32m' Y=$'\e[33m' D=$'\e[0m'
-warn(){ printf '%b\n' "${Y}WARN:${D} $*" >&2; }
-die(){ printf '%b\n' "${R}ERR:${D} $*" >&2; exit "${2:-1}"; }
-has(){ command -v "$1" &>/dev/null; }
-has jaq && JQ=jaq || JQ=jq; has "$JQ" || die "Need jq/jaq"
+
+readonly R=$'\e[31m'
+readonly G=$'\e[32m'
+readonly Y=$'\e[33m'
+readonly D=$'\e[0m'
+
+warn(){
+  printf '%b\n' "${Y}WARN:${D} $*" >&2
+}
+
+die(){
+  printf '%b\n' "${R}ERR:${D} $*" >&2
+  exit "${2:-1}"
+}
+
+has(){
+  command -v "$1" &>/dev/null
+}
+
+if has jaq; then
+  JQ=jaq
+else
+  JQ=jq
+fi
+has "$JQ" || die "Need jq/jaq"
 
 # Keys to migrate from VSCode -> VSCodium
 KEYS_PROD=(nameShort nameLong applicationName dataFolderName serverDataFolderName darwinBundleIdentifier linuxIconName licenseUrl extensionAllowedProposedApi extensionEnabledApiProposals extensionKind extensionPointExtensionKind extensionSyncedKeys extensionVirtualWorkspacesSupport extensionsGallery extensionTips extensionImportantTips exeBasedExtensionTips configBasedExtensionTips keymapExtensionTips languageExtensionTips remoteExtensionTips webExtensionTips virtualWorkspaceExtensionTips trustedExtensionAuthAccess trustedExtensionUrlPublicKeys auth configurationSync "configurationSync.store" editSessions "editSessions.store" settingsSync aiConfig commandPaletteSuggestedCommandIds extensionRecommendations extensionKeywords extensionAllowedBadgeProviders extensionAllowedBadgeProvidersRegex linkProtectionTrustedDomains msftInternalDomains documentationUrl introductoryVideosUrl tipsAndTricksUrl newsletterSignupUrl releaseNotesUrl keyboardShortcutsUrlMac keyboardShortcutsUrlLinux keyboardShortcutsUrlWin quality settingsSearchUrl tasConfig tunnelApplicationName tunnelApplicationConfig serverApplicationName serverGreeting urlProtocol webUrl webEndpointUrl webEndpointUrlTemplate webviewContentExternalBaseUrlTemplate builtInExtensions extensionAllowedExtensionKinds crash aiRelatedInformationUrl defaultChatAgent)
 
 dl(){
-  local u="$1" o="$2"; mkdir -p "${o%/*}"
-  if has aria2c; then aria2c -q --max-tries=3 --retry-wait=1 -d "${o%/*}" -o "${o##*/}" "$u"
-  elif has curl; then curl -fsSL --retry 3 --http2 --tlsv1.2 "$u" -o "$o"
-  elif has wget; then wget -qO "$o" "$u"
-  else die "Need aria2c/curl/wget"; fi
+  local u="$1"
+  local o="$2"
+  mkdir -p "${o%/*}"
+  if has aria2c; then
+    aria2c -q --max-tries=3 --retry-wait=1 -d "${o%/*}" -o "${o##*/}" "$u"
+  elif has curl; then
+    curl -fsSL --retry 3 --http2 --tlsv1.2 "$u" -o "$o"
+  elif has wget; then
+    wget -qO "$o" "$u"
+  else
+    die "Need aria2c/curl/wget"
+  fi
 }
 # ─── XDG & Files ───
 xdg_patch(){

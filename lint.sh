@@ -28,10 +28,10 @@ main(){
 
   # Tool Availability
   local sc=0 sh=0 sf=0 nc=0
-  has shellcheck && sc=1
-  has shellharden && sh=1
-  has shfmt && sf=1
-  has namcap && nc=1
+  has shellcheck && sc=1 || warn "shellcheck not found"
+  has shellharden && sh=1 || warn "shellharden not found"
+  has shfmt && sf=1 || warn "shfmt not found"
+  has namcap && nc=1 || warn "namcap not found"
 
   for pkg in "${pkgs[@]}"; do
     [[ -d "$pkg" ]] || continue

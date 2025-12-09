@@ -1,37 +1,35 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
+shopt -s nullglob globstar
+IFS=$'\n\t'
 
-set -e
-
-readonly VERSION=$1
-if [[ -z $VERSION ]]; then
-  echo >&2 'No version given as an argument'
-  exit 1
-fi
+readonly VERSION="${1:?No version given as an argument}"
 
 mkdir -p chromium-checkout
-cd chromium-checkout
+cd chromium-checkout || exit 1
 
 rm -rf depot_tools
 git clone --depth=1 https://chromium.googlesource.com/chromium/tools/depot_tools
-export PATH+=":$PWD/depot_tools" DEPOT_TOOLS_UPDATE=0
+export PATH+=":$PWD/depot_tools"
+export DEPOT_TOOLS_UPDATE=0
 # export VPYTHON_BYPASS='manually managed python not supported by chrome operations'
 unset VPYTHON_BYPASS
 
-CHR_SOURCE=https://github.com/chromium/chromium.git
+readonly CHR_SOURCE=https://github.com/chromium/chromium.git
 
-if [ ! -d src ]; then
-mkdir -p src
-git -C src init
-git -C src remote add origin $CHR_SOURCE
-git -C src config --add remote.origin.fetch '+refs/tags/*:refs/tags/*'
+if [[ ! -d src ]]; then
+  mkdir -p src
+  git -C src init
+  git -C src remote add origin "$CHR_SOURCE"
+  git -C src config --add remote.origin.fetch '+refs/tags/*:refs/tags/*'
 fi
-git -C src fetch --depth 2 $CHR_SOURCE +refs/tags/$VERSION:chromium_$VERSION
+git -C src fetch --depth 2 "$CHR_SOURCE" "+refs/tags/$VERSION:chromium_$VERSION"
 git -C src clean -fd
-git -C src reset --hard $VERSION
+git -C src reset --hard "$VERSION"
 git -C src submodule foreach --recursive git clean -fd
 git -C src submodule foreach --recursive git reset --hard
 git -C src submodule update --remote --checkout
-VERSION_SHA=$(git -C src show-ref -s $VERSION | head -n1)
+readonly VERSION_SHA="$(git -C src show-ref -s "$VERSION" | head -n1)"
 
 cat >.gclient <<EOF
 solutions = [
