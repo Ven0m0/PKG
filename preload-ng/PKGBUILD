@@ -7,33 +7,67 @@ arch=('i686' 'x86_64' 'arm' 'aarch64')
 url="https://github.com/miguel-b-p/preload-ng"
 license=('GPL2')
 depends=('glib2')
-makedepends=('git' 'base-devel' 'pkgconfig')
+# Required build dependencies for the C code, Makefile, and config generation
+makedepends=('git' 'base-devel' 'pkgconfig' 'sh')
+# Fetch the source using the specific version tag
 source=("${pkgname}::git+${url}.git#tag=v${pkgver}")
+# Use SKIP since this is a VCS source
 sha256sums=('SKIP')
-# The Makefile runs a post-build script that generates preload.conf, 
-# so we must execute 'make' in the preload-src directory.
+
+# The directory where the source code (including the Makefile) is located
+_srcdir="${srcdir}/${pkgname}/preload-src"
+
 build() {
-  cd "${srcdir}/${pkgname}/preload-src"
-  # Use standard CFLAGS for packaging (e.g., -march=x86-64)
-  # The Makefile automatically includes the necessary CFLAGS from pkg-config
+  # Change to the preload-src directory to run the build process
+  cd "${_srcdir}"
+  
+  # The Makefile handles compilation and runs the post_build script 
+  # to generate the preload.conf file.
+  # This config file is essential for packaging.
   make
 }
+
 package() {
-  # Change to the build directory where the binary and generated config are located
-  cd "${srcdir}/${pkgname}/preload-src"
+  # Change to the build directory
+  cd "${_srcdir}"
+  
   # 1. Install Binary
   # Install the main daemon executable to the standard sbin directory.
   install -Dm755 "preload" "${pkgdir}/usr/sbin/preload"
+
   # 2. Install Configuration File
-  # The program uses a generated preload.conf.in/confkeys.h to make preload.conf.
-  # This file is generated during the 'make' step in build().
+  # The config file is generated during the 'make' step in build().
   install -Dm644 "preload.conf" "${pkgdir}/etc/preload.conf"
+
   # 3. Install Systemd Service File
-  # Use the bundled service file and install it to the systemd directory.
-  install -Dm644 "../scripts/preload-ng.service" "${pkgdir}/usr/lib/systemd/system/preload-ng.service"
-  # 4. Create State Directory
-  # The program expects its state to be saved in PKGLOCALSTATEDIR, which is /var/lib/preload.
-  # Systemd's StateDirectory=preload handles /var/lib/preload creation, 
-  # but for non-systemd setups, we create it here.
+  # We embed the service content here to avoid needing a separate file.
+  install -d "${pkgdir}/usr/lib/systemd/system"
+  cat <<'EOF' > "${pkgdir}/usr/lib/systemd/system/preload-ng.service"
+[Unit]
+Description=Preload-NG Daemon - Adaptive Readahead
+Documentation=https://github.com/miguel-b-p/preload-ng
+After=local-fs.target network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/preload --foreground --logfile ""
+ExecReload=/bin/kill -HUP \$MAINPID
+Restart=on-failure
+RestartSec=5
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+# StateDirectory automatically creates /var/lib/preload and handles permissions.
+StateDirectory=preload
+# Allow write access to the standard log directory.
+ReadWritePaths=/var/log
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  # 4. Create State Directory Placeholder
+  # Although StateDirectory=preload is used, we ensure the path exists for non-systemd environments.
   install -d "${pkgdir}/var/lib/preload"
 }
