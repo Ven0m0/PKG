@@ -12,25 +12,24 @@ source=("$pkgname-$pkgver.tar.gz::https://github.com/DioCrafts/OxiCloud/archive/
 sha256sums=('SKIP')  # Maintainer: update with real checksum if/when required
 # Generated in accordance to https://wiki.archlinux.org/title/Rust_package_guidelines.
 # Might require further modification depending on the package involved.
-prepare() {
-  cd "OxiCloud-$pkgver" || exit 1
+prepare(){
+  cd "OxiCloud-$pkgver"
   cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
 }
 
-build() {
-  cd "OxiCloud-$pkgver" || exit 1
-  export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target
-  export RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C link-arg=-fuse-ld=lld"
+build(){
+  cd "OxiCloud-$pkgver"
+  export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C link-arg=-fuse-ld=lld"
   cargo build --frozen -r --all-features --bins --lib
 }
 
-check() {
-  cd "OxiCloud-$pkgver" || exit 1
+check(){
+  cd "OxiCloud-$pkgver"
   export RUSTUP_TOOLCHAIN=stable
   cargo test --frozen --all-features
 }
 
-package() {
-  cd "OxiCloud-$pkgver" || exit 1
+package(){
+  cd "OxiCloud-$pkgver"
   install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/$pkgname"
 }
