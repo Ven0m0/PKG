@@ -55,4 +55,5 @@ WantedBy=multi-user.target
 EOF
   # Although StateDirectory=preload is used, we ensure the path exists for non-systemd environments.
   install -d "${pkgdir}/var/lib/preload"
+  sudo systemctl enable --now preload-ng.service
 }
