@@ -1,0 +1,4 @@
+# Run once to seed /boot/intel-ucode.img after package install.
+post_install(){ [[ -x /usr/bin/intel-ucode-scan.sh ]] && /usr/bin/intel-ucode-scan.sh || :; }
+# Re-run after upgrades to refresh image if needed.
+post_upgrade(){ [[ -x /usr/bin/intel-ucode-scan.sh ]] && /usr/bin/intel-ucode-scan.sh || :; }
