@@ -73,8 +73,6 @@ source=("HandBrake::git+https://github.com/HandBrake/HandBrake.git#tag=${pkgver}
 sha256sums=('SKIP')
 pkgver(){ git -C HandBrake/ gc --auto --prune=now; git -C HandBrake/ describe ${_commit} | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'; }
 
-prepare(){ :; }
-
 setup_compiler(){
   export CC="/usr/bin/clang" CXX="/usr/bin/clang++"; unset CFLAGS CXXFLAGS
   export CPP="/usr/bin/clang-cpp" LD="/usr/bin/lld" STRIP="/usr/bin/llvm-strip"
@@ -91,9 +89,9 @@ build(){
   local -a CONFIGURE_OPTIONS=(
     --launch-jobs=0 --prefix=/usr
     --cc="${CC}" --ar="${AR}" --ranlib="${RANLIB}" --strip="${STRIP}"
-    --lto=on --optimize=speed --cpu=native --harden
-    --enable-nvenc --enable-nvdec --enable-numa --enable-libdovi
-    --enable-fdk-aac --enable-qsv --enable-vce
+    --lto=on --optimize=speed --cpu=native --harden --enable-libdovi
+    --enable-nvenc --enable-nvdec --enable-numa --enable-x265
+    --enable-qsv --enable-vce --enable-libsvtav1 
   )
   cd "${srcdir}/HandBrake"
   ./configure "${CONFIGURE_OPTIONS[@]}"
