@@ -89,9 +89,8 @@ build(){
   local -a CONFIGURE_OPTIONS=(
     --launch-jobs=0 --prefix=/usr
     --cc="${CC}" --ar="${AR}" --ranlib="${RANLIB}" --strip="${STRIP}"
-    --lto=on --optimize=speed --cpu=native --harden --enable-libdovi
-    --enable-nvenc --enable-nvdec --enable-numa --enable-x265
-    --enable-qsv --enable-vce --enable-libsvtav1 
+    --lto=on --optimize=speed --cpu=native --harden
+    --enable-nvenc --enable-nvdec --enable-qsv --enable-vce
   )
   cd "${srcdir}/HandBrake"
   ./configure "${CONFIGURE_OPTIONS[@]}"
