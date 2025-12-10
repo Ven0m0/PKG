@@ -39,7 +39,7 @@ jobs:
             while IFS= read -r dir; do
               [[ -f "$dir/PKGBUILD" ]] && pkgs+=("$dir")
             done < <(git diff --name-only "$base" HEAD 2>/dev/null | xargs -r dirname | sort -u)
-            mapfile -t files < <(git diff --name-only "$base" HEAD 2>/dev/null | grep -E '\.(sh|py|json|ya? ml)$' || true)
+            mapfile -t files < <(git diff --name-only "$base" HEAD 2>/dev/null | grep -E '\.(sh|py|json|ya?ml)$' || true)
           fi
           pkgs_json=$(printf '%s\n' "${pkgs[@]}" | jq -Rsc 'split("\n")[:-1]')
           files_json=$(printf '%s\n' "${files[@]}" | jq -Rsc 'split("\n")[:-1]')

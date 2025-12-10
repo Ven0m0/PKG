@@ -71,12 +71,12 @@ optdepends=('intel-media-sdk: for enabling Intel QSV' 'amf-amdgpu-pro: for enabl
 options=('!lto' 'strip' '!debug') # https://bugs.archlinux.org/task/72600
 source=("HandBrake::git+https://github.com/HandBrake/HandBrake.git#tag=${pkgver}")
 sha256sums=('SKIP')
-pkgver(){ git -C HandBrake/ gc --auto --prune=now; git -C HandBrake/ describe ${_commit} | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'; }
+pkgver(){ git -C HandBrake/ gc --auto --prune=now; git -C HandBrake/ describe ${_commit:-} | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'; }
 
 setup_compiler(){
   export CC="/usr/bin/clang" CXX="/usr/bin/clang++"; unset CFLAGS CXXFLAGS
   export CPP="/usr/bin/clang-cpp" LD="/usr/bin/lld" STRIP="/usr/bin/llvm-strip"
-  export CFLAGS="${CFLAGS/D_FORTIFY_SOURCE=3/D_FORTIFY_SOURCE=2}" CXXFLAGS="${CXXFLAGS/D_FORTIFY_SOURCE=3/D_FORTIFY_SOURCE=2}"
+  export CFLAGS="${CFLAGS/-D_FORTIFY_SOURCE=3/-D_FORTIFY_SOURCE=2}" CXXFLAGS="${CXXFLAGS/-D_FORTIFY_SOURCE=3/-D_FORTIFY_SOURCE=2}"
   export LDFLAGS="-fuse-ld=lld"
   export AR="/usr/bin/llvm-ar" RANLIB="/usr/bin/llvm-ranlib" NM="/usr/bin/llvm-nm"
   export ADDR2LINE="/usr/bin/llvm-addr2line" READELF="/usr/bin/llvm-readelf"
@@ -101,7 +101,7 @@ package_handbrake-svt-av1-essential-llvm-optimized(){
   provides=(handbrake)
   conflicts=(handbrake)
   cd "HandBrake"
-  make --directory="${srcdir}/HandBrake/build" DESTDIR="${pkgdir}" -C build install
+  make --directory="${srcdir}/HandBrake/build" DESTDIR="${pkgdir}" install
   install -D LICENSE -t "${pkgdir}/usr/share/licenses/${pkgname}"
   rm "${pkgdir}/usr/bin/HandBrakeCLI"
 }
