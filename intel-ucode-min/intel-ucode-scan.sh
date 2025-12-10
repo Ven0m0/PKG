@@ -14,4 +14,4 @@ chmod 0644 "$tmp"
 mv -f "$tmp" "$out"
 has mkinitcpio && { mkinitcpio -P &>/dev/null || log "mkinitcpio -P failed; check /boot and presets."; }
 
-# vim:set sw=2 sts=2 et:
+# vim:set sw=2 ts=2 et:
