@@ -1,0 +1,19 @@
+pkgbase = intel-ucode-scan
+	pkgdesc = Pacman hook + helper: generate per-CPU intel microcode image and rebuild initramfs
+	pkgver = 1.0.0
+	pkgrel = 1
+	url = https://example.local/intel-ucode-scan
+	install = intel-ucode-scan.install
+	arch = x86_64
+	license = MIT
+	depends = mkinitcpio
+	optdepends = intel-ucode: intel microcode firmware
+	optdepends = iucode_tool: required to build per-CPU microcode images (runtime)
+	source = assets/99-intel-ucode-scan.hook
+	source = assets/intel-ucode-scan.sh
+	source = intel-ucode-scan.install
+	sha256sums = 0b212b3614c79ed55033e25ebf4c5a53668d31e957152b20b09e582a98674d08
+	sha256sums = 40b567eb6f077286bf60982577f99e62b81a111e01364fdf49ce8c5da150b430
+	sha256sums = 2f9bb079fbdacfe05f96042a8ee428936a42a847cd18dca256f2bc0b6273fc80
+
+pkgname = intel-ucode-scan
