@@ -20,4 +20,4 @@ package(){
   install -Dm644 "${srcdir}/99-intel-ucode-scan.hook" "${pkgdir}/etc/pacman.d/hooks/99-intel-ucode-scan.hook"
   install -Dm755 "${srcdir}/intel-ucode-scan.sh" "${pkgdir}/usr/bin/intel-ucode-scan"
 }
-# vim:set sw=2 sts=2 et:
+# vim:set sw=2 ts=2 et:
