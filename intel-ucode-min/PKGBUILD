@@ -16,10 +16,8 @@ sha256sums=('0b212b3614c79ed55033e25ebf4c5a53668d31e957152b20b09e582a98674d08'
             '2f9bb079fbdacfe05f96042a8ee428936a42a847cd18dca256f2bc0b6273fc80')
 
 build(){ return 0; }
-
 package(){
   install -Dm644 "${srcdir}/99-intel-ucode-scan.hook" "${pkgdir}/etc/pacman.d/hooks/99-intel-ucode-scan.hook"
   install -Dm755 "${srcdir}/intel-ucode-scan.sh" "${pkgdir}/usr/bin/intel-ucode-scan"
 }
-
 # vim:set sw=2 sts=2 et:
