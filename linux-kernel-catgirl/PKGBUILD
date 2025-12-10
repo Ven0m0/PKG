@@ -1,117 +1,143 @@
+# shellcheck enable=all shell=bash source-path=SCRIPTDIR external-sources=true
 # Maintainer: Ven0m0
-# Based on: Linux Catgirl Edition by a-catgirl-dev
+# Based on: CachyOS kernel (Peter Jung, Piotr Gorski, Vasiliy Stelmachenok)
+# Based on: Linux Catgirl Edition (a-catgirl-dev)
 # Upstream: https://github.com/Ven0m0/Linux-Kernel-Patches
 
-# This is a simplified PKGBUILD that pulls from the Linux-Kernel-Patches repository
-# For full configuration options, see the upstream repository
+### Configuration Options ###
 
-# =============================================================================
-# Configuration Options
-# =============================================================================
-
-# Kernel version configuration
-# Leave empty to auto-detect latest CachyOS kernel version
+# Kernel version (empty = auto-detect latest CachyOS version)
 : "${_major:=}"
 : "${_minor:=}"
 
-# CPU Scheduler (bore, bmq, eevdf, rt, rt-bore)
+# CPU Scheduler: cachyos bore bmq eevdf rt rt-bore hardened
 : "${_cpusched:=bore}"
 
+# CachyOS config integration
+: "${_cachy_config:=yes}"
+
+# Interactive config menu (nconfig/xconfig)
+: "${_makenconfig:=no}"
+: "${_makexconfig:=no}"
+
+# Use current running kernel config
+: "${_use_current:=no}"
+
 # Enable O3 optimization
-: "${_cflags_O3:=yes}"
+: "${_cc_harder:=yes}"
 
-# LLVM LTO mode (none, thin, full)
-: "${_use_llvm_lto:=thin}"
-
-# Tickrate in Hz (100, 250, 300, 500, 600, 750, 1000)
-: "${_HZ_ticks:=1000}"
-
-# Preemption type (full, lazy, voluntary, none)
-: "${_preempt:=lazy}"
-
-# Processor optimization (native, x86-64, x86-64-v2, x86-64-v3, znver4, etc.)
-: "${_processor_opt:=native}"
+# Set performance governor as default
+: "${_per_gov:=no}"
 
 # Enable TCP BBR3
 : "${_tcp_bbr3:=yes}"
 
-# Build headers package
-: "${_package_headers:=yes}"
+# Tickrate in Hz: 100 250 300 500 600 750 1000
+: "${_HZ_ticks:=1000}"
 
-# Interactive configuration
-: "${_makenconfig:=no}"
+# Tick type: periodic idle full
+: "${_tickrate:=full}"
 
-# Use modprobed-db for local module configuration
+# Preemption: full lazy voluntary none
+: "${_preempt:=lazy}"
+
+# Transparent Hugepages: always madvise
+: "${_hugepage:=always}"
+
+# CPU optimization: native zen4 generic x86-64-v[2-4]
+: "${_processor_opt:=native}"
+
+# LLVM LTO: none thin thin-dist full
+: "${_use_llvm_lto:=thin}"
+
+# Use LTO/GCC suffix in package name
+: "${_use_lto_suffix:=no}"
+: "${_use_gcc_suffix:=no}"
+
+# Enable KCFI (Clang Control-Flow Integrity)
+: "${_use_kcfi:=no}"
+
+# modprobed-db for local module config
 : "${_localmodcfg:=no}"
 : "${_localmodcfg_path:=$HOME/.config/modprobed.db}"
 
-# =============================================================================
-# Helper functions
-# =============================================================================
+# Build additional packages
+: "${_package_headers:=yes}"
+: "${_build_debug:=no}"
+: "${_build_zfs:=no}"
+: "${_build_nvidia:=no}"
+: "${_build_nvidia_open:=no}"
 
-_get_latest_cachyos_major() {
-  local versions
-  versions=$(curl -fsSL "https://api.github.com/repos/CachyOS/kernel-patches/contents/" 2>/dev/null |
-    grep -oP '"name":\s*"\K[0-9]+\.[0-9]+(?=")' | sort -V)
+# AutoFDO/Propeller optimization
+: "${_autofdo:=no}"
+: "${_autofdo_profile_name:=}"
+: "${_propeller:=no}"
+: "${_propeller_profiles:=no}"
 
-  if [ -z "$versions" ]; then
-    echo "6.17"
-    return
-  fi
+### Helper Functions ###
 
-  local stable_releases
-  stable_releases=$(curl -fsSL "https://www.kernel.org/releases.json" 2>/dev/null |
-    grep -oP "\"version\":\s*\"\K[0-9]+\.[0-9]+\.[0-9]+" || echo "")
+has(){ command -v -- "$1" &>/dev/null; }
 
+_die(){ error "$@"; exit 1; }
+
+_is_lto_kernel(){
+  [[ "$_use_llvm_lto" =~ ^(thin|thin-dist|full)$ ]]
+}
+
+_get_latest_cachyos_major(){
+  local versions stable_releases ver
+  versions=$(curl -fsSL "https://api.github.com/repos/CachyOS/kernel-patches/contents/" 2>/dev/null | grep -oP '"name":\s*"\K[0-9]+\.[0-9]+(?=")' | sort -V)
+  [[ -z $versions ]] && { echo "6.18"; return; }
+  stable_releases=$(curl -fsSL "https://www.kernel.org/releases.json" 2>/dev/null | grep -oP "\"version\":\s*\"\K[0-9]+\.[0-9]+\.[0-9]+" || echo "")
   while IFS= read -r ver; do
-    if echo "$stable_releases" | grep -q "^${ver}\."; then
-      echo "$ver"
-      return
-    fi
-  done <<< "$(echo "$versions" | tac)"
-
+    echo "$stable_releases" | grep -q "^${ver}\." && { echo "$ver"; return; }
+  done <<<"$(echo "$versions" | tac)"
   echo "$versions" | tail -1
 }
 
-_get_latest_patch_version() {
-  local major="$1"
-  local latest
-  latest=$(curl -fsSL "https://www.kernel.org/releases.json" 2>/dev/null |
-    grep -oP "\"version\":\s*\"\K${major}\.[0-9]+" | head -1)
-
-  if [ -n "$latest" ]; then
-    echo ".${latest##*.}"
-  else
-    echo ".0"
-  fi
+_get_latest_patch_version(){
+  local major="$1" latest
+  latest=$(curl -fsSL "https://www.kernel.org/releases.json" 2>/dev/null | grep -oP "\"version\":\s*\"\K${major}\.[0-9]+" | head -1)
+  [[ -n $latest ]] && echo ".${latest##*.}" || echo ".0"
 }
 
-_is_lto_kernel() {
-  [[ "$_use_llvm_lto" = "thin" || "$_use_llvm_lto" = "full" ]]
-  return $?
+_sign_modules(){
+  msg2 "Signing modules in $1"
+  local sign_script="${srcdir}/${_srcname}/scripts/sign-file"
+  local sign_key sign_cert hash_algo
+  sign_key=$(grep -Po 'CONFIG_MODULE_SIG_KEY="\K[^"]*' "${srcdir}/${_srcname}/.config")
+  [[ ! $sign_key =~ ^/ ]] && sign_key="${srcdir}/${_srcname}/${sign_key}"
+  sign_cert="${srcdir}/${_srcname}/certs/signing_key.x509"
+  hash_algo=$(grep -Po 'CONFIG_MODULE_SIG_HASH="\K[^"]*' "${srcdir}/${_srcname}/.config")
+  find "$1" -type f -name '*.ko' -print -exec "${sign_script}" "${hash_algo}" "${sign_key}" "${sign_cert}" '{}' \;
 }
 
-# Auto-detect kernel version if not set
-if [ -z "${_major}" ]; then
+# Auto-detect kernel version
+[[ -z $_major ]] && {
   _major=$(_get_latest_cachyos_major)
   echo "Auto-detected CachyOS kernel major version: $_major"
-fi
-
-if [ -z "${_minor}" ]; then
+}
+[[ -z $_minor ]] && {
   _minor=$(_get_latest_patch_version "$_major")
   echo "Auto-detected kernel patch version: $_minor"
+}
+
+### Package Metadata ###
+
+# Determine package suffix
+if _is_lto_kernel && [[ $_use_lto_suffix == yes ]]; then
+  _pkgsuffix=catgirl-lto
+elif ! _is_lto_kernel && [[ $_use_gcc_suffix == yes ]]; then
+  _pkgsuffix=catgirl-gcc
+else
+  _pkgsuffix=catgirl-edition
 fi
 
-# =============================================================================
-# Package metadata
-# =============================================================================
-
-_pkgsuffix=catgirl-edition
 pkgbase="linux-$_pkgsuffix"
 pkgver=${_major}${_minor}
 _stable=${_major}
 _srcname=linux-${pkgver}
-pkgdesc='Linux kernel with performance optimizations from CachyOS, Clear Linux, and XanMod'
+pkgdesc='Linux kernel with CachyOS, Clear Linux, and XanMod optimizations'
 pkgrel=1
 _kernver="$pkgver-$pkgrel"
 _kernuname="${pkgver}-${_pkgsuffix}"
@@ -119,257 +145,333 @@ arch=('x86_64')
 url="https://github.com/Ven0m0/Linux-Kernel-Patches"
 license=('GPL-2.0-only')
 options=('!strip' '!debug' '!lto')
-makedepends=(
-  bc
-  cpio
-  gettext
-  libelf
-  pahole
-  perl
-  python
-  tar
-  xz
-  zstd
-)
+makedepends=(bc cpio gettext libelf pahole perl python tar xz zstd)
 
-# Add LLVM tools if using LTO
+# Add Rust for newer kernels
+[[ ${_major%%.*} -ge 6 && ${_major#*.} -ge 18 ]] && makedepends+=(rust rust-bindgen rust-src)
+
+# LLVM/Clang for LTO builds
+BUILD_FLAGS=()
 if _is_lto_kernel; then
   makedepends+=(clang llvm lld)
-  BUILD_FLAGS=(
-    CC=clang
-    LD=ld.lld
-    LLVM=1
-    LLVM_IAS=1
-    KCFLAGS=-march=${_processor_opt}
-  )
+  BUILD_FLAGS=(CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1)
 fi
 
+# Disable ZFS for RT kernels (licensing conflict)
+[[ $_cpusched =~ ^(rt|rt-bore)$ ]] && unset _build_zfs
+
+# NVIDIA versions
+_nv_ver=580.105.08
+_nv_pkg="NVIDIA-Linux-x86_64-${_nv_ver}"
+_nv_open_pkg="NVIDIA-kernel-module-source-${_nv_ver}"
+
+### Patch Sources ###
+
 _patchsource_cachyos="https://raw.githubusercontent.com/cachyos/kernel-patches/master/${_major}"
-_patchsource_xanmod="https://gitlab.com/xanmod/linux-patches/-/raw/master/linux-6.16.y-xanmod"
+_patchsource_xanmod="https://gitlab.com/xanmod/linux-patches/-/raw/master/linux-${_major}.y-xanmod"
 _patchsource_clear="https://raw.githubusercontent.com/a-catgirl-dev/linux-catgirl-edition/refs/heads/dev/patches"
 
 source=(
   "https://cdn.kernel.org/pub/linux/kernel/v${pkgver%%.*}.x/${_srcname}.tar.xz"
   "https://raw.githubusercontent.com/Ven0m0/Linux-Kernel-Patches/main/build/catgirl-edition/config"
   "${_patchsource_cachyos}/all/0001-cachyos-base-all.patch"
-  "${_patchsource_clear}/clear-linux-patchset.patch"
-  "${_patchsource_xanmod}/xanmod/0010-XANMOD-block-Set-rq_affinity-to-force-complete-I-O-r.patch"
-  "${_patchsource_xanmod}/xanmod/0014-XANMOD-mm-Raise-max_map_count-default-value.patch"
-  "${_patchsource_xanmod}/xanmod/0016-XANMOD-sched-autogroup-Add-kernel-parameter-and-conf.patch"
 )
 
-# Add scheduler patches
+# Optional Clear Linux patches (if available)
+# source+=("${_patchsource_clear}/clear-linux-patchset.patch")
+
+# Optional XanMod patches
+# source+=(
+#   "${_patchsource_xanmod}/xanmod/0010-XANMOD-block-Set-rq_affinity-to-force-complete-I-O-r.patch"
+#   "${_patchsource_xanmod}/xanmod/0014-XANMOD-mm-Raise-max_map_count-default-value.patch"
+#   "${_patchsource_xanmod}/xanmod/0016-XANMOD-sched-autogroup-Add-kernel-parameter-and-conf.patch"
+# )
+
+# Scheduler patches
 case "$_cpusched" in
-  bore | rt-bore | hardened)
-    source+=("${_patchsource_cachyos}/sched/0001-bore-cachy.patch")
-    ;;&
-  bmq)
-    source+=("${_patchsource_cachyos}/sched/0001-prjc-cachy.patch")
-    ;;
-  hardened)
-    source+=("${_patchsource_cachyos}/misc/0001-hardened.patch")
-    ;;
-  rt | rt-bore)
-    source+=("${_patchsource_cachyos}/misc/0001-rt-i915.patch")
-    ;;
+  cachyos|bore|rt-bore|hardened) source+=("${_patchsource_cachyos}/sched/0001-bore-cachy.patch");;&
+  bmq) source+=("${_patchsource_cachyos}/sched/0001-prjc-cachy.patch");;
+  hardened) source+=("${_patchsource_cachyos}/misc/0001-hardened.patch");;
+  rt|rt-bore) source+=("${_patchsource_cachyos}/misc/0001-rt-i915.patch");;
 esac
 
-# Add DKMS clang patch for LTO builds
-if _is_lto_kernel; then
-  source+=("${_patchsource_cachyos}/misc/dkms-clang.patch")
-fi
+# LTO support
+_is_lto_kernel && source+=("${_patchsource_cachyos}/misc/dkms-clang.patch")
 
+# ZFS support
+[[ $_build_zfs == yes ]] && {
+  makedepends+=(git)
+  source+=("git+https://github.com/cachyos/zfs.git#commit=7de9800e5ce45d03c797be57a3e959fc914b2adb")
+}
+
+# NVIDIA support
+[[ $_build_nvidia == yes ]] && source+=(
+  "https://us.download.nvidia.com/XFree86/Linux-x86_64/${_nv_ver}/${_nv_pkg}.run"
+  "${_patchsource_cachyos}/misc/nvidia/0001-Enable-atomic-kernel-modesetting-by-default.patch"
+)
+
+[[ $_build_nvidia_open == yes ]] && source+=(
+  "https://download.nvidia.com/XFree86/${_nv_open_pkg%"-$_nv_ver"}/${_nv_open_pkg}.tar.xz"
+  "${_patchsource_cachyos}/misc/nvidia/0001-Enable-atomic-kernel-modesetting-by-default.patch"
+  "${_patchsource_cachyos}/misc/nvidia/0002-Add-IBT-support.patch"
+  "${_patchsource_cachyos}/misc/nvidia/0003-nvidia-uvm-Remove-unused-get_devmap_page-parameter.patch"
+  "${_patchsource_cachyos}/misc/nvidia/0004-nvkms-Limit-default-maximum-TMDS-character-rate-to-3.patch"
+)
+
+# AutoFDO profile
+[[ $_autofdo == yes && -n $_autofdo_profile_name && -e $_autofdo_profile_name ]] && source+=("$_autofdo_profile_name")
+
+# Propeller profiles
+[[ $_propeller == yes && $_propeller_profiles == yes ]] && source+=(propeller_cc_profile.txt propeller_ld_profile.txt)
+
+export KBUILD_BUILD_HOST="${pkgbase%-*}"
 export KBUILD_BUILD_USER="$pkgbase"
 export KBUILD_BUILD_TIMESTAMP="$(date -Ru${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH})"
 
-_die() {
-  error "$@"
-  exit 1
-}
+### Build Functions ###
 
 prepare(){
-  cd "$_srcname"
+  cd "$_srcname" || return 1
+
   echo "Setting version..."
-  echo "-$pkgrel" > localversion.10-pkgrel
-  echo "${pkgbase#linux}" > localversion.20-pkgname
+  echo "-$pkgrel" >localversion.10-pkgrel
+  echo "${pkgbase#linux}" >localversion.20-pkgname
 
   echo "Applying patches..."
   local src
   for src in "${source[@]}"; do
-    src="${src%%::*}"
-    src="${src##*/}"
-    src="${src%.zst}"
-    [[ $src = *.patch ]] || continue
+    src="${src%%::*}"; src="${src##*/}"; src="${src%.zst}"
+    [[ $src == *.patch ]] || continue
+    [[ $src == */nvidia/*.patch ]] && continue
     echo "Applying patch $src..."
-    patch -Np1 < "../$src"
+    patch -Np1 <"../$src"
   done
 
   echo "Setting config..."
   cp ../config .config
 
-  # Enable CachyOS patches
-  scripts/config -e CACHY
+  # Processor optimization
+  if [[ -n $_processor_opt ]]; then
+    local MARCH="${_processor_opt^^}"
+    case "$MARCH" in
+      GENERIC_V[1-4]) scripts/config -e GENERIC_CPU -d MZEN4 -d X86_NATIVE_CPU --set-val X86_64_VERSION "${MARCH//GENERIC_V}";;
+      ZEN4) scripts/config -d GENERIC_CPU -e MZEN4 -d X86_NATIVE_CPU;;
+      NATIVE) scripts/config -d GENERIC_CPU -d MZEN4 -e X86_NATIVE_CPU;;
+    esac
+  else
+    scripts/config -d GENERIC_CPU -d MZEN4 -e X86_NATIVE_CPU
+  fi
 
-  # Configure CPU scheduler
+  # CachyOS config
+  [[ $_cachy_config == yes ]] && scripts/config -e CACHY
+
+  # CPU scheduler
   case "$_cpusched" in
-    bore | hardened) scripts/config -e SCHED_BORE ;;
-    bmq) scripts/config -e SCHED_ALT -e SCHED_BMQ ;;
+    cachyos|bore|hardened) scripts/config -e SCHED_BORE;;
+    bmq) scripts/config -e SCHED_ALT -e SCHED_BMQ;;
     eevdf) ;;
-    rt) scripts/config -e PREEMPT_RT ;;
-    rt-bore) scripts/config -e SCHED_BORE -e PREEMPT_RT ;;
-    *) _die "Invalid CPU scheduler: $_cpusched" ;;
+    rt) scripts/config -e PREEMPT_RT;;
+    rt-bore) scripts/config -e SCHED_BORE -e PREEMPT_RT;;
+    *) _die "Invalid CPU scheduler: $_cpusched";;
   esac
-
   echo "Selecting ${_cpusched^^} CPU scheduler..."
 
-  # Configure LTO
-  case "$_use_llvm_lto" in
-    thin) scripts/config -e LTO_CLANG_THIN ;;
-    full) scripts/config -e LTO_CLANG_FULL ;;
-    none) scripts/config -e LTO_NONE ;;
-    *) _die "Invalid LTO mode: $_use_llvm_lto" ;;
-  esac
+  # KCFI
+  [[ $_use_kcfi == yes ]] && scripts/config -e ARCH_SUPPORTS_CFI_CLANG -e CFI_CLANG -e CFI_AUTO_DEFAULT
 
+  # LTO
+  case "$_use_llvm_lto" in
+    thin) scripts/config -e LTO_CLANG_THIN;;
+    thin-dist) scripts/config -e LTO_CLANG_THIN_DIST;;
+    full) scripts/config -e LTO_CLANG_FULL;;
+    none) scripts/config -e LTO_NONE;;
+    *) _die "Invalid LTO mode: $_use_llvm_lto";;
+  esac
   echo "Selecting '$_use_llvm_lto' LLVM level..."
 
-  # Configure tick rate
-  case "$_HZ_ticks" in
-    100 | 250 | 500 | 600 | 750 | 1000)
-      scripts/config -d HZ_300 -e "HZ_${_HZ_ticks}" --set-val HZ "${_HZ_ticks}"
-      ;;
-    300)
-      scripts/config -e HZ_300 --set-val HZ 300
-      ;;
-    *)
-      _die "Invalid tick rate: $_HZ_ticks"
-      ;;
-  esac
+  # QR Code panic for GCC builds
+  ! _is_lto_kernel && scripts/config --set-str DRM_PANIC_SCREEN qr_code -e DRM_PANIC_SCREEN_QR_CODE \
+    --set-str DRM_PANIC_SCREEN_QR_CODE_URL https://panic.archlinux.org/panic_report# \
+    --set-val CONFIG_DRM_PANIC_SCREEN_QR_VERSION 40
 
+  # Tick rate
+  case "$_HZ_ticks" in
+    100|250|500|600|750|1000) scripts/config -d HZ_300 -e "HZ_${_HZ_ticks}" --set-val HZ "${_HZ_ticks}";;
+    300) scripts/config -e HZ_300 --set-val HZ 300;;
+    *) _die "Invalid tick rate: $_HZ_ticks";;
+  esac
   echo "Setting tick rate to ${_HZ_ticks}Hz..."
 
-  # Configure preemption (skip for RT kernels)
-  if [[ "$_cpusched" != "rt" && "$_cpusched" != "rt-bore" ]]; then
-    case "$_preempt" in
-      full) scripts/config -e PREEMPT_DYNAMIC -e PREEMPT -d PREEMPT_VOLUNTARY -d PREEMPT_LAZY -d PREEMPT_NONE ;;
-      lazy) scripts/config -e PREEMPT_DYNAMIC -d PREEMPT -d PREEMPT_VOLUNTARY -e PREEMPT_LAZY -d PREEMPT_NONE ;;
-      voluntary) scripts/config -d PREEMPT_DYNAMIC -d PREEMPT -e PREEMPT_VOLUNTARY -d PREEMPT_LAZY -d PREEMPT_NONE ;;
-      none) scripts/config -d PREEMPT_DYNAMIC -d PREEMPT -d PREEMPT_VOLUNTARY -d PREEMPT_LAZY -e PREEMPT_NONE ;;
-      *) _die "Invalid preemption type: $_preempt" ;;
-    esac
+  # Performance governor
+  [[ $_per_gov == yes ]] && scripts/config -d CPU_FREQ_DEFAULT_GOV_SCHEDUTIL -e CPU_FREQ_DEFAULT_GOV_PERFORMANCE
 
+  # Tick type
+  case "$_tickrate" in
+    periodic) scripts/config -d NO_HZ_IDLE -d NO_HZ_FULL -d NO_HZ -d NO_HZ_COMMON -e HZ_PERIODIC;;
+    idle) scripts/config -d HZ_PERIODIC -d NO_HZ_FULL -e NO_HZ_IDLE -e NO_HZ -e NO_HZ_COMMON;;
+    full) scripts/config -d HZ_PERIODIC -d NO_HZ_IDLE -d CONTEXT_TRACKING_FORCE -e NO_HZ_FULL_NODEF -e NO_HZ_FULL -e NO_HZ -e NO_HZ_COMMON -e CONTEXT_TRACKING;;
+    *) _die "Invalid tickrate: $_tickrate";;
+  esac
+  echo "Selecting '$_tickrate' tick type..."
+
+  # Preemption (skip for RT)
+  if [[ ! $_cpusched =~ ^(rt|rt-bore)$ ]]; then
+    case "$_preempt" in
+      full) scripts/config -e PREEMPT_DYNAMIC -e PREEMPT -d PREEMPT_VOLUNTARY -d PREEMPT_LAZY -d PREEMPT_NONE;;
+      lazy) scripts/config -e PREEMPT_DYNAMIC -d PREEMPT -d PREEMPT_VOLUNTARY -e PREEMPT_LAZY -d PREEMPT_NONE;;
+      voluntary) scripts/config -d PREEMPT_DYNAMIC -d PREEMPT -e PREEMPT_VOLUNTARY -d PREEMPT_LAZY -d PREEMPT_NONE;;
+      none) scripts/config -d PREEMPT_DYNAMIC -d PREEMPT -d PREEMPT_VOLUNTARY -d PREEMPT_LAZY -e PREEMPT_NONE;;
+      *) _die "Invalid preemption: $_preempt";;
+    esac
     echo "Selecting '$_preempt' preempt type..."
   fi
 
-  # Enable O3 optimization
-  if [ "$_cflags_O3" = "yes" ]; then
-    echo "Enabling O3 optimization..."
-    scripts/config -d CC_OPTIMIZE_FOR_PERFORMANCE -e CC_OPTIMIZE_FOR_PERFORMANCE_O3
-  fi
+  # O3 optimization
+  [[ $_cc_harder == yes ]] && scripts/config -d CC_OPTIMIZE_FOR_PERFORMANCE -e CC_OPTIMIZE_FOR_PERFORMANCE_O3
 
-  # Enable TCP BBR3
-  if [ "$_tcp_bbr3" = "yes" ]; then
-    echo "Enabling TCP BBR3..."
-    scripts/config -m TCP_CONG_CUBIC \
-      -d DEFAULT_CUBIC \
-      -e TCP_CONG_BBR \
-      -e DEFAULT_BBR \
-      --set-str DEFAULT_TCP_CONG bbr \
-      -m NET_SCH_FQ_CODEL \
-      -e NET_SCH_FQ \
-      -d CONFIG_DEFAULT_FQ_CODEL \
-      -e CONFIG_DEFAULT_FQ
-  fi
+  # CI builds use size optimization
+  [[ -n $CI || -n $GITHUB_RUN_ID ]] && scripts/config -d CC_OPTIMIZE_FOR_PERFORMANCE -d CC_OPTIMIZE_FOR_PERFORMANCE_O3 -e CONFIG_CC_OPTIMIZE_FOR_SIZE \
+    -d SLUB_DEBUG -d PM_DEBUG -d PM_ADVANCED_DEBUG -d PM_SLEEP_DEBUG -d ACPI_DEBUG -d LATENCYTOP -d SCHED_DEBUG -d DEBUG_PREEMPT
 
-  # Enable unprivileged user namespaces
-  echo "Enable USER_NS_UNPRIVILEGED"
+  # TCP BBR3
+  [[ $_tcp_bbr3 == yes ]] && scripts/config -m TCP_CONG_CUBIC -d DEFAULT_CUBIC -e TCP_CONG_BBR -e DEFAULT_BBR \
+    --set-str DEFAULT_TCP_CONG bbr -m NET_SCH_FQ_CODEL -e NET_SCH_FQ -d CONFIG_DEFAULT_FQ_CODEL -e CONFIG_DEFAULT_FQ
+
+  # Transparent Hugepages
+  case "$_hugepage" in
+    always) scripts/config -d TRANSPARENT_HUGEPAGE_MADVISE -e TRANSPARENT_HUGEPAGE_ALWAYS;;
+    madvise) scripts/config -d TRANSPARENT_HUGEPAGE_ALWAYS -e TRANSPARENT_HUGEPAGE_MADVISE;;
+    *) _die "Invalid hugepage mode: $_hugepage";;
+  esac
+
+  # AutoFDO
+  [[ $_autofdo == yes ]] && scripts/config -e AUTOFDO_CLANG
+  [[ $_autofdo == yes && -n $_autofdo_profile_name ]] && BUILD_FLAGS+=(CLANG_AUTOFDO_PROFILE="${srcdir}/${_autofdo_profile_name}")
+
+  # Propeller
+  [[ $_propeller == yes ]] && scripts/config -e PROPELLER_CLANG
+  [[ $_propeller == yes && $_propeller_profiles == yes ]] && BUILD_FLAGS+=(CLANG_PROPELLER_PROFILE_PREFIX="${srcdir}/propeller")
+
+  # Unprivileged user namespaces
   scripts/config -e USER_NS
 
-  # Use modprobed-db if enabled
-  if [ "$_localmodcfg" = "yes" ]; then
-    if [ -e "$_localmodcfg_path" ]; then
-      echo "Running make localmodconfig with modprobed-db..."
-      make "${BUILD_FLAGS[@]}" LSMOD="${_localmodcfg_path}" localmodconfig
-    else
-      _die "modprobed.db not found at $_localmodcfg_path"
-    fi
-  fi
+  # Use current config
+  [[ $_use_current == yes ]] && {
+    [[ -s /proc/config.gz ]] && zcat /proc/config.gz >./.config || _die "Cannot read /proc/config.gz"
+  }
 
-  # Rewrite configuration
+  # modprobed-db
+  [[ $_localmodcfg == yes ]] && {
+    [[ -e $_localmodcfg_path ]] && make "${BUILD_FLAGS[@]}" LSMOD="${_localmodcfg_path}" localmodconfig || _die "modprobed.db not found"
+  }
+
+  # Rewrite config
   echo "Rewriting configuration..."
   make "${BUILD_FLAGS[@]}" prepare
-  yes "" | make "${BUILD_FLAGS[@]}" config >/dev/null
+  yes "" | make "${BUILD_FLAGS[@]}" config &>/dev/null
+  diff -u ../config .config || :
 
-  # Prepared version
-  make -s kernelrelease > version
+  make -s kernelrelease >version
   echo "Prepared $pkgbase version $(<version)"
 
-  # Interactive configuration
-  if [ "$_makenconfig" = "yes" ]; then
-    make "${BUILD_FLAGS[@]}" nconfig
-  fi
+  # Interactive config
+  [[ $_makenconfig == yes ]] && make "${BUILD_FLAGS[@]}" nconfig
+  [[ $_makexconfig == yes ]] && make "${BUILD_FLAGS[@]}" xconfig
+
+  # Save config
+  local basedir
+  basedir=$(dirname "$(readlink -f "${srcdir}/config" 2>/dev/null || echo "${srcdir}/config")")
+  cat .config >"${basedir}/config-${pkgver}-${pkgrel}${pkgbase#linux}"
+
+  # NVIDIA patches
+  [[ $_build_nvidia == yes ]] && {
+    cd "${srcdir}" || return 1
+    sh "${_nv_pkg}.run" --extract-only
+    patch -Np1 -i "${srcdir}/0001-Enable-atomic-kernel-modesetting-by-default.patch" -d "${srcdir}/${_nv_pkg}/kernel"
+  }
+
+  [[ $_build_nvidia_open == yes ]] && {
+    cd "${srcdir}/${_nv_open_pkg}" || return 1
+    patch -Np1 -i "${srcdir}/0001-Enable-atomic-kernel-modesetting-by-default.patch" -d kernel-open
+    patch -Np1 -i "${srcdir}/0002-Add-IBT-support.patch"
+    patch -Np1 -i "${srcdir}/0003-nvidia-uvm-Remove-unused-get_devmap_page-parameter.patch"
+    patch -Np1 -i "${srcdir}/0004-nvkms-Limit-default-maximum-TMDS-character-rate-to-3.patch"
+  }
 }
 
 build(){
-  cd "$_srcname"
+  cd "$_srcname" || return 1
   make "${BUILD_FLAGS[@]}" -j"$(nproc)" all
-  if [ "$_package_headers" = "yes" ]; then
-    make -C tools/bpf/bpftool vmlinux.h feature-clang-bpf-co-re=1
-  fi
+  make -C tools/bpf/bpftool vmlinux.h feature-clang-bpf-co-re=1
+
+  local MODULE_FLAGS=(KERNEL_UNAME="${_kernuname}" IGNORE_PREEMPT_RT_PRESENCE=1 SYSSRC="${srcdir}/${_srcname}" SYSOUT="${srcdir}/${_srcname}")
+
+  [[ $_build_nvidia == yes ]] && {
+    cd "${srcdir}/${_nv_pkg}/kernel" || return 1
+    MODULE_FLAGS+=(NV_EXCLUDE_BUILD_MODULES='__EXCLUDE_MODULES')
+    make "${BUILD_FLAGS[@]}" "${MODULE_FLAGS[@]}" -j"$(nproc)" modules
+  }
+
+  [[ $_build_nvidia_open == yes ]] && {
+    cd "${srcdir}/${_nv_open_pkg}" || return 1
+    MODULE_FLAGS+=(IGNORE_CC_MISMATCH=yes)
+    CFLAGS= CXXFLAGS= LDFLAGS= make "${BUILD_FLAGS[@]}" "${MODULE_FLAGS[@]}" -j"$(nproc)" modules
+  }
+
+  [[ $_build_zfs == yes ]] && {
+    cd "${srcdir}/zfs" || return 1
+    local CONFIGURE_FLAGS=()
+    [[ $_use_llvm_lto != none ]] && CONFIGURE_FLAGS+=(KERNEL_LLVM=1)
+    ./autogen.sh
+    sed -i "s|\$(uname -r)|${_kernuname}|g" configure
+    ./configure "${CONFIGURE_FLAGS[@]}" --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --libdir=/usr/lib --datadir=/usr/share \
+      --includedir=/usr/include --with-udevdir=/lib/udev --libexecdir=/usr/lib/zfs --with-config=kernel --with-linux="${srcdir}/$_srcname"
+    make "${BUILD_FLAGS[@]}"
+  }
 }
 
 _package(){
-  pkgdesc="Linux kernel with performance optimizations from CachyOS, Clear Linux, and XanMod"
-  depends=('coreutils' 'kmod' 'initramfs')
+  pkgdesc="Linux kernel with CachyOS, Clear Linux, and XanMod optimizations"
+  depends=(coreutils kmod initramfs)
   optdepends=(
-    'wireless-regdb: set correct wireless channels for your country'
-    'linux-firmware: firmware images for various devices'
+    'wireless-regdb: wireless channel regulations'
+    'linux-firmware: firmware images'
+    'modprobed-db: module tracking'
+    'scx-scheds: sched-ext schedulers'
   )
-  provides=(
-    WIREGUARD-MODULE
-    KSMBD-MODULE
-    V4L2LOOPBACK-MODULE
-    NTSYNC-MODULE
-    VHBA-MODULE
-  )
-  cd "$_srcname"
+  provides=(VIRTUALBOX-GUEST-MODULES WIREGUARD-MODULE KSMBD-MODULE V4L2LOOPBACK-MODULE NTSYNC-MODULE VHBA-MODULE ADIOS-MODULE)
+  _is_lto_kernel && { provides+=(linux-catgirl-lto=$_kernver); replaces=(linux-catgirl-lto); }
+
+  cd "$_srcname" || return 1
   local modulesdir="$pkgdir/usr/lib/modules/$(<version)"
 
   echo "Installing boot image..."
   install -Dm644 "$(make -s image_name)" "$modulesdir/vmlinuz"
-
   echo "$pkgbase" | install -Dm644 /dev/stdin "$modulesdir/pkgbase"
 
   echo "Installing modules..."
-  ZSTD_CLEVEL=19 make "${BUILD_FLAGS[@]}" \
-    INSTALL_MOD_PATH="$pkgdir/usr" \
-    INSTALL_MOD_STRIP=1 \
-    DEPMOD=/doesnt/exist \
-    modules_install
-
+  ZSTD_CLEVEL=19 make "${BUILD_FLAGS[@]}" INSTALL_MOD_PATH="$pkgdir/usr" INSTALL_MOD_STRIP=1 DEPMOD=/doesnt/exist modules_install
   rm "$modulesdir"/build
 }
 
 _package-headers(){
-  pkgdesc="Headers for building kernel modules for linux-catgirl-edition"
-  depends=('pahole' "${pkgbase}")
+  pkgdesc="Headers for building modules for linux-catgirl-edition"
+  depends=(pahole "${pkgbase}")
+  _is_lto_kernel && { provides+=(linux-catgirl-lto-headers=$_kernver); replaces=(linux-catgirl-lto-headers); depends+=(clang llvm lld); }
 
-  [[ $_package_headers == "no" ]] && {
-    echo "Skipping header packaging"
-    return 0
-  }
-  cd "${_srcname}"
+  cd "${_srcname}" || return 1
   local builddir="$pkgdir/usr/lib/modules/$(<version)/build"
 
   echo "Installing build files..."
-  install -Dt "$builddir" -m644 .config Makefile Module.symvers System.map localversion.* version vmlinux
-  [ "$_package_headers" = "yes" ] && install -Dt "$builddir" -m644 tools/bpf/bpftool/vmlinux.h
+  install -Dt "$builddir" -m644 .config Makefile Module.symvers System.map localversion.* version vmlinux tools/bpf/bpftool/vmlinux.h
   install -Dt "$builddir/kernel" -m644 kernel/Makefile
   install -Dt "$builddir/arch/x86" -m644 arch/x86/Makefile
   cp -t "$builddir" -a scripts
   ln -srt "$builddir" "$builddir/scripts/gdb/vmlinux-gdb.py"
 
   install -Dt "$builddir/tools/objtool" tools/objtool/objtool
-  [ -f tools/bpf/resolve_btfids/resolve_btfids ] && install -Dt "$builddir/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids
+  [[ -f tools/bpf/resolve_btfids/resolve_btfids ]] && install -Dt "$builddir/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids
+
   echo "Installing headers..."
   cp -t "$builddir" -a include
   cp -t "$builddir/arch/x86" -a arch/x86/include
@@ -377,7 +479,6 @@ _package-headers(){
 
   install -Dt "$builddir/drivers/md" -m644 drivers/md/*.h
   install -Dt "$builddir/net/mac80211" -m644 net/mac80211/*.h
-
   install -Dt "$builddir/drivers/media/i2c" -m644 drivers/media/i2c/msp3400-driver.h
   install -Dt "$builddir/drivers/media/usb/dvb-usb" -m644 drivers/media/usb/dvb-usb/*.h
   install -Dt "$builddir/drivers/media/dvb-frontends" -m644 drivers/media/dvb-frontends/*.h
@@ -387,11 +488,17 @@ _package-headers(){
   echo "Installing KConfig files..."
   find . -name 'Kconfig*' -exec install -Dm644 {} "$builddir/{}" \;
 
+  # Rust artifacts
+  compgen -G "rust/*.rmeta" &>/dev/null && install -Dt "$builddir/rust" -m644 rust/*.rmeta
+  compgen -G "rust/*.so" &>/dev/null && install -Dt "$builddir/rust" rust/*.so
+
+  echo "Installing VDSO..."
+  make INSTALL_MOD_PATH="$pkgdir/usr" vdso_install link=
+
   echo "Removing unneeded architectures..."
   local arch
   for arch in "$builddir"/arch/*/; do
-    [[ $arch = */x86/ ]] && continue
-    echo "Removing $(basename "$arch")"
+    [[ $arch == */x86/ ]] && continue
     rm -r "$arch"
   done
 
@@ -408,18 +515,10 @@ _package-headers(){
   local file
   while read -rd '' file; do
     case "$(file -Sib "$file")" in
-      application/x-sharedlib\;*)
-        strip -v "$STRIP_SHARED" "$file"
-        ;;
-      application/x-archive\;*)
-        strip -v "$STRIP_STATIC" "$file"
-        ;;
-      application/x-executable\;*)
-        strip -v "$STRIP_BINARIES" "$file"
-        ;;
-      application/x-pie-executable\;*)
-        strip -v "$STRIP_SHARED" "$file"
-        ;;
+      application/x-sharedlib\;*) strip -v "$STRIP_SHARED" "$file";;
+      application/x-archive\;*) strip -v "$STRIP_STATIC" "$file";;
+      application/x-executable\;*) strip -v "$STRIP_BINARIES" "$file";;
+      application/x-pie-executable\;*) strip -v "$STRIP_SHARED" "$file";;
     esac
   done < <(find "$builddir" -type f -perm -u+x ! -name vmlinux -print0)
 
@@ -431,20 +530,75 @@ _package-headers(){
   ln -sr "$builddir" "$pkgdir/usr/src/$pkgbase"
 }
 
+_package-dbg(){
+  pkgdesc="Non-stripped vmlinux for linux-catgirl-edition"
+  depends=("${pkgbase}-headers")
+  cd "${_srcname}" || return 1
+  install -Dm644 vmlinux "$pkgdir/usr/src/debug/${pkgbase}/vmlinux"
+}
+
+_package-zfs(){
+  pkgdesc="ZFS module for linux-catgirl-edition"
+  depends=(pahole "${pkgbase}=${_kernver}")
+  provides=(ZFS-MODULE)
+  license=(CDDL)
+
+  cd "$_srcname" || return 1
+  local modulesdir="$pkgdir/usr/lib/modules/$(<version)/extramodules"
+  cd "${srcdir}/zfs" || return 1
+  install -dm755 "${modulesdir}"
+  install -m644 module/*.ko "${modulesdir}"
+  _sign_modules "${modulesdir}"
+  find "$pkgdir" -name '*.ko' -exec zstd --rm -19 -T0 {} +
+}
+
+_package-nvidia(){
+  pkgdesc="NVIDIA ${_nv_ver} module for linux-catgirl-edition"
+  depends=("$pkgbase=$_kernver" "nvidia-utils=${_nv_ver}" libglvnd)
+  provides=(NVIDIA-MODULE)
+  conflicts=("$pkgbase-nvidia-open")
+  license=(custom)
+
+  cd "$_srcname" || return 1
+  local modulesdir="$pkgdir/usr/lib/modules/$(<version)/extramodules"
+  cd "${srcdir}/${_nv_pkg}" || return 1
+  install -dm755 "${modulesdir}"
+  install -m644 kernel/*.ko "${modulesdir}"
+  install -Dt "$pkgdir/usr/share/licenses/${pkgname}" -m644 LICENSE
+  _sign_modules "${modulesdir}"
+  find "$pkgdir" -name '*.ko' -exec zstd --rm -19 -T0 {} +
+}
+
+_package-nvidia-open(){
+  pkgdesc="NVIDIA ${_nv_ver} open module for linux-catgirl-edition"
+  depends=("$pkgbase=$_kernver" "nvidia-utils=${_nv_ver}" libglvnd)
+  provides=(NVIDIA-MODULE)
+  conflicts=("$pkgbase-nvidia")
+  license=('MIT AND GPL-2.0-only')
+
+  cd "$_srcname" || return 1
+  local modulesdir="$pkgdir/usr/lib/modules/$(<version)/extramodules"
+  cd "${srcdir}/${_nv_open_pkg}" || return 1
+  install -dm755 "${modulesdir}"
+  install -m644 kernel-open/*.ko "${modulesdir}"
+  install -Dt "$pkgdir/usr/share/licenses/${pkgname}" -m644 COPYING
+  _sign_modules "${modulesdir}"
+  find "$pkgdir" -name '*.ko' -exec zstd --rm -19 -T0 {} +
+}
+
 pkgname=("$pkgbase")
-[ "$_package_headers" = "yes" ] && pkgname+=("$pkgbase-headers")
+[[ $_build_debug == yes ]] && pkgname+=("$pkgbase-dbg")
+[[ $_package_headers == yes ]] && pkgname+=("$pkgbase-headers")
+[[ $_build_zfs == yes ]] && pkgname+=("$pkgbase-zfs")
+[[ $_build_nvidia == yes ]] && pkgname+=("$pkgbase-nvidia")
+[[ $_build_nvidia_open == yes ]] && pkgname+=("$pkgbase-nvidia-open")
 
 for _p in "${pkgname[@]}"; do
-  eval "package_$_p() {
+  eval "package_$_p(){
     $(declare -f "_package${_p#$pkgbase}")
     _package${_p#$pkgbase}
   }"
 done
 
-sha256sums=('SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP')
+sha256sums=('SKIP' 'SKIP' 'SKIP')
+# vim:set sw=2 ts=2 et:
