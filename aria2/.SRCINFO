@@ -1,0 +1,25 @@
+pkgbase = aria2-ven0m0
+	pkgdesc = Download utility that supports HTTP(S), FTP, BitTorrent, and Metalink
+	pkgver = 1.37.0
+	pkgrel = 3
+	url = https://aria2.github.io
+	arch = x86_64
+	license = GPL-2.0-or-later
+	checkdepends = cppunit
+	depends = openssl
+	depends = libxml2
+	depends = sqlite
+	depends = c-ares
+	depends = ca-certificates
+	depends = libssh2
+	provides = aria2
+	conflicts = aria2
+	options = strip
+	source = https://github.com/aria2/aria2/releases/download/release-1.37.0/aria2-1.37.0.tar.xz
+	source = 0001-tweak-aria2-for-speed.patch
+	source = 0002-retry-options.patch
+	sha256sums = 60a420ad7085eb616cb6e2bdf0a7206d68ff3d37fb5a956dc44242eb2f79b66b
+	sha256sums = 0a83b33c3b4b14ba622fb039d4183e2cbb578eb97cc9cf4dbbb3ba32c28f5354
+	sha256sums = e6127b3eb368eb8810a34087fa29a79a201af62531e3a6f62614d8638055bb3c
+
+pkgname = aria2-ven0m0
