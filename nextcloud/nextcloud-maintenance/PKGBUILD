@@ -17,12 +17,10 @@ sha256sums=('7a63bb54ab1115906e3f4313b44d24d8de012ce21999949ed797d4f91e00bc9a'
             '8108ac322bae54ad2aacf0b59889217f41d145aa96469b881230d966fd20cd9d'
             'a961942b2404ac62cc5a871bf14ed7376f519028ac5f6e85b9e2275583b6b3ef')
 
-package() {	
+package(){
   cd "$srcdir"
-
   mkdir -p "${pkgdir}"/usr/share/nextcloud-maintenance
-  install -D -m755 nextcloud-backup.sh "$pkgdir/usr/share/nextcloud-maintenance/nextcloud-backup.sh" 
-  
+  install -D -m755 nextcloud-backup.sh "$pkgdir/usr/share/nextcloud-maintenance/nextcloud-backup.sh"
   install -m644 -Dt "$pkgdir/usr/lib/systemd/system" nextcloud-backup.service
   install -m644 -Dt "$pkgdir/usr/lib/systemd/system" nextcloud-backup.timer
   install -m644 -Dt "$pkgdir/usr/lib/systemd/system" nextcloud-update.service

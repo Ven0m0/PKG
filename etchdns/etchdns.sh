@@ -1,45 +1,29 @@
 #!/usr/bin/env bash
+# shellcheck enable=all shell=bash source-path=SCRIPTDIR external-sources=true
 set -euo pipefail
 shopt -s nullglob globstar
+export LC_ALL=C HOME="/home/${SUDO_USER:-$USER}"
 IFS=$'\n\t'
-export LC_ALL=C LANG=C LANGUAGE=C HOME="/home/${SUDO_USER:-$USER}"
-cd -P -- "$(cd -P -- "${BASH_SOURCE[0]%/*}" && echo "$PWD")" || exit 1
+s=${BASH_SOURCE[0]}; [[ $s != /* ]] && s=$PWD/$s; cd -P -- "${s%/*}"
+has(){ command -v -- "$1" &>/dev/null; }
 
-# Request sudo once at the start
 sudo -v
 
-if command -v sccache &>/dev/null; then
-  export CC="sccache clang"
-  export CXX="sccache clang++"
-  export RUSTC_WRAPPER=sccache
-  export SCCACHE_IDLE_TIMEOUT=10800
+if has sccache; then
+  export CC="sccache clang" CXX="sccache clang++" RUSTC_WRAPPER=sccache SCCACHE_IDLE_TIMEOUT=10800
   sccache --start-server &>/dev/null
 fi
 
-export RUSTFLAGS="-Copt-level=3 -Ctarget-cpu=native -Ccodegen-units=1 -Cstrip=symbols \
-  -Clto=fat -Clink-arg=-fuse-ld=mold -Cpanic=immediate-abort -Zunstable-options \
-  -Ztune-cpu=native -Cllvm-args=-enable-dfa-jump-thread -Zfunction-sections \
-  -Zfmt-debug=none -Zlocation-detail=none"
-
 readonly MALLOC_CONF="thp:always,metadata_thp:always,tcache:true,percpu_arena:percpu"
-export MALLOC_CONF
-export _RJEM_MALLOC_CONF="$MALLOC_CONF"
-export RUSTC_BOOTSTRAP=1
-export CARGO_INCREMENTAL=0
-export OPT_LEVEL=3
-export CARGO_PROFILE_RELEASE_LTO=true
-export CARGO_CACHE_RUSTC_INFO=1
+export RUSTFLAGS="-Copt-level=3 -Ctarget-cpu=native -Ccodegen-units=1 -Cstrip=symbols -Clto=fat -Clink-arg=-fuse-ld=mold -Cpanic=immediate-abort -Zunstable-options -Ztune-cpu=native -Cllvm-args=-enable-dfa-jump-thread -Zfunction-sections -Zfmt-debug=none -Zlocation-detail=none"
+export MALLOC_CONF _RJEM_MALLOC_CONF="$MALLOC_CONF" RUSTC_BOOTSTRAP=1 CARGO_INCREMENTAL=0 OPT_LEVEL=3 CARGO_PROFILE_RELEASE_LTO=true CARGO_CACHE_RUSTC_INFO=1
 
 cargo +nightly -Zunstable-options -Zavoid-dev-deps install etchdns -f
-pbin="$(command -v etchdns || echo "$HOME"/.cargo/bin/etchdns)"
-pbin_name="$(basename "$pbin")"
+pbin=$(command -v etchdns || printf '%s\n' "$HOME/.cargo/bin/etchdns")
+pbin_name=$(basename "$pbin")
 
-# Consolidate all sudo operations into a single block
-sudo bash <<'SUDO_BLOCK'
+sudo bash <<SUDO_BLOCK
 ln -sf "$pbin" "/usr/local/bin/$pbin_name"
-# chown root:root "/usr/local/bin/$pbin_name"; chmod 755 "/usr/local/bin/$pbin_name"
-
-# Prepare config
 cat >/etc/etchdns.toml <<'EOF'
 listen_addr = "127.0.0.1:53"
 cache = true
@@ -98,7 +82,6 @@ user = "root"
 group = "root"
 EOF
 
-# Create service
 cat >/etc/systemd/system/etchdns.service <<'EOF'
 [Unit]
 Description=EtchDNS high-performance DNS proxy
@@ -115,12 +98,9 @@ Restart=on-failure
 WantedBy=multi-user.target
 EOF
 
-# Enable and start services
-systemctl disable --now systemd-resolved-monitor.socket
-systemctl disable --now systemd-resolved-varlink.socket
-systemctl disable --now systemd-resolved.service
-systemctl enable --now etchdns
+systemctl disable --now systemd-resolved-monitor.socket systemd-resolved-varlink.socket systemd-resolved.service
 systemctl daemon-reload
+systemctl enable --now etchdns
 SUDO_BLOCK
 
-echo "EtchDNS setup complete. Check service status: systemctl status etchdns"
+printf 'EtchDNS setup complete. Check service status: systemctl status etchdns\n'

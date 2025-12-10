@@ -28,16 +28,16 @@ sha256sums=('1bc1a67db2d391c233d3dcee3e7ebf46f12652cba35fd02a5b5f03c8bd531bec'
             'ceafc82931c82fddfe5354d6821b04610021884bf53d903b25c51a66fcd83cc1'
             '56e3cab181040101be05d4b7723825f7b0c082c34403e42c6f0934c6474a6a43')
 
-package() {
-        install -D -t $pkgdir/usr/lib/systemd/system -m 644 \
-                nextcloud-app-update-all.service \
-                nextcloud-app-update-all.timer \
-                nextcloud-files-scan-all.service \
-                nextcloud-files-scan-all.timer \
-                nextcloud-preview-generate-all.service \
-                nextcloud-preview-generate-all.timer \
-                nextcloud-preview-pre-generate.service \
-                nextcloud-preview-pre-generate.timer
+package(){
+  install -D -t $pkgdir/usr/lib/systemd/system -m 644 \
+    nextcloud-app-update-all.service \
+    nextcloud-app-update-all.timer \
+    nextcloud-files-scan-all.service \
+    nextcloud-files-scan-all.timer \
+    nextcloud-preview-generate-all.service \
+    nextcloud-preview-generate-all.timer \
+    nextcloud-preview-pre-generate.service \
+    nextcloud-preview-pre-generate.timer
 }
 
 # vim:set ts=2 sw=2 et:

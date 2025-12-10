@@ -16,24 +16,24 @@ conflicts=(heroic-games-launcher)
 source=(git+https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher.git)
 sha256sums=('SKIP')
 
-pkgver() {
+pkgver(){
   cd "$_pkgname"
   git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
 }
 
-prepare() {
+prepare(){
   cd "$_pkgname"
   sed -i -e "s/Exec=heroic-run /Exec=heroic /" "flatpak/com.heroicgameslauncher.hgl.desktop"
 }
 
-build() {
+build(){
   cd "$_pkgname"
   pnpm install
   pnpm run download-helper-binaries
   pnpm dist:linux --x64 --dir -c.electronDist=/usr/lib/$_electron/ -c.electronVersion=$(cat /usr/lib/$_electron/version)
 }
 
-package() {
+package(){
   install -d "${pkgdir}/usr/lib/heroic"
   install -d "${pkgdir}/usr/bin"
   # removing arm64 binaries

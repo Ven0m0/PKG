@@ -16,32 +16,25 @@ options=('strip')
 source=('git+https://github.com/FragmentedCurve/fudo.git')
 md5sums=('SKIP')
 
-pkgver() {
-    cd "${_pkgname}"
-    (
-        set -o pipefail
-        # Use sd instead of sed for faster and simpler regex replacements
-        git describe --long --abbrev=7 2>/dev/null \
-            | sd '([^-]*-g)' 'r$1' \
-            | sd '-' '.' \
-            || printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
-    )
+pkgver(){
+  cd "${_pkgname}"
+  (
+    set -o pipefail
+    git describe --long --abbrev=7 2>/dev/null | sd '([^-]*-g)' 'r$1' | sd '-' '.' || printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+  )
 }
 
-build() {
-    cd "${_pkgname}"
-
-    # Optimized compiler flags
-    export CFLAGS="${CFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt -flto=auto"
-    export LDFLAGS="${LDFLAGS} -Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
-
-    make -j"$(nproc)"
+build(){
+  cd "${_pkgname}"
+  export CFLAGS="${CFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt -flto=auto"
+  export LDFLAGS="${LDFLAGS} -Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
+  make -j"$(nproc)"
 }
 
-package() {
-    cd "${_pkgname}"
-    install -Dm755 fudo "${pkgdir}/usr/bin/fudo"
-    install -Dm644 fudo.1 "${pkgdir}/usr/share/man/man1/fudo.1"
+package(){
+  cd "${_pkgname}"
+  install -Dm755 fudo "${pkgdir}/usr/bin/fudo"
+  install -Dm644 fudo.1 "${pkgdir}/usr/share/man/man1/fudo.1"
 }
 
 # vim: ts=2 sw=2 et:

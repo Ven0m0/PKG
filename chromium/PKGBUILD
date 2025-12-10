@@ -100,12 +100,9 @@ _google_api_key=AIzaSyCkfPOPZXDKNn8hhgu3JrA62wIgC93d44k
 _google_default_client_id=77185425430.apps.googleusercontent.com
 _google_default_client_secret=OTJgUOQcT7lO7GsGZq2G4IlT
 
-prepare() {
+prepare(){
   bsdtar -x --strip-components 4 -f data.tar.xz opt/google/chrome/WidevineCdm
-
-  if (( _manual_clone )); then
-    ./fetch-chromium-release $_pkgver
-  fi
+  (( _manual_clone )) && ./fetch-chromium-release $_pkgver
   cd chromium-$_pkgver
 
   # Allow building against system libraries in official builds
@@ -196,22 +193,14 @@ prepare() {
     --system-libraries "${!_system_libs[@]}"
 }
 
-build() {
+build(){
   make CHROMIUM_NAME=cromite -C chromium-launcher-$_launcher_ver
-
   cd chromium-$_pkgver
-
   if (( _system_clang )); then
-    export CC=clang
-    export CXX=clang++
-    export AR=ar
-    export NM=nm
+    export CC=clang CXX=clang++ AR=ar NM=nm
   else
     local _clang_path="$PWD/third_party/llvm-build/Release+Asserts/bin"
-    export CC=$_clang_path/clang
-    export CXX=$_clang_path/clang++
-    export AR=$_clang_path/llvm-ar
-    export NM=$_clang_path/llvm-nm
+    export CC=$_clang_path/clang CXX=$_clang_path/clang++ AR=$_clang_path/llvm-ar NM=$_clang_path/llvm-nm
   fi
 
   local _flags=(
@@ -311,7 +300,7 @@ build() {
   ninja -C out/Release chrome chrome_sandbox chromedriver.unstripped
 }
 
-package() {
+package(){
   cd chromium-launcher-$_launcher_ver
   make PREFIX=/usr DESTDIR="$pkgdir" CHROMIUM_NAME=cromite install
   install -Dm644 LICENSE \

@@ -53,9 +53,8 @@ _commondeps=('java-runtime-common>=3' 'ca-certificates-utils' 'nss' 'libjpeg-tur
            'lcms2' 'liblcms2.so' 'libnet' 'freetype2' 'libfreetype.so' 'harfbuzz' 'libharfbuzz.so'
            'glibc' 'gcc-libs')
 
-build() {
-  cd "${_jdkdir}" || exit 1
-
+build(){
+  cd "${_jdkdir}"
   NUM_PROC_OPT=''
   # Use parameter expansion instead of echo | sed for better efficiency
   if [[ ${MAKEFLAGS} =~ -j([0-9]+) ]]; then
@@ -134,13 +133,11 @@ build() {
   find "${srcdir}/${_imgdir}" -iname '*.so' -exec chmod +x {} +
 }
 
-check() {
+check(){
   cd ${_jdkdir}
-  # Developer note: Consider packaging jtreg
-  # make -k check
 }
 
-package_jre-openjdk-headless() {
+package_jre-openjdk-headless(){
   pkgdesc="OpenJDK Java ${_majorver} headless runtime environment"
   depends=("${_commondeps[@]}")
   optdepends=('java-rhino: for some JavaScript support')
@@ -197,7 +194,7 @@ package_jre-openjdk-headless() {
   ln -sf /etc/ssl/certs/java/cacerts "${pkgdir}${_jvmdir}/lib/security/cacerts"
 }
 
-package_jre-openjdk() {
+package_jre-openjdk(){
   pkgdesc="OpenJDK Java ${_majorver} full runtime environment"
   depends=("${_commondeps[@]}" 'giflib' 'libgif.so' 'libpng')
   optdepends=('alsa-lib: for basic sound support'
@@ -263,7 +260,7 @@ package_jre-openjdk() {
   done
 }
 
-package_jdk-openjdk() {
+package_jdk-openjdk(){
   pkgdesc="OpenJDK Java ${_majorver} development kit"
   depends=("${_commondeps[@]}" 'java-environment-common=3'
            'hicolor-icon-theme' 'libelf' 'libgif.so' 'libpng'
@@ -340,7 +337,7 @@ package_jdk-openjdk() {
   done
 }
 
-package_openjdk-src() {
+package_openjdk-src(){
   pkgdesc="OpenJDK Java ${_majorver} sources"
   # Depends on JDK to get license files
   depends=("jdk${_majorver}-openjdk=${pkgver}-${pkgrel}")
@@ -352,7 +349,7 @@ package_openjdk-src() {
   ln -s ${pkgbase} "${pkgdir}/usr/share/licenses/${pkgname}"
 }
 
-package_openjdk-doc() {
+package_openjdk-doc(){
   pkgdesc="OpenJDK Java ${_majorver} documentation"
   # Depends on JDK to get license files
   depends=("jdk${_majorver}-openjdk=${pkgver}-${pkgrel}")

@@ -99,7 +99,7 @@ _google_api_key=AIzaSyDwr302FpOSkGRpLlUpPThNTDPbXcIn_FM
 # more information.
 _mozilla_api_key=16674381-f021-49de-8622-3021c5942aff
 
-prepare() {
+prepare(){
   mkdir -p mozbuild
   cd "$_pkgname-$pkgver"
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
@@ -119,7 +119,7 @@ prepare() {
   sed -E -e 's&^\s*pref\("startup\.homepage.*$&&' -i browser/branding/*/pref/firefox-branding.js
 }
 
-_write_mozconfig() {
+_write_mozconfig(){
   cd "$srcdir/$_pkgname-$pkgver"
   # Calculate optimal core count based on available RAM
   local _cores _mem _nproc
@@ -245,7 +245,7 @@ END
   fi
 }
 
-build() {
+build(){
   cd "$_pkgname-$pkgver"
   # Check for required commands
   local _missing_cmds=()
@@ -262,23 +262,7 @@ build() {
   ulimit -n 4096
   # Build date
   export MOZ_BUILD_DATE="$(date -u${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH} +%Y%m%d%H%M%S)"
-  # Compiler
-  export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib LD=ld.lld
-  # Rust
-  export RUST_MIN_STACK=16777216
-  # Build optimization
-  export PYTHONOPTIMIZE=2
-  export CARGO_CACHE_RUSTC_INFO=1
-  export OPT_LEVEL=3
-  export CARGO_INCREMENTAL=0
-  # Mozilla environment
-  export MOZ_NOSPAM=1
-  export MOZ_ENABLE_WAYLAND=1
-  export MOZILLA_OFFICIAL=1
-  export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
-  export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
-  # Software rendering for profiling
-  export LIBGL_ALWAYS_SOFTWARE=true
+  export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib LD=ld.lld RUST_MIN_STACK=16777216 PYTHONOPTIMIZE=2 CARGO_CACHE_RUSTC_INFO=1 OPT_LEVEL=3 CARGO_INCREMENTAL=0 MOZ_NOSPAM=1 MOZ_ENABLE_WAYLAND=1 MOZILLA_OFFICIAL=1 MOZBUILD_STATE_PATH="$srcdir/mozbuild" MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip LIBGL_ALWAYS_SOFTWARE=true
   # Use sccache if available
   if command -v sccache &>/dev/null; then
     export RUSTC_WRAPPER=sccache
@@ -451,7 +435,7 @@ END
   fi
 }
 
-package() {
+package(){
   cd "$_pkgname-$pkgver"
   DESTDIR="$pkgdir" ./mach install
   # Vendor preferences (privacy, performance, hardware acceleration)

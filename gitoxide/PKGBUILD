@@ -11,26 +11,25 @@ options=('strip')
 source=("$pkgname-$pkgver.tar.gz::https://github.com/GitoxideLabs/$pkgname/archive/refs/tags/v$pkgver.tar.gz")
 sha256sums=('68a60cae90e0882cb3e1e699bc1c7e64902b632cc30209f60444c8ca8b2d820e')
 
-prepare() {
+prepare(){
   cd "$pkgname-$pkgver"
   cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
 }
 
-build() {
+build(){
   cd "$pkgname-$pkgver"
-  export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target
-  export RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C link-arg=-fuse-ld=lld"
+  export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C link-arg=-fuse-ld=lld"
   cargo build -r --frozen --no-default-features --bins --lib --features max-pure
 }
 
-check() {
+check(){
   cd "$pkgname-$pkgver"
   export RUSTUP_TOOLCHAIN=stable
   cargo test --frozen --all-features
 }
 
-package() {
-  cd "$pkgname-$pkgver" || exit
+package(){
+  cd "$pkgname-$pkgver"
   install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/gix"
   install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/ein"
 }

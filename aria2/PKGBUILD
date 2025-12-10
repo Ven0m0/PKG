@@ -19,45 +19,30 @@ sha256sums=('60a420ad7085eb616cb6e2bdf0a7206d68ff3d37fb5a956dc44242eb2f79b66b'
             'SKIP'
             'SKIP')
 
-prepare() {
+prepare(){
   cd "$_pkgname-$pkgver"
-
-  # Apply patches
   patch -Np1 -i ../0001-tweak-aria2-for-speed.patch
   patch -Np1 -i ../0002-retry-options.patch
 }
 
-build() {
-  cd "$_pkgname-$pkgver" || exit
-
-  # Optimized build flags
+build(){
+  cd "$_pkgname-$pkgver"
   export CFLAGS="${CFLAGS/-O2/-O3} -pipe -fno-plt -fstack-protector-strong"
   export CXXFLAGS="${CXXFLAGS/-O2/-O3} -pipe -fno-plt -fstack-protector-strong"
   export LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
-
-  ./configure \
-    --prefix=/usr \
-    --enable-libaria2 \
-    --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt \
-    --without-gnutls \
-    --with-openssl
-
+  ./configure --prefix=/usr --enable-libaria2 --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt --without-gnutls --with-openssl
   make
 }
 
-check() {
-  cd "$_pkgname-$pkgver" || exit
+check(){
+  cd "$_pkgname-$pkgver"
   make check
 }
 
-package() {
-  cd "$_pkgname-$pkgver" || exit
-
+package(){
+  cd "$_pkgname-$pkgver"
   make DESTDIR="$pkgdir" install
-
-  # Install bash completion
-  install -Dm644 "$pkgdir"/usr/share/doc/aria2/bash_completion/aria2c \
-    "$pkgdir"/usr/share/bash-completion/completions/aria2c
+  install -Dm644 "$pkgdir"/usr/share/doc/aria2/bash_completion/aria2c "$pkgdir"/usr/share/bash-completion/completions/aria2c
   rm -rf "$pkgdir"/usr/share/doc/aria2/bash_completion
 }
 

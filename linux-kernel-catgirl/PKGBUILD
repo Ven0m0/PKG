@@ -187,9 +187,8 @@ _die() {
   exit 1
 }
 
-prepare() {
-  cd "$_srcname" || exit
-
+prepare(){
+  cd "$_srcname"
   echo "Setting version..."
   echo "-$pkgrel" > localversion.10-pkgrel
   echo "${pkgbase#linux}" > localversion.20-pkgname
@@ -310,16 +309,15 @@ prepare() {
   fi
 }
 
-build() {
-  cd "$_srcname" || exit
+build(){
+  cd "$_srcname"
   make "${BUILD_FLAGS[@]}" -j"$(nproc)" all
-
   if [ "$_package_headers" = "yes" ]; then
     make -C tools/bpf/bpftool vmlinux.h feature-clang-bpf-co-re=1
   fi
 }
 
-_package() {
+_package(){
   pkgdesc="Linux kernel with performance optimizations from CachyOS, Clear Linux, and XanMod"
   depends=('coreutils' 'kmod' 'initramfs')
   optdepends=(
@@ -333,9 +331,7 @@ _package() {
     NTSYNC-MODULE
     VHBA-MODULE
   )
-
-  cd "$_srcname" || exit
-
+  cd "$_srcname"
   local modulesdir="$pkgdir/usr/lib/modules/$(<version)"
 
   echo "Installing boot image..."
@@ -353,37 +349,27 @@ _package() {
   rm "$modulesdir"/build
 }
 
-_package-headers() {
+_package-headers(){
   pkgdesc="Headers for building kernel modules for linux-catgirl-edition"
   depends=('pahole' "${pkgbase}")
 
-  if [[ $_package_headers == "no" ]]; then
+  [[ $_package_headers == "no" ]] && {
     echo "Skipping header packaging"
     return 0
-  fi
-
-  cd "${_srcname}" || exit
+  }
+  cd "${_srcname}"
   local builddir="$pkgdir/usr/lib/modules/$(<version)/build"
 
   echo "Installing build files..."
-  install -Dt "$builddir" -m644 .config Makefile Module.symvers System.map \
-    localversion.* version vmlinux
-
-  if [ "$_package_headers" = "yes" ]; then
-    install -Dt "$builddir" -m644 tools/bpf/bpftool/vmlinux.h
-  fi
-
+  install -Dt "$builddir" -m644 .config Makefile Module.symvers System.map localversion.* version vmlinux
+  [ "$_package_headers" = "yes" ] && install -Dt "$builddir" -m644 tools/bpf/bpftool/vmlinux.h
   install -Dt "$builddir/kernel" -m644 kernel/Makefile
   install -Dt "$builddir/arch/x86" -m644 arch/x86/Makefile
   cp -t "$builddir" -a scripts
   ln -srt "$builddir" "$builddir/scripts/gdb/vmlinux-gdb.py"
 
   install -Dt "$builddir/tools/objtool" tools/objtool/objtool
-
-  if [ -f tools/bpf/resolve_btfids/resolve_btfids ]; then
-    install -Dt "$builddir/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids
-  fi
-
+  [ -f tools/bpf/resolve_btfids/resolve_btfids ] && install -Dt "$builddir/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids
   echo "Installing headers..."
   cp -t "$builddir" -a include
   cp -t "$builddir/arch/x86" -a arch/x86/include

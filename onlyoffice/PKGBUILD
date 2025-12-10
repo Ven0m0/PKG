@@ -39,15 +39,14 @@ noextract=("onlyoffice-desktopeditors-${CARCH}-${pkgver}.deb")
 sha256sums=('0f7e84ee16024c9f4bc3d5e707c9f13063090c946133e2be6ef8ae33dbaece19'
             '0efe15ee5ae7c01fd5cb3198bc849371ebc12ce48e0e595118724b182c765ec6')
 
-prepare() {
-    mkdir -p "onlyoffice-${pkgver}/pkg"
-    bsdtar -xf "${srcdir}/onlyoffice-desktopeditors-${CARCH}-${pkgver}.deb" -C "onlyoffice-${pkgver}"
-    bsdtar -xf "onlyoffice-${pkgver}/data.tar.xz" -C "onlyoffice-${pkgver}/pkg"
+prepare(){
+  mkdir -p "onlyoffice-${pkgver}/pkg"
+  bsdtar -xf "${srcdir}/onlyoffice-desktopeditors-${CARCH}-${pkgver}.deb" -C "onlyoffice-${pkgver}"
+  bsdtar -xf "onlyoffice-${pkgver}/data.tar.xz" -C "onlyoffice-${pkgver}/pkg"
 }
 
-package() {
-    cp -dr --no-preserve='ownership' "onlyoffice-${pkgver}"/pkg/* "$pkgdir"
-
-    install -d -m755 "${pkgdir}/usr/share/icons/hicolor/scalable/apps"
-    install -m644 "${srcdir}/onlyoffice.svg" "${pkgdir}/usr/share/icons/hicolor/scalable/apps/onlyoffice-desktopeditors.svg"
+package(){
+  cp -dr --no-preserve='ownership' "onlyoffice-${pkgver}"/pkg/* "$pkgdir"
+  install -d -m755 "${pkgdir}/usr/share/icons/hicolor/scalable/apps"
+  install -m644 "${srcdir}/onlyoffice.svg" "${pkgdir}/usr/share/icons/hicolor/scalable/apps/onlyoffice-desktopeditors.svg"
 }

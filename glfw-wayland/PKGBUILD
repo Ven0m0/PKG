@@ -42,31 +42,24 @@ sha512sums=('39ad7a4521267fbebc35d2ff0c389a56236ead5fa4bdff33db113bd302f70f5f286
             'aab3aa1d37dfffc1d121e12d4d8bb0b30084149d6eecb30386dd21b0ee60b10bccd660ccb0d2e3ed40661a1030f8edca59d9e354e54862c7d9bacefcd47e813e'
 	    '3526443def5762f19f3d58ef71a5314d19b1fd9abe7c528d85f8d891eb6b1e7eddc579ca8b5a85d8b13a0b55e0e3d2b1dff15e67b836f6c6f7b554501b103802')
 
-prepare() {
+prepare(){
   cd "$srcdir/glfw-$pkgver"
   rm -rf build-wayland || true
   mkdir build-wayland
-
   for patch in "$srcdir/00"*.patch; do
-    echo "Applying patch $patch"
-    patch -p1 < "$patch"
+    printf 'Applying patch %s\n' "$patch"
+    patch -p1 <"$patch"
   done
 }
 
-build() {
+build(){
   cd "$srcdir/glfw-$pkgver/build-wayland"
-
-  cmake .. \
-      -DCMAKE_INSTALL_PREFIX=/usr \
-      -DCMAKE_INSTALL_LIBDIR=lib \
-      -DBUILD_SHARED_LIBS=ON -DGLFW_USE_WAYLAND=ON
+  cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=ON -DGLFW_USE_WAYLAND=ON
 }
 
-package() {
+package(){
   cd "$srcdir/glfw-$pkgver"/build-wayland
-
   make DESTDIR=$pkgdir install
-
   cd ..
   install -Dm644 LICENSE.md "$pkgdir/usr/share/licenses/$pkgname/LICENSE.md"
 }

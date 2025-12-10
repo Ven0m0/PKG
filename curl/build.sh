@@ -1,15 +1,10 @@
 #!/usr/bin/env bash
+# shellcheck enable=all shell=bash source-path=SCRIPTDIR external-sources=true
 set -euo pipefail
 shopt -s nullglob globstar
+export LC_ALL=C
 IFS=$'\n\t'
-
-# References:
-# https://github.com/curl/curl/blob/master/GIT-INFO.md
-# https://curl.se/docs/install.html
-# https://gitlab.archlinux.org/archlinux/packaging/packages/curl-rustls/-/blob/main/PKGBUILD
-# https://github.com/stunnel/static-curl
-# https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=curl-http3
-# https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=curl-c-ares
+s=${BASH_SOURCE[0]}; [[ $s != /* ]] && s=$PWD/$s; cd -P -- "${s%/*}"
 
 ./configure \
   --prefix=/usr \
