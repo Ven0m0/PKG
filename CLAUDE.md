@@ -7,6 +7,7 @@ This repository contains optimized **PKGBUILDs** (Arch Linux package build scrip
 **Primary Purpose**: Maintain a collection of PKGBUILDs with performance optimizations, security patches, and custom configurations for Arch Linux packages.
 
 **Key Technologies**:
+
 - Arch Linux packaging system (makepkg, PKGBUILD)
 - Bash shell scripting
 - Docker for isolated builds
@@ -37,6 +38,7 @@ PKG/
 ### Package Directory Structure
 
 Each package directory contains:
+
 - **PKGBUILD** (mandatory): The package build script
 - **.SRCINFO** (mandatory): Auto-generated metadata (run `makepkg --printsrcinfo > .SRCINFO`)
 - **readme.md** (recommended): Package-specific documentation
@@ -50,6 +52,7 @@ Each package directory contains:
 All shell scripts must follow these standards:
 
 **Shebang and Options**:
+
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail  # Exit on error, undefined vars, pipe failures
@@ -57,11 +60,13 @@ IFS=$'\n\t'        # Safe field separator
 ```
 
 **Linting Tools** (all must pass):
+
 - **shellcheck**: Static analysis for shell scripts
 - **shellharden**: Safety and robustness checks
 - **shfmt**: Formatting (indent: 2 spaces, bash dialect)
 
 **Disabled ShellCheck Rules** (see `.shellcheckrc`):
+
 - SC1090, SC1091: Non-constant sources
 - SC2034: Unused variables (may be used externally)
 - SC2086: Intentional unquoted expansion
@@ -70,6 +75,7 @@ IFS=$'\n\t'        # Safe field separator
 ### 2. PKGBUILD Conventions
 
 **Standard Structure**:
+
 ```bash
 # Maintainer: Your Name
 _pkgname=originalname
@@ -119,12 +125,14 @@ package() {
 ```
 
 **Optimization Patterns**:
+
 - Replace `-O2` with `-O3` for performance
 - Add `-pipe -fno-plt -fstack-protector-strong`
 - Use `LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"`
 - Set `MAKEFLAGS="-j$(nproc)"` for parallel builds
 
 **After PKGBUILD Changes**:
+
 ```bash
 makepkg --printsrcinfo > .SRCINFO
 ```
@@ -132,6 +140,7 @@ makepkg --printsrcinfo > .SRCINFO
 ### 3. EditorConfig Standards
 
 Follow `.editorconfig` settings:
+
 - **Indentation**: 2 spaces (not tabs, except for Makefiles/Go)
 - **Line endings**: LF (Unix style)
 - **Charset**: UTF-8
@@ -143,12 +152,14 @@ Follow `.editorconfig` settings:
 ### 4. Patch Management
 
 **Naming Convention**:
+
 ```
 0001-descriptive-name.patch
 0002-another-feature.patch
 ```
 
 **Applying Patches in PKGBUILD**:
+
 ```bash
 prepare() {
   cd "$_pkgname-$pkgver"
@@ -158,6 +169,7 @@ prepare() {
 ```
 
 **Custom Patch Scripts** (see `handbrake/patch.sh`):
+
 - Use for complex patch workflows
 - Always use `set -euo pipefail`
 - Validate directory existence before applying
@@ -167,6 +179,7 @@ prepare() {
 
 **Repository Git Configuration**:
 The `.gitconfig` file contains optimized settings:
+
 - Compression level: 9
 - Protocol: HTTP/2, version 2
 - Rebase on pull: true
@@ -175,11 +188,13 @@ The `.gitconfig` file contains optimized settings:
 - Incremental maintenance strategy
 
 **Commit Conventions**:
+
 - Use descriptive commit messages
 - Reference issue numbers when applicable
 - Keep commits focused and atomic
 
 **Gitignore Patterns**:
+
 - Build artifacts: `*.tar.*`, `*.zip`, `pkg/`, `src/`
 - Compiled binaries: `*.exe`, `*.so`, `*.o`
 - IDE files: `.vscode/`, `__pycache__/`
@@ -191,12 +206,14 @@ The `.gitconfig` file contains optimized settings:
 ### Building Packages Locally
 
 **Build Single Package**:
+
 ```bash
 cd <package-name>
 makepkg -si  # Build and install
 ```
 
 **Build with build.sh Script**:
+
 ```bash
 # Build specific packages
 ./build.sh aria2 firefox
@@ -206,6 +223,7 @@ makepkg -si  # Build and install
 ```
 
 **Docker Build** (for packages in `DOCKER_REGEX`):
+
 ```bash
 # Automatically detected for: obs-studio, firefox, egl-wayland2, onlyoffice
 ./build.sh obs-studio
@@ -214,17 +232,20 @@ makepkg -si  # Build and install
 ### Linting and Validation
 
 **Run All Linters**:
+
 ```bash
 ./lint.sh
 ```
 
 This script performs:
+
 1. **ShellCheck**: Static analysis with patch application
 2. **Shellharden**: Safety improvements
 3. **shfmt**: Code formatting
 4. **.SRCINFO validation**: Ensures sync with PKGBUILD
 
 **Fix Common Issues**:
+
 ```bash
 # Update .SRCINFO after PKGBUILD changes
 cd <package>
@@ -259,6 +280,7 @@ shellcheck -x -a -s bash PKGBUILD
    - Auto-merges Dependabot PRs
 
 **Environment Variables** (CI):
+
 - `DOCKER_BUILD_PACKAGES`: Packages requiring Docker builds
 - `CC=clang`, `CXX=clang++`: Use Clang compiler
 - `RUSTC_WRAPPER=sccache`: Rust compilation caching
@@ -267,6 +289,7 @@ shellcheck -x -a -s bash PKGBUILD
 ### Adding a New Package
 
 1. **Create package directory**:
+
    ```bash
    mkdir new-package
    cd new-package
@@ -278,36 +301,48 @@ shellcheck -x -a -s bash PKGBUILD
    - Add patches if needed
 
 3. **Generate .SRCINFO**:
+
    ```bash
    makepkg --printsrcinfo > .SRCINFO
    ```
 
 4. **Create readme.md** (recommended):
-   ```markdown
+
+   ````markdown
    # package-name
 
    ## Description
+
    Brief description
 
    ## Source
+
    - Upstream: https://github.com/...
 
    ## Build Instructions
+
    ```bash
    cd package-name
    makepkg -si
    ```
+   ````
 
    ## License
+
    LICENSE-TYPE
+
+   ```
+
    ```
 
 5. **Test build locally**:
+
    ```bash
    makepkg -sr
    ```
 
 6. **Commit changes**:
+
    ```bash
    git add .
    git commit -m "Add new-package: Description"
@@ -321,22 +356,26 @@ shellcheck -x -a -s bash PKGBUILD
    - Update checksums if sources change
 
 2. **Update .SRCINFO**:
+
    ```bash
    makepkg --printsrcinfo > .SRCINFO
    ```
 
 3. **Test build**:
+
    ```bash
    makepkg -srC  # Clean build
    ```
 
 4. **Run linters**:
+
    ```bash
    cd /path/to/PKG
    ./lint.sh
    ```
 
 5. **Commit with descriptive message**:
+
    ```bash
    git commit -am "package-name: Update to version X.Y.Z"
    ```
@@ -346,12 +385,14 @@ shellcheck -x -a -s bash PKGBUILD
 ### Build Methods
 
 **Standard Build** (native):
+
 - Uses GitHub Actions runner natively
 - Caching: APT, Rust, sccache, LLVM
 - Faster for smaller packages
 - Uses `2m/arch-pkgbuild-builder@v1.25` action
 
 **Docker Build** (containerized):
+
 - Required for: obs-studio, firefox, egl-wayland2, onlyoffice
 - Uses `archlinux:latest` base image
 - Optimized mirrors (reflector)
@@ -362,11 +403,13 @@ shellcheck -x -a -s bash PKGBUILD
 ### Compiler and Optimization
 
 **Default Compilers**:
+
 - C: `clang` (LLVM)
 - C++: `clang++` (LLVM)
 - Rust wrapper: `sccache` (distributed caching)
 
 **Optimization Flags** (common patterns):
+
 ```bash
 export CFLAGS="${CFLAGS/-O2/-O3} -pipe -fno-plt -fstack-protector-strong"
 export CXXFLAGS="${CXXFLAGS/-O2/-O3} -pipe -fno-plt -fstack-protector-strong"
@@ -377,10 +420,12 @@ export MAKEFLAGS="-j$(nproc)"
 ### Caching Strategy
 
 **Local Development**:
+
 - Package builds cache in `~/.cache/`
 - Source files in `pkg/` and `src/` (gitignored)
 
 **CI/CD Caching**:
+
 - APT packages: `awalsh128/cache-apt-pkgs-action@v1`
 - Rust artifacts: `~/.cargo/` directories
 - Docker layers: `/tmp/.buildx-cache`
@@ -391,17 +436,20 @@ export MAKEFLAGS="-j$(nproc)"
 ### Required Tools (Development)
 
 **For Local Building**:
+
 - `base-devel` (Arch Linux metapackage)
 - `makepkg`, `pacman`
 - `git`
 
 **For Linting**:
+
 - `shellcheck` - Shell script linting
 - `shellharden` - Shell script safety
 - `shfmt` - Shell formatting
 - `namcap` - PKGBUILD linting
 
 **Optional but Recommended**:
+
 - `fd` - Fast file finder (alternative to `find`)
 - `docker` - For Docker builds
 - `sccache` - Compilation caching
@@ -421,6 +469,7 @@ export MAKEFLAGS="-j$(nproc)"
 ### Safe Shell Scripting
 
 **Always start with**:
+
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
@@ -428,12 +477,14 @@ IFS=$'\n\t'
 ```
 
 **Use `readonly` for constants**:
+
 ```bash
 readonly DOCKER_REGEX="^(obs-studio|firefox)$"
 readonly IMAGE="archlinux:latest"
 ```
 
 **Helper functions** (from build.sh):
+
 ```bash
 err(){ printf "\e[31m✘ %s\e[0m\n" "$*" >&2; }
 log(){ printf "\e[32m➜ %s\e[0m\n" "$*"; }
@@ -441,6 +492,7 @@ has(){ command -v "$1" &>/dev/null; }
 ```
 
 **Safe directory changes**:
+
 ```bash
 cd "$dir" || exit 1
 # or
@@ -452,6 +504,7 @@ popd >/dev/null
 ### Finding PKGBUILDs
 
 **Optimized search** (from build.sh):
+
 ```bash
 if has fd; then
   fd -t f -g 'PKGBUILD' -x printf '%{//}\n' | sort -u
@@ -461,6 +514,7 @@ fi
 ```
 
 **Caching tool availability** (from lint.sh):
+
 ```bash
 has_shellcheck=false
 command -v shellcheck &>/dev/null && has_shellcheck=true
@@ -469,6 +523,7 @@ command -v shellcheck &>/dev/null && has_shellcheck=true
 ### Docker Build Pattern
 
 **Standard Docker invocation**:
+
 ```bash
 docker run --rm -it \
   -v "${PWD}:/ws:rw" \
@@ -504,6 +559,7 @@ docker run --rm -it \
 ### Reporting Vulnerabilities
 
 See `SECURITY.md`:
+
 - Do not open public issues for vulnerabilities
 - Use private vulnerability reporting
 - Email maintainer directly
@@ -514,6 +570,7 @@ See `SECURITY.md`:
 ### Common Build Issues
 
 **Issue**: `.SRCINFO` out of sync
+
 ```bash
 # Solution
 cd <package>
@@ -521,6 +578,7 @@ makepkg --printsrcinfo > .SRCINFO
 ```
 
 **Issue**: Missing dependencies
+
 ```bash
 # Solution: Install from PKGBUILD
 cd <package>
@@ -528,6 +586,7 @@ makepkg -s  # Auto-install deps
 ```
 
 **Issue**: Checksum mismatch
+
 ```bash
 # Solution: Update checksums
 cd <package>
@@ -535,6 +594,7 @@ updpkgsums  # or manually update sha256sums
 ```
 
 **Issue**: Patch fails to apply
+
 ```bash
 # Debug
 cd <package>
@@ -546,6 +606,7 @@ patch -Np1 --dry-run -i ../../patch.patch
 ### Linting Failures
 
 **ShellCheck errors**:
+
 ```bash
 # View errors
 shellcheck -x -a -s bash PKGBUILD
@@ -555,6 +616,7 @@ shellcheck -x -a -s bash -f diff PKGBUILD | patch -Np1
 ```
 
 **Formatting issues**:
+
 ```bash
 # Auto-format
 shfmt -ln bash -bn -s -i 2 -w PKGBUILD *.sh
@@ -563,12 +625,14 @@ shfmt -ln bash -bn -s -i 2 -w PKGBUILD *.sh
 ### CI/CD Debugging
 
 **Build fails in CI but works locally**:
+
 - Check caching issues (clear cache)
 - Verify environment variables match
 - Review CI logs for dependency issues
 - Test in Docker locally: `./build.sh <package>`
 
 **Lint passes locally but fails in CI**:
+
 - Ensure all tools are same version
 - Check `.shellcheckrc` is committed
 - Verify `.SRCINFO` is up to date and committed
@@ -588,7 +652,8 @@ shfmt -ln bash -bn -s -i 2 -w PKGBUILD *.sh
 9. **Document changes** - Update readme.md if behavior changes
 10. **Security first** - Review patches, verify sources, use HTTPS
 
-### DO:
+### DO
+
 - ✅ Read existing code before suggesting changes
 - ✅ Follow established patterns in the codebase
 - ✅ Update both PKGBUILD and .SRCINFO together
@@ -600,7 +665,8 @@ shfmt -ln bash -bn -s -i 2 -w PKGBUILD *.sh
 - ✅ Cache expensive operations (see lint.sh pattern)
 - ✅ Prefer existing tools (fd over find when available)
 
-### DON'T:
+### DON'T
+
 - ❌ Modify PKGBUILD without updating .SRCINFO
 - ❌ Skip testing builds locally
 - ❌ Ignore linting failures
@@ -610,7 +676,7 @@ shfmt -ln bash -bn -s -i 2 -w PKGBUILD *.sh
 - ❌ Hardcode paths that could be dynamic
 - ❌ Download unverified sources
 - ❌ Use HTTP when HTTPS is available
-- ❌ Commit build artifacts (pkg/, src/, *.tar.*)
+- ❌ Commit build artifacts (pkg/, src/, _.tar._)
 
 ### Suggested Workflow for Changes
 
@@ -630,21 +696,25 @@ shfmt -ln bash -bn -s -i 2 -w PKGBUILD *.sh
    - Add/modify patches if needed
 
 4. **Update metadata**
+
    ```bash
    makepkg --printsrcinfo > .SRCINFO
    ```
 
 5. **Validate**
+
    ```bash
    ./lint.sh  # From repo root
    ```
 
 6. **Test build**
+
    ```bash
    makepkg -srC  # Clean build
    ```
 
 7. **Commit**
+
    ```bash
    git add .
    git commit -m "package: descriptive message"
@@ -655,16 +725,19 @@ shfmt -ln bash -bn -s -i 2 -w PKGBUILD *.sh
 ### External Resources
 
 **Arch Linux**:
+
 - [PKGBUILD Guidelines](https://wiki.archlinux.org/title/PKGBUILD)
 - [Arch Package Guidelines](https://wiki.archlinux.org/title/Arch_package_guidelines)
 - [makepkg Documentation](https://man.archlinux.org/man/makepkg.8)
 
 **Related Projects** (from README.md):
+
 - [CachyOS-PKGBUILDS](https://github.com/CachyOS/CachyOS-PKGBUILDS)
 - [lseman's PKGBUILDs with PGO](https://github.com/lseman/PKGBUILDs)
 - [pkgforge-dev/Anylinux-AppImages](https://github.com/pkgforge-dev/Anylinux-AppImages)
 
 **Tools**:
+
 - [shellcheck](https://github.com/koalaman/shellcheck)
 - [shfmt](https://github.com/mvdan/sh)
 - [shellharden](https://github.com/anordal/shellharden)
@@ -694,5 +767,5 @@ shfmt -ln bash -bn -s -i 2 -w PKGBUILD *.sh
 ---
 
 **Last Updated**: 2025-12-03
-**Repository**: https://github.com/Ven0m0/PKG
+**Repository**: <https://github.com/Ven0m0/PKG>
 **Maintainer**: Ven0m0

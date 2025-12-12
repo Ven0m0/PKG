@@ -1,2 +1,2 @@
-- https://github.com/pkgforge-dev/Citron-AppImage
-- https://github.com/pkgforge-dev/Azahar-AppImage-Enhanced
+- <https://github.com/pkgforge-dev/Citron-AppImage>
+- <https://github.com/pkgforge-dev/Azahar-AppImage-Enhanced>

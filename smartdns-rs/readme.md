@@ -8,7 +8,7 @@ SmartDNS-rs is a high-performance DNS server implementation that automatically s
 
 ## Source
 
-- Upstream: https://github.com/mokeyish/smartdns-rs
+- Upstream: <https://github.com/mokeyish/smartdns-rs>
 
 ## Build Instructions
 

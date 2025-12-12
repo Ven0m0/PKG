@@ -16,17 +16,17 @@ sha256sums=('SKIP')
 # The directory where the source code (including the Makefile) is located
 _srcdir="${srcdir}/${pkgname}/preload-src"
 
-build(){
+build() {
   cd "${_srcdir}"
   make
 }
 
-package(){
+package() {
   cd "${_srcdir}"
   install -Dm755 "preload" "${pkgdir}/usr/sbin/preload"
   install -Dm644 "preload.conf" "${pkgdir}/etc/preload.conf"
   install -d "${pkgdir}/usr/lib/systemd/system"
-  cat <<'EOF' > "${pkgdir}/usr/lib/systemd/system/preload-ng.service"
+  cat <<'EOF' >"${pkgdir}/usr/lib/systemd/system/preload-ng.service"
 [Unit]
 Description=Preload-NG Daemon - Adaptive Readahead
 Documentation=https://github.com/miguel-b-p/preload-ng

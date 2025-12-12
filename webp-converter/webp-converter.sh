@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # shellcheck enable=all shell=bash source-path=SCRIPTDIR external-sources=true
-set -euo pipefail; shopt -s nullglob globstar; IFS=$'\n\t'
+set -euo pipefail
+shopt -s nullglob globstar
+IFS=$'\n\t'
 readonly _APPDIR="/usr/lib/@appname@"
 readonly _RUNNAME="${_APPDIR}/@runname@"
 readonly _CFGDIR="@cfgdirname@/"
@@ -12,13 +14,16 @@ export ELECTRON_OVERRIDE_DIST_PATH="/usr/bin/electron@electronversion@" NODE_ENV
 export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 export _FLAGS_FILE="${XDG_CONFIG_HOME}/${_CFGDIR}@appname@-flags.conf"
 declare -a _USER_FLAGS=()
-if [[ -f "${_FLAGS_FILE}" ]]; then
+if [[ -f ${_FLAGS_FILE} ]]; then
   while IFS= read -r line; do
-    [[ ! "${line}" =~ ^[[:space:]]*# ]] && _USER_FLAGS+=("${line}")
-  done < "${_FLAGS_FILE}"
+    [[ ! ${line} =~ ^[[:space:]]*# ]] && _USER_FLAGS+=("${line}")
+  done <"${_FLAGS_FILE}"
 fi
-cd "${_APPDIR}" || { echo "Failed to change directory to ${_APPDIR}"; exit 1; }
-if [[ "${EUID}" -ne 0 ]] || [[ "${ELECTRON_RUN_AS_NODE}" ]]; then
+cd "${_APPDIR}" || {
+  echo "Failed to change directory to ${_APPDIR}"
+  exit 1
+}
+if [[ ${EUID} -ne 0 ]] || [[ "${ELECTRON_RUN_AS_NODE}" ]]; then
   exec electron@electronversion@ "${_RUNNAME}" ${_OPTIONS} "${_USER_FLAGS[@]}" "$@"
 else
   exec electron@electronversion@ "${_RUNNAME}" ${_OPTIONS} --no-sandbox "${_USER_FLAGS[@]}" "$@"

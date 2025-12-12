@@ -71,10 +71,14 @@ optdepends=('intel-media-sdk: for enabling Intel QSV' 'amf-amdgpu-pro: for enabl
 options=('!lto' 'strip' '!debug') # https://bugs.archlinux.org/task/72600
 source=("HandBrake::git+https://github.com/HandBrake/HandBrake.git#tag=${pkgver}")
 sha256sums=('SKIP')
-pkgver(){ git -C HandBrake/ gc --auto --prune=now; git -C HandBrake/ describe ${_commit:-} | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'; }
+pkgver() {
+  git -C HandBrake/ gc --auto --prune=now
+  git -C HandBrake/ describe ${_commit:-} | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
+}
 
-setup_compiler(){
-  export CC="/usr/bin/clang" CXX="/usr/bin/clang++"; unset CFLAGS CXXFLAGS
+setup_compiler() {
+  export CC="/usr/bin/clang" CXX="/usr/bin/clang++"
+  unset CFLAGS CXXFLAGS
   export CPP="/usr/bin/clang-cpp" LD="/usr/bin/lld" STRIP="/usr/bin/llvm-strip"
   export CFLAGS="${CFLAGS/-D_FORTIFY_SOURCE=3/-D_FORTIFY_SOURCE=2}" CXXFLAGS="${CXXFLAGS/-D_FORTIFY_SOURCE=3/-D_FORTIFY_SOURCE=2}"
   export LDFLAGS="-fuse-ld=lld"
@@ -83,7 +87,7 @@ setup_compiler(){
   export OBJCOPY="/usr/bin/llvm-objcopy" OBJDUMP="/usr/bin/llvm-objdump"
 }
 
-build(){
+build() {
   bash "${startdir}/patch.sh"
   setup_compiler
   local -a CONFIGURE_OPTIONS=(
@@ -95,7 +99,7 @@ build(){
   make -C build
 }
 
-package_handbrake-svt-av1-essential-llvm-optimized(){
+package_handbrake-svt-av1-essential-llvm-optimized() {
   pkgdesc="Multithreaded video transcoder with SVT-AV1-Essential (with HDR+PSY enhancements), LLVM-optimized"
   depends=("${_commondeps[@]}" "${_guideps[@]}" "${_implicitdeps[@]}")
   provides=(handbrake)
@@ -106,7 +110,7 @@ package_handbrake-svt-av1-essential-llvm-optimized(){
   rm "${pkgdir}/usr/bin/HandBrakeCLI"
 }
 
-package_handbrake-svt-av1-essential-llvm-optimized-cli(){
+package_handbrake-svt-av1-essential-llvm-optimized-cli() {
   pkgdesc="Multithreaded video transcoder with SVT-AV1-Essential (with HDR+PSY enhancements), LLVM-optimized (CLI)"
   depends=("${_commondeps[@]}" "${_implicitdeps[@]}")
   provides=(handbrake-cli)

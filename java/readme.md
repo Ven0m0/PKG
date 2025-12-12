@@ -6,7 +6,7 @@ Arch Linux PKGBUILD for OpenJDK (Java) packages.
 
 ## Source
 
-- Upstream: https://openjdk.java.net/
+- Upstream: <https://openjdk.java.net/>
 - PKGBUILD Maintainer: <your-name>
 
 ## Build Instructions

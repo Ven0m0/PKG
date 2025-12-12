@@ -1,1 +1,1 @@
-- https://github.com/miguel-b-p/preload-ng
+- <https://github.com/miguel-b-p/preload-ng>

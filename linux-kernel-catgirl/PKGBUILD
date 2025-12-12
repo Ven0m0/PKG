@@ -76,32 +76,41 @@
 
 ### Helper Functions ###
 
-has(){ command -v -- "$1" &>/dev/null; }
+has() { command -v -- "$1" &>/dev/null; }
 
-_die(){ error "$@"; exit 1; }
-
-_is_lto_kernel(){
-  [[ "$_use_llvm_lto" =~ ^(thin|thin-dist|full)$ ]]
+_die() {
+  error "$@"
+  exit 1
 }
 
-_get_latest_cachyos_major(){
+_is_lto_kernel() {
+  [[ $_use_llvm_lto =~ ^(thin|thin-dist|full)$ ]]
+}
+
+_get_latest_cachyos_major() {
   local versions stable_releases ver
   versions=$(curl -fsSL "https://api.github.com/repos/CachyOS/kernel-patches/contents/" 2>/dev/null | grep -oP '"name":\s*"\K[0-9]+\.[0-9]+(?=")' | sort -V)
-  [[ -z $versions ]] && { echo "6.18"; return; }
+  [[ -z $versions ]] && {
+    echo "6.18"
+    return
+  }
   stable_releases=$(curl -fsSL "https://www.kernel.org/releases.json" 2>/dev/null | grep -oP "\"version\":\s*\"\K[0-9]+\.[0-9]+\.[0-9]+" || echo "")
   while IFS= read -r ver; do
-    echo "$stable_releases" | grep -q "^${ver}\." && { echo "$ver"; return; }
+    echo "$stable_releases" | grep -q "^${ver}\." && {
+      echo "$ver"
+      return
+    }
   done <<<"$(echo "$versions" | tac)"
   echo "$versions" | tail -1
 }
 
-_get_latest_patch_version(){
+_get_latest_patch_version() {
   local major="$1" latest
   latest=$(curl -fsSL "https://www.kernel.org/releases.json" 2>/dev/null | grep -oP "\"version\":\s*\"\K${major}\.[0-9]+" | head -1)
   [[ -n $latest ]] && echo ".${latest##*.}" || echo ".0"
 }
 
-_sign_modules(){
+_sign_modules() {
   msg2 "Signing modules in $1"
   local sign_script="${srcdir}/${_srcname}/scripts/sign-file"
   local sign_key sign_cert hash_algo
@@ -189,10 +198,10 @@ source=(
 
 # Scheduler patches
 case "$_cpusched" in
-  cachyos|bore|rt-bore|hardened) source+=("${_patchsource_cachyos}/sched/0001-bore-cachy.patch");;&
-  bmq) source+=("${_patchsource_cachyos}/sched/0001-prjc-cachy.patch");;
-  hardened) source+=("${_patchsource_cachyos}/misc/0001-hardened.patch");;
-  rt|rt-bore) source+=("${_patchsource_cachyos}/misc/0001-rt-i915.patch");;
+cachyos | bore | rt-bore | hardened) source+=("${_patchsource_cachyos}/sched/0001-bore-cachy.patch") ;;&
+bmq) source+=("${_patchsource_cachyos}/sched/0001-prjc-cachy.patch") ;;
+hardened) source+=("${_patchsource_cachyos}/misc/0001-hardened.patch") ;;
+rt | rt-bore) source+=("${_patchsource_cachyos}/misc/0001-rt-i915.patch") ;;
 esac
 
 # LTO support
@@ -230,7 +239,7 @@ export KBUILD_BUILD_TIMESTAMP="$(date -Ru${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EP
 
 ### Build Functions ###
 
-prepare(){
+prepare() {
   cd "$_srcname" || return 1
 
   echo "Setting version..."
@@ -240,7 +249,9 @@ prepare(){
   echo "Applying patches..."
   local src
   for src in "${source[@]}"; do
-    src="${src%%::*}"; src="${src##*/}"; src="${src%.zst}"
+    src="${src%%::*}"
+    src="${src##*/}"
+    src="${src%.zst}"
     [[ $src == *.patch ]] || continue
     [[ $src == */nvidia/*.patch ]] && continue
     echo "Applying patch $src..."
@@ -254,9 +265,9 @@ prepare(){
   if [[ -n $_processor_opt ]]; then
     local MARCH="${_processor_opt^^}"
     case "$MARCH" in
-      GENERIC_V[1-4]) scripts/config -e GENERIC_CPU -d MZEN4 -d X86_NATIVE_CPU --set-val X86_64_VERSION "${MARCH//GENERIC_V}";;
-      ZEN4) scripts/config -d GENERIC_CPU -e MZEN4 -d X86_NATIVE_CPU;;
-      NATIVE) scripts/config -d GENERIC_CPU -d MZEN4 -e X86_NATIVE_CPU;;
+    GENERIC_V[1-4]) scripts/config -e GENERIC_CPU -d MZEN4 -d X86_NATIVE_CPU --set-val X86_64_VERSION "${MARCH//GENERIC_V/}" ;;
+    ZEN4) scripts/config -d GENERIC_CPU -e MZEN4 -d X86_NATIVE_CPU ;;
+    NATIVE) scripts/config -d GENERIC_CPU -d MZEN4 -e X86_NATIVE_CPU ;;
     esac
   else
     scripts/config -d GENERIC_CPU -d MZEN4 -e X86_NATIVE_CPU
@@ -267,12 +278,12 @@ prepare(){
 
   # CPU scheduler
   case "$_cpusched" in
-    cachyos|bore|hardened) scripts/config -e SCHED_BORE;;
-    bmq) scripts/config -e SCHED_ALT -e SCHED_BMQ;;
-    eevdf) ;;
-    rt) scripts/config -e PREEMPT_RT;;
-    rt-bore) scripts/config -e SCHED_BORE -e PREEMPT_RT;;
-    *) _die "Invalid CPU scheduler: $_cpusched";;
+  cachyos | bore | hardened) scripts/config -e SCHED_BORE ;;
+  bmq) scripts/config -e SCHED_ALT -e SCHED_BMQ ;;
+  eevdf) ;;
+  rt) scripts/config -e PREEMPT_RT ;;
+  rt-bore) scripts/config -e SCHED_BORE -e PREEMPT_RT ;;
+  *) _die "Invalid CPU scheduler: $_cpusched" ;;
   esac
   echo "Selecting ${_cpusched^^} CPU scheduler..."
 
@@ -281,11 +292,11 @@ prepare(){
 
   # LTO
   case "$_use_llvm_lto" in
-    thin) scripts/config -e LTO_CLANG_THIN;;
-    thin-dist) scripts/config -e LTO_CLANG_THIN_DIST;;
-    full) scripts/config -e LTO_CLANG_FULL;;
-    none) scripts/config -e LTO_NONE;;
-    *) _die "Invalid LTO mode: $_use_llvm_lto";;
+  thin) scripts/config -e LTO_CLANG_THIN ;;
+  thin-dist) scripts/config -e LTO_CLANG_THIN_DIST ;;
+  full) scripts/config -e LTO_CLANG_FULL ;;
+  none) scripts/config -e LTO_NONE ;;
+  *) _die "Invalid LTO mode: $_use_llvm_lto" ;;
   esac
   echo "Selecting '$_use_llvm_lto' LLVM level..."
 
@@ -296,9 +307,9 @@ prepare(){
 
   # Tick rate
   case "$_HZ_ticks" in
-    100|250|500|600|750|1000) scripts/config -d HZ_300 -e "HZ_${_HZ_ticks}" --set-val HZ "${_HZ_ticks}";;
-    300) scripts/config -e HZ_300 --set-val HZ 300;;
-    *) _die "Invalid tick rate: $_HZ_ticks";;
+  100 | 250 | 500 | 600 | 750 | 1000) scripts/config -d HZ_300 -e "HZ_${_HZ_ticks}" --set-val HZ "${_HZ_ticks}" ;;
+  300) scripts/config -e HZ_300 --set-val HZ 300 ;;
+  *) _die "Invalid tick rate: $_HZ_ticks" ;;
   esac
   echo "Setting tick rate to ${_HZ_ticks}Hz..."
 
@@ -307,21 +318,21 @@ prepare(){
 
   # Tick type
   case "$_tickrate" in
-    periodic) scripts/config -d NO_HZ_IDLE -d NO_HZ_FULL -d NO_HZ -d NO_HZ_COMMON -e HZ_PERIODIC;;
-    idle) scripts/config -d HZ_PERIODIC -d NO_HZ_FULL -e NO_HZ_IDLE -e NO_HZ -e NO_HZ_COMMON;;
-    full) scripts/config -d HZ_PERIODIC -d NO_HZ_IDLE -d CONTEXT_TRACKING_FORCE -e NO_HZ_FULL_NODEF -e NO_HZ_FULL -e NO_HZ -e NO_HZ_COMMON -e CONTEXT_TRACKING;;
-    *) _die "Invalid tickrate: $_tickrate";;
+  periodic) scripts/config -d NO_HZ_IDLE -d NO_HZ_FULL -d NO_HZ -d NO_HZ_COMMON -e HZ_PERIODIC ;;
+  idle) scripts/config -d HZ_PERIODIC -d NO_HZ_FULL -e NO_HZ_IDLE -e NO_HZ -e NO_HZ_COMMON ;;
+  full) scripts/config -d HZ_PERIODIC -d NO_HZ_IDLE -d CONTEXT_TRACKING_FORCE -e NO_HZ_FULL_NODEF -e NO_HZ_FULL -e NO_HZ -e NO_HZ_COMMON -e CONTEXT_TRACKING ;;
+  *) _die "Invalid tickrate: $_tickrate" ;;
   esac
   echo "Selecting '$_tickrate' tick type..."
 
   # Preemption (skip for RT)
   if [[ ! $_cpusched =~ ^(rt|rt-bore)$ ]]; then
     case "$_preempt" in
-      full) scripts/config -e PREEMPT_DYNAMIC -e PREEMPT -d PREEMPT_VOLUNTARY -d PREEMPT_LAZY -d PREEMPT_NONE;;
-      lazy) scripts/config -e PREEMPT_DYNAMIC -d PREEMPT -d PREEMPT_VOLUNTARY -e PREEMPT_LAZY -d PREEMPT_NONE;;
-      voluntary) scripts/config -d PREEMPT_DYNAMIC -d PREEMPT -e PREEMPT_VOLUNTARY -d PREEMPT_LAZY -d PREEMPT_NONE;;
-      none) scripts/config -d PREEMPT_DYNAMIC -d PREEMPT -d PREEMPT_VOLUNTARY -d PREEMPT_LAZY -e PREEMPT_NONE;;
-      *) _die "Invalid preemption: $_preempt";;
+    full) scripts/config -e PREEMPT_DYNAMIC -e PREEMPT -d PREEMPT_VOLUNTARY -d PREEMPT_LAZY -d PREEMPT_NONE ;;
+    lazy) scripts/config -e PREEMPT_DYNAMIC -d PREEMPT -d PREEMPT_VOLUNTARY -e PREEMPT_LAZY -d PREEMPT_NONE ;;
+    voluntary) scripts/config -d PREEMPT_DYNAMIC -d PREEMPT -e PREEMPT_VOLUNTARY -d PREEMPT_LAZY -d PREEMPT_NONE ;;
+    none) scripts/config -d PREEMPT_DYNAMIC -d PREEMPT -d PREEMPT_VOLUNTARY -d PREEMPT_LAZY -e PREEMPT_NONE ;;
+    *) _die "Invalid preemption: $_preempt" ;;
     esac
     echo "Selecting '$_preempt' preempt type..."
   fi
@@ -339,9 +350,9 @@ prepare(){
 
   # Transparent Hugepages
   case "$_hugepage" in
-    always) scripts/config -d TRANSPARENT_HUGEPAGE_MADVISE -e TRANSPARENT_HUGEPAGE_ALWAYS;;
-    madvise) scripts/config -d TRANSPARENT_HUGEPAGE_ALWAYS -e TRANSPARENT_HUGEPAGE_MADVISE;;
-    *) _die "Invalid hugepage mode: $_hugepage";;
+  always) scripts/config -d TRANSPARENT_HUGEPAGE_MADVISE -e TRANSPARENT_HUGEPAGE_ALWAYS ;;
+  madvise) scripts/config -d TRANSPARENT_HUGEPAGE_ALWAYS -e TRANSPARENT_HUGEPAGE_MADVISE ;;
+  *) _die "Invalid hugepage mode: $_hugepage" ;;
   esac
 
   # AutoFDO
@@ -399,7 +410,7 @@ prepare(){
   }
 }
 
-build(){
+build() {
   cd "$_srcname" || return 1
   make "${BUILD_FLAGS[@]}" -j"$(nproc)" all
   make -C tools/bpf/bpftool vmlinux.h feature-clang-bpf-co-re=1
@@ -430,7 +441,7 @@ build(){
   }
 }
 
-_package(){
+_package() {
   pkgdesc="Linux kernel with CachyOS, Clear Linux, and XanMod optimizations"
   depends=(coreutils kmod initramfs)
   optdepends=(
@@ -440,7 +451,10 @@ _package(){
     'scx-scheds: sched-ext schedulers'
   )
   provides=(VIRTUALBOX-GUEST-MODULES WIREGUARD-MODULE KSMBD-MODULE V4L2LOOPBACK-MODULE NTSYNC-MODULE VHBA-MODULE ADIOS-MODULE)
-  _is_lto_kernel && { provides+=(linux-catgirl-lto=$_kernver); replaces=(linux-catgirl-lto); }
+  _is_lto_kernel && {
+    provides+=(linux-catgirl-lto=$_kernver)
+    replaces=(linux-catgirl-lto)
+  }
 
   cd "$_srcname" || return 1
   local modulesdir="$pkgdir/usr/lib/modules/$(<version)"
@@ -454,10 +468,14 @@ _package(){
   rm "$modulesdir"/build
 }
 
-_package-headers(){
+_package-headers() {
   pkgdesc="Headers for building modules for linux-catgirl-edition"
   depends=(pahole "${pkgbase}")
-  _is_lto_kernel && { provides+=(linux-catgirl-lto-headers=$_kernver); replaces=(linux-catgirl-lto-headers); depends+=(clang llvm lld); }
+  _is_lto_kernel && {
+    provides+=(linux-catgirl-lto-headers=$_kernver)
+    replaces=(linux-catgirl-lto-headers)
+    depends+=(clang llvm lld)
+  }
 
   cd "${_srcname}" || return 1
   local builddir="$pkgdir/usr/lib/modules/$(<version)/build"
@@ -515,10 +533,10 @@ _package-headers(){
   local file
   while read -rd '' file; do
     case "$(file -Sib "$file")" in
-      application/x-sharedlib\;*) strip -v "$STRIP_SHARED" "$file";;
-      application/x-archive\;*) strip -v "$STRIP_STATIC" "$file";;
-      application/x-executable\;*) strip -v "$STRIP_BINARIES" "$file";;
-      application/x-pie-executable\;*) strip -v "$STRIP_SHARED" "$file";;
+    application/x-sharedlib\;*) strip -v "$STRIP_SHARED" "$file" ;;
+    application/x-archive\;*) strip -v "$STRIP_STATIC" "$file" ;;
+    application/x-executable\;*) strip -v "$STRIP_BINARIES" "$file" ;;
+    application/x-pie-executable\;*) strip -v "$STRIP_SHARED" "$file" ;;
     esac
   done < <(find "$builddir" -type f -perm -u+x ! -name vmlinux -print0)
 
@@ -530,14 +548,14 @@ _package-headers(){
   ln -sr "$builddir" "$pkgdir/usr/src/$pkgbase"
 }
 
-_package-dbg(){
+_package-dbg() {
   pkgdesc="Non-stripped vmlinux for linux-catgirl-edition"
   depends=("${pkgbase}-headers")
   cd "${_srcname}" || return 1
   install -Dm644 vmlinux "$pkgdir/usr/src/debug/${pkgbase}/vmlinux"
 }
 
-_package-zfs(){
+_package-zfs() {
   pkgdesc="ZFS module for linux-catgirl-edition"
   depends=(pahole "${pkgbase}=${_kernver}")
   provides=(ZFS-MODULE)
@@ -552,7 +570,7 @@ _package-zfs(){
   find "$pkgdir" -name '*.ko' -exec zstd --rm -19 -T0 {} +
 }
 
-_package-nvidia(){
+_package-nvidia() {
   pkgdesc="NVIDIA ${_nv_ver} module for linux-catgirl-edition"
   depends=("$pkgbase=$_kernver" "nvidia-utils=${_nv_ver}" libglvnd)
   provides=(NVIDIA-MODULE)
@@ -569,7 +587,7 @@ _package-nvidia(){
   find "$pkgdir" -name '*.ko' -exec zstd --rm -19 -T0 {} +
 }
 
-_package-nvidia-open(){
+_package-nvidia-open() {
   pkgdesc="NVIDIA ${_nv_ver} open module for linux-catgirl-edition"
   depends=("$pkgbase=$_kernver" "nvidia-utils=${_nv_ver}" libglvnd)
   provides=(NVIDIA-MODULE)

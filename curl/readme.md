@@ -1,1 +1,1 @@
-- https://aur.archlinux.org/packages/curl-impersonate
+- <https://aur.archlinux.org/packages/curl-impersonate>

@@ -40,29 +40,35 @@ sha256sums=('SKIP'
   '3a5bc109974fcf408855c13965f6d6be0997655c5b359de0bfd19a678c00844e'
   '6eef345b65bf2679c928c763529540435ab9c6e1836917319810a7a2d484ae1b')
 case "$CARCH" in
-  x86_64) _vscode_arch=x64 ;;
-  aarch64) _vscode_arch=arm64 ;;
-  armv7h) _vscode_arch=arm ;;
-  *) _vscode_arch=DUMMY ;;
+x86_64) _vscode_arch=x64 ;;
+aarch64) _vscode_arch=arm64 ;;
+armv7h) _vscode_arch=arm ;;
+*) _vscode_arch=DUMMY ;;
 esac
-_ensure_node(){
+_ensure_node() {
   command -v fnm &>/dev/null && {
     eval "$(fnm env --use-on-cd)"
     fnm install "$_nodejs"
-    fnm use "$_nodejs"; return 0
+    fnm use "$_nodejs"
+    return 0
   }
   [[ -f /usr/share/nvm/init-nvm.sh ]] && {
     command -v nvm >/dev/null && nvm deactivate && nvm unload
     export NVM_DIR="${srcdir}/nvm"
     source /usr/share/nvm/init-nvm.sh || [[ $? != 1 ]]
     nvm install "$_nodejs"
-    nvm use "$_nodejs"; return 0
+    nvm use "$_nodejs"
+    return 0
   }
-  printf "Error: neither fnm nor nvm found\n" >&2; return 1
+  printf "Error: neither fnm nor nvm found\n" >&2
+  return 1
 }
 
-prepare(){
-  command -v "$_electron" &>/dev/null || { echo "Error: $_electron not found" >&2; exit 1; }
+prepare() {
+  command -v "$_electron" &>/dev/null || {
+    echo "Error: $_electron not found" >&2
+    exit 1
+  }
   sed "s/@ELECTRON@/${_electron}/" "$srcdir/vscodium.sh" >"$srcdir/vscodium-electron.sh"
   sed "s/@ELECTRON@/${_electron}/" "$srcdir/vscodium.js" >"$srcdir/vscodium-electron.js"
   cd "$srcdir/vscodium"
@@ -72,7 +78,7 @@ prepare(){
   cp "$srcdir/microphone.patch" patches/
 }
 
-build(){
+build() {
   _ensure_node
   export HOME="$srcdir" DISABLE_UPDATE="yes" DISABLE_V8_COMPILE_CACHE=0 SHOULD_BUILD="yes" SHOULD_BUILD_REH="no" CI_BUILD="no" OS_NAME="linux" VSCODE_PLATFORM="linux" VSCODE_ARCH="x64" VSCODE_QUALITY="stable" RELEASE_VERSION="$pkgver" CARGO_TARGET_DIR="${srcdir}/${_pkgname}/vscode/cli/target"
   if command -v bun &>/dev/null; then
@@ -86,7 +92,7 @@ build(){
   . dev/build.sh
 }
 
-package(){
+package() {
   local _dist="${srcdir}/${_pkgname}/VSCode-linux-${_vscode_arch}"
   install -d -m755 "${pkgdir}/usr/bin" "${pkgdir}/usr/lib/${_pkgname}" "${pkgdir}/usr/share/applications" "${pkgdir}/usr/share/pixmaps" "${pkgdir}/usr/share/licenses/${_pkgname}" "${pkgdir}/usr/share/zsh/site-functions" "${pkgdir}/usr/share/bash-completion/completions"
   install -m644 "${srcdir}/product.json" "${_dist}/resources/app/product.json"

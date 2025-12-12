@@ -6,7 +6,7 @@ Arch Linux PKGBUILD and patches for DXVK, a Vulkan-based translation layer for D
 
 ## Source
 
-- Upstream: https://github.com/doitsujin/dxvk
+- Upstream: <https://github.com/doitsujin/dxvk>
 - PKGBUILD Maintainer: <your-name>
 
 ## Build Instructions

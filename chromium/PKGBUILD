@@ -18,43 +18,43 @@ arch=('x86_64')
 url="https://github.com/uazo/cromite"
 license=('GPL3')
 depends=('gtk3' 'nss' 'alsa-lib' 'xdg-utils' 'libxss' 'libcups' 'libgcrypt'
-         'ttf-liberation' 'systemd' 'dbus' 'libpulse' 'pciutils' 'libva'
-         'libffi' 'desktop-file-utils' 'hicolor-icon-theme')
+  'ttf-liberation' 'systemd' 'dbus' 'libpulse' 'pciutils' 'libva'
+  'libffi' 'desktop-file-utils' 'hicolor-icon-theme')
 makedepends=('python' 'gn' 'ninja' 'clang' 'lld' 'gperf' 'nodejs' 'pipewire'
-             'rust' 'rust-bindgen' 'qt6-base' 'java-runtime-headless'
-             'git' 'compiler-rt')
+  'rust' 'rust-bindgen' 'qt6-base' 'java-runtime-headless'
+  'git' 'compiler-rt')
 optdepends=('pipewire: WebRTC desktop sharing under Wayland'
-            'kdialog: support for native dialogs in Plasma'
-            'gtk4: for --gtk-version=4 (GTK4 IME might work better on Wayland)'
-            'org.freedesktop.secrets: password storage backend on GNOME / Xfce'
-            'kwallet: support for storing passwords in KWallet on Plasma'
-            'upower: Battery Status API support')
+  'kdialog: support for native dialogs in Plasma'
+  'gtk4: for --gtk-version=4 (GTK4 IME might work better on Wayland)'
+  'org.freedesktop.secrets: password storage backend on GNOME / Xfce'
+  'kwallet: support for storing passwords in KWallet on Plasma'
+  'upower: Battery Status API support')
 install="${pkgname}.install"
 options=('!lto') # Chromium adds its own flags for ThinLTO
 source=(https://commondatastorage.googleapis.com/chromium-browser-official/chromium-$_pkgver-lite.tar.xz
-        https://github.com/foutrelis/chromium-launcher/archive/v$_launcher_ver/chromium-launcher-$_launcher_ver.tar.gz
-        https://github.com/uazo/cromite/archive/refs/tags/v$pkgver-$_commit.tar.gz
-        https://dl.google.com/linux/deb/pool/main/g/google-chrome-stable/google-chrome-stable_$_chrome_ver-1_amd64.deb
-        widevine-revision.patch
-        chromium-138-nodejs-version-check.patch
-        chromium-138-rust-1.86-mismatched_lifetime_syntaxes.patch
-        compiler-rt-adjust-paths.patch
-        increase-fortify-level.patch
-        use-oauth2-client-switches-as-default.patch
-        chromium-141-cssstylesheet-iwyu.patch)
+  https://github.com/foutrelis/chromium-launcher/archive/v$_launcher_ver/chromium-launcher-$_launcher_ver.tar.gz
+  https://github.com/uazo/cromite/archive/refs/tags/v$pkgver-$_commit.tar.gz
+  https://dl.google.com/linux/deb/pool/main/g/google-chrome-stable/google-chrome-stable_$_chrome_ver-1_amd64.deb
+  widevine-revision.patch
+  chromium-138-nodejs-version-check.patch
+  chromium-138-rust-1.86-mismatched_lifetime_syntaxes.patch
+  compiler-rt-adjust-paths.patch
+  increase-fortify-level.patch
+  use-oauth2-client-switches-as-default.patch
+  chromium-141-cssstylesheet-iwyu.patch)
 sha256sums=('e1a15924aeeee3cbd76cf15fd2dce755acea2a7cb034ea2993fd02dd63738764'
-            '213e50f48b67feb4441078d50b0fd431df34323be15be97c55302d3fdac4483a'
-            '4aaea452fb7c2ee15fcfc7343661f61faf24e2599e145cc6ea65c0c9d521fdb9'
-            'bc93077f020f7fe68cdee8f7525606a3f6314deacd2eb568b8a34d140a46978f'
-            'e9f6c962dcc5bbef3120004de8f4b29b09f0f74d16a272c0a704ef485c52441a'
-            '11a96ffa21448ec4c63dd5c8d6795a1998d8e5cd5a689d91aea4d2bdd13fb06e'
-            '5abc8611463b3097fc5ce58017ef918af8b70d616ad093b8b486d017d021bbdf'
-            '81ba390a500a38c50b5adad9d185d08685cdf9a9d9448e1e33cfff4f2388618d'
-            'd634d2ce1fc63da7ac41f432b1e84c59b7cceabf19d510848a7cff40c8025342'
-            'e6da901e4d0860058dc2f90c6bbcdc38a0cf4b0a69122000f62204f24fa7e374'
-            'de5c873564b09713b65dd9e6a0b9049d7b3cf8f881436f36e1c091824b63e876')
+  '213e50f48b67feb4441078d50b0fd431df34323be15be97c55302d3fdac4483a'
+  '4aaea452fb7c2ee15fcfc7343661f61faf24e2599e145cc6ea65c0c9d521fdb9'
+  'bc93077f020f7fe68cdee8f7525606a3f6314deacd2eb568b8a34d140a46978f'
+  'e9f6c962dcc5bbef3120004de8f4b29b09f0f74d16a272c0a704ef485c52441a'
+  '11a96ffa21448ec4c63dd5c8d6795a1998d8e5cd5a689d91aea4d2bdd13fb06e'
+  '5abc8611463b3097fc5ce58017ef918af8b70d616ad093b8b486d017d021bbdf'
+  '81ba390a500a38c50b5adad9d185d08685cdf9a9d9448e1e33cfff4f2388618d'
+  'd634d2ce1fc63da7ac41f432b1e84c59b7cceabf19d510848a7cff40c8025342'
+  'e6da901e4d0860058dc2f90c6bbcdc38a0cf4b0a69122000f62204f24fa7e374'
+  'de5c873564b09713b65dd9e6a0b9049d7b3cf8f881436f36e1c091824b63e876')
 
-if (( _manual_clone )); then
+if ((_manual_clone)); then
   source[0]=fetch-chromium-release
   sha256sums[0]=380ef492e5a347219d5ea2755a24625993eed65fc2951d5e6c31dd229edd0227
   makedepends+=('python-httplib2' 'python-pyparsing' 'python-six' 'npm' 'rsync')
@@ -69,7 +69,7 @@ declare -gA _system_libs=(
   [flac]=flac
   [fontconfig]=fontconfig
   [freetype]=freetype2
-  [harfbuzz-ng]=harfbuzz
+  [harfbuzz - ng]=harfbuzz
   #[icu]=icu
   #[jsoncpp]=jsoncpp  # needs libstdc++
   #[libaom]=aom
@@ -100,9 +100,9 @@ _google_api_key=AIzaSyCkfPOPZXDKNn8hhgu3JrA62wIgC93d44k
 _google_default_client_id=77185425430.apps.googleusercontent.com
 _google_default_client_secret=OTJgUOQcT7lO7GsGZq2G4IlT
 
-prepare(){
+prepare() {
   bsdtar -x --strip-components 4 -f data.tar.xz opt/google/chrome/WidevineCdm
-  (( _manual_clone )) && ./fetch-chromium-release $_pkgver
+  ((_manual_clone)) && ./fetch-chromium-release $_pkgver
   cd chromium-$_pkgver
 
   # Allow building against system libraries in official builds
@@ -111,7 +111,7 @@ prepare(){
 
   # https://crbug.com/893950
   sed -i -e 's/\<xmlMalloc\>/malloc/' -e 's/\<xmlFree\>/free/' \
-         -e '1i #include <cstdlib>' \
+    -e '1i #include <cstdlib>' \
     third_party/blink/renderer/core/xml/*.cc \
     third_party/blink/renderer/core/xml/parser/xml_document_parser.cc \
     third_party/libxml/chromium/*.cc
@@ -137,12 +137,12 @@ prepare(){
   popd
 
   while IFS= read -r patch; do
-    [[ -z "$patch" ]] && continue
+    [[ -z $patch ]] && continue
     if [[ -f "$srcdir/cromite-$pkgver-$_commit/build/patches/$patch" ]]; then
       echo "Applying: $patch"
       git apply "$srcdir/cromite-$pkgver-$_commit/build/patches/$patch"
     fi
-  done < "$srcdir/cromite-$pkgver-$_commit/build/cromite_patches_list.txt"
+  done <"$srcdir/cromite-$pkgver-$_commit/build/cromite_patches_list.txt"
 
   # Widevine fixes from Debian
   patch -Np1 -i $srcdir/widevine-revision.patch
@@ -167,7 +167,7 @@ prepare(){
   ln -sf /usr/bin/node third_party/node/linux/node-linux-x64/bin/
   ln -sf /usr/bin/java third_party/jdk/current/bin/
 
-  if (( !_system_clang )); then
+  if ((!_system_clang)); then
     # Use prebuilt rust as system rust cannot be used due to the error:
     #   error: the option `Z` is only accepted on the nightly compiler
     ./tools/rust/update_rust.py
@@ -193,10 +193,10 @@ prepare(){
     --system-libraries "${!_system_libs[@]}"
 }
 
-build(){
+build() {
   make CHROMIUM_NAME=cromite -C chromium-launcher-$_launcher_ver
   cd chromium-$_pkgver
-  if (( _system_clang )); then
+  if ((_system_clang)); then
     export CC=clang CXX=clang++ AR=ar NM=nm
   else
     local _clang_path="$PWD/third_party/llvm-build/Release+Asserts/bin"
@@ -207,7 +207,7 @@ build(){
     'custom_toolchain="//build/toolchain/linux/unbundle:default"'
     'host_toolchain="//build/toolchain/linux/unbundle:default"'
     'is_official_build=true' # implies is_cfi=true on x86_64
-    'symbol_level=0' # sufficient for backtraces on x86(_64)
+    'symbol_level=0'         # sufficient for backtraces on x86(_64)
     'treat_warnings_as_errors=false'
     'fatal_linker_warnings=false'
     'disable_fieldtrial_testing_config=true'
@@ -243,9 +243,10 @@ build(){
     _flags+=('icu_use_data_file=false')
   fi
 
-  if (( _system_clang )); then
-     local _clang_version=$(
-       clang --version | grep -m1 version | sed 's/.* \([0-9]\+\).*/\1/')
+  if ((_system_clang)); then
+    local _clang_version=$(
+      clang --version | grep -m1 version | sed 's/.* \([0-9]\+\).*/\1/'
+    )
 
     _flags+=(
       'clang_base_path="/usr"'
@@ -279,28 +280,28 @@ build(){
   CXXFLAGS+=' -Wno-unknown-warning-option'
 
   # Let Chromium set its own symbol level
-  CFLAGS=${CFLAGS/-g }
-  CXXFLAGS=${CXXFLAGS/-g }
+  CFLAGS=${CFLAGS/-g /}
+  CXXFLAGS=${CXXFLAGS/-g /}
 
   # https://github.com/ungoogled-software/ungoogled-chromium-archlinux/issues/123
-  CFLAGS=${CFLAGS/-fexceptions}
-  CFLAGS=${CFLAGS/-fcf-protection}
-  CXXFLAGS=${CXXFLAGS/-fexceptions}
-  CXXFLAGS=${CXXFLAGS/-fcf-protection}
+  CFLAGS=${CFLAGS/-fexceptions/}
+  CFLAGS=${CFLAGS/-fcf-protection/}
+  CXXFLAGS=${CXXFLAGS/-fexceptions/}
+  CXXFLAGS=${CXXFLAGS/-fcf-protection/}
 
   # This appears to cause random segfaults when combined with ThinLTO
   # https://bugs.archlinux.org/task/73518
-  CFLAGS=${CFLAGS/-fstack-clash-protection}
-  CXXFLAGS=${CXXFLAGS/-fstack-clash-protection}
+  CFLAGS=${CFLAGS/-fstack-clash-protection/}
+  CXXFLAGS=${CXXFLAGS/-fstack-clash-protection/}
 
   # https://crbug.com/957519#c122
-  CXXFLAGS=${CXXFLAGS/-Wp,-D_GLIBCXX_ASSERTIONS}
+  CXXFLAGS=${CXXFLAGS/-Wp,-D_GLIBCXX_ASSERTIONS/}
 
   gn gen out/Release --args="${_flags[*]}"
   ninja -C out/Release chrome chrome_sandbox chromedriver.unstripped
 }
 
-package(){
+package() {
   cd chromium-launcher-$_launcher_ver
   make PREFIX=/usr DESTDIR="$pkgdir" CHROMIUM_NAME=cromite install
   install -Dm644 LICENSE \
@@ -327,11 +328,12 @@ package(){
   (
     tmpl_file=chrome/installer/linux/common/appdata.xml.template
     info_file=chrome/installer/linux/common/chromium-browser.info
-    . $info_file; PACKAGE=cromite
+    . $info_file
+    PACKAGE=cromite
     export $(grep -o '^[A-Z_]*' $info_file)
     sed -E -e 's/@@([A-Z_]*)@@/\${\1}/g' -e '/<update_contact>/d' $tmpl_file | envsubst
   ) \
-  | install -Dm644 /dev/stdin "$pkgdir/usr/share/metainfo/cromite.appdata.xml"
+    | install -Dm644 /dev/stdin "$pkgdir/usr/share/metainfo/cromite.appdata.xml"
 
   local toplevel_files=(
     chrome_100_percent.pak

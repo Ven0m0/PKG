@@ -4,8 +4,10 @@ set -euo pipefail
 shopt -s nullglob globstar
 export LC_ALL=C HOME="/home/${SUDO_USER:-$USER}"
 IFS=$'\n\t'
-s=${BASH_SOURCE[0]}; [[ $s != /* ]] && s=$PWD/$s; cd -P -- "${s%/*}"
-has(){ command -v -- "$1" &>/dev/null; }
+s=${BASH_SOURCE[0]}
+[[ $s != /* ]] && s=$PWD/$s
+cd -P -- "${s%/*}"
+has() { command -v -- "$1" &>/dev/null; }
 
 sudo -v
 

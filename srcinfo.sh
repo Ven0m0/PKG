@@ -4,7 +4,9 @@ set -euo pipefail
 shopt -s nullglob
 export LC_ALL=C
 IFS=$'\n\t'
-s=${BASH_SOURCE[0]}; [[ $s != /* ]] && s=$PWD/$s; cd -P -- "${s%/*}"
+s=${BASH_SOURCE[0]}
+[[ $s != /* ]] && s=$PWD/$s
+cd -P -- "${s%/*}"
 
 # ═══════════════════════════════════════════════════════════════════════════
 # SRCINFO Generator - Update .SRCINFO files for all PKGBUILDs
@@ -12,12 +14,12 @@ s=${BASH_SOURCE[0]}; [[ $s != /* ]] && s=$PWD/$s; cd -P -- "${s%/*}"
 
 # ─── Helpers ───────────────────────────────────────────────────────────────
 readonly R=$'\e[31m' G=$'\e[32m' Y=$'\e[33m' D=$'\e[0m'
-err(){ printf '%b\n' "${R}✘ $*${D}" >&2; }
-log(){ printf '%b\n' "${G}➜ $*${D}"; }
-has(){ command -v -- "$1" &>/dev/null; }
+err() { printf '%b\n' "${R}✘ $*${D}" >&2; }
+log() { printf '%b\n' "${G}➜ $*${D}"; }
+has() { command -v -- "$1" &>/dev/null; }
 
 # ─── Main ──────────────────────────────────────────────────────────────────
-main(){
+main() {
   local root="$PWD"
   local -a pkgs
 
@@ -27,15 +29,30 @@ main(){
     mapfile -t pkgs < <(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | sort -u)
   fi
 
-  [[ ${#pkgs[@]} -eq 0 ]] && { err "No PKGBUILDs found"; exit 1; }
+  [[ ${#pkgs[@]} -eq 0 ]] && {
+    err "No PKGBUILDs found"
+    exit 1
+  }
 
   for pkg in "${pkgs[@]}"; do
     [[ ! -d $pkg ]] && continue
     log "Processing $pkg"
-    builtin cd "$pkg" || { err "$pkg: cd failed"; builtin cd "$root"; continue; }
+    builtin cd "$pkg" || {
+      err "$pkg: cd failed"
+      builtin cd "$root"
+      continue
+    }
 
-    updpkgsums 2>/dev/null || { err "$pkg: updpkgsums failed"; builtin cd "$root"; continue; }
-    makepkg --printsrcinfo > .SRCINFO 2>/dev/null || { err "$pkg: makepkg failed"; builtin cd "$root"; continue; }
+    updpkgsums 2>/dev/null || {
+      err "$pkg: updpkgsums failed"
+      builtin cd "$root"
+      continue
+    }
+    makepkg --printsrcinfo >.SRCINFO 2>/dev/null || {
+      err "$pkg: makepkg failed"
+      builtin cd "$root"
+      continue
+    }
 
     builtin cd "$root"
   done

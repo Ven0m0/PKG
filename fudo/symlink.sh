@@ -4,7 +4,9 @@ set -euo pipefail
 shopt -s nullglob globstar
 export LC_ALL=C
 IFS=$'\n\t'
-s=${BASH_SOURCE[0]}; [[ $s != /* ]] && s=$PWD/$s; cd -P -- "${s%/*}"
+s=${BASH_SOURCE[0]}
+[[ $s != /* ]] && s=$PWD/$s
+cd -P -- "${s%/*}"
 
 [[ -d /usr/local/bin ]] || sudo mkdir -p /usr/local/bin
 printf "Sudo earlier in path (at '/usr/local/bin/') as sudo to keep normal sudo installed\n"

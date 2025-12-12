@@ -4,7 +4,9 @@ set -euo pipefail
 shopt -s nullglob extglob globstar
 export LC_ALL=C
 IFS=$'\n\t'
-s=${BASH_SOURCE[0]}; [[ $s != /* ]] && s=$PWD/$s; cd -P -- "${s%/*}"
+s=${BASH_SOURCE[0]}
+[[ $s != /* ]] && s=$PWD/$s
+cd -P -- "${s%/*}"
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Build Script - Arch Linux Package Builder
@@ -16,12 +18,13 @@ declare -A DOCKER_PKGS=([obs-studio]=1 [firefox]=1 [egl-wayland2]=1 [onlyoffice]
 
 # ─── Helpers ───────────────────────────────────────────────────────────────
 readonly R=$'\e[31m' G=$'\e[32m' Y=$'\e[33m' D=$'\e[0m'
-err(){ printf '%b\n' "${R}✘ $*${D}" >&2; }
-log(){ printf '%b\n' "${G}➜ $*${D}"; }
-warn(){ printf '%b\n' "${Y}⚠ $*${D}" >&2; }
-has(){ command -v -- "$1" &>/dev/null; }
+err() { printf '%b\n' "${R}✘ $*${D}" >&2; }
+log() { printf '%b\n' "${G}➜ $*${D}"; }
+warn() { printf '%b\n' "${Y}⚠ $*${D}" >&2; }
+has() { command -v -- "$1" &>/dev/null; }
 
-usage(){ cat <<'EOF'
+usage() {
+  cat <<'EOF'
 Usage: build.sh [OPTIONS] [PACKAGE...]
 Build Arch Linux packages via makepkg or Docker.
 OPTIONS: -h, --help  Show help
@@ -29,7 +32,7 @@ EOF
 }
 
 # ─── Discovery ─────────────────────────────────────────────────────────────
-find_pkgs(){
+find_pkgs() {
   if has fd; then
     fd -t f -g 'PKGBUILD' -x printf '%{//}\n' | sort -u
   else
@@ -38,9 +41,12 @@ find_pkgs(){
 }
 
 # ─── Builders ──────────────────────────────────────────────────────────────
-build_docker(){
+build_docker() {
   local pkg="$1"
-  has docker || { err "Docker required for $pkg"; return 1; }
+  has docker || {
+    err "Docker required for $pkg"
+    return 1
+  }
   log "Building $pkg (Docker)"
   docker run --rm -v "${PWD}:/ws:rw" -w "/ws/$pkg" "$IMAGE" bash -c '
     set -euo pipefail; shopt -s extglob
@@ -56,35 +62,52 @@ build_docker(){
   '
 }
 
-build_standard(){
+build_standard() {
   local pkg="$1"
   log "Building $pkg (Standard)"
   builtin cd "$pkg" || return 1
-  makepkg -srC --noconfirm || { err "Failed to build $pkg"; builtin cd ..; return 1; }
+  makepkg -srC --noconfirm || {
+    err "Failed to build $pkg"
+    builtin cd ..
+    return 1
+  }
   builtin cd ..
 }
 
 # ─── Main ──────────────────────────────────────────────────────────────────
-main(){
+main() {
   local -a targets=()
-  [[ ${1:-} =~ ^(-h|--help)$ ]] && { usage; exit 0; }
+  [[ ${1:-} =~ ^(-h|--help)$ ]] && {
+    usage
+    exit 0
+  }
   if [[ $# -gt 0 ]]; then
     targets=("$@")
   else
     log "Detecting packages..."
     mapfile -t targets < <(find_pkgs)
   fi
-  [[ ${#targets[@]} -eq 0 ]] && { err "No packages found"; exit 1; }
+  [[ ${#targets[@]} -eq 0 ]] && {
+    err "No packages found"
+    exit 1
+  }
   local failed=0
   for pkg in "${targets[@]}"; do
-    [[ ! -f $pkg/PKGBUILD ]] && { err "Missing PKGBUILD: $pkg"; ((failed++)); continue; }
+    [[ ! -f $pkg/PKGBUILD ]] && {
+      err "Missing PKGBUILD: $pkg"
+      ((failed++))
+      continue
+    }
     if [[ -n ${DOCKER_PKGS[$pkg]:-} ]]; then
       build_docker "$pkg"
     else
       build_standard "$pkg"
     fi || ((failed++))
   done
-  [[ $failed -gt 0 ]] && { err "$failed package(s) failed"; exit 1; }
+  [[ $failed -gt 0 ]] && {
+    err "$failed package(s) failed"
+    exit 1
+  }
   log "Success"
 }
 

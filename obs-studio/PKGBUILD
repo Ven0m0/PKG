@@ -21,12 +21,12 @@ source=(
 sha256sums=('SKIP'
   '48d744037c553eea8f9b76bf46f6dcac753e52871f49b2c1a2580757f723a1b7')
 
-prepare(){
+prepare() {
   cd "${pkgname}-${pkgver}-sources"
   patch -Np1 -i "${srcdir}/12328.patch" || :
 }
 
-build(){
+build() {
   export CFLAGS="${CFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt -flto=auto"
   export CXXFLAGS="${CXXFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt -flto=auto -Wno-error=deprecated-declarations"
   export LDFLAGS="${LDFLAGS} -Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
@@ -34,6 +34,6 @@ build(){
   cmake --build build --target all -j"$(nproc)"
 }
 
-package(){
+package() {
   DESTDIR="$pkgdir" cmake --install build
 }

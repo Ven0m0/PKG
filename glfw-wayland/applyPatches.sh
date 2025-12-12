@@ -4,12 +4,14 @@ set -euo pipefail
 shopt -s nullglob globstar
 export LC_ALL=C
 IFS=$'\n\t'
-s=${BASH_SOURCE[0]}; [[ $s != /* ]] && s=$PWD/$s; cd -P -- "${s%/*}"
+s=${BASH_SOURCE[0]}
+[[ $s != /* ]] && s=$PWD/$s
+cd -P -- "${s%/*}"
 
 readonly basedir="$PWD"
 printf 'Rebuilding Forked projects...\n'
 
-applyPatch(){
+applyPatch() {
   local what=$1 target=$2 branch=$3
   builtin cd "$basedir/$what"
   git fetch

@@ -1,1 +1,1 @@
-- https://github.com/pkgforge-dev/ghostty-appimage
+- <https://github.com/pkgforge-dev/ghostty-appimage>

@@ -9,12 +9,12 @@ url='https://wiki.archlinux.org/title/Firefox/Profile_on_RAM'
 license=('GPL')
 depends=('rsync' 'firefox')
 source=("${pkgname}.sh"
-        "${pkgname}.service"
-        "${pkgname}-cron.service"
-        "${pkgname}-cron.timer")
+  "${pkgname}.service"
+  "${pkgname}-cron.service"
+  "${pkgname}-cron.timer")
 sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP')
 
-prepare(){
+prepare() {
   local profile_dir="$HOME/.mozilla/firefox" current_link existing_profile
   [[ -f /usr/bin/${pkgname} ]] && {
     current_link=$(grep -m1 '^LINK=' "/usr/bin/${pkgname}" | cut -d= -f2)
@@ -28,7 +28,7 @@ prepare(){
   [[ -n $existing_profile ]] && sed -i "s|^LINK=.*|LINK=$existing_profile|" "${pkgname}.sh"
 }
 
-package(){
+package() {
   install -Dm755 "${pkgname}.sh" "${pkgdir}/usr/bin/${pkgname}"
   install -Dm644 "${pkgname}.service" "${pkgdir}/usr/lib/systemd/user/${pkgname}.service"
   install -Dm644 "${pkgname}-cron.service" "${pkgdir}/usr/lib/systemd/user/${pkgname}-cron.service"

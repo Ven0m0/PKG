@@ -51,14 +51,14 @@ source=(
 )
 sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
 # Tunables - set these in your environment to control build behavior
-: "${NATIVE_ARCH:=native}"       # CPU architecture to optimize for
-: "${ENABLE_PGO:=true}"           # Profile-Guided Optimization (recommended)
-: "${ENABLE_PGO_REUSE:=true}"     # Reuse previous PGO profiles
-: "${ENABLE_PGO_3STAGE:=false}"   # 3-stage context-sensitive PGO (higher performance, 50% longer build)
-: "${ENABLE_BOLT:=false}"         # LLVM BOLT optimization (requires llvm-bolt)
-: "${ENABLE_POLLY:=true}"         # Polly loop optimization
-: "${ENABLE_VAAPI:=true}"         # Hardware video acceleration
-: "${BUILD_LIMIT_CORES:=true}"    # Auto-limit cores based on available RAM
+: "${NATIVE_ARCH:=native}"      # CPU architecture to optimize for
+: "${ENABLE_PGO:=true}"         # Profile-Guided Optimization (recommended)
+: "${ENABLE_PGO_REUSE:=true}"   # Reuse previous PGO profiles
+: "${ENABLE_PGO_3STAGE:=false}" # 3-stage context-sensitive PGO (higher performance, 50% longer build)
+: "${ENABLE_BOLT:=false}"       # LLVM BOLT optimization (requires llvm-bolt)
+: "${ENABLE_POLLY:=true}"       # Polly loop optimization
+: "${ENABLE_VAAPI:=true}"       # Hardware video acceleration
+: "${BUILD_LIMIT_CORES:=true}"  # Auto-limit cores based on available RAM
 : ${_build_lto:=true}
 : ${_build_system_libs:=true}
 # Aggressive optimization flags
@@ -99,7 +99,7 @@ _google_api_key=AIzaSyDwr302FpOSkGRpLlUpPThNTDPbXcIn_FM
 # more information.
 _mozilla_api_key=16674381-f021-49de-8622-3021c5942aff
 
-prepare(){
+prepare() {
   mkdir -p mozbuild
   cd "$_pkgname-$pkgver"
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
@@ -119,13 +119,13 @@ prepare(){
   sed -E -e 's&^\s*pref\("startup\.homepage.*$&&' -i browser/branding/*/pref/firefox-branding.js
 }
 
-_write_mozconfig(){
+_write_mozconfig() {
   cd "$srcdir/$_pkgname-$pkgver"
   # Calculate optimal core count based on available RAM
   local _cores _mem _nproc
   _mem=$(grep -Pom1 '^MemAvailable.*\b\K[0-9]+' /proc/meminfo)
   _nproc=$(nproc)
-  if [[ "${BUILD_LIMIT_CORES}" == "true" ]]; then
+  if [[ ${BUILD_LIMIT_CORES} == "true" ]]; then
     # Firefox needs ~3GB per core for linking, use available memory
     _cores=$((_mem / (3 * 1024 * 1024)))
     _cores=$((_cores < 1 ? 1 : _cores))
@@ -136,7 +136,7 @@ _write_mozconfig(){
     echo "Using all $_cores cores"
   fi
 
-  cat > ../mozconfig <<END
+  cat >../mozconfig <<END
 ac_add_options --enable-application=browser
 mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
 # Paths
@@ -241,11 +241,11 @@ END
   git config remote.origin.mirror false
   # Optional: use sccache if available
   if command -v sccache &>/dev/null; then
-    echo 'ac_add_options --with-ccache=sccache' >> ../mozconfig
+    echo 'ac_add_options --with-ccache=sccache' >>../mozconfig
   fi
 }
 
-build(){
+build() {
   cd "$_pkgname-$pkgver"
   # Check for required commands
   local _missing_cmds=()
@@ -279,7 +279,7 @@ build(){
   LDFLAGS="${_ldflags[*]} ${LDFLAGS:-}"
   RUSTFLAGS="${_rustflags[*]} ${RUSTFLAGS:-}"
   # Polly optimization
-  if [[ "${ENABLE_POLLY}" == "true" ]]; then
+  if [[ ${ENABLE_POLLY} == "true" ]]; then
     echo "Enabling Polly loop optimization..."
     CFLAGS+=" -mllvm -polly -mllvm -polly-vectorizer=stripmine"
     CXXFLAGS+=" -mllvm -polly -mllvm -polly-vectorizer=stripmine"
@@ -293,32 +293,32 @@ build(){
   local _pgo_profdata_cs="$_pgo_cache/firefox-$pkgver-merged-cs.profdata"
   local _pgo_jarlog="$_pgo_cache/firefox-$pkgver-jarlog"
 
-  if [[ "${ENABLE_PGO}" == "true" ]]; then
+  if [[ ${ENABLE_PGO} == "true" ]]; then
     # Determine which profile to use
     local _final_profile="merged.profdata"
-    if [[ "${ENABLE_PGO_3STAGE}" == "true" ]]; then
+    if [[ ${ENABLE_PGO_3STAGE} == "true" ]]; then
       _final_profile="merged-cs.profdata"
       echo "3-stage context-sensitive PGO enabled"
     fi
 
     # Try to reuse existing profile
-    if [[ "${ENABLE_PGO_REUSE}" == "true" ]]; then
-      if [[ "${ENABLE_PGO_3STAGE}" == "true" ]] && [[ -s "$_pgo_profdata_cs" ]]; then
+    if [[ ${ENABLE_PGO_REUSE} == "true" ]]; then
+      if [[ ${ENABLE_PGO_3STAGE} == "true" ]] && [[ -s $_pgo_profdata_cs ]]; then
         echo "Reusing existing 3-stage PGO profile data..."
         cp "$_pgo_profdata_cs" merged-cs.profdata
         cp "$_pgo_profdata" merged.profdata 2>/dev/null || true
-        [[ -s "$_pgo_jarlog" ]] && cp "$_pgo_jarlog" jarlog
-      elif [[ "${ENABLE_PGO_3STAGE}" == "false" ]] && [[ -s "$_pgo_profdata" ]]; then
+        [[ -s $_pgo_jarlog ]] && cp "$_pgo_jarlog" jarlog
+      elif [[ ${ENABLE_PGO_3STAGE} == "false" ]] && [[ -s $_pgo_profdata ]]; then
         echo "Reusing existing 2-stage PGO profile data..."
         cp "$_pgo_profdata" merged.profdata
-        [[ -s "$_pgo_jarlog" ]] && cp "$_pgo_jarlog" jarlog
+        [[ -s $_pgo_jarlog ]] && cp "$_pgo_jarlog" jarlog
       fi
     fi
 
     # Stage 1: Generate initial profile if needed
     if [[ ! -s merged.profdata ]]; then
       echo "==> PGO Stage 1: Building instrumented browser..."
-      cat > .mozconfig ../mozconfig - <<END
+      cat >.mozconfig ../mozconfig - <<END
 ac_add_options --enable-profile-generate=cross
 export MOZ_ENABLE_FULL_SYMBOLS=1
 END
@@ -345,16 +345,16 @@ END
     fi
 
     # Stage 2: Context-sensitive profiling (only if 3-stage is enabled)
-    if [[ "${ENABLE_PGO}" == "true" ]] && [[ "${ENABLE_PGO_3STAGE}" == "true" ]] && [[ ! -s merged-cs.profdata ]]; then
+    if [[ ${ENABLE_PGO} == "true" ]] && [[ ${ENABLE_PGO_3STAGE} == "true" ]] && [[ ! -s merged-cs.profdata ]]; then
       echo "==> PGO Stage 2: Building with Stage 1 profile for context-sensitive profiling..."
-      cat > .mozconfig ../mozconfig - <<END
+      cat >.mozconfig ../mozconfig - <<END
 ac_add_options --enable-profile-generate=cross
 ac_add_options --enable-profile-use=cross
 ac_add_options --with-pgo-profile-path=${PWD@Q}/merged.profdata
 export MOZ_ENABLE_FULL_SYMBOLS=1
 END
       if [[ -s jarlog ]]; then
-        echo "ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog" >> .mozconfig
+        echo "ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog" >>.mozconfig
       fi
 
       ./mach build --priority normal
@@ -388,40 +388,40 @@ END
     fi
 
     # Final build with PGO profile
-    if [[ "${ENABLE_PGO}" == "true" ]] && [[ -s "$_final_profile" ]]; then
-      if [[ "${ENABLE_PGO_3STAGE}" == "true" ]]; then
+    if [[ ${ENABLE_PGO} == "true" ]] && [[ -s $_final_profile ]]; then
+      if [[ ${ENABLE_PGO_3STAGE} == "true" ]]; then
         echo "==> PGO Stage 3: Building final optimized browser with context-sensitive profile..."
       else
         echo "==> Building final optimized browser with PGO..."
       fi
-      cat > .mozconfig ../mozconfig - <<END
+      cat >.mozconfig ../mozconfig - <<END
 ac_add_options --enable-lto=cross,full
 ac_add_options --enable-profile-use=cross
 ac_add_options --with-pgo-profile-path=${PWD@Q}/$_final_profile
 END
       if [[ -s jarlog ]]; then
-        echo "ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog" >> .mozconfig
+        echo "ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog" >>.mozconfig
       fi
     else
       # Build without PGO
       echo "Building without PGO..."
-      cat > .mozconfig ../mozconfig
+      cat >.mozconfig ../mozconfig
     fi
   else
     # PGO disabled by user
     echo "Building without PGO (disabled)..."
-    cat > .mozconfig ../mozconfig
+    cat >.mozconfig ../mozconfig
   fi
   # Main build
   ./mach build --priority normal
   # BOLT optimization (optional, requires llvm-bolt)
-  if [[ "${ENABLE_BOLT}" == "true" ]] && command -v llvm-bolt &>/dev/null; then
+  if [[ ${ENABLE_BOLT} == "true" ]] && command -v llvm-bolt &>/dev/null; then
     echo "Applying BOLT optimizations..."
     local objdir=./obj/dist
     for bin in "$objdir"/firefox "$objdir"/libxul.so; do
-      [[ -f "$bin" ]] || continue
+      [[ -f $bin ]] || continue
       local prof="${PWD}/merged.profdata"
-      if [[ -f "$prof" ]]; then
+      if [[ -f $prof ]]; then
         llvm-bolt "$bin" -o "${bin}.bolt" --data="$prof" \
           -reorder-blocks=ext-tsp \
           -reorder-functions=hfsort \
@@ -435,7 +435,7 @@ END
   fi
 }
 
-package(){
+package() {
   cd "$_pkgname-$pkgver"
   DESTDIR="$pkgdir" ./mach install
   # Vendor preferences (privacy, performance, hardware acceleration)

@@ -16,7 +16,7 @@ options=('strip')
 source=('git+https://github.com/FragmentedCurve/fudo.git')
 md5sums=('SKIP')
 
-pkgver(){
+pkgver() {
   cd "${_pkgname}"
   (
     set -o pipefail
@@ -24,14 +24,14 @@ pkgver(){
   )
 }
 
-build(){
+build() {
   cd "${_pkgname}"
   export CFLAGS="${CFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt -flto=auto"
   export LDFLAGS="${LDFLAGS} -Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
   make -j"$(nproc)"
 }
 
-package(){
+package() {
   cd "${_pkgname}"
   install -Dm755 fudo "${pkgdir}/usr/bin/fudo"
   install -Dm644 fudo.1 "${pkgdir}/usr/share/man/man1/fudo.1"

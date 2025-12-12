@@ -41,7 +41,7 @@ optdepends=(
   'vulkan-intel: for Intel ANV Vulkan support'
 )
 provides=("ffmpeg=$pkgver" 'libavcodec.so' 'libavdevice.so' 'libavfilter.so'
-          'libavformat.so' 'libavutil.so' 'libswresample.so' 'libswscale.so')
+  'libavformat.so' 'libavutil.so' 'libswresample.so' 'libswscale.so')
 conflicts=('ffmpeg')
 options=('strip')
 source=(
@@ -49,7 +49,7 @@ source=(
 )
 sha256sums=('40973d44970dbc83ef302b0609f2e74982be2d85916dd2ee7472d30678a7abe6')
 
-prepare(){
+prepare() {
   cd "$_pkgname-$pkgver"
   # Apply patches if any
   local src
@@ -62,7 +62,7 @@ prepare(){
   done
 }
 
-build(){
+build() {
   cd "$_pkgname-$pkgver"
   # Compiler settings for optimization (based on FFmpeg-Builds optimizations)
   # -O3: Maximum optimization level for performance
@@ -92,7 +92,7 @@ build(){
   rm -fv ./*-docs-*.pkg.tar.* ./*-debug-*.pkg.tar.*
 }
 
-package(){
+package() {
   cd "$_pkgname-$pkgver"
   make DESTDIR="$pkgdir" install
   install -Dm755 tools/qt-faststart "$pkgdir/usr/bin/qt-faststart"
