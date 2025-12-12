@@ -42,14 +42,14 @@ prepare(){
 
 build(){
   cd "llvm-$pkgver.src/build"
-  export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib LDFLAGS+=' -Wl,-O1,--sort-common,--as-needed'
+  export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib \
+    LDFLAGS+=' -Wl,-O3,--sort-common,--as-needed -Wl,--gc-sections -Wl,-z,pack-relative-relocs'
   declare -a cmake_args=(
     -G Ninja -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_SKIP_RPATH=ON
     -DLLVM_HOST_TRIPLE="$CHOST" -DLLVM_BINUTILS_INCDIR=/usr/include
     -DLLVM_ENABLE_BINDINGS=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF -DCMAKE_BUILD_TYPE=MinSizeRel
     -DLLVM_INSTALL_UTILS=ON -DPACKAGE_BUGREPORT='https://github.com/Ven0m0/archlinux-pkgs-debloated/issues'
   )
-
   case "$_build_profile" in
   nano | mini)
     export CFLAGS+=' -Oz' CXXFLAGS+=' -Oz'
@@ -61,8 +61,7 @@ build(){
     if [[ $_build_profile == 'nano' ]]; then
       local targets=$([[ $CARCH == 'x86_64' ]] && echo 'X86;AMDGPU' || echo 'AArch64;AMDGPU')
       cmake_args+=("-DLLVM_TARGETS_TO_BUILD=$targets")
-    fi
-    ;;
+    fi;;
   pgo | release)
     export CFLAGS+=' -fno-semantic-interposition' CXXFLAGS+=' -fno-semantic-interposition'
     cmake_args+=(
@@ -71,10 +70,8 @@ build(){
       -DLLVM_ENABLE_CURL=ON -DLLVM_ENABLE_FFI=ON -DLLVM_ENABLE_RTTI=ON
       -DLLVM_ENABLE_SPHINX=ON -DLLVM_INSTALL_GTEST=OFF -DLLVM_USE_PERF=ON
       -DSPHINX_WARNINGS_AS_ERRORS=OFF
-    )
-    ;;
+    );;
   esac
-
   if [[ $_build_profile == 'pgo' ]]; then
     msg 'Starting PGO generate build...'
     cmake .. "${cmake_args[@]}" -DLLVM_BUILD_INSTRUMENTED=IR -DLLVM_VP_COUNTERS_PER_SITE=6
@@ -82,7 +79,6 @@ build(){
     ./bin/llvm-lit -v test || :
     llvm-profdata merge -o llvm.profdata profiles/*.profraw
     rm -rf ./* # Clean build dir for second pass
-
     msg "Starting final build (PGO-use)..."
     export CFLAGS+=" -fprofile-use=$PWD/llvm.profdata"
     export CXXFLAGS+=" -fprofile-use=$PWD/llvm.profdata"
@@ -91,16 +87,13 @@ build(){
   else
     msg "Starting final build ($_build_profile)..."
   fi
-
   cmake .. "${cmake_args[@]}"
   ninja
 }
-
 check(){
   [[ $_build_profile =~ (nano|mini) ]] && return 0
   (cd "llvm-$pkgver.src/build" && LD_LIBRARY_PATH="$PWD/lib" ninja check)
 }
-
 package_llvm(){
   pkgdesc='Compiler infrastructure'
   cd "llvm-$pkgver.src/build"
