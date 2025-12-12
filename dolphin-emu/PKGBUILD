@@ -84,6 +84,9 @@ prepare(){
   sed -E -e '/COMPONENTS/s&\b(Widgets)\b&\1 GuiPrivate&' \
     -e '$ a target_link_libraries(dolphin-emu PRIVATE Qt6::GuiPrivate)' \
     -i Source/Core/DolphinQt/CMakeLists.txt
+  # HACK
+  qpaheader=$(find /usr/include -type f -name 'qplatformnativeinterface.h' -print -quit)
+  sed -i "s|#include <qpa/qplatformnativeinterface.h>|#include <$qpaheader>|" ./Source/Core/DolphinQt/MainWindow.cpp
 }
 
 pkgver(){
@@ -118,6 +121,8 @@ END
     -DENABLE_AUTOUPDATE=OFF
     -DENABLE_ANALYTICS=OFF
     # -DUSE_SYSTEM_LIBS=ON # default:AUTO
+    -DENCODE_FRAMEDUMPS=OFF
+    -DUSE_DISCORD_PRESENCE=OFF
     -DUSE_SANITIZERS=OFF # cubeb
     -DUSE_SYSTEM_ENET=OFF
     -DUSE_SYSTEM_FMT=ON
