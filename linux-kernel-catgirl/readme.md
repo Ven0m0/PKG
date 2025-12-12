@@ -161,13 +161,13 @@ sudo pacman -R linux-catgirl-edition linux-catgirl-edition-headers
 
 ## Source
 
-- **Upstream**: https://github.com/Ven0m0/Linux-Kernel-Patches
+- **Upstream**: <https://github.com/Ven0m0/Linux-Kernel-Patches>
 - **Based on**: Linux Catgirl Edition by a-catgirl-dev
-- **Kernel Source**: https://kernel.org
+- **Kernel Source**: <https://kernel.org>
 - **Patches From**:
-  - CachyOS: https://github.com/CachyOS/kernel-patches
-  - Clear Linux: https://github.com/clearlinux-pkgs
-  - XanMod: https://gitlab.com/xanmod/linux-patches
+  - CachyOS: <https://github.com/CachyOS/kernel-patches>
+  - Clear Linux: <https://github.com/clearlinux-pkgs>
+  - XanMod: <https://gitlab.com/xanmod/linux-patches>
 
 ## Troubleshooting
 
@@ -199,6 +199,7 @@ _use_llvm_lto=none makepkg -si
 1. Boot into previous kernel from bootloader menu
 2. Check kernel command line parameters in bootloader config
 3. Try disabling advanced features:
+
    ```bash
    _cflags_O3=no _use_llvm_lto=none makepkg -si
    ```
@@ -231,5 +232,6 @@ GPL-2.0-only (same as Linux kernel)
 ## Contributing
 
 Issues and improvements should be reported at:
-- PKG Repository: https://github.com/Ven0m0/PKG
-- Linux-Kernel-Patches: https://github.com/Ven0m0/Linux-Kernel-Patches
+
+- PKG Repository: <https://github.com/Ven0m0/PKG>
+- Linux-Kernel-Patches: <https://github.com/Ven0m0/Linux-Kernel-Patches>

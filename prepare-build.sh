@@ -4,27 +4,27 @@ echo "Installing basic packages..."
 pacman-key --init
 pacman -Syy --noconfirm archlinux-keyring
 pacman -Syu --noconfirm \
-	base-devel \
-	ccache     \
-	clang      \
-	cmake      \
-	curl       \
-	git        \
-	ninja      \
-	sccache    \
-	wget
+  base-devel \
+  ccache \
+  clang \
+  cmake \
+  curl \
+  git \
+  ninja \
+  sccache \
+  wget
 echo "------------------------------------------------------------"
 
 echo "Settings up build options..."
 sed -i \
-	-e 's|DEBUG_CFLAGS="-g"|DEBUG_CFLAGS="-g0"|' \
-	-e 's|-fno-omit-frame-pointer|-fomit-frame-pointer|' \
-	-e 's|-mno-omit-leaf-frame-pointer||' \
-	-e 's|-Wp,-D_FORTIFY_SOURCE=3||' \
-	-e 's|-fstack-clash-protection||' \
-	-e 's|MAKEFLAGS=.*|MAKEFLAGS="-j$(nproc)"|' \
-	-e 's|!ccache|ccache|' \
-	-e 's|#MAKEFLAGS|MAKEFLAGS|' /etc/makepkg.conf
+  -e 's|DEBUG_CFLAGS="-g"|DEBUG_CFLAGS="-g0"|' \
+  -e 's|-fno-omit-frame-pointer|-fomit-frame-pointer|' \
+  -e 's|-mno-omit-leaf-frame-pointer||' \
+  -e 's|-Wp,-D_FORTIFY_SOURCE=3||' \
+  -e 's|-fstack-clash-protection||' \
+  -e 's|MAKEFLAGS=.*|MAKEFLAGS="-j$(nproc)"|' \
+  -e 's|!ccache|ccache|' \
+  -e 's|#MAKEFLAGS|MAKEFLAGS|' /etc/makepkg.conf
 cat /etc/makepkg.conf
 echo "------------------------------------------------------------"
 

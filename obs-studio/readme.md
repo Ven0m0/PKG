@@ -6,7 +6,7 @@ Arch Linux PKGBUILD for OBS Studio, a free and open source software for video re
 
 ## Source
 
-- Upstream: https://github.com/obsproject/obs-studio
+- Upstream: <https://github.com/obsproject/obs-studio>
 - PKGBUILD Maintainer: <your-name>
 
 ## Build Instructions

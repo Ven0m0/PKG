@@ -35,7 +35,7 @@ IFS=$'\n\t'
 #
 #   curl fontforge fonttools libsdl2-dev python3-tk
 #
-# !!! _sdl_joy_support="true" (default setting) would require libsdl2-dev:i386 but due to a conflict between libsdl2-dev:i386 and libmirclientcpp-dev 
+# !!! _sdl_joy_support="true" (default setting) would require libsdl2-dev:i386 but due to a conflict between libsdl2-dev:i386 and libmirclientcpp-dev
 #     (at least on 19.04) you're kinda frogged and should set _sdl_joy_support to "false" to build successfully. You'll lose SDL2 support on 32-bit apps !!!
 #
 # You're on your own to resolve additional dependencies you might want to build with, such as Faudio.
@@ -57,33 +57,33 @@ _DEPSHELPER=${_DEPSHELPER:-0}
 ACTION="build"
 
 # Print a basic message (included for compatibility with makepkg)
-msg(){
+msg() {
   printf ' \033[1;34m->\033[1;0m %s\n' "$1" >&2
 }
 
 # Print a message with a prefix (included for compatibility with makepkg)
-msg2(){
+msg2() {
   printf ' \033[1;34m=>\033[1;0m \033[1;1m%s\033[1;0m\n' "$1" >&2
 }
 
 # Print a warning message (included for compatibility with makepkg)
-warning(){
+warning() {
   printf ' \033[1;33m==> WARNING: %s\033[1;0m\n' "$1" >&2
 }
 
 # Print an error message (included for compatibility with makepkg)
-error(){
+error() {
   printf ' \033[1;31m===> ERROR: %s\033[1;0m\n' "$1" >&2
 }
 
 pkgver() {
   if [ -d "${srcdir}/${_winesrcdir}" ]; then
-    if [ "$_use_staging" = "true" ] && [ -d "${srcdir}/${_stgsrcdir}" ] && [[ "$_custom_wine_source" != *"ValveSoftware"* ]]; then
+    if [ "$_use_staging" = "true" ] && [ -d "${srcdir}/${_stgsrcdir}" ] && [[ $_custom_wine_source != *"ValveSoftware"* ]]; then
       cd "${srcdir}/${_stgsrcdir}"
     else
       cd "${srcdir}/${_winesrcdir}"
     fi
-    _describe_wine      # Retrieve current Wine version - if staging is enabled, staging version will be used instead.
+    _describe_wine # Retrieve current Wine version - if staging is enabled, staging version will be used instead.
   fi
 }
 
@@ -126,7 +126,7 @@ _src_init() {
 
     # Wine staging update and checkout
     cd "$_where"/"${_stgsrcdir}"
-    if [[ "${_stgsrctarget}" != "$(git config --get remote.origin.url)" ]]; then
+    if [[ ${_stgsrctarget} != "$(git config --get remote.origin.url)" ]]; then
       echo "${_stgsrcdir} is not a clone of $(git config --get remote.origin.url) (\"${_stgsrctarget}\"). Let's nuke stuff to get back on track, hopefully." >>"$_where"/prepare.log
       rm -rf "$_where/${_stgsrcdir}" && rm -rf "${srcdir}/${_stgsrcdir}"
       warning "Your ${_stgsrcdir} clone was deleted due to remote mismatch (\"${_stgsrctarget}\" differs from \"$(git config --get remote.origin.url)\"). Let's try again with a fresh clone."
@@ -142,7 +142,7 @@ _src_init() {
 
     # Wine update and checkout
     cd "$_where"/"${_winesrcdir}"
-    if [[ "${_winesrctarget}" != "$(git config --get remote.origin.url)" ]]; then
+    if [[ ${_winesrctarget} != "$(git config --get remote.origin.url)" ]]; then
       echo "${_winesrcdir} is not a clone of $(git config --get remote.origin.url) (\"${_winesrctarget}\"). Let's nuke stuff to get back on track, hopefully." >>"$_where"/prepare.log
       rm -rf "$_where/${_winesrcdir}" && rm -rf "${srcdir}/${_winesrcdir}"
       warning "Your ${_winesrcdir} clone was deleted due to remote mismatch (\"${_winesrctarget}\" differs from \"$(git config --get remote.origin.url)\"). Let's try again with a fresh clone."
@@ -152,7 +152,7 @@ _src_init() {
     rm -rf "${srcdir}/${_winesrcdir}" && git clone "$_where"/"${_winesrcdir}" "${srcdir}/${_winesrcdir}"
     cd "${srcdir}"/"${_winesrcdir}"
     git -c advice.detachedHead=false checkout --force --no-track -B makepkg origin/HEAD
-    if [ -n "$_plain_version" ] && [ "$_use_staging" != "true" ] || [[ "$_custom_wine_source" = *"ValveSoftware"* ]]; then
+    if [ -n "$_plain_version" ] && [ "$_use_staging" != "true" ] || [[ $_custom_wine_source == *"ValveSoftware"* ]]; then
       git -c advice.detachedHead=false checkout "${_plain_version}" 2>>"$_where"/prepare.log
       if [ "$_LOCAL_PRESET" = "valve-exp-bleeding" ]; then
         if [ -z "$_bleeding_tag" ]; then
@@ -189,19 +189,19 @@ _script_init() {
   srcdir="$_where"/src
 
   # dependencies
-  if [[ "$_nomakepkg_dependency_autoresolver" == "true" ]] && [ "$_DEPSHELPER" != "1" ]; then
+  if [[ $_nomakepkg_dependency_autoresolver == "true" ]] && [ "$_DEPSHELPER" != "1" ]; then
     source "$_where"/wine-tkg-scripts/deps
-    if [[ "${_ci_build}" != "true" ]] && [ "$_os" = "ubuntu" ]; then
-      warning "PLEASE MAKE SURE TO READ https://github.com/Frogging-Family/wine-tkg-git/issues/773 BEFORE ATTEMPTING TO USE \"debuntu\" dependency resolution"
+    if [[ ${_ci_build} != "true" ]] && [ "$_os" = "ubuntu" ]; then
+      warning 'PLEASE MAKE SURE TO READ https://github.com/Frogging-Family/wine-tkg-git/issues/773 BEFORE ATTEMPTING TO USE "debuntu" dependency resolution'
       read -rp "Either press enter to continue, or ctrl+c to leave."
     fi
-    if [[ "$_NOLIB64" != "true" ]]; then
+    if [[ $_NOLIB64 != "true" ]]; then
       install_deps "64" "${_ci_build}" || {
         error "64-bit dependencies installation failed. Please check the error message and install the missing dependencies manually."
         exit 1
       }
     fi
-    if [[ "$_NOLIB32" != "true" ]] && [ "$_NOLIB32" != "wow64" ]; then
+    if [[ $_NOLIB32 != "true" ]] && [ "$_NOLIB32" != "wow64" ]; then
       install_deps "32" "${_ci_build}" || {
         error "32-bit dependencies installation failed. Please check the error message and install the missing dependencies manually."
         exit 1
@@ -226,12 +226,12 @@ _script_init() {
 }
 
 nonuser_patcher() {
-  if [ "$_NUKR" != "debug" ] || [[ "$_DEBUGANSW1" =~ [yY] ]]; then
+  if [ "$_NUKR" != "debug" ] || [[ $_DEBUGANSW1 =~ [yY] ]]; then
     if [ "$_nopatchmsg" != "true" ]; then
       _fullpatchmsg=" -- ( $_patchmsg )"
     fi
     # Pretty ugly - maybe make it more dynamic? Find?
-    msg2 "Applying ${_patchname}"    
+    msg2 "Applying ${_patchname}"
     echo -e "\n${_patchname}${_fullpatchmsg}" >>"$_where"/prepare.log
     if [ -n "$_patchpath" ]; then
       if [ -f "${_patchpath%/*}"/mainline/"$_patchname" ] || [ -f "${_patchpath%/*}"/mainline/legacy/"$_patchname" ]; then
@@ -285,7 +285,7 @@ build_wine_tkg() {
     ## prepare step end
   fi
 
-  if ( [ "$_unfrog" != "true" ] && cd "${srcdir}"/"${_winesrcdir}" && git merge-base --is-ancestor 8c3f205696571558a6fae42314370fbd7cc14a12 HEAD ); then
+  if ([ "$_unfrog" != "true" ] && cd "${srcdir}"/"${_winesrcdir}" && git merge-base --is-ancestor 8c3f205696571558a6fae42314370fbd7cc14a12 HEAD); then
     local _new_makefiles="true"
   else
     local _new_makefiles="false"
@@ -363,48 +363,48 @@ build_wine_tkg() {
 }
 
 _script_usage() {
-    echo "$0 - A non-makepkg build script for wine-tkg-git"
-    echo ""
-    echo "Usage: $0 [args]"
-    echo ""
-    echo "  Command-Line Options:"
-    echo ""
-    echo "    -d|--deps64 :        Check for missing 64-bit dependencies"
-    echo "    -e|--deps32 :        Check for missing 32-bit dependencies"
-    echo "    -c|--config <path> : Use a custom config file"
-    echo ""
-    exit 0
+  echo "$0 - A non-makepkg build script for wine-tkg-git"
+  echo ""
+  echo "Usage: $0 [args]"
+  echo ""
+  echo "  Command-Line Options:"
+  echo ""
+  echo "    -d|--deps64 :        Check for missing 64-bit dependencies"
+  echo "    -e|--deps32 :        Check for missing 32-bit dependencies"
+  echo "    -c|--config <path> : Use a custom config file"
+  echo ""
+  exit 0
 }
 
 _script_parse_args() {
   while [ $# -gt 0 ]; do
     case "$1" in
-      -d|--deps64)
-        _DEPSHELPER=1
-        ACTION="deps64"
-        shift 1
-        ;;
-      -e|--deps32)
-        _DEPSHELPER=1
-        ACTION="deps32"
-        shift 1
-        ;;
-      -c|--config)
-        if [ -z "$2" ]; then
-          error "No path provided for custom config file!"
-          exit 1
-        fi
-        _EXT_CONFIG_PATH="$(readlink -m $2)"
-        if [ ! -f "$_EXT_CONFIG_PATH" ]; then
-          echo "User-supplied external config file '${_EXT_CONFIG_PATH}' not found! Please fix your passed path!"
-          exit 0
-        fi
-        sed -i -e "s|_EXT_CONFIG_PATH.*|_EXT_CONFIG_PATH=${_EXT_CONFIG_PATH}|" "$_where"/wine-tkg-profiles/advanced-customization.cfg
-        shift 1
-        ;;
-      *)
-        _script_usage
-        ;;
+    -d | --deps64)
+      _DEPSHELPER=1
+      ACTION="deps64"
+      shift 1
+      ;;
+    -e | --deps32)
+      _DEPSHELPER=1
+      ACTION="deps32"
+      shift 1
+      ;;
+    -c | --config)
+      if [ -z "$2" ]; then
+        error "No path provided for custom config file!"
+        exit 1
+      fi
+      _EXT_CONFIG_PATH="$(readlink -m $2)"
+      if [ ! -f "$_EXT_CONFIG_PATH" ]; then
+        echo "User-supplied external config file '${_EXT_CONFIG_PATH}' not found! Please fix your passed path!"
+        exit 0
+      fi
+      sed -i -e "s|_EXT_CONFIG_PATH.*|_EXT_CONFIG_PATH=${_EXT_CONFIG_PATH}|" "$_where"/wine-tkg-profiles/advanced-customization.cfg
+      shift 1
+      ;;
+    *)
+      _script_usage
+      ;;
     esac
     shift
   done
@@ -412,21 +412,21 @@ _script_parse_args() {
 
 _script_main() {
   case "$ACTION" in
-    deps64)
-      _src_init
-      cd "${srcdir}"/"${_winesrcdir}"
-      ./configure --enable-win64
-      msg2 "You might find help regarding dependencies here: https://github.com/Tk-Glitch/PKGBUILDS/wiki/wine-tkg-git#dependencies"
-      ;;
-    deps32)
-      _src_init
-      cd "${srcdir}"/"${_winesrcdir}"
-      ./configure
-      msg2 "You might find help regarding dependencies here: https://github.com/Tk-Glitch/PKGBUILDS/wiki/wine-tkg-git#dependencies"
-      ;;
-    build)
-      build_wine_tkg
-      ;;
+  deps64)
+    _src_init
+    cd "${srcdir}"/"${_winesrcdir}"
+    ./configure --enable-win64
+    msg2 "You might find help regarding dependencies here: https://github.com/Tk-Glitch/PKGBUILDS/wiki/wine-tkg-git#dependencies"
+    ;;
+  deps32)
+    _src_init
+    cd "${srcdir}"/"${_winesrcdir}"
+    ./configure
+    msg2 "You might find help regarding dependencies here: https://github.com/Tk-Glitch/PKGBUILDS/wiki/wine-tkg-git#dependencies"
+    ;;
+  build)
+    build_wine_tkg
+    ;;
   esac
 }
 
@@ -434,4 +434,3 @@ _script_parse_args "$@"
 trap _exit_cleanup EXIT
 _script_init
 _script_main
-

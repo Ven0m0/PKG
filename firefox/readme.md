@@ -95,18 +95,18 @@ This ultimate PKGBUILD is merged from multiple optimized Firefox builds:
 
 ### Additional Credits
 
-- https://build.opensuse.org/package/show/mozilla:Factory/MozillaFirefox
-- https://gitlab.com/garuda-linux/firedragon
+- <https://build.opensuse.org/package/show/mozilla:Factory/MozillaFirefox>
+- <https://gitlab.com/garuda-linux/firedragon>
 - [Firefox-opt](https://github.com/Ven0m0/Firefox-opt)
 - [firefox-vaapi-opt](https://github.com/lseman/PKGBUILDs/tree/main/firefox-vaapi-opt)
-- https://github.com/CachyOS/firefox-wayland-cachy-hg
-- https://github.com/Betterbird/thunderbird-patches
-- https://github.com/openSUSE/firefox-maintenance
-- https://github.com/ghostery/user-agent-desktop
-- https://github.com/CachyOS/CachyOS-Browser-Common
-- https://github.com/CYFARE/HellFire
-- https://github.com/VolRencs/PKGBUILDS
-- https://github.com/zen-browser/desktop
+- <https://github.com/CachyOS/firefox-wayland-cachy-hg>
+- <https://github.com/Betterbird/thunderbird-patches>
+- <https://github.com/openSUSE/firefox-maintenance>
+- <https://github.com/ghostery/user-agent-desktop>
+- <https://github.com/CachyOS/CachyOS-Browser-Common>
+- <https://github.com/CYFARE/HellFire>
+- <https://github.com/VolRencs/PKGBUILDS>
+- <https://github.com/zen-browser/desktop>
 
 ### Patches Sources
 
@@ -131,7 +131,7 @@ RUSTFLAGS="-Ctarget-cpu=native -Copt-level=3 -Clto=fat -Ccodegen-units=1 -Cpanic
 -mllvm -polly -mllvm -polly-vectorizer=stripmine
 ```
 
-______________________________________________________________________
+---
 
 **Note**: First PGO build takes longer but subsequent builds reuse profiles for faster compilation.
 

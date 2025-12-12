@@ -12,24 +12,24 @@ source=("$pkgname-$pkgver.tar.gz::https://github.com/Dreaming-Codes/$pkgname/arc
 sha256sums=('704bc12b0854c0558803290c6e9fa391a31dd62fcd642c1bbf7dd5cb8face555')
 # Generated in accordance to https://wiki.archlinux.org/title/Rust_package_guidelines.
 # Might require further modification depending on the package involved.
-prepare(){
+prepare() {
   cd "$pkgname-$pkgver"
   cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
 }
 
-build(){
+build() {
   cd "$pkgname-$pkgver"
   export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C link-arg=-fuse-ld=lld"
   cargo build --frozen -r --all-features
 }
 
-check(){
+check() {
   cd "$pkgname-$pkgver"
   export RUSTUP_TOOLCHAIN=stable
   cargo test --frozen --all-features
 }
 
-package(){
+package() {
   cd "$pkgname-$pkgver"
   install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/$pkgname"
   install -Dm0644 /dev/stdin "$pkgdir/usr/lib/systemd/system/nvidia_oc.service" <<'EOF'

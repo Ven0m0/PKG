@@ -44,7 +44,7 @@ depends=(
   'zstd'
 )
 makedepends=('cmake' 'git' 'ninja' 'python' 'vulkan-headers' 'qt6-tools')
-if [[ "${_build_clang::1}" == "t" ]]; then
+if [[ ${_build_clang::1} == "t" ]]; then
   makedepends+=(
     clang
     lld
@@ -61,7 +61,7 @@ _pkgsrc="xiota.primehack"
 source=("$_pkgsrc"::"git+$url.git#branch=$_branch")
 sha256sums=('SKIP')
 
-prepare(){
+prepare() {
   cd "$_pkgsrc"
   git rm -r 'Externals/FFmpeg-bin'
   git rm -r 'Externals/Qt'
@@ -89,7 +89,7 @@ prepare(){
   sed -i "s|#include <qpa/qplatformnativeinterface.h>|#include <$qpaheader>|" ./Source/Core/DolphinQt/MainWindow.cpp
 }
 
-pkgver(){
+pkgver() {
   cd "$_pkgsrc"
   git describe --long --tags --abbrev=7 | sed -E 's/([^-]*-g)/r\1/;s/-/./g'
 }
@@ -99,7 +99,7 @@ build() (
   local _pkgver _cmake_options
   # Fix version string
   _pkgver=$(pkgver)
-  install /dev/stdin "$srcdir/$_pkgsrc/Source/Core/Common/scmrev.h.in" << END
+  install /dev/stdin "$srcdir/$_pkgsrc/Source/Core/Common/scmrev.h.in" <<END
 #define SCM_REV_STR "\${DOLPHIN_WC_REVISION}"
 #define SCM_DESC_STR "${_pkgver:?}"
 #define SCM_BRANCH_STR "$_branch"
@@ -136,10 +136,10 @@ END
     -DUSE_SYSTEM_BZIP2=ON
     -Wno-dev
   )
-  if [[ "${_build_clang::1}" == "t" ]]; then
+  if [[ ${_build_clang::1} == "t" ]]; then
     CC=clang
     CXX=clang++
-    LDFLAGS="$(sed -E -e 's/\S*fuse-ld\S*//g' <<< "$LDFLAGS") -fuse-ld=lld"
+    LDFLAGS="$(sed -E -e 's/\S*fuse-ld\S*//g' <<<"$LDFLAGS") -fuse-ld=lld"
     _cmake_options+=(-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON -DENABLE_LTO=ON)
   else
     _cmake_options+=(-DENABLE_LTO=OFF)
@@ -148,7 +148,7 @@ END
   cmake --build build -j"$(nproc)"
 )
 
-package(){
+package() {
   DESTDIR="${pkgdir}" cmake --install build
   install -Dm644 "${srcdir}/${_pkgsrc}/Data/51-usb-device.rules" "${pkgdir}/usr/lib/udev/rules.d/51-usb-device-primehack.rules"
   rm -rf "${pkgdir}"/usr/{include,lib/libdiscord-rpc.a}

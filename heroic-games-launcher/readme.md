@@ -6,7 +6,7 @@ Arch Linux PKGBUILD for Heroic Games Launcher, a native GOG, Epic Games, and Ama
 
 ## Source
 
-- Upstream: https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher
+- Upstream: <https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher>
 - PKGBUILD Maintainer: <your-name>
 
 ## Build Instructions

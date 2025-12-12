@@ -6,7 +6,7 @@ Arch Linux PKGBUILD for a minimal Intel CPU microcode update package.
 
 ## Source
 
-- Upstream: https://github.com/intel/Intel-Linux-Processor-Microcode-Data-Files
+- Upstream: <https://github.com/intel/Intel-Linux-Processor-Microcode-Data-Files>
 - PKGBUILD Maintainer: <your-name>
 
 ## Build Instructions

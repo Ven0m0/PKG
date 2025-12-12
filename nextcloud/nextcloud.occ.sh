@@ -4,14 +4,19 @@ set -euo pipefail
 shopt -s nullglob globstar
 export LC_ALL=C
 IFS=$'\n\t'
-s=${BASH_SOURCE[0]}; [[ $s != /* ]] && s=$PWD/$s; cd -P -- "${s%/*}"
-has(){ command -v -- "$1" &>/dev/null; }
+s=${BASH_SOURCE[0]}
+[[ $s != /* ]] && s=$PWD/$s
+cd -P -- "${s%/*}"
+has() { command -v -- "$1" &>/dev/null; }
 
 readonly default_config="/etc/php-legacy/php.ini" default_php_command="/usr/bin/php-legacy" default_user="nextcloud" preserved_environment_vars="NEXTCLOUD_CONFIG_DIR"
 
 config="" php_command="" user=""
 
-check_sudo(){ has sudo || { printf 'The sudo command is not available.\n'; exit 1; }; }
+check_sudo() { has sudo || {
+  printf 'The sudo command is not available.\n'
+  exit 1
+}; }
 
 if [[ -n ${NEXTCLOUD_PHP_CONFIG:-} && -f ${NEXTCLOUD_PHP_CONFIG} ]]; then
   config=$NEXTCLOUD_PHP_CONFIG

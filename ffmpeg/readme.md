@@ -9,13 +9,11 @@ This is an optimized build of FFmpeg 7.1 with enhanced SVT-AV1 support and vario
 This build integrates optimizations and build configurations from [Ven0m0/FFmpeg-Builds](https://github.com/Ven0m0/FFmpeg-Builds), including:
 
 1. **Enhanced SVT-AV1 Support**
-
    - AVX512 instruction set enabled (when CPU supports it via `-march=native`)
    - Optimized build configuration: `-DENABLE_AVX512=ON`
    - SVT-AV1 commit: `f0057e34d1656fd2c1e1f349d8281459272cc5cb`
 
 1. **Compiler Optimizations**
-
    - O3 optimization level for maximum performance
    - Link-Time Optimization (LTO) with auto-parallelization
    - Native architecture tuning (`-march=native -mtune=native`)
@@ -23,7 +21,6 @@ This build integrates optimizations and build configurations from [Ven0m0/FFmpeg
    - Semantic interposition disabled for aggressive optimizations
 
 1. **Security Hardening**
-
    - Stack protection (`-fstack-protector-strong`)
    - Stack clash protection (`-fstack-clash-protection`)
    - Control-flow protection Intel CET (`-fcf-protection`)
@@ -32,14 +29,12 @@ This build integrates optimizations and build configurations from [Ven0m0/FFmpeg
    - RELRO and NOW linking for enhanced security
 
 1. **AV1 Codec Suite**
-
    - **SVT-AV1**: Fast AV1 encoder with AVX512 support
    - **libaom**: Reference AV1 codec with VMAF tuning
    - **dav1d**: Fast AV1 decoder
    - **rav1e**: Rust-based AV1 encoder
 
 1. **Multi-Codec Support**
-
    - x264 (H.264/AVC encoder)
    - x265 (HEVC/H.265 encoder with multi-bit depth support)
    - VP8/VP9 (libvpx)
@@ -47,7 +42,6 @@ This build integrates optimizations and build configurations from [Ven0m0/FFmpeg
    - All major audio codecs (Opus, Vorbis, MP3, AAC)
 
 1. **Hardware Acceleration**
-
    - NVIDIA NVENC/NVDEC
    - Intel QuickSync (VA-API, oneVPL)
    - OpenCL acceleration
@@ -55,7 +49,6 @@ This build integrates optimizations and build configurations from [Ven0m0/FFmpeg
    - VDPAU
 
 1. **Advanced Filters and Features**
-
    - libplacebo (advanced GPU video processing)
    - VMAF (video quality metrics)
    - vid.stab (video stabilization)

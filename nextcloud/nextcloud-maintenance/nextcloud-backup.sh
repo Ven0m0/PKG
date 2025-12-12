@@ -16,7 +16,7 @@ log=$(sudo -u $nextcloud_user php "${source_dir_path}"occ maintenance:mode --on)
 #copy nextcloud execution directory, data directory and sql DB dump
 log+=$(rsync -Aavx --delete "${ssh_options[@]}" "$source_dir_path" "$target_path"/nextcloud-dirbkp/)"\n"
 log+=$(rsync -Aavx --delete "${ssh_options[@]}" --exclude 'appdata_*/preview' "$source_data_path" "$target_path"/nextcloud-databkp/)"\n"
-log+=$(mysqldump --single-transaction -h localhost $sql_options nextcloud > nextcloud-sqlbkp.bak)"\n"
+log+=$(mysqldump --single-transaction -h localhost $sql_options nextcloud >nextcloud-sqlbkp.bak)"\n"
 log+=$(rsync -Aavx --delete "${ssh_options[@]}" nextcloud-sqlbkp.bak "$target_path"/nextcloud-sqlbkp.bak)"\n"
 log+=$(rm nextcloud-sqlbkp.bak)"\n"
 
@@ -31,5 +31,3 @@ hostname=$(cat /etc/hostname)
 mail_header="Subject: Nextcloud Backup on: $hostname\n\r\n\r"
 mail_body="The nextcloud backup was run:\n\r\n\r"$log
 printf "$mail_header$mail_body" | sendmail "$mail_address"
-
-

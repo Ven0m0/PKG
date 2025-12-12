@@ -9,17 +9,17 @@ cd "$BUILD_DIR"
 
 # debloat package, remove line that enables icu support
 sed -i \
-	-e '/--with-icu/d'               \
-	-e 's/icu=enabled/icu=disabled/' \
-	"$PKGBUILD"
+  -e '/--with-icu/d' \
+  -e 's/icu=enabled/icu=disabled/' \
+  "$PKGBUILD"
 
 cat "$PKGBUILD"
 
 # Do not build if version does not match with upstream
 if check-upstream-version; then
-	makepkg -fs --noconfirm --skippgpcheck
+  makepkg -fs --noconfirm --skippgpcheck
 else
-	exit 0
+  exit 0
 fi
 
 ls -la

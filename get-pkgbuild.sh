@@ -9,20 +9,20 @@ ALARM_REPO=https://github.com/archlinuxarm/PKGBUILDs.git
 ALARM_DIR="${TMPDIR:-/tmp}"/ALARM-PKGBUILDS
 
 if [ "$ARCH" = 'x86_64' ]; then
-	git clone --depth 1 "$ARCH_REPO"/"$PACKAGE" "$BUILD_DIR"
+  git clone --depth 1 "$ARCH_REPO"/"$PACKAGE" "$BUILD_DIR"
 elif [ "$ARCH" = 'aarch64' ]; then
-	git clone --depth 1 "$ALARM_REPO" "$ALARM_DIR"
-	# if ALARM does not have the package, then use the archlinux package directly
-	if [ -d "$ALARM_DIR"/*/"$PACKAGE" ]; then
-		mv -v "$ALARM_DIR"/*/"$PACKAGE" "$BUILD_DIR"
-	else
-		>&2 echo "----------------------------------------"
-		>&2 echo "ArchlinuxARM does not have '$PACKAGE'"
-		>&2 echo "Using Archlinux PKGBUILD instead..."
-		>&2 echo "----------------------------------------"
-		git clone --depth 1 "$ARCH_REPO"/"$PACKAGE" "$BUILD_DIR"
-	fi
-	rm -rf "$ALARM_DIR"
+  git clone --depth 1 "$ALARM_REPO" "$ALARM_DIR"
+  # if ALARM does not have the package, then use the archlinux package directly
+  if [ -d "$ALARM_DIR"/*/"$PACKAGE" ]; then
+    mv -v "$ALARM_DIR"/*/"$PACKAGE" "$BUILD_DIR"
+  else
+    >&2 echo "----------------------------------------"
+    >&2 echo "ArchlinuxARM does not have '$PACKAGE'"
+    >&2 echo "Using Archlinux PKGBUILD instead..."
+    >&2 echo "----------------------------------------"
+    git clone --depth 1 "$ARCH_REPO"/"$PACKAGE" "$BUILD_DIR"
+  fi
+  rm -rf "$ALARM_DIR"
 fi
 
 # change arch for aarch64 support, even ArchlinuxARM PKGBUILDs need this...

@@ -6,7 +6,7 @@ Arch Linux PKGBUILD for ONLYOFFICE, an open-source office suite.
 
 ## Source
 
-- Upstream: https://github.com/ONLYOFFICE/DocumentServer
+- Upstream: <https://github.com/ONLYOFFICE/DocumentServer>
 - PKGBUILD Maintainer: <your-name>
 
 ## Build Instructions

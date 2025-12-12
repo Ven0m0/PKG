@@ -6,7 +6,7 @@ Arch Linux PKGBUILD for OxiCloud, a cloud storage management tool written in Rus
 
 ## Source
 
-- Upstream: https://github.com/DioCrafts/OxiCloud
+- Upstream: <https://github.com/DioCrafts/OxiCloud>
 - PKGBUILD Maintainer: <your-name>
 
 ## Build Instructions

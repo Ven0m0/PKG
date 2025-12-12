@@ -4,7 +4,9 @@ set -euo pipefail
 shopt -s globstar nullglob
 export LC_ALL=C
 IFS=$'\n\t'
-s=${BASH_SOURCE[0]}; [[ $s != /* ]] && s=$PWD/$s; cd -P -- "${s%/*}"
+s=${BASH_SOURCE[0]}
+[[ $s != /* ]] && s=$PWD/$s
+cd -P -- "${s%/*}"
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Lint Script - PKGBUILD & Shell Script Quality Enforcement
@@ -12,13 +14,13 @@ s=${BASH_SOURCE[0]}; [[ $s != /* ]] && s=$PWD/$s; cd -P -- "${s%/*}"
 
 # ─── Helpers ───────────────────────────────────────────────────────────────
 readonly R=$'\e[31m' G=$'\e[32m' Y=$'\e[33m' D=$'\e[0m'
-err(){ printf '%b\n' "${R}✘ $*${D}" >&2; }
-ok(){ printf '%b\n' "${G}✓ $*${D}"; }
-warn(){ printf '%b\n' "${Y}⚠ $*${D}" >&2; }
-has(){ command -v -- "$1" &>/dev/null; }
+err() { printf '%b\n' "${R}✘ $*${D}" >&2; }
+ok() { printf '%b\n' "${G}✓ $*${D}"; }
+warn() { printf '%b\n' "${Y}⚠ $*${D}" >&2; }
+has() { command -v -- "$1" &>/dev/null; }
 
 # ─── Main ──────────────────────────────────────────────────────────────────
-main(){
+main() {
   local root="$PWD" diff_out
   local -a pkgs errs=()
   if has fd; then
@@ -35,8 +37,15 @@ main(){
   for pkg in "${pkgs[@]}"; do
     [[ -d $pkg ]] || continue
     printf '==> %s\n' "$pkg"
-    builtin cd "$pkg" || { errs+=("$pkg: cd failed"); continue; }
-    [[ ! -f PKGBUILD ]] && { errs+=("$pkg: no PKGBUILD"); builtin cd "$root"; continue; }
+    builtin cd "$pkg" || {
+      errs+=("$pkg: cd failed")
+      continue
+    }
+    [[ ! -f PKGBUILD ]] && {
+      errs+=("$pkg: no PKGBUILD")
+      builtin cd "$root"
+      continue
+    }
     if [[ $sc -eq 1 ]]; then
       diff_out=$(shellcheck -x -a -s bash -f diff PKGBUILD 2>/dev/null || true)
       if [[ -n $diff_out ]]; then

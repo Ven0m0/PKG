@@ -12,6 +12,6 @@ export URUNTIME_PRELOAD=1
 export OPTIMIZE_LAUNCH=1
 export PYTHON_LEAVE_PIP=1
 
-poststrip(){
+poststrip() {
   strip -s -R .comment --strip-unneeded ./*.so*
 }

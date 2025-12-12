@@ -6,7 +6,7 @@ Arch Linux PKGBUILD for gitoxide, a fast and safe Git implementation in Rust.
 
 ## Source
 
-- Upstream: https://github.com/Byron/gitoxide
+- Upstream: <https://github.com/Byron/gitoxide>
 - PKGBUILD Maintainer: <your-name>
 
 ## Build Instructions

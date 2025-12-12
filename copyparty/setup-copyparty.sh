@@ -4,13 +4,21 @@ set -euo pipefail
 shopt -s nullglob globstar
 export LC_ALL=C HOME="/home/${SUDO_USER:-${USER:-$(id -un)}}" DEBIAN_FRONTEND=noninteractive
 IFS=$'\n\t'
-s=${BASH_SOURCE[0]}; [[ $s != /* ]] && s=$PWD/$s; cd -P -- "${s%/*}"
-has(){ command -v -- "$1" &>/dev/null; }
+s=${BASH_SOURCE[0]}
+[[ $s != /* ]] && s=$PWD/$s
+cd -P -- "${s%/*}"
+has() { command -v -- "$1" &>/dev/null; }
 
 readonly COPYPARTY_PORT=3923 COPYPARTY_DIR="$HOME/Public"
 printf 'Setting up Copyparty with network access and Samba support...\nInstalling packages...\n'
-sudo apt-get update && sudo apt-get install -y python3-pip samba avahi-daemon libnss-mdns || { printf 'Error: Failed to install required packages\n' >&2; exit 1; }
-has copyparty || { printf 'Installing copyparty via pip...\n'; pip3 install --user copyparty; }
+sudo apt-get update && sudo apt-get install -y python3-pip samba avahi-daemon libnss-mdns || {
+  printf 'Error: Failed to install required packages\n' >&2
+  exit 1
+}
+has copyparty || {
+  printf 'Installing copyparty via pip...\n'
+  pip3 install --user copyparty
+}
 mkdir -p ~/.config/copyparty
 cat >~/.config/copyparty/config.py <<'EOF'
 #!/usr/bin/env python3
@@ -85,9 +93,16 @@ printf 'Enabling and starting services...\n'
 sudo systemctl enable --now smbd nmbd avahi-daemon || printf 'Warning: Failed to enable some system services\n' >&2
 systemctl --user daemon-reload
 systemctl --user enable copyparty.service
-systemctl --user start copyparty.service || { printf 'Error: Failed to start copyparty service\nCheck logs with: systemctl --user status copyparty.service\n' >&2; exit 1; }
+systemctl --user start copyparty.service || {
+  printf 'Error: Failed to start copyparty service\nCheck logs with: systemctl --user status copyparty.service\n' >&2
+  exit 1
+}
 sudo loginctl enable-linger "$(whoami)"
-systemctl is-active --quiet ufw && { printf 'Configuring ufw...\n'; sudo ufw allow "$COPYPARTY_PORT"/tcp; sudo ufw allow Samba; }
+systemctl is-active --quiet ufw && {
+  printf 'Configuring ufw...\n'
+  sudo ufw allow "$COPYPARTY_PORT"/tcp
+  sudo ufw allow Samba
+}
 IP=$(ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1)
 printf '\n\n==============================================\nCopyparty setup complete!\n==============================================\n'
 printf 'Access: http://%s:%s\n\nIMPORTANT: Change admin password in ~/.config/copyparty/config.py\nThen restart: systemctl --user restart copyparty.service\n\n' "$IP" "$COPYPARTY_PORT"

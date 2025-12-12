@@ -6,7 +6,7 @@ Arch Linux PKGBUILD and patches for aria2, a lightweight multi-protocol & multi-
 
 ## Source
 
-- Upstream: https://github.com/aria2/aria2
+- Upstream: <https://github.com/aria2/aria2>
 - PKGBUILD Maintainer: <your-name>
 
 ## Build Instructions

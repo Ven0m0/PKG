@@ -34,13 +34,13 @@ sha256sums=('f311681255deb37f74bbf950a653e9434e7d8383a7b46a603a323c46cd4bf50e'
 validpgpkeys=('474E22316ABF4785A88C6E8EA2C794A986419D8A'
   'D574BD5D1D0E98895E3BF90044F2485E45D59042')
 
-prepare(){
+prepare() {
   cd "$srcdir"
   rename -v -- "-$pkgver.src" '' {cmake,third-party}-"$pkgver".src
   mkdir -p "llvm-$pkgver.src/build"
 }
 
-build(){
+build() {
   cd "llvm-$pkgver.src/build"
   export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib \
     LDFLAGS+=' -Wl,-O3,--sort-common,--as-needed -Wl,--gc-sections -Wl,-z,pack-relative-relocs'
@@ -61,7 +61,8 @@ build(){
     if [[ $_build_profile == 'nano' ]]; then
       local targets=$([[ $CARCH == 'x86_64' ]] && echo 'X86;AMDGPU' || echo 'AArch64;AMDGPU')
       cmake_args+=("-DLLVM_TARGETS_TO_BUILD=$targets")
-    fi;;
+    fi
+    ;;
   pgo | release)
     export CFLAGS+=' -fno-semantic-interposition' CXXFLAGS+=' -fno-semantic-interposition'
     cmake_args+=(
@@ -70,7 +71,8 @@ build(){
       -DLLVM_ENABLE_CURL=ON -DLLVM_ENABLE_FFI=ON -DLLVM_ENABLE_RTTI=ON
       -DLLVM_ENABLE_SPHINX=ON -DLLVM_INSTALL_GTEST=OFF -DLLVM_USE_PERF=ON
       -DSPHINX_WARNINGS_AS_ERRORS=OFF
-    );;
+    )
+    ;;
   esac
   if [[ $_build_profile == 'pgo' ]]; then
     msg 'Starting PGO generate build...'
@@ -90,11 +92,11 @@ build(){
   cmake .. "${cmake_args[@]}"
   ninja
 }
-check(){
+check() {
   [[ $_build_profile =~ (nano|mini) ]] && return 0
   (cd "llvm-$pkgver.src/build" && LD_LIBRARY_PATH="$PWD/lib" ninja check)
 }
-package_llvm(){
+package_llvm() {
   pkgdesc='Compiler infrastructure'
   cd "llvm-$pkgver.src/build"
   DESTDIR="$pkgdir" ninja install
@@ -115,7 +117,7 @@ package_llvm(){
   install -Dm644 ../LICENSE.TXT "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }
 
-package_llvm-libs(){
+package_llvm-libs() {
   pkgdesc='LLVM runtime libraries'
   depends=('gcc-libs' 'zlib' 'zstd' 'libffi' 'libedit' 'libxml2')
   if [[ $_build_profile =~ (nano|mini) ]]; then

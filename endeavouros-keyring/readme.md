@@ -6,7 +6,7 @@ Arch Linux PKGBUILD for the EndeavourOS keyring package.
 
 ## Source
 
-- Upstream: https://github.com/endeavouros-team/PKGBUILDS
+- Upstream: <https://github.com/endeavouros-team/PKGBUILDS>
 - PKGBUILD Maintainer: <your-name>
 
 ## Build Instructions

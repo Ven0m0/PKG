@@ -1,3 +1,3 @@
-- https://gitlab.com/Ph42oN/dxvk-gplasync
-- https://github.com/Digger1955/dxvk-gplasync-lowlatency
-- https://github.com/pythonlover02/DXVK-Sarek
+- <https://gitlab.com/Ph42oN/dxvk-gplasync>
+- <https://github.com/Digger1955/dxvk-gplasync-lowlatency>
+- <https://github.com/pythonlover02/DXVK-Sarek>

@@ -30,7 +30,7 @@ build() (
   export XDG_DATA_HOME="${srcdir}/tmp_data" XDG_STATE_HOME="${srcdir}/tmp_state"
   local _electron_version=$(cat /usr/lib/electron/version)
   sed -E -e 's#("electron"): "[^"]+",#\1: "'${_electron_version}'",#' -i "$_pkgsrc/package.json"
-  [[ -n "$_electron_builder_version" ]] && sed -E -e 's#("electron-builder"): "[^"]+",#\1: "'${_electron_builder_version}'",#' -i "$_pkgsrc/package.json"
+  [[ -n $_electron_builder_version ]] && sed -E -e 's#("electron-builder"): "[^"]+",#\1: "'${_electron_builder_version}'",#' -i "$_pkgsrc/package.json"
   local _electron_builder_options=(--linux dir --publish never
     -c.electronDist="/usr/lib/electron${_electron_version%%.*}" -c.electronVersion="$_electron_version")
 
@@ -50,7 +50,7 @@ build() (
   fi
 )
 
-package(){
+package() {
   local _electron_version=$(cat /usr/lib/electron/version)
   depends=("electron${_electron_version%%.*}")
   # asar
@@ -60,7 +60,7 @@ package(){
   # license
   install -Dm644 "$_pkgsrc/license.txt" "$pkgdir/$_install_path/licenses/$pkgname/LICENSE"
   # script
-  install -Dm755 /dev/stdin "$pkgdir/usr/bin/$_pkgname" << END
+  install -Dm755 /dev/stdin "$pkgdir/usr/bin/$_pkgname" <<END
 #!/usr/bin/env bash
 
 name=$_pkgname
@@ -82,7 +82,7 @@ exec electron${_electron_version%%.*} "/$_install_path/\${name}/app.asar" "\${fl
 END
 
   # launcher
-  install -Dm644 /dev/stdin "$pkgdir/$_install_path/applications/$_pkgname.desktop" << END
+  install -Dm644 /dev/stdin "$pkgdir/$_install_path/applications/$_pkgname.desktop" <<END
 [Desktop Entry]
 Type=Application
 Name=${_pkgname^}

@@ -13,19 +13,19 @@ provides=('aria2')
 conflicts=('aria2')
 options=('strip')
 source=("https://github.com/aria2/aria2/releases/download/release-${pkgver}/aria2-${pkgver}.tar.xz"
-        '0001-tweak-aria2-for-speed.patch'
-        '0002-retry-options.patch')
+  '0001-tweak-aria2-for-speed.patch'
+  '0002-retry-options.patch')
 sha256sums=('60a420ad7085eb616cb6e2bdf0a7206d68ff3d37fb5a956dc44242eb2f79b66b'
-            '0a83b33c3b4b14ba622fb039d4183e2cbb578eb97cc9cf4dbbb3ba32c28f5354'
-            'e6127b3eb368eb8810a34087fa29a79a201af62531e3a6f62614d8638055bb3c')
+  '0a83b33c3b4b14ba622fb039d4183e2cbb578eb97cc9cf4dbbb3ba32c28f5354'
+  'e6127b3eb368eb8810a34087fa29a79a201af62531e3a6f62614d8638055bb3c')
 
-prepare(){
+prepare() {
   cd "$_pkgname-$pkgver"
   patch -Np1 -i ../0001-tweak-aria2-for-speed.patch
   patch -Np1 -i ../0002-retry-options.patch
 }
 
-build(){
+build() {
   cd "$_pkgname-$pkgver"
   export CFLAGS="${CFLAGS/-O2/-O3} -pipe -fno-plt -fstack-protector-strong"
   export CXXFLAGS="${CXXFLAGS/-O2/-O3} -pipe -fno-plt -fstack-protector-strong"
@@ -34,12 +34,12 @@ build(){
   make
 }
 
-check(){
+check() {
   cd "$_pkgname-$pkgver"
   make check
 }
 
-package(){
+package() {
   cd "$_pkgname-$pkgver"
   make DESTDIR="$pkgdir" install
   install -Dm644 "$pkgdir"/usr/share/doc/aria2/bash_completion/aria2c "$pkgdir"/usr/share/bash-completion/completions/aria2c
