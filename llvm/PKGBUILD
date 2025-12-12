@@ -9,7 +9,6 @@
 # - nano:    Minimal build with limited targets (X86;AMDGPU or AArch64;AMDGPU).
 # - mini:    Minimal build with all targets.
 _build_profile=${_build_profile:-nano}
-
 pkgname=('llvm' 'llvm-libs')
 pkgver=21.1.4
 pkgrel=2
@@ -47,7 +46,7 @@ build(){
   declare -a cmake_args=(
     -G Ninja -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_SKIP_RPATH=ON
     -DLLVM_HOST_TRIPLE="$CHOST" -DLLVM_BINUTILS_INCDIR=/usr/include
-    -DLLVM_ENABLE_BINDINGS=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF
+    -DLLVM_ENABLE_BINDINGS=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF -DCMAKE_BUILD_TYPE=MinSizeRel
     -DLLVM_INSTALL_UTILS=ON -DPACKAGE_BUGREPORT='https://github.com/Ven0m0/archlinux-pkgs-debloated/issues'
   )
 
@@ -67,10 +66,10 @@ build(){
   pgo | release)
     export CFLAGS+=' -fno-semantic-interposition' CXXFLAGS+=' -fno-semantic-interposition'
     cmake_args+=(
-      -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_DOCDIR=share/doc -DLLVM_BUILD_DOCS=ON
-      -DLLVM_BUILD_LLVM_DYLIB=ON -DLLVM_LINK_LLVM_DYLIB=ON -DLLVM_BUILD_TESTS=ON
+      -DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_INSTALL_DOCDIR=share/doc -DLLVM_BUILD_DOCS=OFF
+      -DLLVM_BUILD_LLVM_DYLIB=ON -DLLVM_LINK_LLVM_DYLIB=ON -DLLVM_BUILD_TESTS=OFF
       -DLLVM_ENABLE_CURL=ON -DLLVM_ENABLE_FFI=ON -DLLVM_ENABLE_RTTI=ON
-      -DLLVM_ENABLE_SPHINX=ON -DLLVM_INSTALL_GTEST=ON -DLLVM_USE_PERF=ON
+      -DLLVM_ENABLE_SPHINX=ON -DLLVM_INSTALL_GTEST=OFF -DLLVM_USE_PERF=ON
       -DSPHINX_WARNINGS_AS_ERRORS=OFF
     )
     ;;
@@ -106,7 +105,6 @@ package_llvm(){
   pkgdesc='Compiler infrastructure'
   cd "llvm-$pkgver.src/build"
   DESTDIR="$pkgdir" ninja install
-
   if [[ $_build_profile == 'pgo' && -x "/usr/bin/generate_propeller_profiles" ]]; then
     msg 'Running Propeller post-link optimization...'
     local bin_dir="$pkgdir/usr/bin"
@@ -115,7 +113,6 @@ package_llvm(){
         && generate_propeller_profiles --profile="$PWD/llvm.profdata" --binary="$bin_file" --output="$bin_file.prop" || :
     done
   fi
-
   if [[ ! $_build_profile =~ (nano|mini) ]]; then
     (cd ../utils/lit && python3 setup.py install --root="$pkgdir" -O1 --optimize=1)
     mv -f "$pkgdir"/usr/lib/lib{LLVM,LTO,Remarks}*.so* "$srcdir"
@@ -128,7 +125,6 @@ package_llvm(){
 package_llvm-libs(){
   pkgdesc='LLVM runtime libraries'
   depends=('gcc-libs' 'zlib' 'zstd' 'libffi' 'libedit' 'libxml2')
-
   if [[ $_build_profile =~ (nano|mini) ]]; then
     (cd "llvm-$pkgver.src/build" && DESTDIR="$pkgdir" ninja install-LLVM-libraries)
   else
