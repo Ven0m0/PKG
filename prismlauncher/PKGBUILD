@@ -15,36 +15,26 @@ pkgdesc="Minecraft launcher with ability to manage multiple instances"
 arch=('x86_64' 'aarch64')
 url='https://prismlauncher.org'
 license=('GPL-3.0-only AND LGPL-3.0-or-later AND LGPL-2.0-or-later AND Apache-2.0 AND MIT AND LicenseRef-Batch AND OFL-1.1')
-depends=(
-  glibc
-  gcc-libs
-  java-runtime
-  libgl
-  qt6-base
-  qt6-5compat
-  qt6-svg
-  qt6-imageformats
-  qt6-networkauth
-  quazip-qt6
-  zlib
-  hicolor-icon-theme
-  tomlplusplus
-  cmark
+depends=(glibc gcc-libs java-runtime libgl
+  qt6-base qt6-5compat qt6-svg qt6-imageformats qt6-networkauth
+  quazip-qt6 zlib hicolor-icon-theme tomlplusplus cmark
 )
-makedepends=('git' 'cmake' 'extra-cmake-modules' 'scdoc' 'ghc-filesystem' 'java-environment>=8')
+makedepends=('git' 'cmake' 'extra-cmake-modules' 'scdoc' 'ghc-filesystem' 'jdk17-openjdk')
 optdepends=('glfw: to use system GLFW libraries'
-            'openal: to use system OpenAL libraries'
-            'visualvm: Profiling support'
-            'xorg-xrandr: for older minecraft versions'
-            'orca: minecraft screen reader'
-            'flite: minecraft voice narration'
-            'gamemode: gamemode integragion')
-provides=('prismlauncher')
-conflicts=('prismlauncher')
+  'openal: to use system OpenAL libraries'
+  'visualvm: Profiling support'
+  'xorg-xrandr: for older minecraft versions'
+  'java-runtime=8: for older minecraft versions'
+  'orca: minecraft screen reader'
+  'flite: minecraft voice narration'
+  'gamemode: gamemode integragion')
+provides=("${pkgname}")
+conflicts=("${pkgname}")
 source=("prismlauncher-cracked::git+https://github.com/Diegiwg/PrismLauncher-Cracked.git"
         "libnbtplusplus::git+https://github.com/PrismLauncher/libnbtplusplus.git"
         "filesystem::git+https://github.com/gulrak/filesystem.git"
-        "qfile-open-checks.patch")
+        "qfile-open-checks.patch"
+        {lionshead,batch,mdi}.license)
 sha256sums=('SKIP'
             'SKIP'
             'SKIP'
@@ -66,14 +56,15 @@ prepare() {
 }
 build() {
   cd PrismLauncher-$pkgver
-  export PATH="/usr/lib/jvm/java-21-openjdk/bin/:$PATH"
+  export PATH="/usr/lib/jvm/java-17-openjdk/bin/:$PATH"
   cmake -DCMAKE_BUILD_TYPE=MinSizeRel \
     -DCMAKE_INSTALL_PREFIX="/usr" \
     -DLauncher_BUILD_PLATFORM="archlinux" \
     -DLauncher_QT_VERSION_MAJOR="6" \
     -DLauncher_ENABLE_JAVA_DOWNLOADER=ON \
     -DENABLE_LTO=ON \
-    -Bbuild -S.
+    -Bbuild -S. \
+    -Wno-dev
   cmake --build build -j$(nproc)
 }
 check() {
@@ -81,6 +72,10 @@ check() {
   ctest .
 }
 package() {
+  # licenses
+  install -Dm644 lionshead.license -t "$pkgdir"/usr/share/licenses/$pkgname/
+  install -Dm644 batch.license -t "$pkgdir"/usr/share/licenses/$pkgname/
+  install -Dm644 mdi.license -t "$pkgdir"/usr/share/licenses/$pkgname/
   cd PrismLauncher-$pkgver/build
   DESTDIR="$pkgdir" cmake --install .
 }
