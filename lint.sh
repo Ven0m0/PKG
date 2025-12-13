@@ -63,6 +63,23 @@ lint_pkg() {
   builtin cd "$root"
 }
 
+handle_output() {
+  while IFS= read -r line; do
+    case $line in
+    ERROR:*)
+      errs+=("${line#ERROR:}")
+      err "${line#ERROR:}"
+      ;;
+    WARN:*)
+      warn "${line#WARN:}"
+      ;;
+    INFO:*)
+      printf '  %s\n' "${line#INFO:}" >&2
+      ;;
+    esac
+  done
+}
+
 # ─── Main ──────────────────────────────────────────────────────────────────
 main() {
   local root="$PWD"
@@ -116,20 +133,7 @@ main() {
     # Collect results
     for logfile in "$tmpdir"/*.log; do
       [[ -f $logfile ]] || continue
-      while IFS= read -r line; do
-        case $line in
-        ERROR:*)
-          errs+=("${line#ERROR:}")
-          err "${line#ERROR:}"
-          ;;
-        WARN:*)
-          warn "${line#WARN:}"
-          ;;
-        INFO:*)
-          printf '  %s\n' "${line#INFO:}" >&2
-          ;;
-        esac
-      done <"$logfile"
+      handle_output <"$logfile"
     done
   else
     # Serial execution
@@ -139,20 +143,7 @@ main() {
 
       local output
       output=$(lint_pkg "$pkg" "$root" "$sc" "$sh" "$sf" "$nc" 2>&1)
-      while IFS= read -r line; do
-        case $line in
-        ERROR:*)
-          errs+=("${line#ERROR:}")
-          err "${line#ERROR:}"
-          ;;
-        WARN:*)
-          warn "${line#WARN:}"
-          ;;
-        INFO:*)
-          printf '  %s\n' "${line#INFO:}" >&2
-          ;;
-        esac
-      done <<<"$output"
+      handle_output <<<"$output"
     done
   fi
 
