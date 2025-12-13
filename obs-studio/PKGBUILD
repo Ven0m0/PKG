@@ -9,7 +9,7 @@ url="https://obsproject.com"
 license=('GPL2')
 depends=('ffmpeg' 'pipewire' 'rnnoise' 'libxcomposite'
   'libxinerama' 'libxkbcommon-x11' 'pciutils' 'mbedtls' 'qt6-svg')
-makedepends=('extra-cmake-modules' 'ffnvcodec-headers' 'nlohmann-json' 'simde' 'uthash' 'vulkan-headers')
+makedepends=('extra-cmake-modules' 'ffnvcodec-headers' 'nlohmann-json' 'simde' 'uthash' 'vulkan-headers' 'clang' 'lld')
 optdepends=(
   'v4l2loopback-dkms: virtual camera support'
 )
@@ -27,9 +27,19 @@ prepare() {
 }
 
 build() {
+  # Use clang/lld for better optimization and faster linking
+  export CC=clang
+  export CXX=clang++
+
+  # Use sccache if available for faster compilation
+  if command -v sccache &>/dev/null; then
+    export CC="sccache clang"
+    export CXX="sccache clang++"
+  fi
+
   export CFLAGS="${CFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt -flto=auto"
   export CXXFLAGS="${CXXFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt -flto=auto -Wno-error=deprecated-declarations"
-  export LDFLAGS="${LDFLAGS} -Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
+  export LDFLAGS="${LDFLAGS} -fuse-ld=lld -Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
   cmake -B build -S "${pkgname}-${pkgver}-sources" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DENABLE_JACK=ON -DENABLE_SNDIO=OFF -DENABLE_BROWSER=OFF -DENABLE_VST=OFF -DENABLE_VLC=OFF -DENABLE_LIBFDK=OFF -DENABLE_WEBRTC=OFF -DENABLE_WEBSOCKET=OFF -DENABLE_NEW_MPEGTS_OUTPUT=OFF -DENABLE_AJA=OFF -DENABLE_SCRIPTING=OFF -DOBS_VERSION_OVERRIDE="$pkgver" -Wno-dev
   cmake --build build --target all -j"$(nproc)"
 }

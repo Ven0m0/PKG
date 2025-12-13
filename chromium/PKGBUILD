@@ -198,6 +198,11 @@ build() {
   cd chromium-$_pkgver
   if ((_system_clang)); then
     export CC=clang CXX=clang++ AR=ar NM=nm
+    # Use sccache if available for faster compilation
+    if command -v sccache &>/dev/null; then
+      export CC="sccache clang"
+      export CXX="sccache clang++"
+    fi
   else
     local _clang_path="$PWD/third_party/llvm-build/Release+Asserts/bin"
     export CC=$_clang_path/clang CXX=$_clang_path/clang++ AR=$_clang_path/llvm-ar NM=$_clang_path/llvm-nm

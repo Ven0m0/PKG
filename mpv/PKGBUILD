@@ -60,6 +60,8 @@ makedepends=(
     'python-docutils'
     'vulkan-headers'
     'wayland-protocols'
+    'clang'
+    'lld'
     # for satisfying pkgcheck:
     'python-pyqt6'
     'python-pyqtgraph')
@@ -83,6 +85,17 @@ prepare() {
 }
 
 build() {
+    # Use clang/lld for better optimization and faster linking
+    export CC=clang
+    export CXX=clang++
+    export LDFLAGS="${LDFLAGS} -fuse-ld=lld"
+
+    # Use sccache if available for faster compilation
+    if command -v sccache &>/dev/null; then
+        export CC="sccache clang"
+        export CXX="sccache clang++"
+    fi
+
     arch-meson "mpv-${pkgver}" build \
         -Dgpl='true' \
         -Dcplayer='true' \
