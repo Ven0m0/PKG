@@ -18,6 +18,7 @@ _srcdir="${srcdir}/${pkgname}/preload-src"
 
 build() {
   cd "${_srcdir}"
+  export MAKEFLAGS="-j$(nproc)"
   make
 }
 

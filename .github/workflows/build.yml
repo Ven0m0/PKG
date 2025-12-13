@@ -167,22 +167,30 @@ jobs:
       - name: Build package (Docker)
         if: steps.build_method.outputs.method == 'docker'
         run: |
-          pkg="${{ matrix.pkg }}"        
-          # Create optimized Dockerfile with fast mirrors
-          cat > /tmp/Dockerfile.build <<'DOCKERFILE'
+          pkg="${{ matrix.pkg }}"
+
+          # Use cached base image from GHCR or build if needed
+          BASE_IMAGE="ghcr.io/${{ github.repository }}/archlinux-buildenv:latest"
+
+          if ! docker pull "$BASE_IMAGE" 2>/dev/null; then
+            echo "Building base image (will be cached for future runs)..."
+            cat > /tmp/Dockerfile.build <<'DOCKERFILE'
           FROM archlinux:latest
-          # Configure parallel downloads and fastest mirrors
           RUN printf '[options]\nParallelDownloads = 8\n' >> /etc/pacman.conf && \
               pacman -Sy --noconfirm --needed reflector && \
               reflector --latest 20 --protocol https --sort rate --save /etc/pacman.d/mirrorlist && \
               pacman -Syu --noconfirm --needed && \
               pacman -S --noconfirm --needed sudo base-devel pacman-contrib clang llvm sccache ccache
-
           WORKDIR /workspace
-          DOCKERFILE      
-          # Build optimized base image (cached)
-          docker build -t archlinux-buildenv:latest -f /tmp/Dockerfile.build .        
-          # Run build in container
+          DOCKERFILE
+            docker build --cache-from="$BASE_IMAGE" -t archlinux-buildenv:latest -f /tmp/Dockerfile.build .
+            docker tag archlinux-buildenv:latest "$BASE_IMAGE" || true
+          else
+            echo "Using cached base image"
+            docker tag "$BASE_IMAGE" archlinux-buildenv:latest
+          fi
+
+          # Run build in container with optimized dependency extraction
           docker run --rm \
             -v "$(pwd):/workspace:rw" \
             -v /tmp/.buildx-cache:/cache \
@@ -195,10 +203,10 @@ jobs:
             -w "/workspace/$pkg" \
             archlinux-buildenv:latest bash -c '
             set -Eeuo pipefail
-            # Extract and install dependencies
-            deps=$(makepkg --printsrcinfo | awk "/^\s*(make)?depends\s*=/ { \$1=\"\"; print \$0 }" | tr "\n" " ")
+            # Extract dependencies efficiently (single pass)
+            deps=$(makepkg --printsrcinfo | awk "/^\s*(make)?depends\s*=/ {sub(/^[[:space:]]+/, \"\", \$2); print \$2}" | tr "\n" " ")
             echo "Dependencies: $deps"
-            pacman -S --noconfirm --needed $deps 2>/dev/null || echo "Warning: Some deps unavailable"
+            [[ -n "$deps" ]] && pacman -S --noconfirm --needed $deps 2>/dev/null || echo "Warning: Some deps unavailable"
             # Setup build user
             useradd -m builder
             echo "builder ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/builder
@@ -206,9 +214,9 @@ jobs:
             chown -R builder:builder /workspace /cache
             # Build with all optimizations
             sudo -u builder bash -c "
-              export CC=clang CXX=clang++ 
+              export CC=clang CXX=clang++
               export RUSTC_WRAPPER=sccache
-              export CCACHE_DIR=/cache/ccache SCCACHE_DIR=/cache/sccache 
+              export CCACHE_DIR=/cache/ccache SCCACHE_DIR=/cache/sccache
               export MAKEFLAGS=\"-j\$(nproc)\"
               export CARGO_BUILD_JOBS=\$(nproc)
               makepkg --noconfirm --needed
