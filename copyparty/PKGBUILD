@@ -26,6 +26,7 @@ sha256sums=('050ccc34554e59210aca7a67d87a186e69b3f4dbe013d5ee2f11a22c259a82a6')
 
 build() {
   cd "${srcdir}/${pkgname}-${pkgver}/copyparty/web"
+  export MAKEFLAGS="-j$(nproc)"
   make
   cd "${srcdir}/${pkgname}-${pkgver}"
   python -m build --wheel --no-isolation
