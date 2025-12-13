@@ -1,1 +1,0 @@
-- https://github.com/pkgforge-dev/Dolphin-emu-AppImage
