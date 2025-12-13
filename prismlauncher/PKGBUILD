@@ -10,9 +10,9 @@
 
 pkgname=prismlauncher
 pkgver=9.4
-pkgrel=1
+pkgrel=2
 pkgdesc="Minecraft launcher with ability to manage multiple instances"
-arch=(x86_64)
+arch=('x86_64' 'aarch64')
 url='https://prismlauncher.org'
 license=('GPL-3.0-only AND LGPL-3.0-or-later AND LGPL-2.0-or-later AND Apache-2.0 AND MIT AND LicenseRef-Batch AND OFL-1.1')
 depends=(
@@ -39,8 +39,16 @@ optdepends=('glfw: to use system GLFW libraries'
             'orca: minecraft screen reader'
             'flite: minecraft voice narration'
             'gamemode: gamemode integragion')
-source=("https://github.com/PrismLauncher/PrismLauncher/releases/download/$pkgver/PrismLauncher-$pkgver.tar.gz"
-        {lionshead,batch,mdi}.license)
+provides=('prismlauncher')
+conflicts=('prismlauncher')
+source=("prismlauncher-cracked::git+https://github.com/Diegiwg/PrismLauncher-Cracked.git"
+        "libnbtplusplus::git+https://github.com/PrismLauncher/libnbtplusplus.git"
+        "filesystem::git+https://github.com/gulrak/filesystem.git"
+        "qfile-open-checks.patch")
+sha256sums=('SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP')
 b2sums=('57bb4391e8b84265e42b08545bb0cf64046915fca2a80a7f40923f6abf605d9bdd7efefae40694cb5118451346ed4cf8b9d77291b6ebc5b82ec1bb1fbafc16fc'
         'be4289832af95b1cd6e721dc16b84a034533de9718d9b43a49bd08dd6fe4e28eaa15228bfb311867b18fddbda1c9fc4c91f04c6d5c1a3bcc39aaa5161425e3ba'
         '356248a6b86f06d260e0920b49d34034f79f9bc504c7fdc1849d929d2ff9b169e693a8269a2c0b34656b3802970d9b8be41a92b35177eaa3c4ccc89a702f5c9d'
@@ -56,7 +64,6 @@ prepare() {
     sed -i 's/-target 7 -source 7/-target 8 -source 8/g' libraries/launcher/CMakeLists.txt
     patch -p1 -i "${srcdir}/qfile-open-checks.patch"
 }
-
 build() {
   cd PrismLauncher-$pkgver
   export PATH="/usr/lib/jvm/java-21-openjdk/bin/:$PATH"
@@ -65,20 +72,15 @@ build() {
     -DLauncher_BUILD_PLATFORM="archlinux" \
     -DLauncher_QT_VERSION_MAJOR="6" \
     -DLauncher_ENABLE_JAVA_DOWNLOADER=ON \
+    -DENABLE_LTO=ON \
     -Bbuild -S.
-  cmake --build build
+  cmake --build build -j$(nproc)
 }
-
 check() {
   cd PrismLauncher-$pkgver/build
   ctest .
 }
-
 package() {
-  # licenses
-  install -Dm644 lionshead.license -t "$pkgdir"/usr/share/licenses/$pkgname/
-  install -Dm644 batch.license -t "$pkgdir"/usr/share/licenses/$pkgname/
-  install -Dm644 mdi.license -t "$pkgdir"/usr/share/licenses/$pkgname/
   cd PrismLauncher-$pkgver/build
   DESTDIR="$pkgdir" cmake --install .
 }
