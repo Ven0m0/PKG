@@ -182,7 +182,8 @@ build() {
         -Dswift-flags='disabled' \
         -Dhtml-build='disabled' \
         -Dmanpage-build='enabled' \
-        -Dpdf-build='disabled'
+        -Dpdf-build='disabled' \
+        -Dc_link_args='-lstdc++ -lglslang'
     meson compile -C build
 }
 
