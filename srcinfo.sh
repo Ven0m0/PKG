@@ -43,6 +43,20 @@ process_pkg() {
   echo "OK:$pkg"
 }
 
+handle_output() {
+  while IFS= read -r line; do
+    case $line in
+    OK:*)
+      log "${line#OK:}"
+      ;;
+    ERROR:*)
+      errs+=("${line#ERROR:}")
+      err "${line#ERROR:}"
+      ;;
+    esac
+  done
+}
+
 # ─── Main ──────────────────────────────────────────────────────────────────
 main() {
   local root="$PWD"
@@ -89,17 +103,7 @@ main() {
     # Collect results
     for logfile in "$tmpdir"/*.log; do
       [[ -f $logfile ]] || continue
-      while IFS= read -r line; do
-        case $line in
-        OK:*)
-          log "${line#OK:}"
-          ;;
-        ERROR:*)
-          errs+=("${line#ERROR:}")
-          err "${line#ERROR:}"
-          ;;
-        esac
-      done <"$logfile"
+      handle_output <"$logfile"
     done
   else
     # Serial execution
@@ -108,17 +112,7 @@ main() {
 
       local output
       output=$(process_pkg "$pkg" "$root" 2>&1)
-      while IFS= read -r line; do
-        case $line in
-        OK:*)
-          log "${line#OK:}"
-          ;;
-        ERROR:*)
-          errs+=("${line#ERROR:}")
-          err "${line#ERROR:}"
-          ;;
-        esac
-      done <<<"$output"
+      handle_output <<<"$output"
     done
   fi
 
