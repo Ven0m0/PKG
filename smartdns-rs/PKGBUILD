@@ -8,11 +8,11 @@ pkgdesc='A cross-platform local DNS server written in Rust that returns the fast
 arch=('x86_64' 'aarch64')
 url='https://github.com/mokeyish/smartdns-rs'
 license=('GPL-3.0-or-later')
-depends=('gcc-libs')
+depends=('gcc-libs' 'glibc')
 makedepends=('rust' 'cargo')
 provides=('smartdns')
 conflicts=('smartdns')
-options=('strip')
+options=('strip' '!emptydirs' '!debug')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
 sha256sums=('4ffd4021d751dcdd572df9dffd2f2b554c12192baa9cdb93a604bace53644bb4')
 
@@ -23,10 +23,8 @@ prepare() {
 
 build() {
   cd "$pkgname-$pkgver"
-  export RUSTUP_TOOLCHAIN=stable
-  export CARGO_TARGET_DIR=target
-  export RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C link-arg=-fuse-ld=lld"
-  cargo build --release --frozen --all-features
+  export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target RUSTFLAGS="-Ctarget-cpu=native -Copt-level=3 -Clink-arg=-fuse-ld=lld"
+  cargo build -r --frozen --all-features
 }
 
 check() {
@@ -34,12 +32,10 @@ check() {
   export RUSTUP_TOOLCHAIN=stable
   cargo test --frozen --all-features
 }
-
 package() {
   cd "$pkgname-$pkgver"
   install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/smartdns"
   install -Dm0644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
   install -Dm0644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
 }
-
 # vim: ts=2 sw=2 et:
