@@ -14,33 +14,26 @@ sha256sums=('d5558cd419c8d46bdc958064cb97f963d1ea793866414c025906ec15033512ed')
 
 prepare() {
   cd "OxiCloud-${pkgver}"
-  cargo fetch --locked --target "${CARCH}-unknown-linux-gnu"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo fetch --locked --target "$(rustc --print host-tuple)"
 }
-
 build() {
   cd "OxiCloud-${pkgver}"
-  export RUSTUP_TOOLCHAIN=stable
-  export CARGO_TARGET_DIR=target
-  export RUSTFLAGS="-C target-cpu=native -C opt-level=3"
-
+  export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target RUSTFLAGS="-C target-cpu=native -C opt-level=3"
   # Use sccache if available
   if command -v sccache &>/dev/null; then
     export RUSTC_WRAPPER=sccache
   fi
-
   cargo build --frozen --release --all-features
 }
-
 check() {
   cd "OxiCloud-${pkgver}"
   export RUSTUP_TOOLCHAIN=stable
   cargo test --frozen --all-features
 }
-
 package() {
   cd "OxiCloud-${pkgver}"
   install -Dm755 "target/release/${pkgname}" "${pkgdir}/usr/bin/${pkgname}"
-
   # Install license
   install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }
