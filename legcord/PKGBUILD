@@ -1,5 +1,5 @@
-# Maintainer:
-## options
+# shellcheck enable=all shell=bash source-path=SCRIPTDIR
+# Maintainer: Ven0m0
 : ${_install_path:=usr/share}
 : ${_electron_builder_version:=<26}
 _pkgname="legcord"
@@ -87,3 +87,5 @@ Icon=$_pkgname
 Categories=Internet;Network;InstantMessaging;
 END
 }
+
+# vim:set sw=2 ts=2 et:
