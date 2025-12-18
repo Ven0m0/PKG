@@ -158,15 +158,14 @@ prepare() {
 
 build() {
   cd "Borked3DS-${_commit}"
-
   cmake -GNinja -B build -S . \
     -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_SKIP_INSTALL_RPATH=YES \
     -DCMAKE_INSTALL_PREFIX=/usr \
     -DENABLE_QT6=ON \
-    -DENABLE_QT_TRANSLATION=ON \
-    -DUSE_DISCORD_PRESENCE=ON \
+    -DENABLE_QT_TRANSLATION=OFF \
+    -DUSE_DISCORD_PRESENCE=OFF \
     -DCITRA_WARNINGS_AS_ERRORS=OFF
-
   cmake --build build
 }
 
