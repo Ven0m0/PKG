@@ -8,12 +8,13 @@ s=${BASH_SOURCE[0]}; [[ $s != /* ]] && s=$PWD/$s; cd -P -- "${s%/*}"
 
 ./configure \
   --prefix=/usr \
+  --with-rustls \
   --with-openssl \
   --with-openssl-quic \
+  --enable-quic \
+  --enable-ares \
   --enable-http2 \
-  --enable-http3 \
   --with-nghttp2 \
-  --with-nghttp3 \
   --with-ngtcp2 \
   --with-quiche \
   --with-brotli \
@@ -24,16 +25,11 @@ s=${BASH_SOURCE[0]}; [[ $s != /* ]] && s=$PWD/$s; cd -P -- "${s%/*}"
   --enable-threaded-resolver \
   --enable-websockets \
   --with-gssapi \
-  --enable-quic \
   --enable-earlydata \
   --disable-manual \
-  --disable-shared \
   --disable-ldap \
   --disable-ldaps \
-  --with-rustls \
-  --enable-ares \
   --with-ca-bundle='/etc/ssl/certs/ca-certificates.crt'
-
 make -j"$(nproc)"
 sudo make install
 
