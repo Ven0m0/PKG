@@ -141,8 +141,9 @@ END
   export CXXFLAGS="${CXXFLAGS} -O3 -march=native -mtune=native -pipe -fno-plt"
   export LDFLAGS="${LDFLAGS} -Wl,-O3,--sort-common,--as-needed,-z,relro,-z,now"
   _cmake_options=(
-    -B build -G Ninja -S '.'
+    -GNinja -B build -S '.'
     -DCMAKE_BUILD_TYPE=Release
+    -DCMAKE_SKIP_INSTALL_RPATH=YES
     -DCMAKE_INSTALL_PREFIX='/usr' -DCMAKE_POLICY_VERSION_MINIMUM=3.5
     -DCMAKE_SKIP_RPATH=ON -DENABLE_AUTOUPDATE=OFF
     -DENABLE_ANALYTICS=OFF -DENCODE_FRAMEDUMPS=OFF -DUSE_DISCORD_PRESENCE=OFF
