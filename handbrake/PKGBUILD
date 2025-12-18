@@ -8,7 +8,7 @@ pkgver=1.10.2.r4.g53aeefb9e
 pkgrel=1
 arch=('x86_64')
 url="https://handbrake.fr/"
-license=('GPL')
+license=('GPL-2.0-only')
 _commondeps=(
   'bzip2'
   'fribidi'
@@ -44,7 +44,8 @@ _guideps=(
   'harfbuzz'
   'libgudev'
   'pango'
-  'desktop-file-utils' 'hicolor-icon-theme'
+  'desktop-file-utils' 
+  'hicolor-icon-theme'
 )
 makedepends=(
   'base-devel'
@@ -55,7 +56,7 @@ makedepends=(
   'cmake'
   'meson'
   'git'
-  'clang>=20'
+  'clang'
   'lld'
   'llvm'
   'cargo-c'
@@ -64,10 +65,10 @@ makedepends=(
   "${_commondeps[@]}"
   "${_guideps[@]}"
 )
-_implicitdeps=(xz zlib glibc gcc-libs bzip2 libdrm)
+_implicitdeps=(glibc libdrm)
 optdepends=('intel-media-sdk: for enabling Intel QSV' 'amf-amdgpu-pro: for enabling AMD AMF'
   'nvidia-utils: for enabling Nvidia nvenc and nvdec' 'cuda: for enabling Nvidia nvenc and nvdec'
-  'gst-plugins-good: for video previews' 'libdvdcss: for decoding encrypted DVDs' 'libdvdcss: for decoding encrypted DVDs')
+  'gst-plugins-good: for video previews' 'gst-libav: for video previews' 'libdvdcss: for decoding encrypted DVDs')
 options=('!lto' 'strip' '!debug') # https://bugs.archlinux.org/task/72600
 source=("HandBrake::git+https://github.com/HandBrake/HandBrake.git#tag=${pkgver}")
 sha256sums=('SKIP')
@@ -95,7 +96,7 @@ build() {
     --cc="${CC}" --ar="${AR}" --ranlib="${RANLIB}" --strip="${STRIP}"
     --lto=on --optimize=speed --cpu=native --enable-qsv --enable-vce
     --enable-nvenc --enable-nvdec)
-  cd "${srcdir}/HandBrake"
+  cd "${srcdir}/HandBrake" || exit 1
   ./configure "${CONFIGURE_OPTIONS[@]}"
   make -C build --jobs=$(nproc)
 }
