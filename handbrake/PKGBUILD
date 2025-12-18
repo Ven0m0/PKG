@@ -93,10 +93,11 @@ build() {
   local -a CONFIGURE_OPTIONS=(
     --launch-jobs=0 --prefix=/usr --harden
     --cc="${CC}" --ar="${AR}" --ranlib="${RANLIB}" --strip="${STRIP}"
-    --lto=on --optimize=speed --cpu=native --enable-qsv --enable-vce)
+    --lto=on --optimize=speed --cpu=native --enable-qsv --enable-vce
+    --enable-nvenc --enable-nvdec)
   cd "${srcdir}/HandBrake"
   ./configure "${CONFIGURE_OPTIONS[@]}"
-  make -C build
+  make -C build --jobs=$(nproc)
 }
 
 package_handbrake-svt-av1-essential-llvm-optimized() {
