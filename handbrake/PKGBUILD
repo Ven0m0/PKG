@@ -99,7 +99,7 @@ build() {
     --disable-df-fetch --disable-df-verify --disable-numa)
   cd "${srcdir}/HandBrake" || exit 1
   ./configure "${CONFIGURE_OPTIONS[@]}"
-  make -C build --jobs=$(nproc)
+  make -C build -j $(nproc)
 }
 
 package_handbrake-svt-av1-essential-llvm-optimized() {
