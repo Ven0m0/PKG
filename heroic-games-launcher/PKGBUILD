@@ -1,3 +1,4 @@
+# shellcheck enable=all shell=bash source-path=SCRIPTDIR
 # Maintainer: Fabio 'Lolix' Loli <fabio.loli@disroot.org> -> https://github.com/FabioLolix
 
 pkgname=heroic-games-launcher-electron-git
@@ -10,11 +11,13 @@ url="https://heroicgameslauncher.com/"
 license=(GPL-3.0-only)
 _electron=electron36
 depends=($_electron zlib gcc-libs glibc)
-makedepends=(git pnpm npm python desktop-file-utils)
+makedepends=(git npm python desktop-file-utils)
+optdepends=('bun: build with bun' 'pnpm: build with pnpm')
 provides=(heroic-games-launcher)
 conflicts=(heroic-games-launcher)
 source=(git+https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher.git)
 sha256sums=('SKIP')
+options=('strip' '!debug')
 
 pkgver() {
   cd "$_pkgname"
@@ -26,11 +29,22 @@ prepare() {
 }
 build() {
   cd "$_pkgname"
-  pnpm install
-  pnpm run download-helper-binaries
-  pnpm dist:linux --x64 --dir -c.electronDist=/usr/lib/$_electron/ -c.electronVersion=$(cat /usr/lib/$_electron/version)
+  local _electron_version=$(< /usr/lib/$_electron/version)
+  local -a _builder_opts=(-c.electronDist="/usr/lib/${_electron}/" -c.electronVersion="${_electron_version}")
+  if command -v bun &>/dev/null; then
+    NODE_ENV=development bun install
+    NODE_ENV=production bun run download-helper-binaries
+    NODE_ENV=production bun run dist:linux --x64 --dir "${_builder_opts[@]}"
+  elif command -v pnpm &>/dev/null; then
+    NODE_ENV=development pnpm install
+    NODE_ENV=production pnpm run download-helper-binaries
+    NODE_ENV=production pnpm run dist:linux --x64 --dir "${_builder_opts[@]}"
+  else
+    NODE_ENV=development npm install
+    NODE_ENV=production npm run download-helper-binaries
+    NODE_ENV=production npm run dist:linux -- --x64 --dir "${_builder_opts[@]}"
+  fi
 }
-
 package() {
   install -d "${pkgdir}/usr/lib/heroic"
   install -d "${pkgdir}/usr/bin"
@@ -49,3 +63,4 @@ package() {
   # desktop file
   install -Dm644 ./$_pkgname/flatpak/com.heroicgameslauncher.hgl.desktop -t "${pkgdir}/usr/share/applications"
 }
+# vim:set sw=2 ts=2 et:
