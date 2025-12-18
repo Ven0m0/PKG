@@ -113,7 +113,7 @@ prepare() {
     src="${src##*/}"
     [[ $src == *.patch ]] || continue
     echo "Applying patch $src..."
-    patch -Np1 -i "../$src" || :
+    patch -Np1 -i "../${src}" || git apply "../${src}"
   done
   # Clear forced startup pages
   sed -E -e 's&^\s*pref\("startup\.homepage.*$&&' -i browser/branding/*/pref/firefox-branding.js
@@ -508,7 +508,6 @@ BusName=org.mozilla.${_pkgname//-/}.SearchProvider
 ObjectPath=/org/mozilla/${_pkgname//-/}/SearchProvider
 Version=2
 END
-
   # Icons
   for i in 16 22 24 32 48 64 128 256; do
     install -Dm644 browser/branding/official/default$i.png \
@@ -528,7 +527,6 @@ END
 #!/bin/sh
 exec /usr/lib/firefox/firefox "$@"
 END
-
   # Link binary
   ln -srf "$pkgdir/usr/bin/$_pkgname" "$pkgdir/usr/lib/$_pkgname/firefox-bin"
   # Link ONNX runtime if available
