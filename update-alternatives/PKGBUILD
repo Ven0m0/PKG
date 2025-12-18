@@ -1,0 +1,46 @@
+# Maintainer: Ven0m0
+
+pkgname=update-alternatives
+pkgver=0.6.0
+_commit=10fd49bb10b3f9315e158e60e8b27c4ae8db8463
+pkgrel=2
+pkgdesc='Rust implementation of update-alternatives for managing alternative versions of commands'
+arch=('x86_64' 'aarch64')
+url='https://github.com/fthomys/update-alternatives'
+license=('MIT')
+depends=('gcc-libs')
+makedepends=('rust' 'cargo' 'git')
+options=('strip')
+source=("${pkgname}::git+${url}.git#commit=${_commit}")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "${pkgname}"
+  git describe --tags --abbrev=0 2>/dev/null || echo "0.6.0"
+}
+
+prepare() {
+  cd "${pkgname}"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo fetch --locked --target "${CARCH}-unknown-linux-gnu"
+}
+
+build() {
+  cd "${pkgname}"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR=target
+  export RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C link-arg=-fuse-ld=lld"
+  cargo build --release --frozen --all-features
+}
+
+check() {
+  cd "${pkgname}"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo test --frozen --all-features
+}
+
+package() {
+  cd "${pkgname}"
+  install -Dm755 "target/release/${pkgname}" "${pkgdir}/usr/bin/${pkgname}"
+  install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}
