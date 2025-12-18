@@ -21,7 +21,7 @@ pkgver() {
 
 build() {
     export LDFLAGS+=' -Wl,-z,noexecstack'
-    cmake -B build -S SVT-AV1-Essential \
+    cmake -G Ninja -B build -S SVT-AV1-Essential \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_SKIP_INSTALL_RPATH=YES \
         -DCMAKE_INSTALL_PREFIX=/usr \
