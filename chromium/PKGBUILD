@@ -5,10 +5,10 @@
 # Contributor: Daniel J Griffiths <ghost1227@archlinux.us>
 
 pkgname=cromite
-pkgver=141.0.7390.55
-_pkgver=141.0.7390.54
+pkgver=143.0.7499.110
+_pkgver=143.0.7499.110
 _chrome_ver=${_pkgver}
-_commit=b2824377c30847f42e00c6ace66d91fa516b5f51
+_commit=8e844cf64f8159a72f158eb33e2f09b19f7d115a
 pkgrel=1
 _launcher_ver=8
 _manual_clone=1

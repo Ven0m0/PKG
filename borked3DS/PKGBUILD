@@ -1,207 +1,178 @@
-# Maintainer: HurricanePootis <hurricanepootis@protonmail.com>
+# Maintainer: Ven0m0
+# Based on work by: HurricanePootis <hurricanepootis@protonmail.com>
+
 pkgname=borked3ds
 pkgver=2025.03.11
-pkgrel=2
-pkgdesc="An experimental Nintendo 3DS Emulator based off of Citra."
-arch=(x86_64)
-url="https://github.com/Borked3DS/Borked3DS"
-license=('GPL-2.0-only')
-depends=('glibc' 'qt6-base' 'sdl2' 'qt6-multimedia' 'hicolor-icon-theme' 'libglvnd' 'spirv-tools' 'gcc-libs' 'zydis')
-makedepends=('cmake' 'ninja' 'doxygen' 'patchelf' 'git')
+pkgrel=3
 _commit=bff691f6d606f29a667a60eebade794cccdee133
-source=("$pkgname::git+$url.git#commit=$_commit"
-	"boost::git+https://github.com/Borked3DS/ext-boost.git"
-	"git+https://github.com/Borked3DS/nihstro.git"
-	"git+https://github.com/Borked3DS/soundtouch.git"
-	"catch2::git+https://github.com/catchorg/Catch2.git"
-	"git+https://github.com/Borked3DS/dynarmic.git"
-	"git+https://github.com/herumi/xbyak.git"
-	"git+https://github.com/fmtlib/fmt.git"
-	"git+https://github.com/lsalzman/enet.git"
-	"git+https://github.com/benhoyt/inih.git"
-	"libressl::git+https://github.com/Borked3DS/ext-libressl-portable.git"
-	"git+https://github.com/libusb/libusb.git"
-	"git+https://github.com/mozilla/cubeb.git"
-	"git+https://github.com/Borked3DS/discord-rpc.git"
-	"git+https://github.com/arun11299/cpp-jwt.git"
-	"git+https://github.com/Borked3DS/teakra.git"
-	"git+https://github.com/lvandeve/lodepng.git"
-	"git+https://github.com/facebook/zstd.git"
-	"git+https://chromium.googlesource.com/libyuv/libyuv.git"
-	"sdl2::git+https://github.com/libsdl-org/SDL.git"
-	"git+https://github.com/abdes/cryptopp-cmake.git"
-	"git+https://github.com/weidai11/cryptopp.git"
-	"git+https://github.com/septag/dds-ktx.git"
-	"git+https://github.com/kcat/openal-soft.git"
-	"git+https://github.com/KhronosGroup/glslang.git"
-	"vma::git+https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git"
-	"vulkan-headers::git+https://github.com/KhronosGroup/Vulkan-Headers.git"
-	"git+https://github.com/Borked3DS/sirit.git"
-	"git+https://github.com/knik0/faad2"
-	"library-headers::git+https://github.com/Borked3DS/ext-library-headers.git"
-	"git+https://github.com/bylaws/libadrenotools.git"
-	"git+https://github.com/Borked3DS/oaknut.git"
-	"teakra-old::git+https://github.com/Borked3DS/teakra.git"
-	"git+https://github.com/google/oboe.git"
-	"git+https://github.com/KhronosGroup/SPIRV-Tools.git"
-	"git+https://github.com/KhronosGroup/MoltenVK.git"
-	"git+https://github.com/KhronosGroup/Vulkan-ValidationLayers.git"
-	"git+https://github.com/libsdl-org/sdl2-compat.git"
-	# Submodule submodule
-	"git+https://github.com/google/googletest.git"
-	"git+https://github.com/arsenm/sanitizers-cmake.git"
-	"git+https://github.com/mozilla/cubeb-coreaudio-rs.git"
-	"git+https://github.com/mozilla/cubeb-pulse-rs.git"
-	# Discord-rpc
-	"git+https://github.com/Tencent/rapidjson.git"
-	# Dynarmic
-	"git+https://github.com/lioncash/biscuit.git"
-	"git+https://github.com/Borked3DS/mcl.git"
-	"git+https://github.com/Tessil/robin-map.git"
-	"zycore::git+https://github.com/zyantific/zycore-c"
-	"git+https://github.com/zyantific/zydis.git"
-	"git+https://github.com/Borked3DS/unicorn.git"
-	# ext-boost, fmt, and catch included above
-	# libadrenotools
-	"git+https://github.com/bylaws/liblinkernsbypass.git"
-	# oaknut has catch
-	# sirit has SPIRV-Headers
-	"git+https://github.com/KhronosGroup/SPIRV-Headers.git"
-	# teakra has xbyak, mcl, robin-map, and catch2
-	)
-noextract=()
-sha256sums=('14dbb3cd908e9584236dd7178701ef94e847eb6334441358bd87496ac9aec343'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP')
-validpgpkeys=()
+pkgdesc='Experimental Nintendo 3DS emulator based on Citra'
+arch=('x86_64')
+url='https://github.com/Borked3DS/Borked3DS'
+license=('GPL-2.0-only')
+depends=('glibc' 'qt6-base' 'sdl2' 'qt6-multimedia' 'hicolor-icon-theme'
+         'libglvnd' 'spirv-tools' 'gcc-libs' 'zydis')
+makedepends=('cmake' 'ninja' 'doxygen' 'patchelf' 'git')
+source=("${pkgname}-${_commit}.tar.gz::${url}/archive/${_commit}.tar.gz"
+  # Main dependencies
+  boost::git+https://github.com/Borked3DS/ext-boost.git
+  nihstro::git+https://github.com/Borked3DS/nihstro.git
+  soundtouch::git+https://github.com/Borked3DS/soundtouch.git
+  catch2::git+https://github.com/catchorg/Catch2.git
+  dynarmic::git+https://github.com/Borked3DS/dynarmic.git
+  xbyak::git+https://github.com/herumi/xbyak.git
+  fmt::git+https://github.com/fmtlib/fmt.git
+  enet::git+https://github.com/lsalzman/enet.git
+  inih::git+https://github.com/benhoyt/inih.git
+  libressl::git+https://github.com/Borked3DS/ext-libressl-portable.git
+  libusb::git+https://github.com/libusb/libusb.git
+  cubeb::git+https://github.com/mozilla/cubeb.git
+  discord-rpc::git+https://github.com/Borked3DS/discord-rpc.git
+  cpp-jwt::git+https://github.com/arun11299/cpp-jwt.git
+  teakra::git+https://github.com/Borked3DS/teakra.git
+  lodepng::git+https://github.com/lvandeve/lodepng.git
+  zstd::git+https://github.com/facebook/zstd.git
+  libyuv::git+https://chromium.googlesource.com/libyuv/libyuv.git
+  sdl2::git+https://github.com/libsdl-org/SDL.git
+  cryptopp-cmake::git+https://github.com/abdes/cryptopp-cmake.git
+  cryptopp::git+https://github.com/weidai11/cryptopp.git
+  dds-ktx::git+https://github.com/septag/dds-ktx.git
+  openal-soft::git+https://github.com/kcat/openal-soft.git
+  glslang::git+https://github.com/KhronosGroup/glslang.git
+  vma::git+https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+  vulkan-headers::git+https://github.com/KhronosGroup/Vulkan-Headers.git
+  sirit::git+https://github.com/Borked3DS/sirit.git
+  faad2::git+https://github.com/knik0/faad2
+  library-headers::git+https://github.com/Borked3DS/ext-library-headers.git
+  libadrenotools::git+https://github.com/bylaws/libadrenotools.git
+  oaknut::git+https://github.com/Borked3DS/oaknut.git
+  teakra-old::git+https://github.com/Borked3DS/teakra.git
+  oboe::git+https://github.com/google/oboe.git
+  spirv-tools::git+https://github.com/KhronosGroup/SPIRV-Tools.git
+  moltenvk::git+https://github.com/KhronosGroup/MoltenVK.git
+  vulkan-validationlayers::git+https://github.com/KhronosGroup/Vulkan-ValidationLayers.git
+  sdl2-compat::git+https://github.com/libsdl-org/sdl2-compat.git
+  # Nested submodules
+  googletest::git+https://github.com/google/googletest.git
+  sanitizers-cmake::git+https://github.com/arsenm/sanitizers-cmake.git
+  cubeb-coreaudio-rs::git+https://github.com/mozilla/cubeb-coreaudio-rs.git
+  cubeb-pulse-rs::git+https://github.com/mozilla/cubeb-pulse-rs.git
+  rapidjson::git+https://github.com/Tencent/rapidjson.git
+  biscuit::git+https://github.com/lioncash/biscuit.git
+  mcl::git+https://github.com/Borked3DS/mcl.git
+  robin-map::git+https://github.com/Tessil/robin-map.git
+  vulkan-hpp::git+https://github.com/KhronosGroup/Vulkan-Hpp.git
+  linkernsbypass::git+https://github.com/bylaws/liblinkernsbypass.git
+  spirv-headers::git+https://github.com/KhronosGroup/SPIRV-Headers.git)
+
+sha256sums=('b93a8e7f5c409028fb3ec8a28392e67472489a4d740a1c5c80e1dcb8c102d916'
+            'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP'
+            'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP'
+            'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP'
+            'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP'
+            'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP'
+            'SKIP' 'SKIP' 'SKIP')
 
 prepare() {
-	cd "$srcdir/$pkgname"
-	git submodule init
-	for submodule in {boost,nihstro,soundtouch,catch2,dynarmic,xbyak,fmt,enet,inih,libressl,libusb,cubeb,discord-rpc,cpp-jwt,teakra,lodepng,zstd,libyuv,sdl2,cryptopp-cmake,cryptopp,dds-ktx,openal-soft,glslang,vma,vulkan-headers,sirit,faad2,library-headers,libadrenotools,oaknut,teakra-old,oboe,SPIRV-Tools,MoltenVK,Vulkan-ValidationLayers};
-	do
-		git config submodule.$submodule.url "$srcdir/$submodule"
-	done
-	git config submodule.externals/sdl2/sdl2-compat.url "$srcdir/sdl2-compat"
-	git -c protocol.file.allow=always submodule update
-	pushd externals/cubeb
-		git submodule init
-		git config submodule.googletest.url "$srcdir/googletest"
-		git config submodule.cmake/sanitizers-cmake.url "$srcdir/sanitizers-cmake"
-		git config submodule.src/cubeb-coreaudio-rs.git "$srcdir/cubeb-coreaudio-rs"
-		git config submodule.src/cubeb-pulse-rs.git "$srcdir/cubeb-pulse-rs"
-		git -c protocol.file.allow=always submodule update
-	popd
-	pushd externals/discord-rpc
-		git submodule init
-		git config submodule.thirdparty/rapidjson.url "$srcdir/rapidjson"
-		git -c protocol.file.allow=always submodule update
-	popd
-	pushd externals/dynarmic
-		git submodule init
-		for submodule in {biscuit,fmt,mcl,oaknut,robin-map,xbyak,zycore,zydis,unicorn};
-		do
-		git config submodule.externals/$submodule.url "$srcdir/$submodule"
-		done
-		git config submodule.externals/catch.url "$srcdir/catch2"
-		git config submodule.externals/ext-boost.url "$srcdir/boost"
-		git -c protocol.file.allow=always submodule update
-	popd
-	pushd externals/libadrenotools
-		git submodule init
-		git config submodule.lib/linkernsbypass.url "$srcdir/liblinkernsbypass"
-		git -c protocol.file.allow=always submodule update
-	popd
-	pushd externals/oaknut
-		git submodule init
-		git config submodule.externals/catch.url "$srcdir/catch2"
-		git -c protocol.file.allow=always submodule update
-	popd
-	pushd externals/sirit
-		git submodule init
-		git config submodule.externals/SPIRV-Headers.url "$srcdir/SPIRV-Headers"
-		git -c protocol.file.allow=always submodule update
-	popd
-	pushd externals/teakra
-		git submodule init
-		for submodule in {xbyak,mcl,robin-map,catch2};
-		do
-		git config submodule.externals/$submodule.url "$srcdir/$submodule"
-		done
-		git -c protocol.file.allow=always submodule update
-	popd
+  cd "Borked3DS-${_commit}"
+
+  # Initialize git for submodule management
+  git init
+  git config submodule.externals/boost.url "${srcdir}/boost"
+  git config submodule.externals/nihstro.url "${srcdir}/nihstro"
+  git config submodule.externals/soundtouch.url "${srcdir}/soundtouch"
+  git config submodule.externals/catch2.url "${srcdir}/catch2"
+  git config submodule.externals/dynarmic.url "${srcdir}/dynarmic"
+  git config submodule.externals/xbyak.url "${srcdir}/xbyak"
+  git config submodule.externals/fmt.url "${srcdir}/fmt"
+  git config submodule.externals/enet.url "${srcdir}/enet"
+  git config submodule.externals/inih.url "${srcdir}/inih"
+  git config submodule.externals/libressl.url "${srcdir}/libressl"
+  git config submodule.externals/libusb/libusb.url "${srcdir}/libusb"
+  git config submodule.externals/cubeb.url "${srcdir}/cubeb"
+  git config submodule.externals/discord-rpc.url "${srcdir}/discord-rpc"
+  git config submodule.externals/cpp-jwt.url "${srcdir}/cpp-jwt"
+  git config submodule.externals/teakra.url "${srcdir}/teakra"
+  git config submodule.externals/lodepng/lodepng.url "${srcdir}/lodepng"
+  git config submodule.externals/zstd.url "${srcdir}/zstd"
+  git config submodule.externals/libyuv.url "${srcdir}/libyuv"
+  git config submodule.externals/sdl2/SDL.url "${srcdir}/sdl2"
+  git config submodule.externals/cryptopp/cryptopp-cmake.url "${srcdir}/cryptopp-cmake"
+  git config submodule.externals/cryptopp/cryptopp.url "${srcdir}/cryptopp"
+  git config submodule.externals/dds-ktx.url "${srcdir}/dds-ktx"
+  git config submodule.externals/openal-soft.url "${srcdir}/openal-soft"
+  git config submodule.externals/glslang.url "${srcdir}/glslang"
+  git config submodule.externals/vulkan-memory-allocator.url "${srcdir}/vma"
+  git config submodule.externals/vulkan-headers.url "${srcdir}/vulkan-headers"
+  git config submodule.externals/sirit.url "${srcdir}/sirit"
+  git config submodule.externals/faad2.url "${srcdir}/faad2"
+  git config submodule.externals/library-headers.url "${srcdir}/library-headers"
+  git config submodule.externals/libadrenotools.url "${srcdir}/libadrenotools"
+  git config submodule.externals/oaknut.url "${srcdir}/oaknut"
+  git config submodule.externals/teakra-old.url "${srcdir}/teakra-old"
+  git config submodule.externals/oboe.url "${srcdir}/oboe"
+  git config submodule.externals/spirv-tools.url "${srcdir}/spirv-tools"
+  git config submodule.externals/MoltenVK.url "${srcdir}/moltenvk"
+  git config submodule.externals/vulkan-validationlayers.url "${srcdir}/vulkan-validationlayers"
+  git config submodule.externals/sdl2-compat.url "${srcdir}/sdl2-compat"
+
+  # Update all submodules
+  git -c protocol.file.allow=always submodule update --init --recursive
+
+  # Configure nested submodules
+  pushd externals/cubeb
+    git config submodule.googletest.url "${srcdir}/googletest"
+    git config submodule.cmake/sanitizers-cmake.url "${srcdir}/sanitizers-cmake"
+    git config submodule.src/cubeb-coreaudio-rs.url "${srcdir}/cubeb-coreaudio-rs"
+    git config submodule.src/cubeb-pulse-rs.url "${srcdir}/cubeb-pulse-rs"
+    git -c protocol.file.allow=always submodule update --init
+  popd
+
+  pushd externals/discord-rpc
+    git config submodule.thirdparty/rapidjson.url "${srcdir}/rapidjson"
+    git -c protocol.file.allow=always submodule update --init
+  popd
+
+  pushd externals/dynarmic/externals
+    git config submodule.biscuit.url "${srcdir}/biscuit"
+    git config submodule.mcl.url "${srcdir}/mcl"
+    git config submodule.robin-map.url "${srcdir}/robin-map"
+    git config submodule.vixl.url "${srcdir}/vixl"
+    git -c protocol.file.allow=always submodule update --init
+  popd
+
+  pushd externals/vulkan-headers
+    git config submodule.Vulkan-Hpp.url "${srcdir}/vulkan-hpp"
+    git -c protocol.file.allow=always submodule update --init
+  popd
+
+  pushd externals/libadrenotools
+    git config submodule.lib/linkernsbypass.url "${srcdir}/linkernsbypass"
+    git -c protocol.file.allow=always submodule update --init
+  popd
+
+  pushd externals/sirit
+    git config submodule.externals/SPIRV-Headers.url "${srcdir}/spirv-headers"
+    git -c protocol.file.allow=always submodule update --init
+  popd
 }
 
 build() {
-	cd "$srcdir"
-	export CFLAGS="-U_FORITFY_SOURCE ${CFLAGS}" CXXFLAGS="-U_FORTIFY_SOURCE ${CXXFLAGS}"
-	echo "$CFLAGS"; echo "$CXXFLAGS"
-	cmake -B build -S "$pkgname" \
-	-G Ninja \
-	-DCMAKE_BUILD_TYPE=MinSizeRel \
-	-DCMAKE_INSTALL_PREFIX=/usr \
-	-DBORKED3DS_USE_PRECOMPILED_HEADERS=NO \
-	-DBORKED3DS_USE_EXTERNAL_VULKAN_SPIRV_TOOLS=NO \
-	-DBORKED3DS_WARNINGS_AS_ERRORS=NO
-	cmake --build build
+  cd "Borked3DS-${_commit}"
+
+  cmake -GNinja -B build -S . \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DENABLE_QT6=ON \
+    -DENABLE_QT_TRANSLATION=ON \
+    -DUSE_DISCORD_PRESENCE=ON \
+    -DCITRA_WARNINGS_AS_ERRORS=OFF
+
+  cmake --build build
 }
 
 package() {
-	cd "$srcdir"
-	for file in {$pkgname,$pkgname-cli,$pkgname-room}; do
-		install -Dm755 "$srcdir/build/bin/None/$file" "$pkgdir/usr/bin/$file"
-	done
-	install -Dm644 "$srcdir/$pkgname/dist/$pkgname.svg" "$pkgdir/usr/share/icons/hicolor/scalable/apps/$pkgname.svg"
-	install -Dm644 "$srcdir/$pkgname/dist/$pkgname.desktop" "$pkgdir/usr/share/applications/$pkgname.desktop"
-	install -Dm644 "$srcdir/$pkgname/dist/$pkgname.6" "$pkgdir/usr/share/man/man6/$pkgname.6"
-	patchelf --remove-rpath "$pkgdir/usr/bin/$pkgname"
-	patchelf --remove-rpath "$pkgdir/usr/bin/$pkgname-cli"
+  cd "Borked3DS-${_commit}"
+  DESTDIR="${pkgdir}" cmake --install build
 }
+
+# vim: ts=2 sw=2 et:

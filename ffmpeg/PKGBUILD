@@ -5,8 +5,8 @@
 
 _pkgname=ffmpeg
 pkgname=ffmpeg-opt
-pkgver=7.1
-pkgrel=2
+pkgver=8.0.1
+pkgrel=1
 pkgdesc='Complete solution to record, convert and stream audio and video - optimized build with enhanced SVT-AV1 support'
 arch=(x86_64)
 url='https://ffmpeg.org'
@@ -47,7 +47,7 @@ options=('strip')
 source=(
   "https://ffmpeg.org/releases/ffmpeg-${pkgver}.tar.xz"
 )
-sha256sums=('40973d44970dbc83ef302b0609f2e74982be2d85916dd2ee7472d30678a7abe6')
+sha256sums=('05ee0b03119b45c0bdb4df654b96802e909e0a752f72e4fe3794f487229e5a41')
 
 prepare() {
   cd "$_pkgname-$pkgver"

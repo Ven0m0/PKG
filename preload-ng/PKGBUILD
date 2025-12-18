@@ -1,55 +1,52 @@
-# Maintainer: Your Name <youremail@example.com>
+# Maintainer: Ven0m0
 pkgname=preload-ng
 pkgver=0.6.7
+_commit=5a637c13652916666ca7d8214403ca22a55e4d48
 pkgrel=1
-pkgdesc="An adaptive readahead daemon that prefetches files to reduce application startup times on Linux systems."
-arch=('i686' 'x86_64' 'arm' 'aarch64')
-url="https://github.com/miguel-b-p/preload-ng"
-license=('GPL2')
+pkgdesc='Adaptive readahead daemon that prefetches files to reduce application startup times'
+arch=('x86_64')
+url='https://github.com/miguel-b-p/preload-ng'
+license=('GPL-2.0-only')
 depends=('glib2')
-# Required build dependencies for the C code, Makefile, and config generation
-makedepends=('git' 'base-devel' 'pkgconfig' 'sh')
-# Fetch the source using the specific version tag
-source=("${pkgname}::git+${url}.git#tag=v${pkgver}")
-# Use SKIP since this is a VCS source
-sha256sums=('SKIP')
-# The directory where the source code (including the Makefile) is located
-_srcdir="${srcdir}/${pkgname}/preload-src"
+makedepends=('git')
+backup=('etc/preload.conf')
+source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/${_commit}.tar.gz")
+sha256sums=('663199e22197e5c3baf5c6fa2e734eaaeca16b2eb50efec578cf5320a6d32a5c')
 
 build() {
-  cd "${_srcdir}"
-  export MAKEFLAGS="-j$(nproc)"
+  cd "${pkgname}-${_commit}/preload-src"
   make
 }
 
 package() {
-  cd "${_srcdir}"
-  install -Dm755 "preload" "${pkgdir}/usr/sbin/preload"
-  install -Dm644 "preload.conf" "${pkgdir}/etc/preload.conf"
-  install -d "${pkgdir}/usr/lib/systemd/system"
-  cat <<'EOF' >"${pkgdir}/usr/lib/systemd/system/preload-ng.service"
+  cd "${pkgname}-${_commit}/preload-src"
+
+  install -Dm755 preload "${pkgdir}/usr/sbin/preload"
+  install -Dm644 preload.conf "${pkgdir}/etc/preload.conf"
+
+  # Install systemd service
+  install -Dm644 /dev/stdin "${pkgdir}/usr/lib/systemd/system/${pkgname}.service" <<'EOF'
 [Unit]
-Description=Preload-NG Daemon - Adaptive Readahead
+Description=Preload-NG Adaptive Readahead Daemon
 Documentation=https://github.com/miguel-b-p/preload-ng
-After=local-fs.target network.target
+After=local-fs.target
 
 [Service]
 Type=simple
 ExecStart=/usr/sbin/preload --foreground --logfile ""
-ExecReload=/bin/kill -HUP \$MAINPID
+ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure
 RestartSec=5
 ProtectSystem=full
 ProtectHome=true
 PrivateTmp=true
 NoNewPrivileges=true
-# StateDirectory automatically creates /var/lib/preload and handles permissions.
 StateDirectory=preload
-# Allow write access to the standard log directory.
 ReadWritePaths=/var/log
 
 [Install]
 WantedBy=multi-user.target
 EOF
-  install -d "${pkgdir}/var/lib/preload"
 }
+
+# vim: ts=2 sw=2 et:

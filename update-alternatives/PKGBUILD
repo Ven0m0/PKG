@@ -1,37 +1,46 @@
-# Maintainer: gregjm@umich.edu
-# Maintainer: git@fthomys.me
+# Maintainer: Ven0m0
+
 pkgname=update-alternatives
 pkgver=0.6.0
-pkgrel=1
-pkgdesc="A Rust implementation of update-alternatives for managing alternative versions of commands"
-makedepends=('rust' 'cargo')
-depends=('gcc-libs')
+_commit=10fd49bb10b3f9315e158e60e8b27c4ae8db8463
+pkgrel=2
+pkgdesc='Rust implementation of update-alternatives for managing alternative versions of commands'
 arch=('x86_64' 'aarch64')
 url='https://github.com/fthomys/update-alternatives'
 license=('MIT')
+depends=('gcc-libs')
+makedepends=('rust' 'cargo' 'git')
 options=('strip')
-source=("$pkgname-$pkgver.tar.gz::https://github.com/fthomys/$pkgname/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('SKIP') # Maintainer: update with real checksum if/when required
-# Generated in accordance to https://wiki.archlinux.org/title/Rust_package_guidelines.
-# Might require further modification depending on the package involved.
+source=("${pkgname}::git+${url}.git#commit=${_commit}")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "${pkgname}"
+  git describe --tags --abbrev=0 2>/dev/null || echo "0.6.0"
+}
+
 prepare() {
-  cd "$pkgname-$pkgver"
-  cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
+  cd "${pkgname}"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo fetch --locked --target "${CARCH}-unknown-linux-gnu"
 }
 
 build() {
-  cd "$pkgname-$pkgver"
-  export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C link-arg=-fuse-ld=lld"
-  cargo build -r --frozen --all-features --bins --lib
+  cd "${pkgname}"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR=target
+  export RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C link-arg=-fuse-ld=lld"
+  cargo build --release --frozen --all-features
 }
 
 check() {
-  cd "$pkgname-$pkgver"
+  cd "${pkgname}"
   export RUSTUP_TOOLCHAIN=stable
   cargo test --frozen --all-features
 }
 
 package() {
-  cd "$pkgname-$pkgver"
-  install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/$pkgname"
+  cd "${pkgname}"
+  install -Dm755 "target/release/${pkgname}" "${pkgdir}/usr/bin/${pkgname}"
+  install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }

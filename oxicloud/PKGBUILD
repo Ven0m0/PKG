@@ -1,35 +1,48 @@
+# Maintainer: Ven0m0
 pkgname=oxicloud
 pkgver=0.1.0
 pkgrel=1
-pkgdesc="A cloud storage management tool written in Rust"
-makedepends=('rust' 'cargo')
-depends=('gcc-libs')
-arch=('x86_64' 'aarch64')
+pkgdesc='Cloud storage management tool written in Rust'
+arch=('x86_64')
 url='https://github.com/DioCrafts/OxiCloud'
 license=('MIT')
+depends=('gcc-libs')
+makedepends=('rust' 'cargo')
 options=('strip')
-source=("$pkgname-$pkgver.tar.gz::https://github.com/DioCrafts/OxiCloud/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('SKIP') # Maintainer: update with real checksum if/when required
-# Generated in accordance to https://wiki.archlinux.org/title/Rust_package_guidelines.
-# Might require further modification depending on the package involved.
+source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/v${pkgver}.tar.gz")
+sha256sums=('d5558cd419c8d46bdc958064cb97f963d1ea793866414c025906ec15033512ed')
+
 prepare() {
-  cd "OxiCloud-$pkgver"
-  cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
+  cd "OxiCloud-${pkgver}"
+  cargo fetch --locked --target "${CARCH}-unknown-linux-gnu"
 }
 
 build() {
-  cd "OxiCloud-$pkgver"
-  export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C link-arg=-fuse-ld=lld"
-  cargo build --frozen -r --all-features --bins --lib
+  cd "OxiCloud-${pkgver}"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR=target
+  export RUSTFLAGS="-C target-cpu=native -C opt-level=3"
+
+  # Use sccache if available
+  if command -v sccache &>/dev/null; then
+    export RUSTC_WRAPPER=sccache
+  fi
+
+  cargo build --frozen --release --all-features
 }
 
 check() {
-  cd "OxiCloud-$pkgver"
+  cd "OxiCloud-${pkgver}"
   export RUSTUP_TOOLCHAIN=stable
   cargo test --frozen --all-features
 }
 
 package() {
-  cd "OxiCloud-$pkgver"
-  install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/$pkgname"
+  cd "OxiCloud-${pkgver}"
+  install -Dm755 "target/release/${pkgname}" "${pkgdir}/usr/bin/${pkgname}"
+
+  # Install license
+  install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }
+
+# vim: ts=2 sw=2 et:
