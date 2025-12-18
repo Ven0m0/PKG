@@ -95,7 +95,8 @@ build() {
     --launch-jobs=0 --prefix=/usr --harden
     --cc="${CC}" --ar="${AR}" --ranlib="${RANLIB}" --strip="${STRIP}"
     --lto=on --optimize=speed --cpu=native --enable-qsv --enable-vce
-    --enable-nvenc --enable-nvdec)
+    --enable-nvenc --enable-nvdec --disable-fdk-aac --disable-x265
+    --disable-df-fetch --disable-df-verify --disable-numa)
   cd "${srcdir}/HandBrake" || exit 1
   ./configure "${CONFIGURE_OPTIONS[@]}"
   make -C build --jobs=$(nproc)
