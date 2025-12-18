@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck enable=all shell=bash source-path=SCRIPTDIR external-sources=true
-set -euo pipefail
-shopt -s nullglob globstar
-export LC_ALL=C
-IFS=$'\n\t'
+set -euo pipefail; shopt -s nullglob globstar
+IFS=$'\n\t' LC_ALL=C
 s=${BASH_SOURCE[0]}
 [[ $s != /* ]] && s=$PWD/$s
 cd -P -- "${s%/*}"
@@ -16,10 +14,7 @@ The src_dir is the directory that contains the HandBrake source code (defaults t
 -h --help  -> print usage message
 If no directory is found, the program exits'
 
-[[ $# -gt 2 ]] && {
-  printf '%s\n' "$help"
-  exit 1
-}
+[[ $# -gt 2 ]] && { printf '%s\n' "$help"; exit 1; }
 
 for arg in "$@"; do
   case $arg in
