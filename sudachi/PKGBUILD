@@ -1,0 +1,149 @@
+# Maintainer: Ven0m0
+# Based on work by: Sébastien TERRIER <ouinouin at ouinouin dot eu>
+# Based on work by: HurricanePootis <hurricanepootis@protonmail.com>
+
+pkgname=sudachi
+pkgver=1.0.15
+pkgrel=5
+pkgdesc='Nintendo Switch emulator forked from yuzu'
+arch=('x86_64')
+url='https://sudachi.emuplace.app'
+license=('GPL-3.0-or-later')
+depends=('qt6-base' 'hicolor-icon-theme' 'brotli' 'zydis' 'libvdpau' 'libx11'
+         'openssl' 'libdrm' 'glibc' 'opus' 'systemd-libs' 'libva' 'gcc-libs' 'speexdsp')
+makedepends=('git' 'cmake' 'doxygen' 'ninja' 'rapidjson' 'qt6-tools' 'qt6-multimedia'
+             'vulkan-headers' 'nasm' 'llvm' 'gamemode' 'zip' 'unzip')
+optdepends=('gamemode: gamemode support')
+options=(!debug)
+noextract=("${pkgname}-${pkgver}.zip")
+
+# Main binary source with verified checksum
+source=("${pkgname}-${pkgver}.zip::https://github.com/emuplace/sudachi.emuplace.app/releases/download/v${pkgver}/latest.zip"
+  # Submodules - pinned to specific commits/tags for reproducibility
+  enet::git+https://github.com/lsalzman/enet#tag=v1.3.18
+  dynarmic::git+https://github.com/sudachi-emu/dynarmic#commit=efa2ebefe1f502fc886cbbcebabed2506121eb24
+  libusb::git+https://github.com/libusb/libusb#tag=v1.0.24
+  discord-rpc::git+https://github.com/sudachi-emu/discord-rpc
+  vulkan-headers::git+https://github.com/KhronosGroup/Vulkan-Headers#tag=v1.4.310
+  sirit::git+https://github.com/sudachi-emu/sirit#commit=795ef4d8318c7d344da99c076dd60e5580d3d5ac
+  mbedtls::git+https://github.com/sudachi-emu/mbedtls#commit=86ed7bfaa80079a97c763a651d0b2cd8d9d59100
+  xbyak::git+https://github.com/herumi/xbyak#tag=v6.73
+  opus::git+https://github.com/xiph/opus#tag=v1.3.1
+  cpp-httplib::git+https://github.com/yhirose/cpp-httplib#commit=65ce51aed7f15e40e8fb6d2c0a8efb10bcb40126
+  ffmpeg::git+https://github.com/FFmpeg/FFmpeg#tag=n7.1
+  cpp-jwt::git+https://github.com/arun11299/cpp-jwt#tag=v1.4
+  libadrenotools::git+https://github.com/bylaws/libadrenotools
+  VulkanMemoryAllocator::git+https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator#tag=v3.2.1
+  breakpad::git+https://github.com/sudachi-emu/breakpad#commit=bf1260ddb8d405e95cd5c4507ddaca45d10dd842
+  simpleini::git+https://github.com/brofield/simpleini
+  oaknut::git+https://github.com/sudachi-emu/oaknut#commit=a3135650b39a9595d3852c4784d432c95a3b1af2
+  Vulkan-Utility-Libraries::git+https://github.com/KhronosGroup/Vulkan-Utility-Libraries#tag=v1.4.310
+  vcpkg::git+https://github.com/microsoft/vcpkg#tag=2025.02.14
+  tzdb_to_nx::git+https://github.com/lat9nq/tzdb_to_nx
+  cubeb::git+https://github.com/mozilla/cubeb
+  SDL3::git+https://github.com/libsdl-org/sdl#tag=release-3.2.8
+  googletest::git+https://github.com/google/googletest
+  sanitizers-cmake::git+https://github.com/arsenm/sanitizers-cmake
+  cubeb-coreaudio-rs::git+https://github.com/mozilla/cubeb-coreaudio-rs#branch=trailblazer
+  cubeb-pulse-rs::git+https://github.com/mozilla/cubeb-pulse-rs#branch=dev
+  linkernsbypass::git+https://github.com/bylaws/liblinkernsbypass#branch=master
+  SPIRV-Headers::git+https://github.com/KhronosGroup/SPIRV-Headers#commit=c214f6f2d1a7253bb0e9f195c2dc5b0659dc99ef
+  tz::git+https://github.com/eggert/tz
+  zycore::git+https://github.com/zyantific/zycore-c)
+
+sha256sums=('0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5'
+            'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP'
+            'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP'
+            'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP'
+            'SKIP' 'SKIP' 'SKIP')
+
+prepare() {
+  cd "${srcdir}"
+  [[ -d ${pkgname}-${pkgver} ]] && rm -rf "${pkgname}-${pkgver}"
+  bsdunzip -d "${pkgname}-${pkgver}" "${pkgname}-${pkgver}.zip"
+
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  git init
+
+  # Initialize git submodules with local sources
+  for _submodule in enet dynarmic discord-rpc vulkan-headers sirit mbedtls xbyak opus \
+                    cpp-httplib cpp-jwt libadrenotools VulkanMemoryAllocator breakpad \
+                    simpleini oaknut Vulkan-Utility-Libraries vcpkg cubeb SDL3; do
+    rm -rf "externals/${_submodule}"
+    git -c protocol.file.allow=always submodule add "${srcdir}/${_submodule}" "externals/${_submodule}"
+  done
+
+  # Special submodule paths
+  rm -rf externals/libusb/libusb
+  git -c protocol.file.allow=always submodule add "${srcdir}/libusb" externals/libusb/libusb
+
+  rm -rf externals/ffmpeg/ffmpeg
+  git -c protocol.file.allow=always submodule add "${srcdir}/ffmpeg" externals/ffmpeg/ffmpeg
+
+  rm -rf externals/nx_tzdb/tzdb_to_nx
+  git -c protocol.file.allow=always submodule add "${srcdir}/tzdb_to_nx" externals/nx_tzdb/tzdb_to_nx
+
+  # Nested submodules
+  pushd externals/cubeb
+    git config submodule.googletest.url "${srcdir}/googletest"
+    git config submodule.cmake/sanitizers-cmake.url "${srcdir}/sanitizers-cmake"
+    git config submodule.src/cubeb-coreaudio-rs.url "${srcdir}/cubeb-coreaudio-rs"
+    git config submodule.src/cubeb-pulse-rs.url "${srcdir}/cubeb-pulse-rs"
+    git -c protocol.file.allow=always submodule update
+  popd
+
+  pushd externals/libadrenotools
+    git config submodule.lib/linkernsbypass.url "${srcdir}/linkernsbypass"
+    git -c protocol.file.allow=always submodule update
+  popd
+
+  pushd externals/sirit
+    git config submodule.externals/SPIRV-Headers.url "${srcdir}/SPIRV-Headers"
+    git -c protocol.file.allow=always submodule update
+  popd
+
+  pushd externals/nx_tzdb/tzdb_to_nx
+    git config submodule.externals/tz/tz.url "${srcdir}/tz"
+    git -c protocol.file.allow=always submodule update
+  popd
+
+  pushd externals/dynarmic/externals/zydis
+    git config submodule.dependencies/zycore.url "${srcdir}/zycore"
+    git -c protocol.file.allow=always submodule update
+  popd
+
+  # Compatibility patches
+  sed -i 's/\bwindow\b/render_window/g' src/sudachi_cmd/emu_window/emu_window_sdl3_vk.cpp
+  sed -i '/namespace {/d' src/core/guest_memory.h
+}
+
+build() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+
+  # Use sccache if available
+  if command -v sccache &>/dev/null; then
+    export RUSTC_WRAPPER=sccache
+  fi
+
+  cmake -GNinja -B build -S . \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DENABLE_QT6=ON \
+    -DENABLE_QT_TRANSLATION=ON \
+    -DSUDACHI_ENABLE_COMPATIBILITY_REPORTING=ON \
+    -DSUDACHI_USE_BUNDLED_VCPKG=ON \
+    -DSUDACHI_USE_BUNDLED_FFMPEG=ON \
+    -DSUDACHI_USE_EXTERNAL_VULKAN_HEADERS=OFF \
+    -DSUDACHI_USE_FASTER_LD=ON \
+    -DSUDACHI_TESTS=OFF \
+    -Wno-dev
+
+  cmake --build build
+}
+
+package() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  DESTDIR="${pkgdir}" cmake --install build
+}
+
+# vim: ts=2 sw=2 et:

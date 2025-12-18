@@ -1,0 +1,48 @@
+# Maintainer: Ven0m0
+pkgname=oxicloud
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Cloud storage management tool written in Rust'
+arch=('x86_64')
+url='https://github.com/DioCrafts/OxiCloud'
+license=('MIT')
+depends=('gcc-libs')
+makedepends=('rust' 'cargo')
+options=('strip')
+source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/v${pkgver}.tar.gz")
+sha256sums=('d5558cd419c8d46bdc958064cb97f963d1ea793866414c025906ec15033512ed')
+
+prepare() {
+  cd "OxiCloud-${pkgver}"
+  cargo fetch --locked --target "${CARCH}-unknown-linux-gnu"
+}
+
+build() {
+  cd "OxiCloud-${pkgver}"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR=target
+  export RUSTFLAGS="-C target-cpu=native -C opt-level=3"
+
+  # Use sccache if available
+  if command -v sccache &>/dev/null; then
+    export RUSTC_WRAPPER=sccache
+  fi
+
+  cargo build --frozen --release --all-features
+}
+
+check() {
+  cd "OxiCloud-${pkgver}"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo test --frozen --all-features
+}
+
+package() {
+  cd "OxiCloud-${pkgver}"
+  install -Dm755 "target/release/${pkgname}" "${pkgdir}/usr/bin/${pkgname}"
+
+  # Install license
+  install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}
+
+# vim: ts=2 sw=2 et:
