@@ -77,8 +77,8 @@ END
 build() {
   cd "${pkgname}-${pkgver}"
   export RUSTUP_TOOLCHAIN=stable
-  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_CXX_STANDARD=20 -Wno-dev -DBUILD_SHARED_LIBS=ON -DUSE_SYS_PYTHON=ON -DENABLE_EDEN_SUPPORT=ON -DWATCHMAN_STATE_DIR=/var/run/watchman -DWATCHMAN_VERSION_OVERRIDE=$pkgver -DCMAKE_CXX_FLAGS="-include variant -include cstdint"
-  cmake --build build
+  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_SKIP_INSTALL_RPATH=YES -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_CXX_STANDARD=20 -Wno-dev -DBUILD_SHARED_LIBS=ON -DUSE_SYS_PYTHON=ON -DENABLE_EDEN_SUPPORT=ON -DWATCHMAN_STATE_DIR=/var/run/watchman -DWATCHMAN_VERSION_OVERRIDE=$pkgver -DCMAKE_CXX_FLAGS="-include variant -include cstdint"
+  cmake --build build -j"$(nproc)"
 }
 
 check() {
