@@ -27,12 +27,9 @@ prepare() {
 
 build() {
   cd "$_pkgname-$pkgver"
-  export CFLAGS="${CFLAGS/-O2/-O3} -pipe -fno-plt -fstack-protector-strong"
-  export CXXFLAGS="${CXXFLAGS/-O2/-O3} -pipe -fno-plt -fstack-protector-strong"
-  export LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
-  export MAKEFLAGS="-j$(nproc)"
+  export CFLAGS="${CFLAGS/-O2/-O3}" CXXFLAGS="${CXXFLAGS/-O2/-O3}"
   ./configure --prefix=/usr --enable-libaria2 --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt --without-gnutls --with-openssl
-  make
+  make -j$(nproc)
 }
 
 check() {
@@ -46,5 +43,4 @@ package() {
   install -Dm644 "$pkgdir"/usr/share/doc/aria2/bash_completion/aria2c "$pkgdir"/usr/share/bash-completion/completions/aria2c
   rm -rf "$pkgdir"/usr/share/doc/aria2/bash_completion
 }
-
 # vim: ts=2 sw=2 et:
