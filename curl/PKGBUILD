@@ -1,7 +1,7 @@
 # Maintainer: Ven0m0
 pkgbase=curl
 pkgname=('curl-rustls' 'curl-openssl' 'curl-wolfssl')
-pkgver=8.11.0
+pkgver=8.17.0
 pkgrel=1
 arch=('x86_64')
 url='https://curl.se/'
@@ -9,7 +9,7 @@ license=('MIT')
 options=('strip')
 makedepends=('openssl' 'rustls' 'wolfssl' 'pkg-config' 'autoconf' 'automake' 'libtool' 'quiche' 'clang' 'lld')
 source=("https://curl.se/download/curl-${pkgver}.tar.xz")
-sha256sums=('db59cf0d671ca6e7f5c2c5ec177084a33a79e04c97e71cf183a5cdea235054eb')
+sha256sums=('955f6e729ad6b3566260e8fef68620e76ba3c31acf0a18524416a185acf77992')
 
 prepare() {
   cd "curl-$pkgver"
