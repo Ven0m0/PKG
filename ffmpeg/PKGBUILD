@@ -67,7 +67,7 @@ build() {
   # Use clang/lld for better optimization and faster linking
   export CC=clang
   export CXX=clang++
-  export LD=ld.lld
+  export LD=lld
 
   # Use sccache if available for faster compilation
   if command -v sccache &>/dev/null; then
