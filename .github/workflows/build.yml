@@ -108,11 +108,11 @@ jobs:
           remove-haskell: "true"
           remove-codeql: "true"
           remove-docker-images: "false"
-      - name: Additional cleanup
+      - name: Additional preparations
         if: steps.build_method.outputs.needs_space == 'true'
         run: |
-          sudo apt-get clean -y; sudo apt-get autoclean -y
-          sudo apt-get autoremove --purge -y
+          sudo apt-get update -y; sudo apt-get upgrade -y --allow-releaseinfo-change --no-install-recommends --no-install-suggests
+          sudo apt-get clean -y; sudo apt-get autoclean -y; sudo apt-get autoremove --purge -y
           sudo rm -f /var/lib/man-db/auto-update
           sudo rm -rf /var/lib/apt/lists/* /opt/ghc /usr/local/.ghcup /usr/share/dotnet
           df -h
