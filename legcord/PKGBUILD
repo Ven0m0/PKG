@@ -50,7 +50,7 @@ build() (
 )
 
 package() {
-  local _electron_version=$(cat /usr/lib/electron/version)
+  local _electron_version=$(</usr/lib/electron/version)
   depends=("electron${_electron_version%%.*}")
   # asar
   install -Dm644 "$_pkgsrc/dist/linux-unpacked/resources/app.asar" -t "$pkgdir/$_install_path/$_pkgname/"
