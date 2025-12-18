@@ -45,10 +45,10 @@ build() {
   export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib \
     LDFLAGS+=' -Wl,-O3,--sort-common,--as-needed -Wl,--gc-sections -Wl,-z,pack-relative-relocs'
   declare -a cmake_args=(
-    -G Ninja -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_SKIP_RPATH=ON
+    -G Ninja -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_SKIP_INSTALL_RPATH=YES
     -DLLVM_HOST_TRIPLE="$CHOST" -DLLVM_BINUTILS_INCDIR=/usr/include
-    -DLLVM_ENABLE_BINDINGS=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF -DCMAKE_BUILD_TYPE=MinSizeRel
-    -DLLVM_INSTALL_UTILS=ON -DPACKAGE_BUGREPORT='https://github.com/Ven0m0/archlinux-pkgs-debloated/issues'
+    -DLLVM_ENABLE_BINDINGS=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF -DCMAKE_BUILD_TYPE=Release
+    -DLLVM_INSTALL_UTILS=ON -DPACKAGE_BUGREPORT='https://github.com/Ven0m0/PKG/issues'
   )
   case "$_build_profile" in
   nano | mini)
