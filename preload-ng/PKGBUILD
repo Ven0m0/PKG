@@ -15,15 +15,13 @@ sha256sums=('663199e22197e5c3baf5c6fa2e734eaaeca16b2eb50efec578cf5320a6d32a5c')
 
 build() {
   cd "${pkgname}-${_commit}/preload-src"
-  make
+  make -j"$(nproc)"
 }
 
 package() {
   cd "${pkgname}-${_commit}/preload-src"
-
   install -Dm755 preload "${pkgdir}/usr/sbin/preload"
   install -Dm644 preload.conf "${pkgdir}/etc/preload.conf"
-
   # Install systemd service
   install -Dm644 /dev/stdin "${pkgdir}/usr/lib/systemd/system/${pkgname}.service" <<'EOF'
 [Unit]
@@ -48,5 +46,4 @@ ReadWritePaths=/var/log
 WantedBy=multi-user.target
 EOF
 }
-
 # vim: ts=2 sw=2 et:
