@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 permissions:
   contents: write
-  packages: read
+  packages: write
   actions: read
 env:
   DEBIAN_FRONTEND: noninteractive
@@ -30,6 +30,8 @@ env:
   RUSTC_WRAPPER: sccache
   CC: clang
   CXX: clang++
+  LD: lld
+  LC_ALL: C
 jobs:
   matrix:
     runs-on: ubuntu-latest
@@ -56,23 +58,23 @@ jobs:
             [[ "$event" == "pull_request" ]] && base="origin/${{ github.base_ref }}"
             echo "Checking changes against: $base"
             while IFS= read -r dir; do
-              if [[ -f "$dir/PKGBUILD" ]]; then
-                pkgs+=("$dir")
-              fi
+              [[ -f "${dir}/PKGBUILD" ]] && pkgs+=("$dir")
             done < <(git diff --name-only "$base" HEAD 2>/dev/null | xargs -r dirname | sort -u)
           fi
           json_out=$(printf '%s\n' "${pkgs[@]}" | jq -Rsc 'split("\n")[:-1]')
           echo "Found packages: $json_out"
           echo "pkgs=$json_out" >> "$GITHUB_OUTPUT"
-
   build:
     needs: matrix
     if: ${{ needs.matrix.outputs.pkgs != '[]' && needs.matrix.outputs.pkgs != '' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
         pkg: ${{ fromJSON(needs.matrix.outputs.pkgs) }}
+        arch: [amd64]
+        #arch: [amd64, arm64]
     steps:
       - uses: actions/checkout@v6
       - name: Determine build method
@@ -174,10 +176,8 @@ jobs:
         if: steps.build_method.outputs.method == 'docker'
         run: |
           pkg="${{ matrix.pkg }}"
-
           # Use cached base image from GHCR or build if needed
           BASE_IMAGE="ghcr.io/${{ github.repository }}/archlinux-buildenv:latest"
-
           if ! docker pull "$BASE_IMAGE" 2>/dev/null; then
             echo "Building base image (will be cached for future runs)..."
             cat > /tmp/Dockerfile.build <<'DOCKERFILE'
@@ -195,20 +195,17 @@ jobs:
             echo "Using cached base image"
             docker tag "$BASE_IMAGE" archlinux-buildenv:latest
           fi
-
           # Run build in container with optimized dependency extraction
           docker run --rm \
             -v "$(pwd):/workspace:rw" \
             -v /tmp/.buildx-cache:/cache \
             -e CCACHE_DIR=/cache/ccache \
             -e SCCACHE_DIR=/cache/sccache \
-            -e CC=clang \
-            -e CXX=clang++ \
-            -e RUSTC_WRAPPER=sccache \
+            -e CC=clang -e CXX=clang++ -e RUSTC_WRAPPER=sccache \
             -e MAKEFLAGS="-j$(nproc)" \
             -w "/workspace/$pkg" \
             archlinux-buildenv:latest bash -c '
-            set -Eeuo pipefail
+            set -euo pipefail
             # Extract dependencies efficiently (single pass)
             deps=$(makepkg --printsrcinfo | awk "/^\s*(make)?depends\s*=/ {sub(/^[[:space:]]+/, \"\", \$2); print \$2}" | tr "\n" " ")
             echo "Dependencies: $deps"
@@ -220,15 +217,12 @@ jobs:
             chown -R builder:builder /workspace /cache
             # Build with all optimizations
             sudo -u builder bash -c "
-              export CC=clang CXX=clang++
-              export RUSTC_WRAPPER=sccache
+              export CC=clang CXX=clang++ RUSTC_WRAPPER=sccache
               export CCACHE_DIR=/cache/ccache SCCACHE_DIR=/cache/sccache
-              export MAKEFLAGS=\"-j\$(nproc)\"
-              export CARGO_BUILD_JOBS=\$(nproc)
+              export MAKEFLAGS=\"-j\$(nproc)\" CARGO_BUILD_JOBS=\$(nproc)
               makepkg --noconfirm --needed
             "
           '
-
       - name: Display sccache stats
         if: steps.build_method.outputs.method == 'standard'
         run: sccache --show-stats || true
@@ -246,13 +240,12 @@ jobs:
             echo "PKGFILE=${PKGFILE}"
             echo "TAG=v${pkgver}-${pkgrel}"
           } >> "$GITHUB_OUTPUT"
-
       - name: Upload artifact
         uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.pkg }}
           path: ${{ matrix.pkg }}/${{ steps.pkg_info.outputs.PKGFILE }}
-          compression-level: 0
+          compression-level: 9
           retention-days: 30
       - name: Create GitHub release
         if: |
@@ -262,7 +255,7 @@ jobs:
           TAG="${{ steps.pkg_info.outputs.TAG }}"
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+          if ! git rev-parse "$TAG" &>/dev/null; then
             git tag -a "$TAG" -m "Release $TAG"
             git push origin "$TAG"
           fi
