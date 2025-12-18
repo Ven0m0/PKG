@@ -1,0 +1,52 @@
+# Maintainer: Frank Denis
+pkgname=etchdns
+pkgver=0.1.2
+pkgrel=1
+makedepends=('rust' 'cargo')
+depends=('gcc-libs')
+arch=('x86_64' 'aarch64')
+pkgdesc="A caching DNS proxy with advanced security features, WebAssembly hooks, and comprehensive protection mechanisms"
+url="https://github.com/jedisct1/etchdns"
+license=('MIT')
+options=('strip')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/jedisct1/$pkgname/archive/refs/tags/$pkgver.tar.gz")
+sha256sums=('654171449ecd6f82ee543ed3c3e36f768ad9b9bfed40bbacf9ee0258b432bf57')
+
+prepare() {
+  cd "$pkgname-$pkgver"
+  cargo fetch --locked --target "$CARCH-unknown-linux-gnu"
+}
+
+build() {
+  cd "$pkgname-$pkgver"
+  export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C link-arg=-fuse-ld=lld"
+  cargo build -r --frozen --all-features --bins --lib
+}
+
+check() {
+  cd "$pkgname-$pkgver"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo test --frozen --all-features
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/$pkgname"
+  install -Dm0644 /dev/stdin "$pkgdir/usr/lib/systemd/system/etchdns.service" <<'EOF'
+[Unit]
+Description=EtchDNS high-performance DNS proxy
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/etchdns -c /etc/etchdns.toml
+User=root
+Group=root
+LimitNOFILE=65536
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+}
+
+# vim: ts=2 sw=2 et:
