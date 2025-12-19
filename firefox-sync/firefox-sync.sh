@@ -11,7 +11,7 @@ cd -P -- "${s%/*}"
 readonly STATIC=main VOLATILE="/dev/shm/$USER/firefox"
 LINK=
 
-detect_profile() {
+detect_profile(){
   local -a profiles
   mapfile -t profiles < <(find -H ~/.mozilla/firefox -maxdepth 1 -type d -name "*.default*" -printf "%f\n")
   case ${#profiles[@]} in
@@ -28,9 +28,9 @@ detect_profile() {
   esac
 }
 
-usage() { printf 'Usage: firefox-sync [-dhrp profile]\n'; }
+usage(){ printf 'Usage: firefox-sync [-dhrp profile]\n'; }
 
-longhelp() {
+longhelp(){
   usage
   cat <<'HELP'
 

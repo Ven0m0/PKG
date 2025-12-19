@@ -14,13 +14,13 @@ cd -P -- "${s%/*}"
 
 # ─── Helpers ───────────────────────────────────────────────────────────────
 readonly R=$'\e[31m' G=$'\e[32m' Y=$'\e[33m' D=$'\e[0m'
-err() { printf '%b\n' "${R}✘ $*${D}" >&2; }
-ok() { printf '%b\n' "${G}✓ $*${D}"; }
-warn() { printf '%b\n' "${Y}⚠ $*${D}" >&2; }
-has() { command -v -- "$1" &>/dev/null; }
+err(){ printf '%b\n' "${R}✘ $*${D}" >&2; }
+ok(){ printf '%b\n' "${G}✓ $*${D}"; }
+warn(){ printf '%b\n' "${Y}⚠ $*${D}" >&2; }
+has(){ command -v -- "$1" &>/dev/null; }
 
 # ─── Lint Package ─────────────────────────────────────────────────────────
-lint_pkg() {
+lint_pkg(){
   local pkg=$1 root=$2 sc=$3 sh=$4 sf=$5 nc=$6
   local -a errs=() warnings=()
   local diff_out
@@ -63,7 +63,7 @@ lint_pkg() {
   builtin cd "$root"
 }
 
-handle_output() {
+handle_output(){
   while IFS= read -r line; do
     case $line in
     ERROR:*)
@@ -81,7 +81,7 @@ handle_output() {
 }
 
 # ─── Main ──────────────────────────────────────────────────────────────────
-main() {
+main(){
   local root="$PWD"
   local -a pkgs errs=()
   local max_jobs=${MAX_JOBS:-$(nproc)}

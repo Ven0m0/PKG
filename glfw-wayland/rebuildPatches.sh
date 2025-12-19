@@ -11,7 +11,7 @@ cd -P -- "${s%/*}"
 readonly basedir="$PWD"
 printf 'Rebuilding patch files from current fork state...\n'
 
-cleanupPatches() {
+cleanupPatches(){
   local patch gitver diffs testver
   builtin cd "$1"
   for patch in *.patch; do
@@ -26,7 +26,7 @@ cleanupPatches() {
   done
 }
 
-savePatches() {
+savePatches(){
   local what=$1 target=$2
   builtin cd "$basedir/$target"
   git format-patch --no-stat -N -o "$basedir/patches/" upstream/upstream

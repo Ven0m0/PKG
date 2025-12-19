@@ -14,12 +14,12 @@ cd -P -- "${s%/*}"
 
 # ─── Helpers ───────────────────────────────────────────────────────────────
 readonly R=$'\e[31m' G=$'\e[32m' Y=$'\e[33m' D=$'\e[0m'
-err() { printf '%b\n' "${R}✘ $*${D}" >&2; }
-log() { printf '%b\n' "${G}➜ $*${D}"; }
-has() { command -v -- "$1" &>/dev/null; }
+err(){ printf '%b\n' "${R}✘ $*${D}" >&2; }
+log(){ printf '%b\n' "${G}➜ $*${D}"; }
+has(){ command -v -- "$1" &>/dev/null; }
 
 # ─── Process Package ──────────────────────────────────────────────────────
-process_pkg() {
+process_pkg(){
   local pkg=$1 root=$2
 
   builtin cd "$pkg" || {
@@ -43,7 +43,7 @@ process_pkg() {
   echo "OK:$pkg"
 }
 
-handle_output() {
+handle_output(){
   while IFS= read -r line; do
     case $line in
     OK:*)
@@ -58,7 +58,7 @@ handle_output() {
 }
 
 # ─── Main ──────────────────────────────────────────────────────────────────
-main() {
+main(){
   local root="$PWD"
   local -a pkgs errs=()
   local max_jobs=${MAX_JOBS:-$(nproc)}
