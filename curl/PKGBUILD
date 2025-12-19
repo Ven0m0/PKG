@@ -21,38 +21,53 @@ build() {
   for b in rustls openssl wolfssl; do
     mkdir -p "build-$b"
     cd "build-$b"
-    ../configure --prefix=/usr --disable-shared --disable-manual --enable-ipv6 --enable-ares --enable-threaded-resolver --enable-http2 \
+    ../configure --prefix=/usr --mandir='/usr/share/man' --disable-manual --enable-ipv6 --enable-ares --with-gssapi --with-libssh2 --enable-threaded-resolver --enable-http2 \
     --enable-quic --with-quiche --with-zlib --with-brotli --with-zstd --with-ngtcp2 --with-nghttp2 --enable-earlydata \
-    --disable-ldap --disable-ldaps ${tls[$b]}
+    --with-fish-functions-dir=/usr/share/fish/vendor_completions.d/ --with-zsh-functions-dir=/usr/share/zsh/site-functions/ \ 
+    --disable-ldap --disable-ldaps --with-ca-bundle='/etc/ssl/certs/ca-certificates.crt' --enable-versioned-symbols ${tls[$b]}
+    sed -i -e 's/ -shared / -Wl,-O2,--as-needed\0/g' libtool
     make -j"$(nproc)"
     cd ..
   done
 }
+check() {
+  cd build-curl
+  # disable test 433, since it requires the glibc debug info
+  make TFLAGS="-v -a -k -p -j$(nproc) !433" test-nonflaky
+}
+
 package_curl-rustls() {
   pkgdesc="URL transfer (rustls TLS + HTTP/3)"
   depends=('ca-certificates' 'brotli' 'librustls' 'zlib' 'zstd' 'quiche')
   provides=('curl')
   conflicts=('curl' 'curl-openssl' 'curl-wolfssl')
   cd "curl-$pkgver/build-rustls"
-  make DESTDIR="$pkgdir" install
+  make DESTDIR="${pkgdir}" install
+  make DESTDIR="${pkgdir}" install -C scripts
+  # license
+  install -Dt "${pkgdir}/usr/share/licenses/${pkgname}" -m0644 COPYING
 }
-
 package_curl-openssl() {
   pkgdesc="URL transfer (OpenSSL TLS + HTTP/3)"
   depends=('ca-certificates' 'brotli' 'openssl' 'zlib' 'zstd' 'quiche')
   provides=('curl')
   conflicts=('curl' 'curl-rustls' 'curl-wolfssl')
   cd "curl-$pkgver/build-openssl"
-  make DESTDIR="$pkgdir" install
+  make DESTDIR="${pkgdir}" install
+  make DESTDIR="${pkgdir}" install -C scripts
+  # license
+  install -Dt "${pkgdir}/usr/share/licenses/${pkgname}" -m0644 COPYING
 }
-
 package_curl-wolfssl() {
   pkgdesc="URL transfer (wolfSSL TLS + HTTP/3)"
   depends=('ca-certificates' 'brotli' 'libwolfssl' 'zlib' 'zstd' 'quiche')
   provides=('curl')
   conflicts=('curl' 'curl-rustls' 'curl-openssl')
   cd "curl-$pkgver/build-wolfssl"
-  make DESTDIR="$pkgdir" install
+  make DESTDIR="${pkgdir}" install
+  make DESTDIR="${pkgdir}" install -C scripts
+  # license
+  install -Dt "${pkgdir}/usr/share/licenses/${pkgname}" -m0644 COPYING
 }
 
 # vim: ts=2 sw=2 et:
