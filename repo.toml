@@ -1,0 +1,14 @@
+# aati
+[repo]
+    name = "PKG"
+    maintainer = "Ven0m0"
+    description = "optimized PKGBUILDs"
+
+    [index]
+    packages = [
+    #   { name = "package-name-here", target = "any", versions = [
+    #       { tag = "0.1.1", checksum = "sha256-sum-here" },
+    #       { tag = "0.1.0", checksum = "sha256-sum-here" },
+    #   ], author = "Ven0m0", description = "Package description here.", url = "https://haras.srht.site/projects/aati.html" },
+    ]
+    
