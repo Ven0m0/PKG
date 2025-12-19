@@ -1,3 +1,4 @@
 - <https://gitlab.com/Ph42oN/dxvk-gplasync>
 - <https://github.com/Digger1955/dxvk-gplasync-lowlatency>
 - <https://github.com/pythonlover02/DXVK-Sarek>
+- <https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=dxvk-nvapi-vkreflex-layer>
