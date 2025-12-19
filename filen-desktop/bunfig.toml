@@ -1,0 +1,5 @@
+[install.cache]
+dir = "${srcdir}/.bun-cache"
+
+[install.lockfile]
+save = true
