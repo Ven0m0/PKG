@@ -68,8 +68,10 @@ prepare(){
     cat >bunfig.toml <<EOF
 [install]
 registry = "https://registry.npmmirror.com"
+
 [install.cache]
 dir = "${srcdir}/.bun-cache"
+
 [install.lockfile]
 save = true
 EOF
@@ -77,6 +79,7 @@ EOF
     cat >bunfig.toml <<EOF
 [install.cache]
 dir = "${srcdir}/.bun-cache"
+
 [install.lockfile]
 save = true
 EOF
