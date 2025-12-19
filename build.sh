@@ -60,7 +60,7 @@ build_docker() {
     set -euo pipefail
     pacman -Syu --noconfirm --needed base-devel pacman-contrib sudo
     # Optimized dependency extraction (single awk pass)
-    deps=$(makepkg --printsrcinfo 2>/dev/null | awk "/^\s*(make)?depends\s*=/ {sub(/^[[:space:]]+/, \"\", \$2); print \$2}" | tr "\n" " ")
+    deps=$(makepkg --printsrcinfo 2>/dev/null | awk "/^[[:space:]]*(make)?depends[[:space:]]*=/ {print \$3}" | tr "\n" " ")
     [[ -n "$deps" ]] && pacman -S --noconfirm --needed $deps
     useradd -m builder
     printf "builder ALL=(ALL) NOPASSWD:ALL\n" >/etc/sudoers.d/builder
