@@ -68,23 +68,19 @@ prepare(){
     cat >bunfig.toml <<EOF
 [install]
 registry = "https://registry.npmmirror.com"
-
 [install.cache]
 dir = "${srcdir}/.bun-cache"
-
 [install.lockfile]
 save = true
 EOF
   else
-    cat >bunfig. toml <<EOF
-[install. cache]
+    cat >bunfig.toml <<EOF
+[install.cache]
 dir = "${srcdir}/.bun-cache"
-
 [install.lockfile]
 save = true
 EOF
   fi
-  
   sed -i "s/\"electron\": \"[^\"]*\"/\"electron\": \"${SYSTEM_ELECTRON_VERSION}\"/g" package.json
   NODE_ENV=development bun install --no-save
 }
