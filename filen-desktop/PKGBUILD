@@ -1,109 +1,77 @@
-# Maintainer:  Ven0m0 <ven0m0.wastaken@gmail.com>
-# Contributor: zxp19821005 <zxp19821005 at 163 dot com>
-pkgname=filen-desktop-git
-_pkgname="Filen Desktop"
-pkgver=3.0.47.r0.ge2ec0fd
-_electronversion=34
-_nodeversion=20
+# Maintainer: Ven0m0 <ven0m0.wastaken@gmail.com>
+pkgname=filen-desktop
+pkgver=3.0.48
 pkgrel=1
-pkgdesc="Desktop client including Syncing, Virtual Drive mounting, S3, WebDAV, File Browsing, Chats, Notes, Contacts and more.  Use system-wide electron."
-arch=('any')
-url="https://filen.io/"
+pkgdesc="Desktop client including Syncing, Virtual Drive, S3, WebDAV, File Browsing, Chats, Notes, Contacts"
+arch=('x86_64' 'aarch64')
+url="https://filen.io"
 _ghurl="https://github.com/FilenCloudDienste/filen-desktop"
 license=('AGPL-3.0-only')
-conflicts=("${pkgname%-git}")
-provides=("${pkgname%-git}=${pkgver%.r*}")
-depends=(
-  "electron${_electronversion}"
-  'libjpeg6-turbo'
-  'giflib'
-)
-makedepends=(
-  'gendesk'
-  'bun'
-  'fnm'
-  'git'
-  'curl'
-)
-source=(
-  "${pkgname%-git}.git::git+${_ghurl}"
-  "${pkgname%-git}.sh"
-)
-sha256sums=('SKIP'
-            '291f50480f5a61bc9c68db7d44cd0412071128706baa868a9cb854f8779a1980')
-
-pkgver(){
-  cd "${srcdir}/${pkgname%-git}.git"
-  set -o pipefail
-  git describe --long --tags --abbrev=7 | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/v//g' ||
-    printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
-}
-
-_ensure_local_fnm(){
-  export FNM_DIR="${srcdir}/.fnm"
-  export PATH="${FNM_DIR}/aliases/default/bin:${PATH}"
-  eval "$(fnm env --use-on-cd)"
-  fnm install "${_nodeversion}"
-  fnm use "${_nodeversion}"
-}
+depends=('electron34' 'nodejs' 'fuse3')
+makedepends=('bun' 'git')
+provides=('filen-desktop')
+conflicts=('filen-desktop-bin' 'filen-desktop-git')
+source=("git+${_ghurl}.git#commit=81950031c41831b7048669cc9cfba0c75070b478")
+sha256sums=('SKIP')
 
 prepare(){
-  sed -e "
-    s/@electronversion@/${_electronversion}/g
-    s/@appname@/${pkgname%-git}/g
-    s/@runname@/app.asar/g
-    s/@cfgdirname@/${_pkgname}/g
-    s/@options@/env ELECTRON_OZONE_PLATFORM_HINT=auto/g
-  " -i "${srcdir}/${pkgname%-git}.sh"
-  _ensure_local_fnm
-  gendesk -q -f -n --pkgname="${pkgname%-git}" --pkgdesc="${pkgdesc}" --categories="Utility" --name="${pkgname%-git}" --exec="${pkgname%-git} %U"
-  cd "${srcdir}/${pkgname%-git}.git"
+  cd "${srcdir}/${pkgname}"
   export ELECTRON_SKIP_BINARY_DOWNLOAD=1
-  export SYSTEM_ELECTRON_VERSION="$(electron${_electronversion} -v | sed 's/v//g')"
-  export electronDist="/usr/lib/electron${_electronversion}"
-  export BUN_INSTALL_CACHE_DIR="${srcdir}/.bun-cache"
-  HOME="${srcdir}/.electron-gyp"
-  
-  if [[ "$(curl -s ipinfo.io/country)" == *"CN"* ]]; then
-    cat >bunfig.toml <<EOF
-[install]
-registry = "https://registry.npmmirror.com"
-
-[install.cache]
-dir = "${srcdir}/.bun-cache"
-
-[install.lockfile]
-save = true
-EOF
-  else
-    cat >bunfig.toml <<EOF
-[install.cache]
-dir = "${srcdir}/.bun-cache"
-
-[install.lockfile]
-save = true
-EOF
-  fi
+  export SYSTEM_ELECTRON_VERSION="$(electron34 -v | sed 's/v//g')"
+  export electronDist=/usr/lib/electron34
+  export BUN_INSTALL_CACHE_DIR="${srcdir}/. bun-cache"
+  export HOME="${srcdir}/.electron-gyp"
   sed -i "s/\"electron\": \"[^\"]*\"/\"electron\": \"${SYSTEM_ELECTRON_VERSION}\"/g" package.json
-  NODE_ENV=development bun install --no-save
+  cat >bunfig.toml <<EOF
+[install. cache]
+dir = "${srcdir}/.bun-cache"
+[install.lockfile]
+save = true
+EOF
 }
 
 build(){
-  cd "${srcdir}/${pkgname%-git}.git"
-  _ensure_local_fnm
-  NODE_ENV=production bun run build
-  NODE_ENV=production bun x electron-builder --linux dir -c. electronDist="${electronDist}"
+  cd "${srcdir}/${pkgname}"
+  export NODE_ENV=production
+  export BUN_INSTALL_CACHE_DIR="${srcdir}/.bun-cache"
+  export electronDist=/usr/lib/electron34
+  bun install --frozen-lockfile --no-save
+  case "${CARCH}" in
+    x86_64)
+      bun add --force @parcel/watcher-linux-x64-glibc@latest @parcel/watcher-linux-x64-musl@latest ;;
+    aarch64)
+      bun add --force @parcel/watcher-linux-arm64-glibc@latest @parcel/watcher-linux-arm64-musl@latest ;;
+  esac
+  bun run build
+  bun x electron-builder --linux dir -c. electronDist="${electronDist}"
 }
 
 package(){
-  install -Dm755 "${srcdir}/${pkgname%-git}.sh" "${pkgdir}/usr/bin/${pkgname%-git}"
-  install -Dm644 "${srcdir}/${pkgname%-git}. git/prod/linux-"*/resources/app.asar -t "${pkgdir}/usr/lib/${pkgname%-git}"
-  cp -Pr --no-preserve=ownership "${srcdir}/${pkgname%-git}.git/prod/linux-"*/resources/{app.asar.unpacked,public} "${pkgdir}/usr/lib/${pkgname%-git}"
-  install -Dm644 "${srcdir}/${pkgname%-git}.desktop" -t "${pkgdir}/usr/share/applications"
-  local icon_sizes=(16x16 24x24 32x32 48x48 64x64 128x128 256x256 512x512 1024x1024)
-  for _icons in "${icon_sizes[@]}"; do
-    install -Dm644 "${srcdir}/${pkgname%-git}.git/build/icons/png/${_icons}.png" \
-      "${pkgdir}/usr/share/icons/hicolor/${_icons}/apps/${pkgname%-git}.png"
+  cd "${srcdir}/${pkgname}"
+  install -dm755 "${pkgdir}/usr/lib/${pkgname}"
+  install -Dm644 prod/linux-*/resources/app. asar "${pkgdir}/usr/lib/${pkgname}/app.asar"
+  cp -Pr --no-preserve=ownership prod/linux-*/resources/{app. asar.unpacked,public} "${pkgdir}/usr/lib/${pkgname}/"
+  install -Dm755 /dev/stdin "${pkgdir}/usr/bin/${pkgname}" <<'EOF'
+#!/usr/bin/env bash
+exec electron34 /usr/lib/filen-desktop/app.asar "$@"
+EOF
+  install -Dm644 /dev/stdin "${pkgdir}/usr/share/applications/${pkgname}.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=Filen
+Comment=Zero-knowledge encrypted cloud storage
+Exec=filen-desktop %U
+Icon=filen-desktop
+Categories=Network;FileTransfer;Utility;
+Terminal=false
+StartupWMClass=Filen
+MimeType=x-scheme-handler/filen;
+EOF
+  local sizes=(16 24 32 48 64 128 256 512 1024)
+  for size in "${sizes[@]}"; do
+    [[ -f "build/icons/png/${size}x${size}. png" ]] && \
+      install -Dm644 "build/icons/png/${size}x${size}. png" \
+        "${pkgdir}/usr/share/icons/hicolor/${size}x${size}/apps/${pkgname}.png"
   done
-  install -Dm644 "${srcdir}/${pkgname%-git}.git/LICENSE" -t "${pkgdir}/usr/share/licenses/${pkgname}"
+  install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }
