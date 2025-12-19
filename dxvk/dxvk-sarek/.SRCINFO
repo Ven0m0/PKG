@@ -1,0 +1,34 @@
+pkgbase = dxvk-sarek
+	pkgdesc = Vulkan-based D3D8/9/10/11 implementation for older GPUs without Vulkan 1.3 support (Sarek fork)
+	pkgver = 1.11.0
+	pkgrel = 1
+	url = https://github.com/pythonlover02/DXVK-Sarek
+	arch = x86_64
+	license = Zlib
+	makedepends = ninja
+	makedepends = meson>=0.49
+	makedepends = glslang
+	makedepends = git
+	makedepends = mingw-w64-gcc
+	depends = vulkan-icd-loader
+	depends = lib32-vulkan-icd-loader
+	depends = wine
+	depends = bash
+	provides = dxvk
+	provides = d3d8
+	provides = d3d9
+	provides = d3d10
+	provides = d3d11
+	provides = dxgi
+	conflicts = dxvk
+	conflicts = dxvk-gplasync-lowlatency
+	options = !lto
+	options = !staticlibs
+	source = git+https://github.com/pythonlover02/DXVK-Sarek.git#commit=b8bb58e6c8db5c08f7b56e90b88834f0b3e16ff1
+	source = dxvk-sarek.conf
+	source = setup_dxvk.sh
+	sha256sums = SKIP
+	sha256sums = SKIP
+	sha256sums = SKIP
+
+pkgname = dxvk-sarek
