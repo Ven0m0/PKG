@@ -20,12 +20,12 @@ PARALLEL=${PARALLEL:-true}
 
 # ─── Helpers ───────────────────────────────────────────────────────────────
 readonly R=$'\e[31m' G=$'\e[32m' Y=$'\e[33m' D=$'\e[0m'
-err() { printf '%b\n' "${R}✘ $*${D}" >&2; }
-log() { printf '%b\n' "${G}➜ $*${D}"; }
-warn() { printf '%b\n' "${Y}⚠ $*${D}" >&2; }
-has() { command -v -- "$1" &>/dev/null; }
+err(){ printf '%b\n' "${R}✘ $*${D}" >&2; }
+log(){ printf '%b\n' "${G}➜ $*${D}"; }
+warn(){ printf '%b\n' "${Y}⚠ $*${D}" >&2; }
+has(){ command -v -- "$1" &>/dev/null; }
 
-usage() {
+usage(){
   cat <<EOF
 Usage: build.sh [OPTIONS] [PACKAGE...]
 Build Arch Linux packages via makepkg or Docker.
@@ -40,7 +40,7 @@ EOF
 }
 
 # ─── Discovery ─────────────────────────────────────────────────────────────
-find_pkgs() {
+find_pkgs(){
   if has fd; then
     fd -t f -g 'PKGBUILD' -x printf '%{//}\n' | sort -u
   else
@@ -49,7 +49,7 @@ find_pkgs() {
 }
 
 # ─── Builders ──────────────────────────────────────────────────────────────
-build_docker() {
+build_docker(){
   local pkg="$1"
   has docker || {
     err "Docker required for $pkg"
@@ -70,7 +70,7 @@ build_docker() {
   '
 }
 
-build_standard() {
+build_standard(){
   local pkg="$1"
   log "Building $pkg (Standard)"
   builtin cd "$pkg" || return 1
@@ -84,7 +84,7 @@ build_standard() {
 }
 
 # ─── Main ──────────────────────────────────────────────────────────────────
-main() {
+main(){
   local -a targets=() args=()
   local max_jobs=$MAX_JOBS
 

@@ -1,26 +1,26 @@
-#!/bin/sh
+#!/usr/bin/env bash
+# shellcheck enable=all shell=bash source-path=SCRIPTDIR external-sources=true
+set -euo pipefail
+shopt -s nullglob
+export LC_ALL=C
+IFS=$'\n\t'
 
-set -eu
-
-ARCH_REPO=https://gitlab.archlinux.org/archlinux/packaging/packages
-ALARM_REPO=https://github.com/archlinuxarm/PKGBUILDs.git
+readonly ARCH_REPO=https://gitlab.archlinux.org/archlinux/packaging/packages
+readonly ALARM_REPO=https://github.com/archlinuxarm/PKGBUILDs.git
 
 # ArchlinuxARM has all the PKGBUILDs in a single repository instead
-ALARM_DIR="${TMPDIR:-/tmp}"/ALARM-PKGBUILDS
+readonly ALARM_DIR="${TMPDIR:-/tmp}"/ALARM-PKGBUILDS
 
-if [ "$ARCH" = 'x86_64' ]; then
-  git clone --depth 1 "$ARCH_REPO"/"$PACKAGE" "$BUILD_DIR"
-elif [ "$ARCH" = 'aarch64' ]; then
+if [[ $ARCH == x86_64 ]]; then
+  git clone --depth 1 "$ARCH_REPO/$PACKAGE" "$BUILD_DIR"
+elif [[ $ARCH == aarch64 ]]; then
   git clone --depth 1 "$ALARM_REPO" "$ALARM_DIR"
   # if ALARM does not have the package, then use the archlinux package directly
-  if [ -d "$ALARM_DIR"/*/"$PACKAGE" ]; then
+  if compgen -G "$ALARM_DIR/*/$PACKAGE" &>/dev/null; then
     mv -v "$ALARM_DIR"/*/"$PACKAGE" "$BUILD_DIR"
   else
-    >&2 echo "----------------------------------------"
-    >&2 echo "ArchlinuxARM does not have '$PACKAGE'"
-    >&2 echo "Using Archlinux PKGBUILD instead..."
-    >&2 echo "----------------------------------------"
-    git clone --depth 1 "$ARCH_REPO"/"$PACKAGE" "$BUILD_DIR"
+    printf '%s\n' '----------------------------------------' "ArchlinuxARM does not have '$PACKAGE'" 'Using Archlinux PKGBUILD instead...' '----------------------------------------' >&2
+    git clone --depth 1 "$ARCH_REPO/$PACKAGE" "$BUILD_DIR"
   fi
   rm -rf "$ALARM_DIR"
 fi
