@@ -57,14 +57,14 @@ prepare() {
 build() {
   cd PrismLauncher-$pkgver
   export PATH="/usr/lib/jvm/java-17-openjdk/bin/:$PATH"
-  cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_SKIP_INSTALL_RPATH=YES \
+  cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_SKIP_INSTALL_RPATH=YES \
     -DCMAKE_INSTALL_PREFIX="/usr" \
     -DLauncher_BUILD_PLATFORM="archlinux" \
     -DLauncher_QT_VERSION_MAJOR="6" \
     -DLauncher_ENABLE_JAVA_DOWNLOADER=ON \
     -DENABLE_LTO=ON \
-    -Bbuild -S. -GNinja -Wno-dev
-  cmake --build build -j$(nproc)
+    -Bbuild -S. -Wno-dev
+  cmake --build build -j"$(nproc)"
 }
 check() {
   cd PrismLauncher-$pkgver/build

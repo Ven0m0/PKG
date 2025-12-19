@@ -54,12 +54,13 @@ prepare() {
 
 build() {
   cd "$srcdir/glfw-$pkgver/build-wayland"
-  cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=ON -DGLFW_USE_WAYLAND=ON -DCMAKE_SKIP_INSTALL_RPATH=YES -DCMAKE_BUILD_TYPE=Release
+  cmake .. -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_SKIP_INSTALL_RPATH=YES -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=ON -DGLFW_USE_WAYLAND=ON
+  cmake --build . -j"$(nproc)"
 }
 
 package() {
   cd "$srcdir/glfw-$pkgver"/build-wayland
-  make DESTDIR=$pkgdir install
+  DESTDIR=$pkgdir cmake --install .
   cd ..
   install -Dm644 LICENSE.md "$pkgdir/usr/share/licenses/$pkgname/LICENSE.md"
 }

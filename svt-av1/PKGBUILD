@@ -21,7 +21,7 @@ pkgver() {
 
 build() {
     export LDFLAGS+=' -Wl,-z,noexecstack'
-    cmake -G Ninja -B build -S SVT-AV1-Essential \
+    cmake -GNinja -B build -S SVT-AV1-Essential \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_SKIP_INSTALL_RPATH=YES \
         -DCMAKE_INSTALL_PREFIX=/usr \
@@ -29,10 +29,10 @@ build() {
         -DNATIVE=ON \
         -DBUILD_SHARED_LIBS=ON \
         -DSVT_AV1_LTO=ON
-    make -C build -j $(nproc)
+    cmake --build build -j"$(nproc)"
 }
 
 package() {
-    make -C build DESTDIR="$pkgdir" install
+    DESTDIR="$pkgdir" cmake --install build
     install -D -m644 SVT-AV1-Essential/{LICENSE,PATENTS}.md -t "${pkgdir}/usr/share/licenses/${pkgname}"
 }

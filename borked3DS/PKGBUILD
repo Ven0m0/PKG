@@ -166,7 +166,7 @@ build() {
     -DENABLE_QT_TRANSLATION=OFF \
     -DUSE_DISCORD_PRESENCE=OFF \
     -DCITRA_WARNINGS_AS_ERRORS=OFF
-  cmake --build build
+  cmake --build build -j"$(nproc)"
 }
 
 package() {
