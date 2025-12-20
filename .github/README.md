@@ -3,12 +3,10 @@
 - [CachyOS-PKGBUILDS](https://github.com/CachyOS/CachyOS-PKGBUILDS)
 
 - [CachyOS-Repo](https://packages.cachyos.org)
-
 - [CachyOS-aur-rebased-PKGBUILDS](https://github.com/CachyOS/PKGBUILDs)
-
 - [lseman's PKGBUILDS with pgo](https://github.com/lseman/PKGBUILDs)
-
 - [KISS-repo](https://github.com/XDream8/kiss-repo)
+- [Pika-os](https://pika-os.com)
 
 ## Cloudflare
 
