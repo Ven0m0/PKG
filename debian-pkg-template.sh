@@ -3,7 +3,7 @@
 set -euo pipefail; shopt -s nullglob globstar
 IFS=$'\n\t' LC_ALL=C
 has(){ command -v -- "$1" &>/dev/null; }
-
+APTCACHEHARDLINK=yes
 export DEBIAN_FRONTEND="noninteractive"
 export DEB_BUILD_MAINT_OPTIONS="optimize=+lto -march=x86-64-v3 -O3 -flto -fuse-linker-plugin -falign-functions=32"
 export DEB_CFLAGS_MAINT_APPEND="-march=x86-64-v3 -O3 -flto -fuse-linker-plugin -falign-functions=32"
