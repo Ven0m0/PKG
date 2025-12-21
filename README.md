@@ -5,7 +5,11 @@
 
 A curated collection of **performance-optimized PKGBUILDs** for Arch Linux packages with custom patches, aggressive compiler optimizations, and enhanced configurations.
 
-## Overview
+## Utilities
+
+- [ISA Level Detection](ISA-DETECTION.md) - Check x86-64 microarchitecture level support (based on [CachyOS/cachyos-repo-add-script](https://github.com/CachyOS/cachyos-repo-add-script))
+
+## Cloudflare
 
 This repository provides optimized package builds for Arch Linux with a focus on:
 
