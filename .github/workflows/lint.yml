@@ -16,7 +16,7 @@ env:
   GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
 jobs:
   matrix:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     outputs:
       pkgs: ${{ steps.set.outputs.pkgs }}
       files: ${{ steps.set.outputs.files }}
@@ -45,7 +45,6 @@ jobs:
           files_json=$(printf '%s\n' "${files[@]}" | jq -Rsc 'split("\n")[:-1]')
           echo "pkgs=$pkgs_json" >> "$GITHUB_OUTPUT"
           echo "files=$files_json" >> "$GITHUB_OUTPUT"
-
   pkgbuild-lint:
     needs: matrix
     if: ${{ needs.matrix.outputs.pkgs != '[]' && needs.matrix.outputs.pkgs != '' }}
