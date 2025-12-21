@@ -51,3 +51,44 @@ for dir in usr/lib/*; do
 
 
 
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+	case "${TERMUX_ARCH}" in
+	aarch64) DOTNET_TARGET_NAME+="-arm64" ;;
+	arm) DOTNET_TARGET_NAME+="-arm" ;;
+	i686) DOTNET_TARGET_NAME+="-x86" ;;
+	x86_64) DOTNET_TARGET_NAME+="-x64" ;;
+	esac
+
+
+		MESON_CPU_FAMILY="x86_64"
+		MESON_CPU="x86_64"
+
+python${TERMUX_PYTHON_VERSION} -m venv --system-site-packages "$_VENV_DIR"
+		. "$_VENV_DIR/bin/activate"
+
+		pip install 'setuptools==78.1.0' 'wheel==0.46.1'
+
+
+git clone --depth 1
+git submodule update --init --recursive --depth=1
+
+NODE_OPTIONS="--network-family-autoselection-attempt-timeout=500"
+
+
+
+
+
+# autotools:
+--enable-static --disable-nls --enable-silent-rules --silent --quiet --disable-rpath --disable-rpath-hack --disable-dependency-tracking
+
+MAKE_PROGRAM_PATH=$(command -v ninja)
+-DCMAKE_MAKE_PROGRAM=$MAKE_PROGRAM_PATH -DBUILD_TESTING=OFF -DCMAKE_SKIP_INSTALL_RPATH=ON -DCMAKE_USE_SYSTEM_LIBRARIES=True -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER 
+	-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+		-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+
+
+meson: --buildtype minsize
+
+
+runs-on: ubuntu-slim
