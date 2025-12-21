@@ -90,7 +90,7 @@ vim PKGBUILD
 makepkg --printsrcinfo > .SRCINFO
 
 # Create package documentation
-vim readme.md
+vim README.md
 ```
 
 #### Modifying Existing Package
