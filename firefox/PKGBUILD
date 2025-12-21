@@ -72,21 +72,17 @@ _cflags=(
 )
 _cppflags=("${_cflags[@]}")
 _ldflags=(
+  -fuse-ld=lld -flto=auto
   -Wl,-O3 -Wl,--gc-sections
   -Wl,--sort-common -Wl,--as-needed
-  -Wl,-z,pack-relative-relocs
-  -Wl,-z,relro -Wl,-z,now
-  -flto -fuse-linker-plugin
-  -Wl,-plugin-opt=emit-llvm
+  -Wl,-z,pack-relative-relocs -Wl,--hash-style=gnu
+  -Wl,-z,relro -Wl,-z,now -Wl,--icf=safe
 )
 _rustflags=(
   -Ctarget-cpu=native -Copt-level=3
   -Ccodegen-units=1 -Clto=fat -Cpanic=abort
-  -Clink-arg=-fuse-ld=lld -Cllvm-args=-enable-dfa-jump-thread
-  -Cdebuginfo=0 -Cforce-frame-pointers=no
-  -Cembed-bitcode=yes
-  -Cllvm-args=--inline-threshold=2000
-  -Cllvm-args=--vectorize-slp-max-reg-size=64
+  -Clink-arg=-z -Clink-arg=pack-relative-relocs -Clink-arg=-fuse-ld=lld
+  -Cdebuginfo=0 -Cforce-frame-pointers=no -Cllvm-args=-enable-dfa-jump-thread
 )
 # Google API keys (see http://www.chromium.org/developers/how-tos/api-keys)
 # Note: These are for Arch Linux use ONLY. For your own distribution, please
@@ -113,7 +109,7 @@ prepare() {
     src="${src##*/}"
     [[ $src == *.patch ]] || continue
     echo "Applying patch $src..."
-    patch -Np1 -i "../${src}" || git apply "../${src}"
+    patch -Np1 -i "../${src}" || exit 1
   done
   # Clear forced startup pages
   sed -E -e 's&^\s*pref\("startup\.homepage.*$&&' -i browser/branding/*/pref/firefox-branding.js
@@ -135,7 +131,6 @@ _write_mozconfig() {
     _cores="$_nproc"
     echo "Using all $_cores cores"
   fi
-
   cat >../mozconfig <<END
 ac_add_options --enable-application=browser
 mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
@@ -209,6 +204,7 @@ ac_add_options --with-system-libevent
 ac_add_options --with-system-icu
 ac_add_options --with-system-zlib
 ac_add_options --with-system-jpeg
+# ac_add_options --without-wasm-sandboxed-libraries
 # Media features
 ac_add_options --enable-jxl
 ac_add_options --enable-av1
@@ -227,6 +223,7 @@ export MOZILLA_OFFICIAL=1
 export MOZ_NOSPAM=1
 export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
 export MOZ_DEBUG_FLAGS=""
+export PYTHONOPTIMIZE=2
 # Optimization flags
 export CFLAGS+=" -g0"
 export CXXFLAGS+=" -g0"
@@ -246,6 +243,19 @@ END
 }
 
 build() {
+  # If you want to disable LTO/PGO (compile too long), delete the lines
+  # `ac_add_options --enable-lto' and ending with 'export RANLIB=llvm-ranlib`
+  # Unset variables to prevent issues with PGO profiling
+  unset \
+    DBUS_SESSION_BUS_ADDRESS \
+    DISPLAY \
+    ORBIT_SOCKETDIR \
+    SESSION_MANAGER \
+    XAUTHORITY \
+    XDG_CACHE_HOME \
+    XDG_SESSION_COOKIE
+
+  local VIRTWL VIRTWL_PID
   cd "$_pkgname-$pkgver"
   # Check for required commands
   local _missing_cmds=()
