@@ -90,5 +90,25 @@ MAKE_PROGRAM_PATH=$(command -v ninja)
 
 meson: --buildtype minsize
 
-
+# gha
 runs-on: ubuntu-slim
+      - name: Set process id limit for 32-bit builds depending on aosp-libs
+        run: echo 65535 | sudo tee /proc/sys/kernel/pid_max
+
+sudo apt-get install ninja-build python3-pip python3-setuptools zstd curl gnupg libssl-dev lld nasm yasm clang llvm sqlite3 jq openjdk-21-jdk 
+
+sudo apt-get -yq update
+sudo env DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends
+
+# Add apt.llvm.org repo to get newer LLVM than Ubuntu provided
+$SUDO cp $(dirname "$(realpath "$0")")/llvm-snapshot.gpg.key /etc/apt/trusted.gpg.d/apt.llvm.org.asc
+$SUDO chmod a+r /etc/apt/trusted.gpg.d/apt.llvm.org.asc
+{
+	echo "deb [arch=amd64] http://apt.llvm.org/noble/ llvm-toolchain-noble-${TERMUX_HOST_LLVM_MAJOR_VERSION} main"
+} | $SUDO tee /etc/apt/sources.list.d/apt-llvm-org.list > /dev/null
+
+$SUDO apt-get -yq update
+
+$SUDO env DEBIAN_FRONTEND=noninteractive \
+	apt-get install -yq --no-install-recommends $LLVM_PACKAGES
+
