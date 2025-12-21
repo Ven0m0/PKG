@@ -85,7 +85,7 @@ PKG/
 ├── <package-name>/         # Individual package directories
 │   ├── PKGBUILD           # Package build script (required)
 │   ├── .SRCINFO           # Metadata (auto-generated)
-│   ├── readme.md          # Package documentation
+│   ├── README.md          # Package documentation
 │   ├── patches/           # Custom patches
 │   └── *.patch            # Individual patch files
 ├── build.sh               # Universal build script
