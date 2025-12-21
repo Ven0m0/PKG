@@ -24,7 +24,7 @@ makedepends=(
   cmake diffutils git git-cinnabar gtk-doc imake jack lld llvm mesa nasm
   ninja nodejs pkg-config python rust sed grep file unzip dump_syms
   wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi
-  xorg-server-xvfb yasm zip mercurial
+  yasm zip mercurial tinywl
 )
 optdepends=(
   'hunspell-en_US: Spell checking, American English'
@@ -151,7 +151,7 @@ export RANLIB=llvm-ranlib
 # Build configuration
 ac_add_options --enable-release
 ac_add_options --enable-hardening
-ac_add_options --enable-optimize="-O3 -march=native -mtune=native"
+ac_add_options --enable-optimize="-O3 -w -march=native -mtune=native -ftree-vectorize"
 ac_add_options --enable-rust-simd
 ac_add_options --enable-wasm-simd
 ac_add_options --enable-wasm-avx
@@ -192,7 +192,7 @@ ac_add_options --disable-phc
 ac_add_options --disable-dmd
 ac_add_options --disable-valgrind
 # Wayland support
-ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
+ac_add_options --enable-default-toolkit=cairo-gtk3-wayland-only
 ac_add_options --enable-wayland
 # Branding
 ac_add_options --enable-official-branding
