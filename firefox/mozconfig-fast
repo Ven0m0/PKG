@@ -7,7 +7,7 @@ ac_add_options --enable-application=browser
 ac_add_options --enable-release
 ac_add_options --enable-strip
 ac_add_options --enable-install-strip
-ac_add_options --enable-optimize=-O3
+ac_add_options --enable-optimize="-O3 -w -march=native -mtune=native -ftree-vectorize"
 ac_add_options --enable-lto=full
 ac_add_options --enable-lto
 ac_add_options --enable-clang-plugin
@@ -34,7 +34,7 @@ ac_add_options --enable-pulseaudio
 ac_add_options --enable-alsa
 ac_add_options --enable-jack
 ac_add_options --enable-eme=widevine
-ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
+ac_add_options --enable-default-toolkit=cairo-gtk3-wayland-only
 ac_add_options --enable-update-channel=release
 ac_add_options --enable-unverified-updates
 ac_add_options --enable-proxy-bypass-protection
@@ -105,15 +105,14 @@ export MOZ_CRASHREPORTER=0
 export MOZ_DATA_REPORTING=0
 export MOZ_REQUIRE_SIGNING=0
 
-
 # Output dir
 mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-firefox
 
 # Compiler Flags
-export RUSTFLAGS="-Copt-level=3 -Ctarget-cpu=native -Ccodegen-units=1 -Cdebuginfo=0 -Cpanic=abort -Cforce-frame-pointers=no -Cembed-bitcode=yes -Cllvm-args=--inline-threshold=2000 -Cllvm-args=--vectorize-slp-max-reg-size=64"
-export CFLAGS="-O3 -march=native -fno-semantic-interposition -fomit-frame-pointer -fdata-sections -ffunction-sections -fno-plt -funroll-loops -ftree-vectorize -fno-math-errno -freciprocal-math -fno-tree-scev-cprop"
-export CXXFLAGS="$CFLAGS"
-export LDFLAGS="-Wl,-O3 -Wl,--gc-sections -Wl,-z,now -Wl,-z,relro -Wl,--icf=all -Wl,--as-needed -Wl,--hash-style=gnu -Wl,--sort-common -Wl,--build-id=none"
+# export RUSTFLAGS="-Copt-level=3 -Ctarget-cpu=native -Ccodegen-units=1 -Cdebuginfo=0 -Cpanic=abort -Cforce-frame-pointers=no -Cembed-bitcode=yes -Cllvm-args=--inline-threshold=2000 -Cllvm-args=--vectorize-slp-max-reg-size=64"
+# export CFLAGS="-O3 -march=native -fno-semantic-interposition -fomit-frame-pointer -fdata-sections -ffunction-sections -fno-plt -funroll-loops -ftree-vectorize -fno-math-errno -freciprocal-math -fno-tree-scev-cprop"
+# export CXXFLAGS="$CFLAGS"
+# export LDFLAGS="-Wl,-O3 -Wl,--gc-sections -Wl,-z,now -Wl,-z,relro -Wl,--icf=all -Wl,--as-needed -Wl,--hash-style=gnu -Wl,--sort-common -Wl,--build-id=none"
 
 export MOZ_NO_PIE_COMPAT=1 MOZ_NOSPAM=1 MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=system
 
