@@ -8,6 +8,10 @@
 - [KISS-repo](https://github.com/XDream8/kiss-repo)
 - [Pika-os](https://pika-os.com)
 
+## Utilities
+
+- [ISA Level Detection](ISA-DETECTION.md) - Check x86-64 microarchitecture level support (based on [CachyOS/cachyos-repo-add-script](https://github.com/CachyOS/cachyos-repo-add-script))
+
 ## Cloudflare
 
 [quiche-mallard](https://github.com/cloudflare/quiche-mallard)
