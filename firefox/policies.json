@@ -22,6 +22,7 @@
     "NetworkPrediction": true,
     "ManualAppUpdateOnly": true,
     "OverridePostUpdatePage": "",
+    "CaptivePortal": true,
     "EnableTrackingProtection": {
       "Value": true,
       "BaselineExceptions": true,  
