@@ -17,15 +17,19 @@
     "DisableDeveloperTools": false,
     "DisableProfileImport": false,
     "NoDefaultBookmarks": true,
+    "DisplayBookmarksToolbar": "always",
     "DontCheckDefaultBrowser": true,
-    "NetworkPrediction": false,
+    "NetworkPrediction": true,
+    "ManualAppUpdateOnly": true,
     "OverridePostUpdatePage": "",
+    "CaptivePortal": true,
     "EnableTrackingProtection": {
       "Value": true,
-      "BaselineExceptions": true,
+      "BaselineExceptions": true,  
       "Fingerprinting": true,
       "Cryptomining": true,
-      "EmailTracking": true
+      "EmailTracking": true,
+      "Category": "standard",
     },
     "DNSOverHTTPS": {
       "Enabled": false,
@@ -125,12 +129,21 @@
         },
         {
           "Alias": "@startpageeu, @speu",
-          "Description": "Search Startpage (EU)",
+          "Description": "Search Startpage",
           "IconURL": "<same_as_original>",
           "Method": "POST",
-          "Name": "Startpage EU",
-          "SuggestURLTemplate": "https://www.startpage.com/sp/ac/?q={searchTerms}",
-          "URLTemplate": "https://www.startpage.com/sp/search?query={searchTerms}"
+          "Name": "Startpage",
+          "SuggestURLTemplate": "https://eu.startpage.com/sp/ac/?q={searchTerms}&cat=web&pl=opensearch&language=english",
+          "URLTemplate": "https://eu.startpage.com/sp/search?query={searchTerms}&cat=web&pl=opensearch&language=english"
+        },
+        {
+          "Alias": "@brave, @bra",
+          "Description": "Search Brave",
+          "IconURL": "<same_as_original>",
+          "Method": "POST",
+          "Name": "Brave",
+          "SuggestURLTemplate": "https://search.brave.com/search?q={searchTerms}&summary=1",
+          "URLTemplate": "https://search.brave.com/search?q={searchTerms}"
         }
       ]
     },
