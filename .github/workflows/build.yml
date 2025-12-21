@@ -34,7 +34,7 @@ env:
   LC_ALL: C
 jobs:
   matrix:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     outputs:
       pkgs: ${{ steps.set.outputs.pkgs }}
     steps:
