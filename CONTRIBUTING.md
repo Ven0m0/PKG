@@ -186,7 +186,7 @@ All scripts must pass:
 shellcheck -x -a -s bash script.sh
 
 # Safety checks
-shellharden --check script.sh
+shellharden --replace script.sh
 
 # Formatting
 shfmt -ln bash -bn -s -i 2 -d script.sh
