@@ -26,6 +26,7 @@ jobs:
           fetch-depth: 0
       - id: set
         name: Determine modified packages and files
+        shell: bash
         run: |
           pkgs=(); files=()
           event="${{ github.event_name }}"
@@ -74,7 +75,6 @@ jobs:
           updpkgsums: true
           aur: true
           flags: "-cfsi --noconfirm"
-
   fast-lint:
     needs: matrix
     if: ${{ needs.matrix.outputs.files != '[]' && needs.matrix.outputs.files != '' }}
@@ -94,26 +94,31 @@ jobs:
           python-version: "3.11"
           cache: "pip"
       - name: Install linters
+        shell: bash
         run: |
           pip install --no-cache-dir ruff black yamllint
           npm install -g --no-fund --no-audit prettier
       - name: Lint shell scripts
         if: contains(needs.matrix.outputs.files, '.sh')
+        shell: bash
+        # TODO: shellharden, shfmt, better shellcheck flags
         run: |
           mapfile -t sh_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '. []' | grep '\.sh$' || true)
           if [[ ${#sh_files[@]} -gt 0 ]]; then
-            shellcheck --format=gcc "${sh_files[@]}" || :
+            shellcheck "${sh_files[@]}" || :
           fi
       - name: Lint Python files
         if: contains(needs.matrix.outputs.files, '.py')
+        shell: bash
         run: |
           mapfile -t py_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep '\.py$' || true)
           if [[ ${#py_files[@]} -gt 0 ]]; then
-            ruff check "${py_files[@]}" || true
-            black --check "${py_files[@]}" || true
+            ruff check "${py_files[@]}" || :
           fi
       - name: Lint YAML files
         if: contains(needs.matrix.outputs.files, '.yml') || contains(needs.matrix.outputs.files, '.yaml')
+        shell: bash
+        # TODO: replace with yamlfmt
         run: |
           mapfile -t yaml_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep -E '\.ya?ml$' || true)
           if [[ ${#yaml_files[@]} -gt 0 ]]; then
@@ -121,12 +126,11 @@ jobs:
           fi
       - name: Lint JSON files
         if: contains(needs.matrix.outputs.files, '.json')
+        shell: bash
+        # TODO: replace with biome
         run: |
           mapfile -t json_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep '\.json$' || true)
-          if [[ ${#json_files[@]} -gt 0 ]]; then
-            prettier --check "${json_files[@]}" || :
-          fi
-
+          [[ ${#json_files[@]} -gt 0 ]] && prettier --check "${json_files[@]}" || :
   megalinter:
     runs-on: ubuntu-latest
     steps:
