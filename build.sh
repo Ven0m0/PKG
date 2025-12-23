@@ -41,11 +41,9 @@ EOF
 
 # ─── Discovery ─────────────────────────────────────────────────────────────
 find_pkgs(){
-  if has fd; then
-    fd -t f -g 'PKGBUILD' -x printf '%{//}\n' | sort -u
-  else
-    find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | sort -u
-  fi
+  find . -type f -name "PKGBUILD" | xargs -I {} sed 's|^\./||' {}
+  find . -type f -name "PKGBUILD" | xargs -I {} sed -i 's/arch=(x86_64)/arch=(x86_64_v3)/' {}
+  find . -type f -name "PKGBUILD" | xargs -I {} sed -i "s/arch=('x86_64')/arch=('x86_64_v3')/" {}
 }
 
 # ─── Builders ──────────────────────────────────────────────────────────────
@@ -87,7 +85,6 @@ build_standard(){
 main(){
   local -a targets=() args=()
   local max_jobs=$MAX_JOBS
-
   # Parse arguments
   while [[ $# -gt 0 ]]; do
     case $1 in
@@ -121,31 +118,25 @@ main(){
     log "Detecting packages..."
     mapfile -t targets < <(find_pkgs)
   fi
-
   [[ ${#targets[@]} -eq 0 ]] && {
     err "No packages found"
     exit 1
   }
-
   log "Building ${#targets[@]} package(s) [parallel=$PARALLEL, max_jobs=$max_jobs]"
-
   local failed=0
   local -a pids=()
   local -A pkg_status=()
-
   for pkg in "${targets[@]}"; do
     [[ ! -f $pkg/PKGBUILD ]] && {
       err "Missing PKGBUILD: $pkg"
       ((failed++))
       continue
     }
-
     if [[ $PARALLEL == true ]]; then
       # Wait if we've hit max jobs
       while [[ $(jobs -r | wc -l) -ge $max_jobs ]]; do
         sleep 0.1
       done
-
       # Build in background
       (
         if [[ -n ${DOCKER_PKGS[$pkg]:-} ]]; then
@@ -165,7 +156,6 @@ main(){
       fi || ((failed++))
     fi
   done
-
   # Wait for all background jobs if parallel
   if [[ $PARALLEL == true ]]; then
     for pid in "${pids[@]}"; do
@@ -177,12 +167,10 @@ main(){
       fi
     done
   fi
-
   [[ $failed -gt 0 ]] && {
     err "$failed package(s) failed"
     exit 1
   }
   log "Success: All packages built"
 }
-
 main "$@"
