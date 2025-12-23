@@ -1,0 +1,8 @@
+post_install(){
+  echo "wine-cachyos installed.  Use 'wine --version' to verify."
+  echo "For NTsync support, install ntsync-common and a compatible kernel module."
+}
+
+post_upgrade(){
+  post_install
+}
