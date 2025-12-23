@@ -1,40 +1,138 @@
-# Maintainer: VolRen <VolRencs@proton.me>
+# Maintainer: tytan652 <tytan652 at tytanium dot xyz>
+# Contributor: Alice Gaudon <alice at gaudon dot pro>
+# Contributor: Benjamin Klettbach <b dot klettbach at gmail dot com>
+# Contributor: Jonathan Steel <jsteel at archlinux.org>
+# Contributor: ArcticVanguard <LideEmily at gmail dot com>
+# Contributor: ledti <antergist at gmail dot com>
 
 pkgname=obs-studio
-pkgver=32.0.2
-pkgrel=3
+pkgver=32.0.4
+pkgrel=2
 pkgdesc="Free and open source software for video recording and live streaming"
 arch=('x86_64')
-url="https://obsproject.com"
-license=('GPL2')
-depends=('ffmpeg' 'pipewire' 'rnnoise' 'libxcomposite'
-  'libxinerama' 'libxkbcommon-x11' 'pciutils' 'mbedtls' 'qt6-svg')
-makedepends=('extra-cmake-modules' 'ffnvcodec-headers' 'nlohmann-json' 'simde' 'uthash' 'vulkan-headers' 'clang' 'lld' 'ninja')
+url="https://github.com/obsproject/obs-studio"
+license=('GPL-2.0-or-later')
+# To manage dependency rebuild easily, this will prevent you to rebuild OBS on non-updated system
+_qtver=6.10
+_libajantv2ver=17.5.0
+_libdatachannelver=0.24
+_mbedtlsver=3.6.1
+_pythonver=3.13
+
+depends=(
+  "alsa-lib" # Deps of ALSA plugin and CEF
+  "curl" # Deps of OBS Studio and rtmp-services plugin
+  "ffmpeg>=8" # Deps of OBS Studio and FFmpeg plugin
+  "fontconfig" # Deps of Freetype2 plugin
+  "freetype2" # Deps of Freetype2 plugin
+  "gcc-libs" # Deps of any C++ related binary
+  "glib2" # Deps of libobs, PipeWire plugin and CEF
+  "glibc" # Deps of any C related binary
+  "jack" # Deps of JACK plugin
+  "jansson" # Deps of libobs and rtmp-services plugin
+  "libajantv2>=$_libajantv2ver" # Deps of AJA plugins
+  "libdatachannel>=$_libdatachannelver" # Deps of WebRTC plugin (NICE variant like the Flatpak)
+  "libfdk-aac" # Deps of FDK AAC plugin
+  "libgl" # Deps of libobs-opengl and OBS Studio
+  "libpipewire" # Deps of the PipeWire plugin
+  "libpulse" # Deps of PulseAudio monitoring (in libobs) and PulseAudio plugin
+  "librist" # Deps of FFmpeg plugin
+  "libva" # Deps of FFmpeg plugin and QSV plugin
+  "libvpl" # Deps of QSV plugin
+  "libx11" # Deps of libobs, libobs-opengl, X11 Capture plugin, frontend tools plugin, obs-browser and CEF
+  "libxcb" # Deps of libobs-opengl, X11 Capture plugin and CEF
+  "libxcomposite" # Deps of the X11 capture plugin
+  "libxkbcommon" # Deps of libobs, OBS Studio and CEF
+  "luajit" # Deps of Scripting plugin
+  "mbedtls>=$_mbedtlsver" # Deps of OBS Studio and Outputs plugin
+  "pciutils" # Deps of FFmpeg plugin
+  "python>=$_pythonver" # Deps of Scripting plugin
+  "qrcodegencpp-cmake" # Deps of Websocket plugin
+  "qt6-base>=$_qtver" # Deps of OBS Studio and any frontend plugin
+  "qt6-svg>=$_qtver" # Deps of OBS Studio
+  "rnnoise" # Deps if the filter plugin
+  "simde" # Deps of libobs and its headers
+  "sndio" # Deps of sndio plugin
+  "speexdsp" # Deps if the filter plugin
+  "srt" # Deps of FFmpeg plugin
+  "systemd-libs" # Deps of V4L2 plugin
+  "util-linux-libs" # Deps of libobs
+  "v4l-utils" # Deps of V4L2 plugin
+  "vlc-luajit" # Deps of VLC Plugin ("vlc" issue crashes)
+  "wayland" # Deps of libobs, libobs-opengl and CEF
+  "x264" # Deps of the X264 plugin
+  "zlib" # Deps of libobs
+  # Deps of CEF
+  "at-spi2-core" "cairo" "dbus" "expat" "libcups" "libdrm"
+  "libxdamage" "libxext" "libxfixes" "libxrandr" "mesa" "nspr"
+  "nss" "pango"
+)
+## About vlc-luajit
+# The official VLC package will make OBS crash when a VLC source is used.
+# The issue is that VLC and OBS are compiled with different lua version.
+# So I also created vlc-luajit, a VLC package compiled with the same lua as OBS.
+# But to make people unable to install VLC official package with obs-studio-tytan652.
+# I decided to make vlc-luajit a dependency of OBS rather than an optional one.
+## About ffmpeg-obs
+# Read ffmpeg-obs PKGBUILD for more info
+makedepends=(
+  "asio" # Deps of Websocket plugin (headers-only lib)
+  "cmake"
+  "extra-cmake-modules"
+  "ffnvcodec-headers" # Deps of NVENC plugin (headers-only lib)
+  "git"
+  "uthash" # Deps of libobs (headers-only lib)
+  "nlohmann-json" # Deps of Websocket plugin (headers-only lib)
+  "swig" # Deps of Scripting plugin
+  "websocketpp" # Deps of Websocket plugin (headers-only lib)
+)
 optdepends=(
-  'v4l2loopback-dkms: virtual camera support'
+  "intel-media-sdk: QSV encoder support(<= Rocket Lake & >= Broadwell)"
+  "vpl-gpu-rt: QSV encoder support (>= Alder Lake)"
+  "intel-media-driver: VAAPI encoder support (>= Broadwell)"
+  "libva-intel-driver: VAAPI encoder support (<= Haswell)"
+  "libva-mesa-driver: VAAPI encoder support"
+  "v4l2loopback-dkms: V4L2 virtual camera output"
+  "decklink: Blackmagic Design DeckLink support"
+)
+provides=("obs-studio=$pkgver" "obs-vst" "obs-websocket" "obs-browser")
+conflicts=(
+  "obs-studio" "obs-vst" "obs-websocket" "obs-browser"
+  "obs-linuxbrowser" # This plugin is obsolete
+  "libva-vdpau-driver" # This driver is abandonned and make OBS segfault if it happen to be loaded, try libva-nvidia-driver is you really need Nvidia decode through VAAPI
 )
 options=('strip')
 source=(
-  "$pkgname-$pkgver.tar.gz::https://github.com/obsproject/obs-studio/releases/download/$pkgver/OBS-Studio-$pkgver-Sources.tar.gz"
-  "https://patch-diff.githubusercontent.com/raw/obsproject/obs-studio/pull/12328.patch"
+  "obs-studio::git+https://github.com/obsproject/obs-studio.git#tag=$pkgver"
+  "obs-browser::git+https://github.com/obsproject/obs-browser.git"
+  "obs-websocket::git+https://github.com/obsproject/obs-websocket.git"
+  "12328-Cleanup_Qt_Gui_Private_linkage.patch" # https://github.com/obsproject/obs-studio/pull/12328
 )
-sha256sums=('SKIP'
-  '48d744037c553eea8f9b76bf46f6dcac753e52871f49b2c1a2580757f723a1b7')
-
+source_x86_64=("https://cdn-fastly.obsproject.com/downloads/cef_binary_6533_linux_x86_64.tar.xz")
+sha256sums=('b904d07ab9ee863adcc5d0bf9225885cea374bba8a0022dba0790562e2b8b1f5'
+            'SKIP'
+            'SKIP'
+            '25322c692cf5cc88fc7d17cbb40a61b7e32d5ea675da647dd1a1996474ec2c8e')
+sha256sums_x86_64=('fab66dfc9cfd2e26fb87798f855aef30c2004edc8e19570d37af555644ae1655')
 prepare() {
-  cd "${pkgname}-${pkgver}-sources"
+  cd "$srcdir/obs-studio"
+  git config submodule.plugins/obs-browser.url $srcdir/obs-browser
+  git config submodule.plugins/obs-websocket.url $srcdir/obs-websocket
+  git -c protocol.file.allow=always submodule update
+  ## Mark log and titlebar version
+  sed -i "s|obs_get_version_string()|\"$_pkgver-$_suffix-$pkgrel\"|" frontend/OBSApp.cpp
+  ## frontend: Cleanup Qt GuiPrivate linkage (https://github.com/obsproject/obs-studio/pull/12328)
+  patch -Np1 -i "$srcdir/12328-Cleanup_Qt_Gui_Private_linkage.patch" || :
   patch -Np1 -i "${srcdir}/12328.patch" || :
 }
 
 build() {
-  # Use clang/lld for better optimization and faster linking
-  export CC=clang
-  export CXX=clang++
-  # Use sccache if available for faster compilation
-  command -v sccache &>/dev/null && export CC="sccache clang" CXX="sccache clang++"
-
-  cmake -GNinja -B build -S "${pkgname}-${pkgver}-sources" -DCMAKE_BUILD_TYPE=Release -DCMAKE_SKIP_INSTALL_RPATH=YES -DCMAKE_INSTALL_PREFIX=/usr -DENABLE_JACK=ON -DENABLE_SNDIO=OFF -DENABLE_BROWSER=OFF -DENABLE_VST=OFF -DENABLE_VLC=OFF -DENABLE_LIBFDK=OFF -DENABLE_WEBRTC=OFF -DENABLE_WEBSOCKET=OFF -DENABLE_NEW_MPEGTS_OUTPUT=ON -DENABLE_AJA=OFF -DENABLE_SCRIPTING=OFF -DOBS_VERSION_OVERRIDE="$pkgver" -Wno-dev
-  cmake --build build --target all -j"$(nproc)"
+  export CC=clang CXX=clang++
+  cmake -G Ninja -B build -S "obs-studio" -DCMAKE_BUILD_TYPE=Release -DCMAKE_SKIP_INSTALL_RPATH=YES -DCMAKE_INSTALL_PREFIX=/usr \
+    -DENABLE_JACK=ON -DENABLE_SNDIO=ON -DENABLE_BROWSER=ON -DENABLE_VST=OFF -DENABLE_VLC=OFF -DENABLE_LIBFDK=ON -DENABLE_WEBRTC=OFF \
+    -DOBS_COMPILE_DEPRECATION_AS_WARNING=ON  -DCEF_ROOT_DIR="$srcdir/cef_binary_6533_linux_${CARCH/%_v?/}" \
+    -DENABLE_WEBSOCKET=OFF -DENABLE_NEW_MPEGTS_OUTPUT=ON -DENABLE_AJA=OFF -DENABLE_SCRIPTING=OFF -DOBS_VERSION_OVERRIDE="$pkgver" -Wno-dev
+  cmake --build build -j"$(nproc)"
 }
 
 package() {
