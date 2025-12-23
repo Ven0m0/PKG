@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-shopt -s nullglob globstar
-IFS=$'\n\t'
 
 readonly VERSION="${1:?No version given as an argument}"
 
