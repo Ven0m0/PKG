@@ -1,0 +1,1 @@
+fix optimize.patch to be valid for gitoxide
