@@ -18,6 +18,11 @@ sha256sums=('SKIP')
 pkgver() {
     git -C SVT-AV1-Essential describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//'
 }
+prepare() {
+   # to build with PGO we need to remove that
+#  sed '/CMAKE_BUILD_TYPE Release/d' -i SVT-AV1/CMakeLists.txt
+  cd "$srcdir"
+}
 
 build() {
     export CFLAGS+=" -fno-semantic-interposition" CXXFLAGS+=" -fno-semantic-interposition" LDFLAGS+=' -Wl,-z,noexecstack'
