@@ -1,0 +1,92 @@
+### Arch Linux PKGBUILD Maintainers:
+# Maintainer: Levente Polyak <anthraxx[at]archlinux[dot]org>
+# Contributor: Chocobo1 <chocobo1 AT archlinux DOT net>
+# Contributor: Jacek Szafarkiewicz <szafar at linux dot pl>
+### CachyOS PKGBUILD Maintainers:
+# Maintainer: Eric Naim <dnaim@cachyos.org>
+# Maintainer: Peter Jung <admin@ptr1337.dev>
+
+
+pkgname=(
+  zlib-ng
+  zlib-ng-compat
+)
+pkgver=2.3.2
+pkgrel=2
+pkgdesc='zlib replacement with optimizations for next generation systems'
+url='https://github.com/zlib-ng/zlib-ng'
+arch=('x86_64')
+license=('Zlib')
+depends=(
+  glibc
+)
+makedepends=(
+  git
+  cmake
+  ninja
+)
+source=(git+https://github.com/zlib-ng/zlib-ng#tag=${pkgver})
+sha256sums=('92fed158513bb54d0843fffdb161105f8e360bf45d80a2a53a87e911b29fd076')
+b2sums=('4ca48eadf9f625c681c44699764053d5851fcd1a1b2a1f69c519853ff3a55e1a1588200cb7d08b7842316a8c4a240bf449d709b380b907243203de7cb71baee2')
+
+
+build() {
+  cd "zlib-ng"
+
+  export CFLAGS+=" -fno-semantic-interposition"
+  export CXXFLAGS+=" -fno-semantic-interposition"
+
+  local _options=(
+    -G Ninja
+    -DCMAKE_BUILD_TYPE=None
+    -DCMAKE_INSTALL_PREFIX=/usr
+    -DCMAKE_INSTALL_LIBDIR=lib
+    -Wno-dev
+    -DWITH_GTEST=OFF
+    -DBUILD_SHARED_LIBS=ON
+  )
+
+  echo "Building zlib-ng"
+  cmake -B build \
+    "${_options[@]}"
+  cmake --build build
+
+  echo "Building zlib-ng-compat"
+  cmake -B build-compat \
+    "${_options[@]}" \
+    -DZLIB_COMPAT=ON
+  cmake --build build-compat
+}
+
+check() {
+  cd "zlib-ng"
+  echo "Checking zlib-ng"
+  ctest --output-on-failure --test-dir build
+  echo "Checking zlib-ng-compat"
+  ctest --output-on-failure --test-dir build-compat
+}
+
+package_zlib-ng() {
+  provides=('libz-ng.so')
+
+  cd "zlib-ng"
+  DESTDIR="${pkgdir}" cmake --install build
+  install -Dm 644 LICENSE.md -t "${pkgdir}/usr/share/licenses/${pkgname}"
+  install -Dm 644 README.md -t "${pkgdir}/usr/share/doc/${pkgname}"
+}
+
+package_zlib-ng-compat() {
+  pkgdesc+=" (zlib compat)"
+  provides=('zlib' 'libz.so')
+  depends=('zlib-ng')
+  conflicts=('zlib')
+  replaces=('zlib')
+  options=('staticlibs')
+
+  cd "zlib-ng"
+  DESTDIR="${pkgdir}" cmake --install build-compat
+  install -Dm 644 LICENSE.md -t "${pkgdir}/usr/share/licenses/${pkgname}"
+  install -Dm 644 README.md -t "${pkgdir}/usr/share/doc/${pkgname}"
+}
+
+# vim: ts=2 sw=2 et:
