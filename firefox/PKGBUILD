@@ -38,13 +38,13 @@ optdepends=(
 options=(!strip !emptydirs !debug !makeflags !lto)
 source=(
   "https://archive.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"
-  ${_pkgname}. desktop
+  ${_pkgname}.desktop
   ${_pkgname}-symbolic.svg
   patches/*.patch
   patches/ghostery/*.patch
   patches/firedragon/*.patch
 )
-sha256sums=('08d4cae010abc31603ef74091a5d1f81da8e62d3b66c806690e70f03c422df16' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
+sha256sums=('08d4cae010abc31603ef74091a5d1f81da8e62d3b66c806690e70f03c422df16' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
 # Tunables - set these in your environment to control build behavior
 :  "${NATIVE_ARCH:=native}"      # CPU architecture to optimize for
 : "${ENABLE_PGO:=true}"         # Profile-Guided Optimization (recommended)
@@ -109,7 +109,6 @@ prepare(){
   # Clear forced startup pages
   sed -E -e 's&^\s*pref\("startup\.homepage.*$&&' -i browser/branding/*/pref/firefox-branding.js
 }
-
 _write_mozconfig(){
   cd "$srcdir/$_pkgname-$pkgver"
   # Calculate optimal core count based on available RAM
