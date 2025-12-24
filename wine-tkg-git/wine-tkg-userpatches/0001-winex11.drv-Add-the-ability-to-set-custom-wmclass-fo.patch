@@ -1,0 +1,38 @@
+From 53d2f7fe9b12cdfe871515608e0d222af497d3e2 Mon Sep 17 00:00:00 2001
+From: Stelios Tsampas <loathingkernel@gmail.com>
+Date: Sat, 25 May 2024 15:38:24 +0300
+Subject: [PATCH] winex11.drv: Add the ability to set custom wmclass for Wine
+ windows
+
+Wine's wmclass can be controlled through the WINE_WMCLASS environment
+variable.
+---
+ dlls/winex11.drv/window.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/dlls/winex11.drv/window.c b/dlls/winex11.drv/window.c
+index 53bcc3b8211..a99be83bf78 100644
+--- a/dlls/winex11.drv/window.c
++++ b/dlls/winex11.drv/window.c
+@@ -1060,8 +1060,17 @@ static void set_initial_wm_hints( Display *display, Window window )
+     /* class hints */
+     if ((class_hints = XAllocClassHint()))
+     {
+-        class_hints->res_name = process_name;
+-        class_hints->res_class = process_name;
++        const char *wine_wmclass = getenv("WINE_WMCLASS");
++        char window_class[128];
++
++        if (wine_wmclass && *wine_wmclass){
++            snprintf(window_class, sizeof(window_class), "%s", wine_wmclass);
++            class_hints->res_name = window_class;
++            class_hints->res_class = window_class;
++        } else {
++            class_hints->res_name = process_name;
++            class_hints->res_class = process_name;
++        }
+         XSetClassHint( display, window, class_hints );
+         XFree( class_hints );
+     }
+-- 
+2.47.0
