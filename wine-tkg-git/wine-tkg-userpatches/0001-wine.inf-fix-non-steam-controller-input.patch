@@ -1,0 +1,50 @@
+From 25b995bdbae8a95a88802625ed4cb7ef841f8c81 Mon Sep 17 00:00:00 2001
+From: GloriousEggroll <gloriouseggroll@gmail.com>
+Date: Mon, 13 May 2024 12:19:07 +0300
+Subject: [PATCH] wine.inf: fix non-steam controller input
+
+---
+ loader/wine.inf.in | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/loader/wine.inf.in b/loader/wine.inf.in
+index b663725ba19..0fdf24b8af6 100644
+--- a/loader/wine.inf.in
++++ b/loader/wine.inf.in
+@@ -100,6 +100,7 @@ AddReg=\
+     VersionInfo,\
+     LicenseInformation,\
+     NVIDIANGX, \
++    WineNonSteamController, \
+     ProtonOverrides
+ 
+ [DefaultInstall.ntamd64]
+@@ -129,6 +130,7 @@ AddReg=\
+     VersionInfo,\
+     LicenseInformation,\
+     NVIDIANGX, \
++    WineNonSteamController, \
+     ProtonOverrides
+ 
+ [DefaultInstall.ntarm64]
+@@ -174,6 +176,7 @@ AddReg=\
+     VersionInfo,\
+     LicenseInformation,\
+     NVIDIANGX, \
++    WineNonSteamController, \
+     ProtonOverrides
+ 
+ [Wow64Install.ntarm]
+@@ -3049,6 +3052,10 @@ SortFiles = 10,globalization\sorting
+ [NVIDIANGX]
+ HKLM,Software\NVIDIA Corporation\Global\NGXCore,"FullPath",,"C:\Windows\System32"
+ 
++[WineNonSteamController]
++HKLM,System\CurrentControlSet\Services\winebus,"DisableHidraw",0x10001,"1"
++HKLM,System\CurrentControlSet\Services\winebus,"Enable SDL",0x10001,"1"
++
+ [ProtonOverrides]
+ HKLM,Software\Khronos\OpenXR\1,"ActiveRuntime",,"C:\openxr\wineopenxr64.json"
+ ;;Likely want *80 and *90 too, but those require removing Wine's manifest files.
+-- 
+2.47.0
