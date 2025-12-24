@@ -15,8 +15,7 @@ conflicts=('firefox')
 depends=(
   alsa-lib at-spi2-core bash cairo dbus ffmpeg4.4 fontconfig freetype2
   gcc-libs gdk-pixbuf2 glib2 glibc gtk3 hicolor-icon-theme libevent
-  libjpeg libpulse libvpx libwebp libx11 libxcb libxcomposite libxdamage
-  libxext libxfixes libxrandr libxss libxt mime-types nss nspr pango
+  libjpeg libpulse libvpx libwebp mime-types nss nspr pango
   ttf-font dbus-glib dav1d aom icu graphite harfbuzz
 )
 makedepends=(
@@ -254,7 +253,6 @@ build() {
     XAUTHORITY \
     XDG_CACHE_HOME \
     XDG_SESSION_COOKIE
-
   local VIRTWL VIRTWL_PID
   cd "$_pkgname-$pkgver"
   # Check for required commands
@@ -274,9 +272,7 @@ build() {
   export MOZ_BUILD_DATE="$(date -u${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH} +%Y%m%d%H%M%S)"
   export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib LD=ld.lld RUST_MIN_STACK=16777216 PYTHONOPTIMIZE=2 CARGO_CACHE_RUSTC_INFO=1 OPT_LEVEL=3 CARGO_INCREMENTAL=0 MOZ_NOSPAM=1 MOZ_ENABLE_WAYLAND=1 MOZILLA_OFFICIAL=1 MOZBUILD_STATE_PATH="$srcdir/mozbuild" MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip LIBGL_ALWAYS_SOFTWARE=true
   # Use sccache if available
-  if command -v sccache &>/dev/null; then
-    export RUSTC_WRAPPER=sccache
-  fi
+  command -v sccache &>/dev/null && export RUSTC_WRAPPER=sccache
   # Apply optimization flags
   CFLAGS="${_cflags[*]} ${CFLAGS:-}"
   CXXFLAGS="${_cflags[*]} ${CXXFLAGS:-}"
@@ -303,6 +299,16 @@ build() {
   local _pgo_profdata_cs="$_pgo_cache/firefox-$pkgver-merged-cs.profdata"
   local _pgo_jarlog="$_pgo_cache/firefox-$pkgver-jarlog"
 
+  # Export XDG_RUNTIME_DIR for tinywl
+  export XDG_RUNTIME_DIR="/tmp/$(id -u)-runtime-dir"
+  mkdir -pm 0700 "$XDG_RUNTIME_DIR"
+  # Run tinywl compositor for PGO profiling
+  coproc VIRTWL {
+    WLR_RENDERER=pixman WLR_BACKENDS=headless \
+      exec dbus-run-session -- tinywl -s 'echo $WAYLAND_DISPLAY; read _; kill $PPID'
+  }
+  local -x WAYLAND_DISPLAY
+  read WAYLAND_DISPLAY <&${VIRTWL[0]}
   if [[ ${ENABLE_PGO} == "true" ]]; then
     # Determine which profile to use
     local _final_profile="merged.profdata"
@@ -310,7 +316,6 @@ build() {
       _final_profile="merged-cs.profdata"
       echo "3-stage context-sensitive PGO enabled"
     fi
-
     # Try to reuse existing profile
     if [[ ${ENABLE_PGO_REUSE} == "true" ]]; then
       if [[ ${ENABLE_PGO_3STAGE} == "true" ]] && [[ -s $_pgo_profdata_cs ]]; then
@@ -324,7 +329,6 @@ build() {
         [[ -s $_pgo_jarlog ]] && cp "$_pgo_jarlog" jarlog
       fi
     fi
-
     # Stage 1: Generate initial profile if needed
     if [[ ! -s merged.profdata ]]; then
       echo "==> PGO Stage 1: Building instrumented browser..."
@@ -335,13 +339,8 @@ END
       ./mach build --priority normal
       echo "==> PGO Stage 1: Profiling instrumented browser..."
       ./mach package
-      LLVM_PROFDATA=llvm-profdata \
-        JARLOG_FILE="$PWD/jarlog" \
-        LIBGL_ALWAYS_SOFTWARE=true \
-        dbus-run-session \
-        xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
-        ./mach python build/pgo/profileserver.py
-
+      LLVM_PROFDATA=llvm-profdata JARLOG_FILE="$PWD/jarlog" \
+        LIBGL_ALWAYS_SOFTWARE=true ./mach python build/pgo/profileserver.py
       if [[ -s merged.profdata ]]; then
         stat -c "Stage 1 profile generated (%s bytes)" merged.profdata
         cp merged.profdata "$_pgo_profdata"
@@ -366,16 +365,12 @@ END
       if [[ -s jarlog ]]; then
         echo "ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog" >>.mozconfig
       fi
-
       ./mach build --priority normal
       echo "==> PGO Stage 2: Profiling context-sensitive build..."
       ./mach package
       LLVM_PROFDATA=llvm-profdata \
         LIBGL_ALWAYS_SOFTWARE=true \
-        dbus-run-session \
-        xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
         ./mach python build/pgo/profileserver.py
-
       # Merge Stage 1 and Stage 2 profiles
       if ls *.profraw &>/dev/null; then
         echo "==> Merging Stage 1 and Stage 2 profiles into context-sensitive profile..."
@@ -396,7 +391,6 @@ END
         _final_profile="merged.profdata"
       fi
     fi
-
     # Final build with PGO profile
     if [[ ${ENABLE_PGO} == "true" ]] && [[ -s $_final_profile ]]; then
       if [[ ${ENABLE_PGO_3STAGE} == "true" ]]; then
@@ -443,6 +437,8 @@ END
       fi
     done
   fi
+  exec {VIRTWL[0]}<&- {VIRTWL[1]}>&-
+  rm -rf "${XDG_RUNTIME_DIR}"
 }
 
 package() {
@@ -544,4 +540,7 @@ END
     ln -srv /usr/lib/libonnxruntime.so "$pkgdir/usr/lib/$_pkgname/libonnxruntime.so" 2>/dev/null || :
   fi
 }
+
+# vim:set sw=2 et:
+
 # vim: ts=2 sw=2 et:
