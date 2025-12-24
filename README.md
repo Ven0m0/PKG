@@ -33,7 +33,7 @@ This repository provides optimized package builds for Arch Linux with a focus on
 - ✅ **Comprehensive linting** (shellcheck, shellharden, shfmt, namcap)
 - ✅ **Automated formatting** with consistent style enforcement
 - ✅ **EditorConfig integration** for consistent coding standards
-- ✅ **Pre-commit hooks** support
+- ✅ **Git hooks with lefthook** for automated quality checks
 
 ### Optimization Techniques
 
@@ -173,6 +173,35 @@ makepkg -s
 ```
 
 ## Development
+
+### Git Hooks Setup
+
+This repository uses [lefthook](https://github.com/evilmartians/lefthook) for automated code quality checks.
+
+```bash
+# Install lefthook
+# Linux/macOS via script
+curl -1sLf 'https://dl.cloudsmith.io/public/evilmartians/lefthook/setup.deb.sh' | sudo -E bash
+sudo apt-get install lefthook
+
+# Or via Go
+go install github.com/evilmartians/lefthook@latest
+
+# Or via Homebrew (macOS)
+brew install lefthook
+
+# Or via uv (recommended for Python tools)
+uv tool install lefthook
+
+# Install hooks in repository
+lefthook install
+
+# Run hooks manually
+lefthook run pre-commit
+
+# Skip hooks temporarily
+LEFTHOOK=0 git commit -m "message"
+```
 
 ### Linting
 
@@ -315,4 +344,4 @@ See individual package directories for specific license information.
 
 **Maintained by**: Ven0m0
 **Repository**: <https://github.com/Ven0m0/PKG>
-**Last Updated**: 2025-12-20
+**Last Updated**: 2025-12-24

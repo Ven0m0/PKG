@@ -172,7 +172,7 @@ This document tracks planned features, improvements, and long-term goals for the
 - [x] **Improved SECURITY.md** (2025-12-20)
 - [x] **Package README template** (2025-12-20)
 - [x] **Better TODO.md organization** (2025-12-20)
-- [x] **Pre-commit hooks setup** (2025-12-24)
+- [x] **Git hooks setup with lefthook** (2025-12-24)
 
 ## Ideas / Research
 
