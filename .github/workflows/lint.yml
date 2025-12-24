@@ -98,14 +98,30 @@ jobs:
         run: |
           pip install --no-cache-dir ruff black yamllint
           npm install -g --no-fund --no-audit prettier
+          # Install shfmt (pre-built binary)
+          SHFMT_VERSION="3.8.0"
+          wget -q "https://github.com/mvdan/sh/releases/download/v${SHFMT_VERSION}/shfmt_v${SHFMT_VERSION}_linux_amd64" -O shfmt
+          chmod +x shfmt
+          sudo mv shfmt /usr/local/bin/
+          # Install shellharden (pre-built binary)
+          SHELLHARDEN_VERSION="4.3.1"
+          wget -q "https://github.com/anordal/shellharden/releases/download/v${SHELLHARDEN_VERSION}/shellharden-x86_64-unknown-linux-gnu" -O shellharden
+          chmod +x shellharden
+          sudo mv shellharden /usr/local/bin/
       - name: Lint shell scripts
         if: contains(needs.matrix.outputs.files, '.sh')
         shell: bash
-        # TODO: shellharden, shfmt, better shellcheck flags
         run: |
           mapfile -t sh_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '. []' | grep '\.sh$' || true)
           if [[ ${#sh_files[@]} -gt 0 ]]; then
-            shellcheck "${sh_files[@]}" || :
+            # shellcheck with comprehensive flags (matches lint.sh)
+            shellcheck -x -a -s bash "${sh_files[@]}" || :
+            # shellharden for safety checks
+            for f in "${sh_files[@]}"; do
+              shellharden --check "$f" || :
+            done
+            # shfmt for formatting checks (matches lint.sh flags)
+            shfmt -ln bash -bn -ci -s -i 2 -d "${sh_files[@]}" || :
           fi
       - name: Lint Python files
         if: contains(needs.matrix.outputs.files, '.py')
