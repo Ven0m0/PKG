@@ -18,12 +18,12 @@ spelling_language = en
 shell_variant = auto
 keep_padding = false
 space_redirects = false
-switch_case_indent = false
+switch_case_indent = true
 function_next_line = false
 binary_next_line = true
 
 # Shell
-[**.{sh,bash*},bash_*,PKGBUILD]
+[*.{sh,bash*},bash_*,PKGBUILD]
 shell_variant = bash
 
 [.profile,**.dash]
