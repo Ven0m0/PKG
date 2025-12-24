@@ -1,0 +1,30 @@
+From 872fc98fdb32537f69f58bfc24b0a9c7057669e0 Mon Sep 17 00:00:00 2001
+From: Stelios Tsampas <loathingkernel@gmail.com>
+Date: Sat, 25 May 2024 15:35:25 +0300
+Subject: [PATCH] shell32: Add WINEUSERSANDBOX environment variable
+
+Setting 'WINEUSERSANDBOX=1' stops Wine from creating
+links to the $HOME folders from the respective Wine folders.
+---
+ dlls/shell32/shellpath.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/dlls/shell32/shellpath.c b/dlls/shell32/shellpath.c
+index 4330ee367b3..1d04dd96ced 100644
+--- a/dlls/shell32/shellpath.c
++++ b/dlls/shell32/shellpath.c
+@@ -3015,7 +3015,12 @@ HRESULT WINAPI SHGetFolderPathAndSubDirW(
+ 
+     /* create symbolic links rather than directories for specific
+      * user shell folders */
++    const WCHAR *sandbox = _wgetenv( L"WINEUSERSANDBOX" );
++    int isolate = 0;
++    isolate = sandbox && !strcmp(sandbox, "1");
++    if(!isolate) {
+     _SHCreateSymbolicLink(folder, szBuildPath);
++    }
+ 
+     /* create directory/directories */
+     ret = SHCreateDirectoryExW(hwndOwner, szBuildPath, NULL);
+-- 
+2.47.0
