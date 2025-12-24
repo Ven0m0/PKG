@@ -1,0 +1,29 @@
+# Markdownlint configuration
+# See: https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+
+# Default state for all rules
+default: true
+
+# MD013/line-length - Line length (matches EditorConfig)
+MD013:
+  line_length: 140
+  heading_line_length: 140
+  code_block_line_length: 140
+  code_blocks: false
+  tables: false
+  headings: true
+  strict: false
+  stern: false
+
+# MD033/no-inline-html - Allow inline HTML
+MD033: false
+
+# MD034/no-bare-urls - Allow bare URLs (common in PKGBUILDs)
+MD034: false
+
+# MD041/first-line-heading - First line should be a top-level heading
+MD041: false
+
+# MD046/code-block-style - Code block style (fenced preferred)
+MD046:
+  style: fenced

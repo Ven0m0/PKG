@@ -68,7 +68,7 @@ This document tracks planned features, improvements, and long-term goals for the
   - [ ] Performance regression testing
 
 - [ ] **Code quality improvements**
-  - [ ] Pre-commit hooks setup
+  - [x] Pre-commit hooks setup
   - [ ] Automated formatting enforcement
   - [ ] Additional linting rules
 
@@ -172,6 +172,7 @@ This document tracks planned features, improvements, and long-term goals for the
 - [x] **Improved SECURITY.md** (2025-12-20)
 - [x] **Package README template** (2025-12-20)
 - [x] **Better TODO.md organization** (2025-12-20)
+- [x] **Pre-commit hooks setup** (2025-12-24)
 
 ## Ideas / Research
 
@@ -213,5 +214,5 @@ To suggest additions or changes to this roadmap:
 
 ---
 
-**Last Updated**: 2025-12-22
+**Last Updated**: 2025-12-24
 **Maintainer**: Ven0m0

@@ -1,0 +1,136 @@
+# Pre-commit hooks for PKG repository
+# Install: pip install pre-commit
+# Setup: pre-commit install
+# Run manually: pre-commit run --all-files
+
+default_language_version:
+  python: python3
+
+repos:
+  # ══════════════════════════════════════════════════════════════════════════
+  # Shell Script Linting & Formatting
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        name: ShellCheck - Static analysis for shell scripts
+        args: [-x, -a, -s, bash]
+        types: [shell]
+        exclude: ^(wine-tkg-git|chromium)/
+
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.10.0-1
+    hooks:
+      - id: shfmt
+        name: shfmt - Shell script formatter
+        args: [-ln, bash, -bn, -ci, -s, -i, "2", -w]
+        types: [shell]
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # PKGBUILD Specific Checks
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - repo: local
+    hooks:
+      - id: pkgbuild-srcinfo
+        name: PKGBUILD - Check .SRCINFO is up to date
+        entry: bash -c 'for f in "$@"; do dir=$(dirname "$f"); if [[ -f "$dir/PKGBUILD" ]]; then cd "$dir" && makepkg --printsrcinfo 2>/dev/null | diff -q .SRCINFO - >/dev/null || { echo "ERROR: .SRCINFO out of sync in $dir. Run: cd $dir && makepkg --printsrcinfo > .SRCINFO"; exit 1; }; cd - >/dev/null; fi; done' --
+        language: system
+        files: '^[^/]+/PKGBUILD$'
+        pass_filenames: true
+
+      - id: pkgbuild-shellcheck
+        name: PKGBUILD - ShellCheck validation
+        entry: bash -c 'for f in "$@"; do shellcheck -x -a -s bash "$f" || exit 1; done' --
+        language: system
+        files: '^[^/]+/PKGBUILD$'
+        pass_filenames: true
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # General Code Quality
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        name: Trim trailing whitespace
+        exclude: ^(.*\.patch|.*\.diff)$
+
+      - id: end-of-file-fixer
+        name: Fix end of files
+        exclude: ^(.*\.patch|.*\.diff)$
+
+      - id: check-yaml
+        name: Check YAML syntax
+        args: [--safe]
+
+      - id: check-json
+        name: Check JSON syntax
+
+      - id: check-merge-conflict
+        name: Check for merge conflicts
+
+      - id: check-executables-have-shebangs
+        name: Check executables have shebangs
+
+      - id: check-shebang-scripts-are-executable
+        name: Check shebang scripts are executable
+
+      - id: mixed-line-ending
+        name: Check mixed line endings
+        args: [--fix=lf]
+
+      - id: check-added-large-files
+        name: Check for large files
+        args: [--maxkb=10240]  # 10MB limit
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # EditorConfig Compliance
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
+    rev: 3.0.3
+    hooks:
+      - id: editorconfig-checker
+        name: EditorConfig - Validate compliance
+        alias: ec
+        exclude: ^(.*\.patch|.*\.diff|.*\.min\.(js|css))$
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Markdown Linting
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.43.0
+    hooks:
+      - id: markdownlint
+        name: Markdown lint
+        args: [--fix]
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Security Checks
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        name: Detect secrets
+        args: [--baseline, .secrets.baseline]
+        exclude: ^(.*\.lock|\.git/)$
+
+# Configuration
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false
