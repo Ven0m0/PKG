@@ -98,21 +98,25 @@ jobs:
           cache_apt_lists: true
       - name: Free disk space
         if: steps.build_method.outputs.needs_space == 'true'
-        uses: AdityaGarg8/remove-unwanted-software@v5
+        uses: endersonmenezes/free-disk-space@v3
         with:
-          remove-android: "true"
-          remove-dotnet: "true"
-          remove-haskell: "true"
-          remove-codeql: "true"
-          remove-docker-images: "false"
+          remove_android: true
+          remove_dotnet: true
+          remove_haskell: true
+          remove_tool_cache: true
+          remove_swap: true
+          remove_packages: "azure-cli google-cloud-cli microsoft-edge-stable google-chrome-stable firefox postgresql* mysql* dotnet-sdk-*"
+          remove_packages_one_command: true
+          remove_folders: "/usr/share/swift /usr/share/miniconda /usr/share/az* /usr/local/lib/node_modules /usr/local/share/chromium /usr/local/share/powershell /usr/local/julia /usr/local/aws-cli /usr/local/aws-sam-cli /usr/share/gradle /opt/ghc /usr/share/dotnet"
+          rm_cmd: "rmz"
       - name: Additional preparations
         if: steps.build_method.outputs.needs_space == 'true'
         shell: bash
         run: |
-          sudo apt-get update -yqq &>/dev/null; sudo apt-get upgrade -yqq --allow-releaseinfo-change --no-install-recommends --no-install-suggests
-          sudo apt-get clean -yqq; sudo apt-get autoclean -y; sudo apt-get autoremove --purge -yqq
-          sudo rm -f -- /var/lib/man-db/auto-update &>/dev/null
-          sudo rm -rf /var/lib/apt/lists/* /opt/ghc /usr/local/.ghcup /usr/share/dotnet &>/dev/null
+          sudo apt-get update -yq &>/dev/null; sudo apt-get upgrade -yq --no-install-recommends --no-install-suggests
+          sudo apt-get clean -yq; sudo apt-get autoclean -y; sudo apt-get autoremove --purge -yq
+          sudo rm -f /var/lib/man-db/auto-update &>/dev/null
+          sudo rm -rf /var/lib/apt/lists/* /usr/local/.ghcup &>/dev/null
           df -h
       - name: Cache APT packages
         if: steps.build_method.outputs.method == 'standard'
@@ -200,8 +204,7 @@ jobs:
             -v /tmp/.buildx-cache:/cache \
             -e CCACHE_DIR=/cache/ccache -e SCCACHE_DIR=/cache/sccache \
             -e CC=clang -e CXX=clang++ -e RUSTC_WRAPPER=sccache \
-            -e MAKEFLAGS="-j$(nproc)" \
-            -w "/workspace/$pkg" \
+            -e MAKEFLAGS="-j$(nproc)" -w "/workspace/$pkg" \
             archlinux-buildenv:latest bash -c '
             set -euo pipefail
             # Extract dependencies efficiently (single pass)
