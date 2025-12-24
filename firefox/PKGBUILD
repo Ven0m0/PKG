@@ -1,10 +1,9 @@
 # Maintainer: Ven0m0
 # Merged from multiple optimized Firefox PKGBUILDs
 # Features: Aggressive optimization, PGO, VA-API, system libraries, hardware acceleration
-
 pkgname=firefox-custom
 _pkgname=firefox
-pkgver=146.0
+pkgver=148.0
 pkgrel=1
 pkgdesc='Firefox with aggressive optimizations, VA-API, PGO, and all performance tweaks'
 arch=(x86_64)
@@ -26,10 +25,10 @@ makedepends=(
   yasm zip mercurial tinywl
 )
 optdepends=(
-  'hunspell-en_US: Spell checking, American English'
+  'hunspell-en_US:  Spell checking, American English'
   'libnotify: Notification integration'
   'networkmanager: Location detection via available WiFi networks'
-  'onnxruntime: Local machine learning features'
+  'onnxruntime:  Local machine learning features'
   'speech-dispatcher: Text-to-Speech'
   'xdg-desktop-portal: Screensharing with Wayland'
   'libdbusmenu-gtk3: Global menu support'
@@ -39,18 +38,15 @@ optdepends=(
 options=(!strip !emptydirs !debug !makeflags !lto)
 source=(
   "https://archive.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"
-  ${_pkgname}.desktop
+  ${_pkgname}. desktop
   ${_pkgname}-symbolic.svg
-  patches/0001-enable-vaapi.patch
-  patches/0002-remove-nvidia-blocklist.patch
-  patches/0018-bmo-1516081-Disable-watchdog-during-PGO-builds.patch
-  patches/0024-Add-KDE-integration-to-Firefox.patch
-  patches/ghostery/0039-Remove-Firefox-View.patch
-  patches/ghostery/0040-Disable-experiments-reporting.patch
+  patches/*.patch
+  patches/ghostery/*.patch
+  patches/firedragon/*.patch
 )
 sha256sums=('08d4cae010abc31603ef74091a5d1f81da8e62d3b66c806690e70f03c422df16' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
 # Tunables - set these in your environment to control build behavior
-: "${NATIVE_ARCH:=native}"      # CPU architecture to optimize for
+:  "${NATIVE_ARCH:=native}"      # CPU architecture to optimize for
 : "${ENABLE_PGO:=true}"         # Profile-Guided Optimization (recommended)
 : "${ENABLE_PGO_REUSE:=true}"   # Reuse previous PGO profiles
 : "${ENABLE_PGO_3STAGE:=false}" # 3-stage context-sensitive PGO (higher performance, 50% longer build)
@@ -85,7 +81,7 @@ _rustflags=(
 )
 # Google API keys (see http://www.chromium.org/developers/how-tos/api-keys)
 # Note: These are for Arch Linux use ONLY. For your own distribution, please
-# get your own set of keys. Feel free to contact foutrelis@archlinux.org for
+# get your own set of keys.  Feel free to contact foutrelis@archlinux.org for
 # more information.
 _google_api_key=AIzaSyDwr302FpOSkGRpLlUpPThNTDPbXcIn_FM
 # Mozilla API keys (see https://location.services.mozilla.com/api)
@@ -94,10 +90,10 @@ _google_api_key=AIzaSyDwr302FpOSkGRpLlUpPThNTDPbXcIn_FM
 # more information.
 _mozilla_api_key=16674381-f021-49de-8622-3021c5942aff
 
-prepare() {
+prepare(){
   mkdir -p mozbuild
   cd "$_pkgname-$pkgver"
-  # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
+  # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h. cmake
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
   echo -n "$_google_api_key" >google-api-key
   echo -n "$_mozilla_api_key" >mozilla-api-key
@@ -114,7 +110,7 @@ prepare() {
   sed -E -e 's&^\s*pref\("startup\.homepage.*$&&' -i browser/branding/*/pref/firefox-branding.js
 }
 
-_write_mozconfig() {
+_write_mozconfig(){
   cd "$srcdir/$_pkgname-$pkgver"
   # Calculate optimal core count based on available RAM
   local _cores _mem _nproc
@@ -130,72 +126,52 @@ _write_mozconfig() {
     _cores="$_nproc"
     echo "Using all $_cores cores"
   fi
+
   cat >../mozconfig <<END
-ac_add_options --enable-application=browser
+# Build paths
 mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
-# Paths
+mk_add_options AUTOCLOBBER=1
 ac_add_options --prefix=/usr
 ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
-# Compiler
+
+# Application
+ac_add_options --enable-application=browser
+ac_add_options --enable-release
+
+# Build source info
+export MOZ_INCLUDE_SOURCE_INFO=1
+
+# Compiler toolchain
 export AR=llvm-ar
 export CC=clang
 export CXX=clang++
 export NM=llvm-nm
 export RANLIB=llvm-ranlib
-# Build configuration
-ac_add_options --enable-release
-ac_add_options --enable-hardening
-ac_add_options --enable-optimize="-O3 -w -march=native -mtune=native -ftree-vectorize"
-ac_add_options --enable-rust-simd
-ac_add_options --enable-wasm-simd
-ac_add_options --enable-wasm-avx
-ac_add_options --enable-wasm-relaxed-simd
-ac_add_options --enable-wasm-memory64
-ac_add_options --enable-wasm-memory-control
-ac_add_options --enable-wasm-multi-memory
-ac_add_options --enable-wasm-branch-hinting
 ac_add_options --enable-linker=lld
 ac_add_options --enable-clang-plugin
-ac_add_options --enable-lto=full
-ac_add_options --disable-elf-hack
+
+# Optimization
+ac_add_options --enable-optimize="-O3 -w -march=native -mtune=native -ftree-vectorize"
+ac_add_options --enable-hardening
 ac_add_options --disable-bootstrap
-# Parallelism
-mk_add_options MOZ_MAKE_FLAGS="-j${_cores}"
-mk_add_options MOZ_PARALLEL_BUILD="${_cores}"
-# Rust optimization
-ac_add_options OPT_LEVEL="3"
-ac_add_options RUSTC_OPT_LEVEL="3"
-export CARGO_PROFILE_RELEASE_OPT_LEVEL=3
-# Memory allocator
-ac_add_options --enable-jemalloc
-ac_add_options --enable-replace-malloc
-# Stripping
+ac_add_options --disable-elf-hack
+
+# LTO
+ac_add_options --enable-lto=full
+
+# Stripping and minification
 ac_add_options --enable-strip
 ac_add_options --enable-install-strip
 ac_add_options --enable-minify=properties
-export STRIP_FLAGS="--strip-debug --strip-unneeded --remove-section=.comment --remove-section=.note"
-# Disable debug features
-ac_add_options --disable-tests
-ac_add_options --disable-debug
-ac_add_options --disable-debug-symbols
-ac_add_options --disable-debug-js-modules
-ac_add_options --disable-crashreporter
-ac_add_options --disable-updater
-ac_add_options --disable-default-browser-agent
-ac_add_options --disable-parental-controls
-ac_add_options --disable-phc
-ac_add_options --disable-dmd
-ac_add_options --disable-valgrind
-ac_add_options --enable-shared-js
-# Wayland support
-ac_add_options --enable-default-toolkit=cairo-gtk3-wayland-only
-ac_add_options --enable-wayland
-# Branding
-ac_add_options --enable-official-branding
-ac_add_options --with-distribution-id=org.archlinux
-ac_add_options --with-unsigned-addon-scopes=app,system
-ac_add_options --allow-addon-sideload
-export MOZ_APP_REMOTINGNAME=${pkgname}
+
+# Memory allocator
+ac_add_options --enable-jemalloc
+ac_add_options --enable-replace-malloc
+
+# Parallelism
+mk_add_options MOZ_PARALLEL_COMPILE=${_cores}
+mk_add_options MOZ_PARALLEL_BUILD=${_cores}
+
 # System libraries
 ac_add_options --with-system-nspr
 ac_add_options --with-system-nss
@@ -205,34 +181,121 @@ ac_add_options --with-system-libevent
 ac_add_options --with-system-icu
 ac_add_options --with-system-zlib
 ac_add_options --with-system-jpeg
-# ac_add_options --with-system-png
 ac_add_options --enable-system-cairo
+ac_add_options --enable-shared-js
+# ac_add_options --with-system-png
 # ac_add_options --without-wasm-sandboxed-libraries
-# Media features
+
+# WebRTC
+ac_add_options --enable-webrtc
+
+# Image formats
 ac_add_options --enable-jxl
 ac_add_options --enable-av1
 ac_add_options --enable-raw
+
+# Wayland
+ac_add_options --enable-wayland
+ac_add_options --enable-default-toolkit=cairo-gtk3-wayland-only
+
+# WASM optimizations
+ac_add_options --enable-wasm-avx
+ac_add_options --enable-rust-simd
+ac_add_options --enable-wasm-simd
+ac_add_options --enable-wasm-relaxed-simd
+ac_add_options --enable-wasm-memory64
+ac_add_options --enable-wasm-memory-control
+ac_add_options --enable-wasm-multi-memory
+ac_add_options --enable-wasm-branch-hinting
+
+# Audio backends
 ac_add_options --enable-pulseaudio
 ac_add_options --enable-alsa
 ac_add_options --enable-jack
-ac_add_options --enable-webrtc
+
+# DRM
 ac_add_options --enable-eme=widevine
+
+# Network
 ac_add_options --enable-proxy-bypass-protection
-# Build environment
+
+# Updates and sideloading
+ac_add_options --enable-update-channel=release
+ac_add_options --enable-unverified-updates
+ac_add_options --allow-addon-sideload
+ac_add_options --with-unsigned-addon-scopes=app,system
+
+# Sandbox
+ac_add_options --enable-sandbox
+
+# Disabled features
+ac_add_options --disable-artifact-builds
+ac_add_options --disable-debug
+ac_add_options --disable-debug-symbols
+ac_add_options --disable-debug-js-modules
+ac_add_options --disable-tests
+ac_add_options --disable-parental-controls
+ac_add_options --disable-crashreporter
+ac_add_options --disable-updater
+ac_add_options --disable-necko-wifi
+ac_add_options --disable-installer
+ac_add_options --disable-maintenance-service
+ac_add_options --disable-websockets
+ac_add_options --disable-gpsd
+ac_add_options --disable-synth-speechd
+ac_add_options --disable-rust-tests
+ac_add_options --disable-webspeech
+ac_add_options --disable-webspeechtestbackend
+ac_add_options --disable-default-browser-agent
 ac_add_options --disable-warnings-as-errors
+ac_add_options --disable-valgrind
+ac_add_options --disable-dmd
+ac_add_options --disable-phc
+ac_add_options --disable-bits-download
+
+# Branding
+ac_add_options --enable-official-branding
+ac_add_options --with-distribution-id=org.archlinux
+export MOZILLA_OFFICIAL=1
+export MOZ_APP_REMOTINGNAME=${pkgname//-/}
+export MOZ_REQUIRE_SIGNING=0
+
+# Telemetry, reporting, crash (disabled)
+export MOZ_TELEMETRY_REPORTING=0
+export MOZ_CRASHREPORTER=0
+export MOZ_DATA_REPORTING=0
 mk_add_options MOZ_CRASHREPORTER=0
 mk_add_options MOZ_DATA_REPORTING=0
-export MOZILLA_OFFICIAL=1
+mk_add_options MOZ_SERVICES_HEALTHREPORT=0
+mk_add_options MOZ_TELEMETRY_REPORTING=0
+ac_add_options --disable-client-telemetry
+ac_add_options --disable-health-report
+
+# Optimization levels
+ac_add_options OPT_LEVEL="3"
+ac_add_options RUSTC_OPT_LEVEL="3"
+export RUSTC_OPT_LEVEL=3
+export OPT_LEVEL=3
+export CARGO_PROFILE_RELEASE_OPT_LEVEL=3
+
+# JS Shell (for PGO)
+ac_add_options --enable-js-shell
+export MOZ_PACKAGE_JSSHELL=1
+
+# Build environment
+export MOZ_NO_PIE_COMPAT=1
 export MOZ_NOSPAM=1
-export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
-export MOZ_DEBUG_FLAGS=""
+export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=system
 export PYTHONOPTIMIZE=2
-# Optimization flags
+export MOZ_DEBUG_FLAGS=""
+
+# Compiler flags (additional)
 export CFLAGS+=" -g0"
 export CXXFLAGS+=" -g0"
 export LDFLAGS+=" -Wl,--no-keep-memory"
 export RUSTFLAGS="-Cdebuginfo=0 -Ctarget-cpu=native -Copt-level=3"
-# Keys
+
+# API keys
 ac_add_options --with-google-location-service-api-keyfile=${PWD@Q}/google-api-key
 ac_add_options --with-google-safebrowsing-api-keyfile=${PWD@Q}/google-api-key
 ac_add_options --with-mozilla-api-keyfile=${PWD@Q}/mozilla-api-key
@@ -240,17 +303,12 @@ END
   # See https://github.com/glandium/git-cinnabar/issues/311
   git config remote.origin.mirror false
   # Optional: use sccache if available
-  if command -v sccache &>/dev/null; then
-    echo 'ac_add_options --with-ccache=sccache' >>../mozconfig
-  fi
+  command -v sccache &>/dev/null && echo 'ac_add_options --with-ccache=sccache' >>../mozconfig
 }
 
-build() {
-  # If you want to disable LTO/PGO (compile too long), delete the lines
-  # `ac_add_options --enable-lto' and ending with 'export RANLIB=llvm-ranlib`
+build(){
   # Unset variables to prevent issues with PGO profiling
-  unset \
-    DBUS_SESSION_BUS_ADDRESS \
+  unset DBUS_SESSION_BUS_ADDRESS \
     DISPLAY \
     ORBIT_SOCKETDIR \
     SESSION_MANAGER \
@@ -274,7 +332,7 @@ build() {
   ulimit -n 4096
   # Build date
   export MOZ_BUILD_DATE="$(date -u${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH} +%Y%m%d%H%M%S)"
-  export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib LD=ld.lld RUST_MIN_STACK=16777216 PYTHONOPTIMIZE=2 CARGO_CACHE_RUSTC_INFO=1 OPT_LEVEL=3 CARGO_INCREMENTAL=0 MOZ_NOSPAM=1 MOZ_ENABLE_WAYLAND=1 MOZILLA_OFFICIAL=1 MOZBUILD_STATE_PATH="$srcdir/mozbuild" MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip LIBGL_ALWAYS_SOFTWARE=true
+  export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib LD=ld. lld RUST_MIN_STACK=16777216 PYTHONOPTIMIZE=2 CARGO_CACHE_RUSTC_INFO=1 OPT_LEVEL=3 CARGO_INCREMENTAL=0 MOZ_NOSPAM=1 MOZ_ENABLE_FULL_SYMBOLS=0
   # Use sccache if available
   command -v sccache &>/dev/null && export RUSTC_WRAPPER=sccache
   # Apply optimization flags
@@ -297,12 +355,11 @@ build() {
   export CFLAGS CXXFLAGS LDFLAGS RUSTFLAGS
   # Profile-Guided Optimization
   # Use SRCDEST if set, otherwise use a cache directory
-  local _pgo_cache="${SRCDEST:-$srcdir/.pgo-cache}"
+  local _pgo_cache="${SRCDEST:-$srcdir/. pgo-cache}"
   mkdir -p "$_pgo_cache"
   local _pgo_profdata="$_pgo_cache/firefox-$pkgver-merged.profdata"
   local _pgo_profdata_cs="$_pgo_cache/firefox-$pkgver-merged-cs.profdata"
   local _pgo_jarlog="$_pgo_cache/firefox-$pkgver-jarlog"
-
   # Export XDG_RUNTIME_DIR for tinywl
   export XDG_RUNTIME_DIR="/tmp/$(id -u)-runtime-dir"
   mkdir -pm 0700 "$XDG_RUNTIME_DIR"
@@ -315,7 +372,7 @@ build() {
   read WAYLAND_DISPLAY <&${VIRTWL[0]}
   if [[ ${ENABLE_PGO} == "true" ]]; then
     # Determine which profile to use
-    local _final_profile="merged.profdata"
+    local _final_profile="merged. profdata"
     if [[ ${ENABLE_PGO_3STAGE} == "true" ]]; then
       _final_profile="merged-cs.profdata"
       echo "3-stage context-sensitive PGO enabled"
@@ -325,7 +382,7 @@ build() {
       if [[ ${ENABLE_PGO_3STAGE} == "true" ]] && [[ -s $_pgo_profdata_cs ]]; then
         echo "Reusing existing 3-stage PGO profile data..."
         cp "$_pgo_profdata_cs" merged-cs.profdata
-        cp "$_pgo_profdata" merged.profdata 2>/dev/null || true
+        cp "$_pgo_profdata" merged. profdata 2>/dev/null || true
         [[ -s $_pgo_jarlog ]] && cp "$_pgo_jarlog" jarlog
       elif [[ ${ENABLE_PGO_3STAGE} == "false" ]] && [[ -s $_pgo_profdata ]]; then
         echo "Reusing existing 2-stage PGO profile data..."
@@ -334,9 +391,9 @@ build() {
       fi
     fi
     # Stage 1: Generate initial profile if needed
-    if [[ ! -s merged.profdata ]]; then
+    if [[ !  -s merged.profdata ]]; then
       echo "==> PGO Stage 1: Building instrumented browser..."
-      cat >.mozconfig ../mozconfig - <<END
+      cat >. mozconfig ../mozconfig - <<END
 ac_add_options --enable-profile-generate=cross
 export MOZ_ENABLE_FULL_SYMBOLS=1
 END
@@ -345,7 +402,7 @@ END
       ./mach package
       LLVM_PROFDATA=llvm-profdata JARLOG_FILE="$PWD/jarlog" \
         LIBGL_ALWAYS_SOFTWARE=true ./mach python build/pgo/profileserver.py
-      if [[ -s merged.profdata ]]; then
+      if [[ -s merged. profdata ]]; then
         stat -c "Stage 1 profile generated (%s bytes)" merged.profdata
         cp merged.profdata "$_pgo_profdata"
         [[ -s jarlog ]] && cp jarlog "$_pgo_jarlog"
@@ -356,9 +413,8 @@ END
         ENABLE_PGO=false
       fi
     fi
-
     # Stage 2: Context-sensitive profiling (only if 3-stage is enabled)
-    if [[ ${ENABLE_PGO} == "true" ]] && [[ ${ENABLE_PGO_3STAGE} == "true" ]] && [[ ! -s merged-cs.profdata ]]; then
+    if [[ ${ENABLE_PGO} == "true" ]] && [[ ${ENABLE_PGO_3STAGE} == "true" ]] && [[ !  -s merged-cs.profdata ]]; then
       echo "==> PGO Stage 2: Building with Stage 1 profile for context-sensitive profiling..."
       cat >.mozconfig ../mozconfig - <<END
 ac_add_options --enable-profile-generate=cross
@@ -402,7 +458,7 @@ END
       else
         echo "==> Building final optimized browser with PGO..."
       fi
-      cat >.mozconfig ../mozconfig - <<END
+      cat >. mozconfig ../mozconfig - <<END
 ac_add_options --enable-lto=cross,full
 ac_add_options --enable-profile-use=cross
 ac_add_options --with-pgo-profile-path=${PWD@Q}/$_final_profile
@@ -426,17 +482,17 @@ END
   if [[ ${ENABLE_BOLT} == "true" ]] && command -v llvm-bolt &>/dev/null; then
     echo "Applying BOLT optimizations..."
     local objdir=./obj/dist
-    for bin in "$objdir"/firefox "$objdir"/libxul.so; do
+    for bin in "$objdir"/firefox "$objdir"/libxul. so; do
       [[ -f $bin ]] || continue
       local prof="${PWD}/merged.profdata"
       if [[ -f $prof ]]; then
-        llvm-bolt "$bin" -o "${bin}.bolt" --data="$prof" \
+        llvm-bolt "$bin" -o "${bin}. bolt" --data="$prof" \
           -reorder-blocks=ext-tsp \
           -reorder-functions=hfsort \
           -split-functions=3 \
           -split-all-cold \
           -dyno-stats \
-          -icf=1 || :
+          -icf=1 || : 
         [[ -f "${bin}.bolt" ]] && mv -f "${bin}.bolt" "$bin"
       fi
     done
@@ -444,8 +500,7 @@ END
   exec {VIRTWL[0]}<&- {VIRTWL[1]}>&-
   rm -rf "${XDG_RUNTIME_DIR}"
 }
-
-package() {
+package(){
   cd "$_pkgname-$pkgver"
   DESTDIR="$pkgdir" ./mach install
   # Vendor preferences (privacy, performance, hardware acceleration)
@@ -480,25 +535,24 @@ pref("browser.discovery.enabled", false);
 // GNOME integration
 pref("browser.gnome-search-provider.enabled", true);
 // XDG portals
-pref("widget.use-xdg-desktop-portal.file-picker", 1);
+pref("widget.use-xdg-desktop-portal. file-picker", 1);
 pref("widget.use-xdg-desktop-portal.mime-handler", 1);
 // Prevent telemetry notification
 pref("services.settings.main.search-telemetry-v2.last_check", $(date +%s));
 // Hardware acceleration (VA-API)
 pref("gfx.webrender.all", true);
-pref("media.hardware-video-decoding.enabled", true);
+pref("media.hardware-video-decoding. enabled", true);
 pref("media.hardware-video-decoding.force-enabled", true);
 pref("media.ffmpeg.vaapi.enabled", true);
 pref("media.rdd-ffmpeg.enabled", true);
 pref("media.av1.enabled", true);
-pref("media.webrtc.hw.h264.enabled", true);
+pref("media.webrtc.hw. h264.enabled", true);
 // Performance tweaks
 pref("layers.acceleration.force-enabled", true);
 pref("webgl.force-enabled", true);
 pref("dom.ipc.processCount", 8);
 pref("browser.tabs.remote.autostart", true);
 END
-
   # Distribution info
   install -Dm644 /dev/stdin "$pkgdir/usr/lib/$_pkgname/distribution/distribution.ini" <<END
 [Global]
@@ -507,14 +561,14 @@ version=1.0
 about=Firefox custom build for Arch Linux with optimizations
 [Preferences]
 app.distributor=archlinux
-app.distributor.channel=$_pkgname
+app.distributor. channel=$_pkgname
 app.partner.archlinux=archlinux
 END
   # GNOME search provider
-  install -Dm644 /dev/stdin "$pkgdir/usr/share/gnome-shell/search-providers/$_pkgname.search-provider.ini" <<END
+  install -Dm644 /dev/stdin "$pkgdir/usr/share/gnome-shell/search-providers/$_pkgname.search-provider. ini" <<END
 [Shell Search Provider]
-DesktopId=$_pkgname.desktop
-BusName=org.mozilla.${_pkgname//-/}.SearchProvider
+DesktopId=$_pkgname. desktop
+BusName=org.mozilla.${_pkgname//-/}. SearchProvider
 ObjectPath=/org/mozilla/${_pkgname//-/}/SearchProvider
 Version=2
 END
@@ -527,10 +581,10 @@ END
     "$pkgdir/usr/share/icons/hicolor/192x192/apps/$_pkgname.png"
   install -Dm644 browser/branding/official/content/about-logo@2x.png \
     "$pkgdir/usr/share/icons/hicolor/384x384/apps/$_pkgname.png"
-  install -Dm644 ../$_pkgname-symbolic.svg \
+  install -Dm644 .. /$_pkgname-symbolic.svg \
     "$pkgdir/usr/share/icons/hicolor/symbolic/apps/$_pkgname-symbolic.svg"
   # Desktop file
-  install -Dm644 ../"$_pkgname".desktop \
+  install -Dm644 .. /"$_pkgname". desktop \
     "$pkgdir/usr/share/applications/$_pkgname.desktop"
   # Wrapper script
   install -Dm755 /dev/stdin "$pkgdir/usr/bin/$_pkgname" <<'END'
@@ -541,10 +595,8 @@ END
   ln -srf "$pkgdir/usr/bin/$_pkgname" "$pkgdir/usr/lib/$_pkgname/firefox-bin"
   # Link ONNX runtime if available
   if [[ -f /usr/lib/libonnxruntime.so ]]; then
-    ln -srv /usr/lib/libonnxruntime.so "$pkgdir/usr/lib/$_pkgname/libonnxruntime.so" 2>/dev/null || :
+    ln -srv /usr/lib/libonnxruntime.so "$pkgdir/usr/lib/$_pkgname/libonnxruntime.so" 2>/dev/null || : 
   fi
 }
 
-# vim:set sw=2 et:
-
-# vim: ts=2 sw=2 et:
+# vim: set sw=2 et:
