@@ -6,24 +6,24 @@
 _pkgname=ffmpeg
 pkgname=ffmpeg-opt
 pkgver=8.0.1
-pkgrel=1
-pkgdesc='Complete solution to record, convert and stream audio and video - optimized build with enhanced SVT-AV1 support'
+pkgrel=2
+pkgdesc='Complete solution to record, convert and stream audio and video - debloated optimized build'
 arch=(x86_64)
 url='https://ffmpeg.org'
 license=('GPL-3.0-only')
 depends=(
   alsa-lib aribb24 bzip2 cairo expat fontconfig
-  freetype2 fribidi glib2 glibc gmp gnutls gsm
+  freetype2 fribidi glib2 glibc gmp gnutls
   harfbuzz jack lame libass libavc1394 libbluray libbs2b
   libdrm libdvdnav libdvdread libgl libiec61883 libjpeg-turbo
-  libmodplug libopenmpt libpng libpulse libraw1394 librsvg
-  libsoxr libssh libva libvdpau libwebp libx11 libxcb libxext
-  libxv ocl-icd onevpl opencore-amr openjpeg2 opus
-  sdl2 snappy speex v4l-utils vapoursynth xvidcore
+  libmodplug libopenmpt libpng libpulse libraw1394
+  libsoxr libssh libva libwebp libx11 libxcb libxext
+  libxv onevpl opus
+  sdl2 snappy speex v4l-utils xvidcore
   xz zimg zlib
-  aom dav1d rav1e svt-av1
-  libplacebo libtheora libvorbis libvpx libxml2 rubberband vid.stab vmaf
-  x264 x265 libjxl
+  dav1d
+  libtheora libvorbis libvpx libxml2 rubberband vid.stab vmaf
+  x264
 )
 makedepends=(
   avisynthplus clang lld nasm git ladspa cmake
@@ -32,8 +32,6 @@ makedepends=(
 )
 optdepends=(
   'avisynthplus: AviSynthPlus support'
-  'frei0r-plugins: Frei0r video effects support'
-  'intel-compute-runtime: for Intel OpenCL runtime based tonemapping'
   'intel-media-sdk: Intel QuickSync support (legacy)'
   'onevpl-intel-gpu: for Intel Quick Sync Video (Alder Lake and newer)'
   'ladspa: LADSPA filters'
@@ -66,15 +64,18 @@ build() {
   cd "$_pkgname-$pkgver"
   # Use clang/lld for better optimization and faster linking
   export CC=clang CXX=clang++ LD=lld
+  # Use -Oz for size optimization (debloat)
+  export CFLAGS="${CFLAGS} -Oz"
+  export CXXFLAGS="${CXXFLAGS} -Oz"
   ./configure --prefix=/usr --disable-debug --disable-static --disable-stripping --enable-shared --enable-gpl --enable-version3 --enable-nonfree --enable-lto \
-    --enable-fontconfig --enable-gmp --enable-gnutls --enable-ladspa --enable-libaom --enable-libaribb24 --enable-libass --enable-libbluray \
+    --enable-fontconfig --enable-gmp --enable-gnutls --enable-ladspa --enable-libaribb24 --enable-libass --enable-libbluray \
     --enable-libbs2b --enable-libdav1d --enable-libdrm --enable-libdvdnav --enable-libdvdread --enable-libfreetype --enable-libfribidi \
-    --enable-libgsm --enable-libiec61883 --enable-libjack --enable-libjxl --enable-libmodplug --enable-libmp3lame --enable-libopencore_amrnb \
-    --enable-libopencore_amrwb --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-libplacebo --enable-libpulse --enable-librav1e \
-    --enable-librsvg --enable-librubberband --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libssh --enable-libsvtav1 --enable-libtheora \
+    --enable-libiec61883 --enable-libjack --enable-libmodplug --enable-libmp3lame \
+    --enable-libopenmpt --enable-libopus --enable-libpulse \
+    --enable-librubberband --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libssh --enable-libtheora \
     --enable-libv4l2 --enable-libvidstab --enable-libvmaf --enable-libvorbis --enable-libvpl --enable-libvpx --enable-libwebp --enable-libx264 \
-    --enable-libxcb --enable-libxml2 --enable-libxvid --enable-libzimg --enable-nvdec --enable-nvenc --enable-opencl --enable-opengl --enable-vapoursynth \
-    --enable-vaapi --enable-vdpau --enable-vulkan
+    --enable-libxcb --enable-libxml2 --enable-libxvid --enable-libzimg --enable-nvdec --enable-nvenc --enable-opengl --enable-small \
+    --enable-vaapi --disable-vdpau --enable-vulkan
   make -j"$(nproc)"
   make tools/qt-faststart
   rm -fv ./*-docs-*.pkg.tar.* ./*-debug-*.pkg.tar.*

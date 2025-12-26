@@ -11,7 +11,6 @@
 pkgbase=mesa
 pkgname=(
   mesa
-  opencl-mesa
   vulkan-asahi
   vulkan-dzn
   vulkan-freedreno
@@ -19,17 +18,15 @@ pkgname=(
   vulkan-intel
   vulkan-nouveau
   vulkan-radeon
-  vulkan-swrast
   vulkan-virtio
   vulkan-mesa-implicit-layers
   vulkan-mesa-layers
-  mesa-docs
 )
 pkgver=25.3.2
 _pkgver=${pkgver/[a-z]/-&}
-pkgrel=2
+pkgrel=3
 epoch=1
-pkgdesc="Open-source OpenGL drivers"
+pkgdesc="Open-source OpenGL drivers (debloated)"
 url="https://www.mesa3d.org/"
 arch=(x86_64)
 license=("MIT AND BSD-3-Clause AND SGI-B-2.0")
@@ -83,11 +80,6 @@ makedepends=(
 
   # mesa-only deps
   libsysprof-capture
-  valgrind
-
-  # html-docs
-  python-sphinx
-  python-sphinx-hawkmoth
 )
 options=(
   # GCC 14 LTO causes segfault in LLVM under si_llvm_optimize_module
@@ -238,22 +230,23 @@ prepare() {
 
 build() {
   local meson_options=(
+    -D amd-use-llvm=false
     -D android-libbacktrace=disabled
     -D b_ndebug=true
-    -D gallium-drivers=asahi,crocus,d3d12,freedreno,i915,iris,llvmpipe,nouveau,r300,r600,radeonsi,softpipe,svga,virgl,zink
+    -D draw-use-llvm=false
+    -D gallium-drivers=asahi,crocus,d3d12,freedreno,iris,nouveau,r600,radeonsi,svga,virgl,zink
     -D gallium-extra-hud=true
     -D gallium-mediafoundation=disabled
-    -D gallium-rusticl-enable-drivers=asahi,freedreno,radeonsi
-    -D gallium-rusticl=true
+    -D gallium-rusticl=false
     -D gles1=disabled
-    -D html-docs=enabled
-    -D intel-rt=enabled
+    -D html-docs=disabled
+    -D intel-rt=disabled
     -D libunwind=disabled
     -D microsoft-clc=disabled
     -D sysprof=true
-    -D valgrind=enabled
-    -D video-codecs=all
-    -D vulkan-drivers=amd,freedreno,intel,intel_hasvk,swrast,virtio,microsoft-experimental,nouveau,asahi,gfxstream
+    -D valgrind=disabled
+    -D video-codecs=none
+    -D vulkan-drivers=amd,freedreno,intel,intel_hasvk,virtio,microsoft-experimental,nouveau,asahi,gfxstream
     -D vulkan-layers=device-select,intel-nullhw,overlay,screenshot,anti-lag,vram-report-limit
   )
 
@@ -321,9 +314,6 @@ package_mesa() {
 
     cd "$pkgdir"
 
-    _pick opencl $libdir/libRusticlOpenCL*
-    _pick opencl etc/OpenCL/vendors/rusticl.icd
-
     _pick vkasahi $icddir/asahi_icd.*.json
     _pick vkasahi $libdir/libvulkan_asahi.so
 
@@ -348,9 +338,6 @@ package_mesa() {
     _pick vkradeon $libdir/libvulkan_radeon.so
     _pick vkradeon usr/share/drirc.d/00-radv-defaults.conf
 
-    _pick vkswrast $icddir/lvp_icd.*.json
-    _pick vkswrast $libdir/libvulkan_lvp.so
-
     _pick vkvirtio $icddir/virtio_icd.*.json
     _pick vkvirtio $libdir/libvulkan_virtio.so
 
@@ -362,44 +349,9 @@ package_mesa() {
     _pick vklayer usr/bin/mesa-*-control.py
     _pick vklayer usr/share/vulkan/explicit_layer.d
 
-    _pick docs usr/share/doc
-
     # indirect rendering
     ln -sr $libdir/libGLX_{mesa,indirect}.so.0
   )
-
-  install -Dm644 mesa-$_pkgver/docs/license.rst -t "$pkgdir/usr/share/licenses/$pkgname"
-}
-
-package_opencl-mesa() {
-  pkgdesc="Open-source OpenCL drivers"
-  depends=(
-    clang
-    expat
-    gcc-libs
-    glibc
-    libdrm
-    libelf
-    llvm-libs
-    spirv-llvm-translator
-    spirv-tools
-    zlib
-    zstd
-
-    libclc # For /usr/share/clc/
-  )
-  optdepends=("opencl-headers: headers necessary for OpenCL development")
-  provides=(opencl-driver)
-  replaces=(
-    "opencl-clover-mesa<=1:25.0.5-2"
-    "opencl-rusticl-mesa<=1:25.0.5-2"
-  )
-  conflicts=(
-    opencl-clover-mesa
-    opencl-rusticl-mesa
-  )
-
-  mv opencl/* "$pkgdir"
 
   install -Dm644 mesa-$_pkgver/docs/license.rst -t "$pkgdir/usr/share/licenses/$pkgname"
 }
@@ -600,37 +552,6 @@ package_vulkan-radeon() {
   install -Dm644 mesa-$_pkgver/docs/license.rst -t "$pkgdir/usr/share/licenses/$pkgname"
 }
 
-package_vulkan-swrast() {
-  pkgdesc="Open-source Vulkan driver for CPUs (Software Rasterizer)"
-  depends=(
-    expat
-    gcc-libs
-    glibc
-    libdisplay-info
-    libdrm
-    libx11
-    libxcb
-    libxshmfence
-    llvm-libs
-    spirv-tools
-    systemd-libs
-    vulkan-icd-loader
-    vulkan-mesa-implicit-layers
-    wayland
-    xcb-util-keysyms
-    zlib
-    zstd
-  )
-  optdepends=("vulkan-mesa-layers: additional vulkan layers")
-  conflicts=(vulkan-mesa)
-  replaces=(vulkan-mesa)
-  provides=(vulkan-driver)
-
-  mv vkswrast/* "$pkgdir"
-
-  install -Dm644 mesa-$_pkgver/docs/license.rst -t "$pkgdir/usr/share/licenses/$pkgname"
-}
-
 package_vulkan-virtio() {
   pkgdesc="Open-source Vulkan driver for Virtio-GPU (Venus)"
   depends=(
@@ -687,14 +608,6 @@ package_vulkan-mesa-layers() {
   replaces=(vulkan-mesa-layer)
 
   mv vklayer/* "$pkgdir"
-
-  install -Dm644 mesa-$_pkgver/docs/license.rst -t "$pkgdir/usr/share/licenses/$pkgname"
-}
-
-package_mesa-docs() {
-  pkgdesc="Mesa's documentation"
-
-  mv docs/* "$pkgdir"
 
   install -Dm644 mesa-$_pkgver/docs/license.rst -t "$pkgdir/usr/share/licenses/$pkgname"
 }
