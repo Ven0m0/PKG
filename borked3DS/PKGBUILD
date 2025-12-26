@@ -3,9 +3,9 @@
 
 pkgname=borked3ds
 pkgver=2025.03.11
-pkgrel=3
+pkgrel=4
 _commit=bff691f6d606f29a667a60eebade794cccdee133
-pkgdesc='Experimental Nintendo 3DS emulator based on Citra'
+pkgdesc='Experimental Nintendo 3DS emulator based on Citra (optimized)'
 arch=('x86_64')
 url='https://github.com/Borked3DS/Borked3DS'
 license=('GPL-2.0-only')
@@ -158,6 +158,11 @@ prepare() {
 
 build() {
   cd "Borked3DS-${_commit}"
+  # Optimized compiler flags
+  export CFLAGS="${CFLAGS/-O2/-O3} -pipe -fno-plt"
+  export CXXFLAGS="${CXXFLAGS/-O2/-O3} -pipe -fno-plt"
+  export LDFLAGS="${LDFLAGS} -Wl,-O1,--sort-common,--as-needed"
+
   cmake -GNinja -B build -S . \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_SKIP_INSTALL_RPATH=YES \
@@ -165,7 +170,8 @@ build() {
     -DENABLE_QT6=ON \
     -DENABLE_QT_TRANSLATION=OFF \
     -DUSE_DISCORD_PRESENCE=OFF \
-    -DCITRA_WARNINGS_AS_ERRORS=OFF
+    -DCITRA_WARNINGS_AS_ERRORS=OFF \
+    -DENABLE_TESTS=OFF
   cmake --build build -j"$(nproc)"
 }
 

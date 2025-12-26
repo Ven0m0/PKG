@@ -6,7 +6,7 @@
 _pkgname=ffmpeg
 pkgname=ffmpeg-opt
 pkgver=8.0.1
-pkgrel=4
+pkgrel=5
 pkgdesc='Complete solution to record, convert and stream audio and video - optimized build with AV1 support'
 arch=(x86_64)
 url='https://ffmpeg.org'
@@ -17,9 +17,9 @@ depends=(
   harfbuzz jack lame libass libavc1394 libbluray libbs2b
   libdrm libdvdnav libdvdread libgl libiec61883 libjpeg-turbo
   libmodplug libopenmpt libpng libpulse libraw1394
-  libsoxr libssh libva libwebp libx11 libxcb libxext
+  libsoxr libssh libva libvdpau libwebp libx11 libxcb libxext
   libxv onevpl opus
-  sdl2 snappy speex v4l-utils xvidcore
+  sdl2 snappy speex v4l-utils vapoursynth xvidcore
   xz zimg zlib
   aom dav1d rav1e svt-av1
   libtheora libvorbis libvpx libxml2 rubberband vid.stab vmaf
@@ -75,7 +75,7 @@ build() {
     --enable-librubberband --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libssh --enable-libsvtav1 --enable-libtheora \
     --enable-libv4l2 --enable-libvidstab --enable-libvmaf --enable-libvorbis --enable-libvpl --enable-libvpx --enable-libwebp --enable-libx264 \
     --enable-libxcb --enable-libxml2 --enable-libxvid --enable-libzimg --enable-nvdec --enable-nvenc --enable-opengl --enable-small \
-    --enable-vaapi --disable-vdpau --enable-vulkan
+    --enable-vaapi --enable-vdpau --enable-vapoursynth --enable-vulkan
   make -j"$(nproc)"
   make tools/qt-faststart
   rm -fv ./*-docs-*.pkg.tar.* ./*-debug-*.pkg.tar.*
