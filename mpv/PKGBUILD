@@ -2,7 +2,7 @@
 
 pkgname=mpv-full
 pkgver=0.40.0
-pkgrel=3
+pkgrel=4
 pkgdesc='A free, open source, and cross-platform media player (optimized)'
 arch=('x86_64')
 license=('GPL-2.0-or-later')
@@ -36,10 +36,12 @@ depends=(
     'libxv'
     'lua52'
     'mesa'
+    'openal'
     'rubberband'
     'sdl2-compat'
     'sh'
     'uchardet'
+    'vapoursynth'
     'vulkan-icd-loader'
     'wayland'
     'zimg'
@@ -112,7 +114,7 @@ build() {
         -Dsdl2-gamepad='enabled' \
         -Duchardet='enabled' \
         -Duwp='disabled' \
-        -Dvapoursynth='disabled' \
+        -Dvapoursynth='enabled' \
         -Dvector='enabled' \
         -Dwin32-threads='disabled' \
         -Dzimg='enabled' \
@@ -122,7 +124,7 @@ build() {
         -Dcoreaudio='disabled' \
         -Davfoundation='disabled' \
         -Djack='enabled' \
-        -Dopenal='disabled' \
+        -Dopenal='enabled' \
         -Dopensles='disabled' \
         -Doss-audio='disabled' \
         -Dpipewire='enabled' \
