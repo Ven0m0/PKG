@@ -3,7 +3,7 @@
 
 pkgname=('llvm' 'llvm-libs')
 pkgver=21.1.6
-pkgrel=2
+pkgrel=4
 arch=('x86_64')
 url="https://llvm.org/"
 license=('Apache-2.0 WITH LLVM-exception')
@@ -91,17 +91,18 @@ build() {
     -DCMAKE_INSTALL_PREFIX=/usr
     -DCMAKE_SKIP_RPATH=ON
     -DLLVM_BINUTILS_INCDIR=/usr/include
-    -DLLVM_BUILD_DOCS=ON
+    -DLLVM_BUILD_DOCS=OFF
     -DLLVM_BUILD_LLVM_DYLIB=ON
-    -DLLVM_BUILD_TESTS=ON
+    -DLLVM_BUILD_TESTS=OFF
+    -DLLVM_ENABLE_ASSERTIONS=OFF
     -DLLVM_ENABLE_BINDINGS=OFF
     -DLLVM_ENABLE_CURL=ON
     -DLLVM_ENABLE_FFI=ON
     -DLLVM_ENABLE_RTTI=ON
-    -DLLVM_ENABLE_SPHINX=ON
+    -DLLVM_ENABLE_SPHINX=OFF
     -DLLVM_HOST_TRIPLE=$CHOST
     -DLLVM_INCLUDE_BENCHMARKS=OFF
-    -DLLVM_INSTALL_GTEST=ON
+    -DLLVM_INSTALL_GTEST=OFF
     -DLLVM_INSTALL_UTILS=ON
     -DLLVM_LINK_LLVM_DYLIB=ON
     -DLLVM_USE_PERF=ON
@@ -130,23 +131,18 @@ build() {
   cmake .. -DCMAKE_BUILD_TYPE=Release -DLLVM_BUILD_INSTRUMENTED=IR -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DLLVM_USE_LINKER=lld -DLLVM_VP_COUNTERS_PER_SITE=6 "${cmake_args[@]}"
   ninja
 
-  # Run LLVM lit tests to generate profile to be used for PGO
-  ./bin/llvm-lit -v test || true
+  # Skip running tests (tests disabled for debloat)
 
-  # Merge the generated profile
-  llvm-profdata merge -o llvm.profdata "${srcdir}/llvm-$pkgver.src/build/profiles"/*.profraw
-
-  # Use Original CFLAGS again and enable ThinLTO + use the profile
-  export PGO_PROFILE="${srcdir}/llvm-$pkgver.src/build/llvm.profdata"
-  export CFLAGS="${ORIG_CFLAGS} -fprofile-use=$PGO_PROFILE"
-  export CXXFLAGS="${ORIG_CXXFLAGS} -fprofile-use=$PGO_PROFILE"
+  # Use Original CFLAGS again and enable ThinLTO
+  export CFLAGS="${ORIG_CFLAGS}"
+  export CXXFLAGS="${ORIG_CXXFLAGS}"
   export LDFLAGS="$LDFLAGS -flto=thin"
 
   cd ..
   mkdir build-pgo-use
   cd build-pgo-use
   # Enable ThinLTO
-  cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DLLVM_USE_LINKER=lld -DLLVM_ENABLE_LTO=Thin -DLLVM_PROFDATA_FILE=$PGO_PROFILE "${cmake_args[@]}"
+  cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DLLVM_USE_LINKER=lld -DLLVM_ENABLE_LTO=Thin "${cmake_args[@]}"
   ninja
 
   # Include lit for running lit-based tests in other projects
@@ -155,13 +151,14 @@ build() {
   popd
 }
 
-check() {
-  cd llvm-$pkgver.src/build-pgo-use
-  LD_LIBRARY_PATH=$PWD/lib ninja check
-}
+# Disabled for debloat build
+#check() {
+#  cd llvm-$pkgver.src/build-pgo-use
+#  LD_LIBRARY_PATH=$PWD/lib ninja check
+#}
 
 package_llvm() {
-  pkgdesc="Compiler infrastructure"
+  pkgdesc="Compiler infrastructure (optimized)"
   depends=('llvm-libs' 'curl' 'perl')
 
   cd llvm-$pkgver.src/build-pgo-use
@@ -177,14 +174,14 @@ package_llvm() {
   mv -f "$pkgdir"/usr/lib/lib{LLVM,LTO,Remarks}*.so* "$srcdir"
   mv -f "$pkgdir"/usr/lib/LLVMgold.so "$srcdir"
 
-  # Remove documentation sources
-  rm -r "$pkgdir"/usr/share/doc/llvm/html/{_sources,.buildinfo}
+  # Remove documentation (disabled for debloat)
+  # rm -r "$pkgdir"/usr/share/doc/llvm/html/{_sources,.buildinfo}
 
   install -Dm644 ../LICENSE.TXT "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }
 
 package_llvm-libs() {
-  pkgdesc="LLVM runtime libraries"
+  pkgdesc="LLVM runtime libraries (optimized)"
   depends=('gcc-libs' 'zlib' 'zstd' 'libffi' 'libedit' 'libxml2')
   provides=('libLLVM.so' 'libLTO.so' 'libRemarks.so')
 

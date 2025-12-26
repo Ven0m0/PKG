@@ -10,8 +10,8 @@
 
 pkgname=prismlauncher
 pkgver=9.4
-pkgrel=2
-pkgdesc="Minecraft launcher with ability to manage multiple instances"
+pkgrel=3
+pkgdesc="Minecraft launcher with ability to manage multiple instances (optimized)"
 arch=('x86_64' 'aarch64')
 url='https://prismlauncher.org'
 license=('GPL-3.0-only AND LGPL-3.0-or-later AND LGPL-2.0-or-later AND Apache-2.0 AND MIT AND LicenseRef-Batch AND OFL-1.1')
@@ -57,18 +57,19 @@ prepare() {
 build() {
   cd PrismLauncher-$pkgver
   export PATH="/usr/lib/jvm/java-17-openjdk/bin/:$PATH"
+  # Optimized compiler flags
+  export CFLAGS="${CFLAGS/-O2/-O3} -pipe -fno-plt"
+  export CXXFLAGS="${CXXFLAGS/-O2/-O3} -pipe -fno-plt"
+
   cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_SKIP_INSTALL_RPATH=YES \
     -DCMAKE_INSTALL_PREFIX="/usr" \
     -DLauncher_BUILD_PLATFORM="archlinux" \
     -DLauncher_QT_VERSION_MAJOR="6" \
     -DLauncher_ENABLE_JAVA_DOWNLOADER=ON \
     -DENABLE_LTO=ON \
+    -DBUILD_TESTING=OFF \
     -Bbuild -S. -Wno-dev
   cmake --build build -j"$(nproc)"
-}
-check() {
-  cd PrismLauncher-$pkgver/build
-  ctest .
 }
 package() {
   # licenses

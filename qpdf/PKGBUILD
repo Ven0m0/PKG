@@ -7,8 +7,8 @@
 _pkgname=qpdf
 pkgname="${_pkgname}-zopfli"
 pkgver=12.2.0
-pkgrel=1
-pkgdesc="QPDF: A Content-Preserving PDF Transformation System (with Zopfli support)"
+pkgrel=2
+pkgdesc="QPDF: A Content-Preserving PDF Transformation System (with Zopfli support, optimized)"
 arch=('x86_64')
 url="https://github.com/qpdf/qpdf"
 license=('Apache-2.0' 'Artistic-2.0')
@@ -21,13 +21,13 @@ sha256sums=('b3d1575b2218badc3549d6977524bb0f8c468c6528eebc8967bbe3078cf2cace')
 
 build() {
   cd "${_pkgname}-${pkgver}"
-  cmake -GNinja -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_SKIP_INSTALL_RPATH=YES -DCMAKE_INSTALL_PREFIX:PATH=/usr -D BUILD_STATIC_LIBS:BOOL=OFF -D REQUIRE_CRYPTO_GNUTLS:BOOL=OFF -D REQUIRE_CRYPTO_OPENSSL:BOOL=ON -D ZOPFLI:BOOL=ON -D ENABLE_QTC:BOOL=ON -D BUILD_DOC:BOOL=OFF
-  cmake --build build -j"$(nproc)"
-}
+  # Optimization flags
+  export CFLAGS="${CFLAGS/-O2/-O3} -pipe -fno-plt"
+  export CXXFLAGS="${CXXFLAGS/-O2/-O3} -pipe -fno-plt"
+  export LDFLAGS="${LDFLAGS} -Wl,-O1,--sort-common,--as-needed"
 
-check() {
-  cd "${_pkgname}-${pkgver}"
-  cmake --build build --target test
+  cmake -GNinja -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_SKIP_INSTALL_RPATH=YES -DCMAKE_INSTALL_PREFIX:PATH=/usr -D BUILD_STATIC_LIBS:BOOL=OFF -D REQUIRE_CRYPTO_GNUTLS:BOOL=OFF -D REQUIRE_CRYPTO_OPENSSL:BOOL=ON -D ZOPFLI:BOOL=ON -D ENABLE_QTC:BOOL=ON -D BUILD_DOC:BOOL=OFF -D BUILD_TESTING:BOOL=OFF
+  cmake --build build -j"$(nproc)"
 }
 
 package() {

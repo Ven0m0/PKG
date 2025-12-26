@@ -7,8 +7,8 @@
 
 pkgname=obs-studio
 pkgver=32.0.4
-pkgrel=2
-pkgdesc="Free and open source software for video recording and live streaming"
+pkgrel=3
+pkgdesc="Free and open source software for video recording and live streaming (optimized)"
 arch=('x86_64')
 url="https://github.com/obsproject/obs-studio"
 license=('GPL-2.0-or-later')
@@ -30,7 +30,6 @@ depends=(
   "glibc" # Deps of any C related binary
   "jack" # Deps of JACK plugin
   "jansson" # Deps of libobs and rtmp-services plugin
-  "libajantv2>=$_libajantv2ver" # Deps of AJA plugins
   "libdatachannel>=$_libdatachannelver" # Deps of WebRTC plugin (NICE variant like the Flatpak)
   "libfdk-aac" # Deps of FDK AAC plugin
   "libgl" # Deps of libobs-opengl and OBS Studio
@@ -43,22 +42,18 @@ depends=(
   "libxcb" # Deps of libobs-opengl, X11 Capture plugin and CEF
   "libxcomposite" # Deps of the X11 capture plugin
   "libxkbcommon" # Deps of libobs, OBS Studio and CEF
-  "luajit" # Deps of Scripting plugin
   "mbedtls>=$_mbedtlsver" # Deps of OBS Studio and Outputs plugin
   "pciutils" # Deps of FFmpeg plugin
-  "python>=$_pythonver" # Deps of Scripting plugin
   "qrcodegencpp-cmake" # Deps of Websocket plugin
   "qt6-base>=$_qtver" # Deps of OBS Studio and any frontend plugin
   "qt6-svg>=$_qtver" # Deps of OBS Studio
   "rnnoise" # Deps if the filter plugin
   "simde" # Deps of libobs and its headers
-  "sndio" # Deps of sndio plugin
   "speexdsp" # Deps if the filter plugin
   "srt" # Deps of FFmpeg plugin
   "systemd-libs" # Deps of V4L2 plugin
   "util-linux-libs" # Deps of libobs
   "v4l-utils" # Deps of V4L2 plugin
-  "vlc-luajit" # Deps of VLC Plugin ("vlc" issue crashes)
   "wayland" # Deps of libobs, libobs-opengl and CEF
   "x264" # Deps of the X264 plugin
   "zlib" # Deps of libobs
@@ -129,7 +124,7 @@ prepare() {
 build() {
   export CC=clang CXX=clang++
   cmake -G Ninja -B build -S "obs-studio" -DCMAKE_BUILD_TYPE=Release -DCMAKE_SKIP_INSTALL_RPATH=YES -DCMAKE_INSTALL_PREFIX=/usr \
-    -DENABLE_JACK=ON -DENABLE_SNDIO=ON -DENABLE_BROWSER=ON -DENABLE_VST=OFF -DENABLE_VLC=OFF -DENABLE_LIBFDK=ON -DENABLE_WEBRTC=OFF \
+    -DENABLE_JACK=ON -DENABLE_SNDIO=OFF -DENABLE_BROWSER=ON -DENABLE_VST=OFF -DENABLE_VLC=OFF -DENABLE_LIBFDK=ON -DENABLE_WEBRTC=OFF \
     -DOBS_COMPILE_DEPRECATION_AS_WARNING=ON  -DCEF_ROOT_DIR="$srcdir/cef_binary_6533_linux_${CARCH/%_v?/}" \
     -DENABLE_WEBSOCKET=OFF -DENABLE_NEW_MPEGTS_OUTPUT=ON -DENABLE_AJA=OFF -DENABLE_SCRIPTING=OFF -DOBS_VERSION_OVERRIDE="$pkgver" -Wno-dev
   cmake --build build -j"$(nproc)"
