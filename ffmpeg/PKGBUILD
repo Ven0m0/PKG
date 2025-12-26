@@ -6,7 +6,7 @@
 _pkgname=ffmpeg
 pkgname=ffmpeg-opt
 pkgver=8.0.1
-pkgrel=3
+pkgrel=4
 pkgdesc='Complete solution to record, convert and stream audio and video - optimized build with AV1 support'
 arch=(x86_64)
 url='https://ffmpeg.org'
@@ -23,7 +23,7 @@ depends=(
   xz zimg zlib
   aom dav1d rav1e svt-av1
   libtheora libvorbis libvpx libxml2 rubberband vid.stab vmaf
-  x264
+  x264 libjxl
 )
 makedepends=(
   avisynthplus clang lld nasm git ladspa cmake
@@ -70,7 +70,7 @@ build() {
   ./configure --prefix=/usr --disable-debug --disable-static --disable-stripping --enable-shared --enable-gpl --enable-version3 --enable-nonfree --enable-lto \
     --enable-fontconfig --enable-gmp --enable-gnutls --enable-ladspa --enable-libaom --enable-libaribb24 --enable-libass --enable-libbluray \
     --enable-libbs2b --enable-libdav1d --enable-libdrm --enable-libdvdnav --enable-libdvdread --enable-libfreetype --enable-libfribidi \
-    --enable-libiec61883 --enable-libjack --enable-libmodplug --enable-libmp3lame \
+    --enable-libiec61883 --enable-libjack --enable-libjxl --enable-libmodplug --enable-libmp3lame \
     --enable-libopenmpt --enable-libopus --enable-libpulse --enable-librav1e \
     --enable-librubberband --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libssh --enable-libsvtav1 --enable-libtheora \
     --enable-libv4l2 --enable-libvidstab --enable-libvmaf --enable-libvorbis --enable-libvpl --enable-libvpx --enable-libwebp --enable-libx264 \
