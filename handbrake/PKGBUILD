@@ -5,7 +5,7 @@
 
 pkgname=('handbrake-svt-av1-essential-llvm-optimized' 'handbrake-svt-av1-essential-llvm-optimized-cli')
 pkgver=1.10.2.r4.g53aeefb9e
-pkgrel=2
+pkgrel=3
 arch=('x86_64')
 url="https://handbrake.fr/"
 license=('GPL-2.0-only')
@@ -56,8 +56,8 @@ makedepends=(
   'cmake'
   'meson'
   'git'
-  'clang-minimal-git'
-  'llvm-minimal-git'
+  'clang'
+  'lld'
   'cargo-c'
   # AMD VCE encoding on Linux requires Vulkan
   #'vulkan-headers'
