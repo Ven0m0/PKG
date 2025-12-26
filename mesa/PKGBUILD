@@ -24,9 +24,9 @@ pkgname=(
 )
 pkgver=25.3.2
 _pkgver=${pkgver/[a-z]/-&}
-pkgrel=3
+pkgrel=4
 epoch=1
-pkgdesc="Open-source OpenGL drivers (debloated)"
+pkgdesc="Open-source OpenGL drivers (optimized)"
 url="https://www.mesa3d.org/"
 arch=(x86_64)
 license=("MIT AND BSD-3-Clause AND SGI-B-2.0")
@@ -230,10 +230,8 @@ prepare() {
 
 build() {
   local meson_options=(
-    -D amd-use-llvm=false
     -D android-libbacktrace=disabled
     -D b_ndebug=true
-    -D draw-use-llvm=false
     -D gallium-drivers=asahi,crocus,d3d12,freedreno,iris,nouveau,r600,radeonsi,svga,virgl,zink
     -D gallium-extra-hud=true
     -D gallium-mediafoundation=disabled

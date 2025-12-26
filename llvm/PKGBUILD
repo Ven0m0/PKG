@@ -3,7 +3,7 @@
 
 pkgname=('llvm' 'llvm-libs')
 pkgver=21.1.6
-pkgrel=3
+pkgrel=4
 arch=('x86_64')
 url="https://llvm.org/"
 license=('Apache-2.0 WITH LLVM-exception')
@@ -86,7 +86,7 @@ build() {
 
   local cmake_args=(
     -G Ninja
-    -DCMAKE_BUILD_TYPE=MinSizeRel
+    -DCMAKE_BUILD_TYPE=Release
     -DCMAKE_INSTALL_DOCDIR=share/doc
     -DCMAKE_INSTALL_PREFIX=/usr
     -DCMAKE_SKIP_RPATH=ON
@@ -96,7 +96,7 @@ build() {
     -DLLVM_BUILD_TESTS=OFF
     -DLLVM_ENABLE_ASSERTIONS=OFF
     -DLLVM_ENABLE_BINDINGS=OFF
-    -DLLVM_ENABLE_CURL=OFF
+    -DLLVM_ENABLE_CURL=ON
     -DLLVM_ENABLE_FFI=ON
     -DLLVM_ENABLE_RTTI=ON
     -DLLVM_ENABLE_SPHINX=OFF
@@ -127,13 +127,13 @@ build() {
   test -n "$distribution_components"
   cmake_args+=(-DLLVM_DISTRIBUTION_COMPONENTS="$distribution_components")
 
-  # Build LLVM with -fprofile generate (using MinSizeRel for debloat)
-  cmake .. -DCMAKE_BUILD_TYPE=MinSizeRel -DLLVM_BUILD_INSTRUMENTED=IR -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DLLVM_USE_LINKER=lld -DLLVM_VP_COUNTERS_PER_SITE=6 "${cmake_args[@]}"
+  # Build LLVM with -fprofile generate
+  cmake .. -DCMAKE_BUILD_TYPE=Release -DLLVM_BUILD_INSTRUMENTED=IR -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DLLVM_USE_LINKER=lld -DLLVM_VP_COUNTERS_PER_SITE=6 "${cmake_args[@]}"
   ninja
 
-  # Skip running tests for debloat build (tests disabled)
+  # Skip running tests (tests disabled for debloat)
 
-  # Use Original CFLAGS again and enable ThinLTO (no PGO for debloat)
+  # Use Original CFLAGS again and enable ThinLTO
   export CFLAGS="${ORIG_CFLAGS}"
   export CXXFLAGS="${ORIG_CXXFLAGS}"
   export LDFLAGS="$LDFLAGS -flto=thin"
@@ -141,8 +141,8 @@ build() {
   cd ..
   mkdir build-pgo-use
   cd build-pgo-use
-  # Enable ThinLTO (MinSizeRel for debloat)
-  cmake .. -DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DLLVM_USE_LINKER=lld -DLLVM_ENABLE_LTO=Thin "${cmake_args[@]}"
+  # Enable ThinLTO
+  cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DLLVM_USE_LINKER=lld -DLLVM_ENABLE_LTO=Thin "${cmake_args[@]}"
   ninja
 
   # Include lit for running lit-based tests in other projects
@@ -158,8 +158,8 @@ build() {
 #}
 
 package_llvm() {
-  pkgdesc="Compiler infrastructure (debloated)"
-  depends=('llvm-libs' 'perl')
+  pkgdesc="Compiler infrastructure (optimized)"
+  depends=('llvm-libs' 'curl' 'perl')
 
   cd llvm-$pkgver.src/build-pgo-use
 
@@ -181,7 +181,7 @@ package_llvm() {
 }
 
 package_llvm-libs() {
-  pkgdesc="LLVM runtime libraries (debloated)"
+  pkgdesc="LLVM runtime libraries (optimized)"
   depends=('gcc-libs' 'zlib' 'zstd' 'libffi' 'libedit' 'libxml2')
   provides=('libLLVM.so' 'libLTO.so' 'libRemarks.so')
 

@@ -6,8 +6,8 @@
 _pkgname=ffmpeg
 pkgname=ffmpeg-opt
 pkgver=8.0.1
-pkgrel=2
-pkgdesc='Complete solution to record, convert and stream audio and video - debloated optimized build'
+pkgrel=3
+pkgdesc='Complete solution to record, convert and stream audio and video - optimized build with AV1 support'
 arch=(x86_64)
 url='https://ffmpeg.org'
 license=('GPL-3.0-only')
@@ -21,7 +21,7 @@ depends=(
   libxv onevpl opus
   sdl2 snappy speex v4l-utils xvidcore
   xz zimg zlib
-  dav1d
+  aom dav1d rav1e svt-av1
   libtheora libvorbis libvpx libxml2 rubberband vid.stab vmaf
   x264
 )
@@ -64,15 +64,15 @@ build() {
   cd "$_pkgname-$pkgver"
   # Use clang/lld for better optimization and faster linking
   export CC=clang CXX=clang++ LD=lld
-  # Use -Oz for size optimization (debloat)
-  export CFLAGS="${CFLAGS} -Oz"
-  export CXXFLAGS="${CXXFLAGS} -Oz"
+  # Use -O3 for performance optimization
+  export CFLAGS="${CFLAGS/-O2/-O3}"
+  export CXXFLAGS="${CXXFLAGS/-O2/-O3}"
   ./configure --prefix=/usr --disable-debug --disable-static --disable-stripping --enable-shared --enable-gpl --enable-version3 --enable-nonfree --enable-lto \
-    --enable-fontconfig --enable-gmp --enable-gnutls --enable-ladspa --enable-libaribb24 --enable-libass --enable-libbluray \
+    --enable-fontconfig --enable-gmp --enable-gnutls --enable-ladspa --enable-libaom --enable-libaribb24 --enable-libass --enable-libbluray \
     --enable-libbs2b --enable-libdav1d --enable-libdrm --enable-libdvdnav --enable-libdvdread --enable-libfreetype --enable-libfribidi \
     --enable-libiec61883 --enable-libjack --enable-libmodplug --enable-libmp3lame \
-    --enable-libopenmpt --enable-libopus --enable-libpulse \
-    --enable-librubberband --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libssh --enable-libtheora \
+    --enable-libopenmpt --enable-libopus --enable-libpulse --enable-librav1e \
+    --enable-librubberband --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libssh --enable-libsvtav1 --enable-libtheora \
     --enable-libv4l2 --enable-libvidstab --enable-libvmaf --enable-libvorbis --enable-libvpl --enable-libvpx --enable-libwebp --enable-libx264 \
     --enable-libxcb --enable-libxml2 --enable-libxvid --enable-libzimg --enable-nvdec --enable-nvenc --enable-opengl --enable-small \
     --enable-vaapi --disable-vdpau --enable-vulkan
