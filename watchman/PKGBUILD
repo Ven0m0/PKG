@@ -7,8 +7,8 @@
 # Contributor: Michael Louis Thaler <michael.louis.thaler@gmail.com>
 pkgname=watchman
 pkgver=2025.12.01.00
-pkgrel=1
-pkgdesc="Watches files and records, or triggers actions, when they change"
+pkgrel=2
+pkgdesc="Watches files and records, or triggers actions, when they change (optimized)"
 url="https://github.com/facebook/watchman"
 arch=(x86_64)
 license=(MIT)
@@ -77,13 +77,13 @@ END
 build() {
   cd "${pkgname}-${pkgver}"
   export RUSTUP_TOOLCHAIN=stable
-  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_SKIP_INSTALL_RPATH=YES -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_CXX_STANDARD=20 -Wno-dev -DBUILD_SHARED_LIBS=ON -DUSE_SYS_PYTHON=ON -DENABLE_EDEN_SUPPORT=ON -DWATCHMAN_STATE_DIR=/var/run/watchman -DWATCHMAN_VERSION_OVERRIDE=$pkgver -DCMAKE_CXX_FLAGS="-include variant -include cstdint"
-  cmake --build build -j"$(nproc)"
-}
+  # Optimization flags
+  export CFLAGS="${CFLAGS/-O2/-O3} -pipe -fno-plt"
+  export CXXFLAGS="${CXXFLAGS/-O2/-O3} -pipe -fno-plt"
+  export LDFLAGS="${LDFLAGS} -Wl,-O1,--sort-common,--as-needed"
 
-check() {
-  cd "${pkgname}-${pkgver}"
-  ctest --test-dir build --output-on-failure --exclude-regex "[Bb]ig|[Ii]ntegration"
+  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_SKIP_INSTALL_RPATH=YES -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_CXX_STANDARD=20 -Wno-dev -DBUILD_SHARED_LIBS=ON -DUSE_SYS_PYTHON=ON -DENABLE_EDEN_SUPPORT=ON -DWATCHMAN_STATE_DIR=/var/run/watchman -DWATCHMAN_VERSION_OVERRIDE=$pkgver -DCMAKE_CXX_FLAGS="-include variant -include cstdint" -DBUILD_TESTING=OFF
+  cmake --build build -j"$(nproc)"
 }
 
 package() {

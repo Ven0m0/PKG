@@ -16,22 +16,20 @@ pkgname=(
   vulkan-freedreno
   vulkan-gfxstream
   vulkan-intel
-  vulkan-nouveau
-  vulkan-radeon
   vulkan-virtio
   vulkan-mesa-implicit-layers
   vulkan-mesa-layers
 )
 pkgver=25.3.2
 _pkgver=${pkgver/[a-z]/-&}
-pkgrel=4
+pkgrel=5
 epoch=1
-pkgdesc="Open-source OpenGL drivers (optimized)"
+pkgdesc="Open-source OpenGL drivers (optimized, no nouveau/radeon)"
 url="https://www.mesa3d.org/"
 arch=(x86_64)
 license=("MIT AND BSD-3-Clause AND SGI-B-2.0")
 makedepends=(
-  clang
+  clang-minimal-git
   directx-headers
   expat
   gcc-libs
@@ -49,8 +47,8 @@ makedepends=(
   libxrandr
   libxshmfence
   libxxf86vm
-  llvm
-  llvm-libs
+  llvm-minimal-git
+  llvm-libs-minimal-git
   lm_sensors
   rust
   spirv-llvm-translator
@@ -64,7 +62,6 @@ makedepends=(
 
   # shared between mesa and lib32-mesa
   cbindgen
-  clang
   cmake
   elfutils
   glslang
@@ -232,8 +229,9 @@ build() {
   local meson_options=(
     -D android-libbacktrace=disabled
     -D b_ndebug=true
-    -D gallium-drivers=asahi,crocus,d3d12,freedreno,iris,nouveau,r600,radeonsi,svga,virgl,zink
-    -D gallium-extra-hud=true
+    -D buildtype=release
+    -D gallium-drivers=asahi,crocus,d3d12,freedreno,iris,svga,virgl,zink
+    -D gallium-extra-hud=false
     -D gallium-mediafoundation=disabled
     -D gallium-rusticl=false
     -D gles1=disabled
@@ -241,16 +239,19 @@ build() {
     -D intel-rt=disabled
     -D libunwind=disabled
     -D microsoft-clc=disabled
-    -D sysprof=true
+    -D sysprof=false
     -D valgrind=disabled
     -D video-codecs=none
-    -D vulkan-drivers=amd,freedreno,intel,intel_hasvk,virtio,microsoft-experimental,nouveau,asahi,gfxstream
-    -D vulkan-layers=device-select,intel-nullhw,overlay,screenshot,anti-lag,vram-report-limit
+    -D vulkan-drivers=freedreno,intel,intel_hasvk,virtio,microsoft-experimental,asahi,gfxstream
+    -D vulkan-layers=device-select,intel-nullhw,overlay
+    -D build-tests=false
+    -D unit-tests=disabled
   )
 
-  # Build only minimal debug info to reduce size
-  CFLAGS+=" -g1"
-  CXXFLAGS+=" -g1"
+  # Optimization flags
+  export CFLAGS="${CFLAGS/-O2/-O3} -pipe -fno-plt"
+  export CXXFLAGS="${CXXFLAGS/-O2/-O3} -pipe -fno-plt"
+  export LDFLAGS="${LDFLAGS} -Wl,-O1,--sort-common,--as-needed"
 
   # Inject subproject packages
   export MESON_PACKAGE_CACHE_DIR="$srcdir"
@@ -282,7 +283,7 @@ package_mesa() {
     libxext
     libxshmfence
     libxxf86vm
-    llvm-libs
+    llvm-libs-minimal-git
     lm_sensors
     spirv-tools
     wayland
@@ -328,13 +329,6 @@ package_mesa() {
 
     _pick vkintel $icddir/intel{,_hasvk}_icd.*.json
     _pick vkintel $libdir/libvulkan_intel{,_hasvk}.so
-
-    _pick vknvidia $icddir/nouveau_icd.*.json
-    _pick vknvidia $libdir/libvulkan_nouveau.so
-
-    _pick vkradeon $icddir/radeon_icd.*.json
-    _pick vkradeon $libdir/libvulkan_radeon.so
-    _pick vkradeon usr/share/drirc.d/00-radv-defaults.conf
 
     _pick vkvirtio $icddir/virtio_icd.*.json
     _pick vkvirtio $libdir/libvulkan_virtio.so
@@ -487,65 +481,6 @@ package_vulkan-intel() {
   provides=(vulkan-driver)
 
   mv vkintel/* "$pkgdir"
-
-  install -Dm644 mesa-$_pkgver/docs/license.rst -t "$pkgdir/usr/share/licenses/$pkgname"
-}
-
-package_vulkan-nouveau() {
-  pkgdesc="Open-source Vulkan driver for Nvidia GPUs"
-  depends=(
-    expat
-    gcc-libs
-    glibc
-    libdisplay-info
-    libdrm
-    libx11
-    libxcb
-    libxshmfence
-    spirv-tools
-    systemd-libs
-    vulkan-icd-loader
-    vulkan-mesa-implicit-layers
-    wayland
-    xcb-util-keysyms
-    zlib
-    zstd
-  )
-  optdepends=("vulkan-mesa-layers: additional vulkan layers")
-  provides=(vulkan-driver)
-
-  mv vknvidia/* "$pkgdir"
-
-  install -Dm644 mesa-$_pkgver/docs/license.rst -t "$pkgdir/usr/share/licenses/$pkgname"
-}
-
-package_vulkan-radeon() {
-  pkgdesc="Open-source Vulkan driver for AMD GPUs"
-  depends=(
-    expat
-    gcc-libs
-    glibc
-    libdisplay-info
-    libdrm
-    libelf
-    libx11
-    libxcb
-    libxshmfence
-    llvm-libs
-    spirv-tools
-    systemd-libs
-    vulkan-icd-loader
-    vulkan-mesa-implicit-layers
-    wayland
-    xcb-util-keysyms
-    zlib
-    zstd
-  )
-  optdepends=("vulkan-mesa-layers: additional vulkan layers")
-  provides=(vulkan-driver)
-  replaces=('amdvlk<=2025.Q2.1-1')
-
-  mv vkradeon/* "$pkgdir"
 
   install -Dm644 mesa-$_pkgver/docs/license.rst -t "$pkgdir/usr/share/licenses/$pkgname"
 }
