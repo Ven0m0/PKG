@@ -107,7 +107,7 @@ jobs:
           remove_swap: true
           remove_packages: "azure-cli google-cloud-cli microsoft-edge-stable google-chrome-stable firefox postgresql* mysql* dotnet-sdk-*"
           remove_packages_one_command: true
-          remove_folders: "/usr/share/swift /usr/share/miniconda /usr/share/az* /usr/local/lib/node_modules /usr/local/share/chromium /usr/local/share/powershell /usr/local/julia /usr/local/aws-cli /usr/local/aws-sam-cli /usr/share/gradle /opt/ghc /usr/share/dotnet"
+          remove_folders: "/usr/share/swift /usr/share/miniconda /usr/share/az /usr/local/lib/node_modules /usr/local/share/chromium /usr/local/share/powershell /usr/local/julia /usr/local/aws-cli /usr/local/aws-sam-cli /usr/share/gradle /opt/ghc /usr/share/dotnet /usr/share/swift /usr/local/lib/android /opt/hostedtoolcache /var/lib/man-db/auto-update /usr/local/.ghcup /var/lib/apt/lists/*"
           rm_cmd: "rmz"
       - name: Additional preparations
         if: steps.build_method.outputs.needs_space == 'true'
@@ -115,8 +115,6 @@ jobs:
         run: |
           sudo apt-get update -yq &>/dev/null; sudo apt-get upgrade -yq --no-install-recommends --no-install-suggests
           sudo apt-get clean -yq; sudo apt-get autoclean -y; sudo apt-get autoremove --purge -yq
-          sudo rm -f /var/lib/man-db/auto-update &>/dev/null
-          sudo rm -rf /var/lib/apt/lists/* /usr/local/.ghcup &>/dev/null
           df -h
       - name: Cache APT packages
         if: steps.build_method.outputs.method == 'standard'
