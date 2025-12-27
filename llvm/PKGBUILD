@@ -105,7 +105,7 @@ build() {
     -D LLVM_VERSION_SUFFIX=""
     -D LLVM_APPEND_VC_REV=ON
     -D LLVM_HOST_TRIPLE=$CHOST
-    -D LLVM_TARGETS_TO_BUILD="AMDGPU;X86"
+    -D LLVM_TARGETS_TO_BUILD="X86"
     -D LLVM_BUILD_LLVM_DYLIB=ON
     -D LLVM_LINK_LLVM_DYLIB=ON
     -D CLANG_LINK_CLANG_DYLIB=ON
@@ -213,7 +213,7 @@ package_llvm-minimal() {
     rmdir "$pkgdir"/usr/libexec
   fi
 
-  mv -f "$pkgdir"/usr/bin/{amdgpu-arch,analyze-build,c-index-test,clang*,diagtool,find-all-symbols,git-clang-format,hmaptool,intercept-build,modularize,nvptx-arch,pp-trace,run-clang-tidy,scan-build,scan-build-py,scan-view} "$srcdir"/clang/usr/bin/ 2>/dev/null || true
+  mv -f "$pkgdir"/usr/bin/{analyze-build,c-index-test,clang*,diagtool,find-all-symbols,git-clang-format,hmaptool,intercept-build,modularize,pp-trace,run-clang-tidy,scan-build,scan-build-py,scan-view} "$srcdir"/clang/usr/bin/ 2>/dev/null || true
   mv -f "$pkgdir"/usr/share/{clang,clang-doc,man,opt-viewer,scan-build,scan-view} "$srcdir"/clang/usr/share/ 2>/dev/null || true
 
   install -Dm644 "$srcdir"/llvm-project/llvm/LICENSE.TXT "$pkgdir"/usr/share/licenses/"$pkgname"/LICENSE.TXT
