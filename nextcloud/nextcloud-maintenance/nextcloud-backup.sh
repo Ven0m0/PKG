@@ -15,8 +15,16 @@ readonly nextcloud_user=${NEXTCLOUD_USER:-http}
 # SSH options - putting into array for nested quotes
 readonly ssh_options=(-e "ssh -p ${SSH_PORT:-22} -i ${SSH_KEY:-/home/user/.ssh/id_ed25519}")
 
-# SQL options - SECURITY: Use environment variables or config file instead of hardcoding
-readonly sql_options="--user ${SQL_USER:-nextclouduser} --password=${SQL_PASSWORD:-my_password123}"
+# SQL options - SECURITY: Password must be provided via environment variable or ~/.my.cnf
+# For security, use MySQL config file: https://dev.mysql.com/doc/refman/8.0/en/option-files.html
+# Or ensure SQL_PASSWORD environment variable is set before running this script
+if [[ -z "${SQL_PASSWORD:-}" ]]; then
+  printf 'ERROR: SQL_PASSWORD environment variable must be set.\n' >&2
+  printf 'Alternatively, configure credentials in ~/.my.cnf for passwordless authentication.\n' >&2
+  printf 'See: https://dev.mysql.com/doc/refman/8.0/en/password-security-user.html\n' >&2
+  exit 1
+fi
+readonly sql_options="--user ${SQL_USER:-nextclouduser} --password=${SQL_PASSWORD}"
 
 # ─── Main Backup Logic ────────────────────────────────────────────────────
 log=''
