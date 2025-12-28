@@ -1,4 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# shellcheck enable=all shell=bash source-path=SCRIPTDIR
+set -euo pipefail
+shopt -s nullglob
+export LC_ALL=C
+IFS=$'\n\t'
+
 # mini-benchmarker
 # by torvic9
 # contributors and testers:
@@ -7,142 +13,142 @@
 #
 # In Memoriam Jonathon Fernyhough
 
-TNAMES=('stress-ng cpu-cache-mem'	#0
-	'ffmpeg compilation'		#1
-	'x265 encoding'			#2
-	'argon2 hashing'		#3
-	'perf sched msg fork thread'	#4
-	'perf memcpy'			#5
-	'calculating prime numbers'	#6
-	'namd 92K atoms'		#7
-	'blender render'		#8
-	'xz compression'		#9
-	'kernel defconfig'		#10
-	'y-cruncher pi 1b'		#11
+TNAMES=('stress-ng cpu-cache-mem' #0
+  'ffmpeg compilation'    #1
+  'x265 encoding'     #2
+  'argon2 hashing'    #3
+  'perf sched msg fork thread'  #4
+  'perf memcpy'     #5
+  'calculating prime numbers' #6
+  'namd 92K atoms'    #7
+  'blender render'    #8
+  'xz compression'    #9
+  'kernel defconfig'    #10
+  'y-cruncher pi 1b'    #11
 )
 
 # animation
 animate() {
-	local s='-+' ; local i=0
-	while kill -0 $PID &>/dev/null
-		do i=$(( (i+1) %2 ))
-		printf "\b${s:$i:1}"
-		sleep 1
-	done
-	printf "\b " ; cat $RESFILE
-	echo -e "${TNAMES[$1]}: $(cat $RESFILE)" >> $LOGFILE
+  local s='-+' ; local i=0
+  while kill -0 $PID &>/dev/null
+    do i=$(( (i+1) %2 ))
+    printf "\b${s:$i:1}"
+    sleep 1
+  done
+  printf "\b " ; cat $RESFILE
+  echo -e "${TNAMES[$1]}: $(cat $RESFILE)" >> $LOGFILE
 }
 
 # tests
 runstress() {
-	local RESFILE="$WORKDIR/runstress" || exit 4
-	/usr/bin/time -f %e -o $RESFILE stress-ng -q --job $WORKDIR/stressC &>/dev/null &
-	local PID=$!
-	echo -n -e "* ${TNAMES[0]}:\t\t"
-	animate 0 && return 0 || return 99
+  local RESFILE="$WORKDIR/runstress" || exit 4
+  /usr/bin/time -f %e -o $RESFILE stress-ng -q --job $WORKDIR/stressC &>/dev/null &
+  local PID=$!
+  echo -n -e "* ${TNAMES[0]}:\t\t"
+  animate 0 && return 0 || return 99
 }
 
 runffm() {
-	cd $WORKDIR/ffmpeg-7.0.1 || exit 4
-	local RESFILE="$WORKDIR/runffm"
-	/usr/bin/time -f %e -o $RESFILE make -s -j${CPUCORES} &>/dev/null &
-	local PID=$!
-	echo -n -e "* ${TNAMES[1]}:\t\t\t"
-	animate 1 && return 0 || return 99
+  cd $WORKDIR/ffmpeg-7.0.1 || exit 4
+  local RESFILE="$WORKDIR/runffm"
+  /usr/bin/time -f %e -o $RESFILE make -s -j${CPUCORES} &>/dev/null &
+  local PID=$!
+  echo -n -e "* ${TNAMES[1]}:\t\t\t"
+  animate 1 && return 0 || return 99
 }
 
 runx265() {
-	local RESFILE="$WORKDIR/runx265" || exit 4
-	/usr/bin/time -f %e -o $RESFILE x265 -p slow -b 6 -o /dev/null \
-	  --no-progress --log-level none --input $WORKDIR/bosphorus_hd.y4m &
-	local PID=$!
-	echo -n -e "* ${TNAMES[2]}:\t\t\t"
-	animate 2 && return 0 || return 99
+  local RESFILE="$WORKDIR/runx265" || exit 4
+  /usr/bin/time -f %e -o $RESFILE x265 -p slow -b 6 -o /dev/null \
+    --no-progress --log-level none --input $WORKDIR/bosphorus_hd.y4m &
+  local PID=$!
+  echo -n -e "* ${TNAMES[2]}:\t\t\t"
+  animate 2 && return 0 || return 99
 }
 
 runargon() {
-	local RESFILE="$WORKDIR/runargon" || exit 4
-	/usr/bin/time -f %e -o $RESFILE argon2 BenchieSalt -id -t 20 -m 21 \
-	  -p $CPUCORES &>/dev/null <<< $(head -c 64 /dev/urandom) &
-	local PID=$!
-	echo -n -e "* ${TNAMES[3]}:\t\t\t"
-	animate 3 && return 0 || return 99
+  local RESFILE="$WORKDIR/runargon" || exit 4
+  /usr/bin/time -f %e -o $RESFILE argon2 BenchieSalt -id -t 20 -m 21 \
+    -p $CPUCORES &>/dev/null <<< $(head -c 64 /dev/urandom) &
+  local PID=$!
+  echo -n -e "* ${TNAMES[3]}:\t\t\t"
+  animate 3 && return 0 || return 99
 }
 
 runperf_sch() {
-	local RESFILE="$WORKDIR/runperfs" || exit 4
-	perf bench -f simple sched messaging -t -g 24 -l 6000 1> $RESFILE &
-	local PID=$!
-	echo -n -e "* ${TNAMES[4]}:\t\t"
-	animate 4 && return 0 || return 99
+  local RESFILE="$WORKDIR/runperfs" || exit 4
+  perf bench -f simple sched messaging -t -g 24 -l 6000 1> $RESFILE &
+  local PID=$!
+  echo -n -e "* ${TNAMES[4]}:\t\t"
+  animate 4 && return 0 || return 99
 }
 
 runperf_mem() {
-	local RESFILE="$WORKDIR/runperfm" || exit 4
-	/usr/bin/time -f %e -o $RESFILE perf bench -f simple mem memcpy --nr_loops 100 \
-	  --size 2GB -f default &>/dev/null &
-	local PID=$!
-	echo -n -e "* ${TNAMES[5]}:\t\t\t\t"
-	animate 5 && return 0 || return 99
+  local RESFILE="$WORKDIR/runperfm" || exit 4
+  /usr/bin/time -f %e -o $RESFILE perf bench -f simple mem memcpy --nr_loops 100 \
+    --size 2GB -f default &>/dev/null &
+  local PID=$!
+  echo -n -e "* ${TNAMES[5]}:\t\t\t\t"
+  animate 5 && return 0 || return 99
 }
 
 runprime() {
-	local RESFILE="$WORKDIR/runprime" || exit 4
-	/usr/bin/time -f%e -o $RESFILE primesieve 666000000000 --no-status | awk -F ': ' \
-	  '/Seconds/{print $2}' 1> $RESFILE &
-	local PID=$!
-	echo -n -e "* ${TNAMES[6]}:\t\t"
-	animate 6 && return 0 || return 99
+  local RESFILE="$WORKDIR/runprime" || exit 4
+  /usr/bin/time -f%e -o $RESFILE primesieve 666000000000 --no-status | awk -F ': ' \
+    '/Seconds/{print $2}' 1> $RESFILE &
+  local PID=$!
+  echo -n -e "* ${TNAMES[6]}:\t\t"
+  animate 6 && return 0 || return 99
 }
 
 runnamd() {
-	cd $WORKDIR/namd/NAMD_3.0b6_Linux-x86_64-multicore || exit 4
-	local RESFILE="$WORKDIR/runnamd"
-	rm -f ../apoa1/FFTW*.txt
-	/usr/bin/time -f%e -o $RESFILE ./namd3 +p${CPUCORES} +setcpuaffinity \
-	  ../apoa1/apoa1.namd &>/dev/null &
-	local PID=$!
-	echo -n -e "* ${TNAMES[7]}:\t\t\t"
-	animate 7 && return 0 || return 99
+  cd $WORKDIR/namd/NAMD_3.0b6_Linux-x86_64-multicore || exit 4
+  local RESFILE="$WORKDIR/runnamd"
+  rm -f ../apoa1/FFTW*.txt
+  /usr/bin/time -f%e -o $RESFILE ./namd3 +p${CPUCORES} +setcpuaffinity \
+    ../apoa1/apoa1.namd &>/dev/null &
+  local PID=$!
+  echo -n -e "* ${TNAMES[7]}:\t\t\t"
+  animate 7 && return 0 || return 99
 }
 
 runblend() {
-	local RESFILE="$WORKDIR/runblend" || exit 4
-	local BLENDER_USER_CONFIG="$WORKDIR"
-	/usr/bin/time -f %e -o "$RESFILE" blender -b "$WORKDIR/bmw_cpu_mod.blend" \
-	  -o "$WORKDIR/blenderbmw.jpg" -f 1 --verbose 0 -t ${CPUCORES} &>/dev/null &
-	local PID=$!
-	echo -n -e "* ${TNAMES[8]}:\t\t\t"
-	animate 8 && return 0 || return 99
+  local RESFILE="$WORKDIR/runblend" || exit 4
+  local BLENDER_USER_CONFIG="$WORKDIR"
+  /usr/bin/time -f %e -o "$RESFILE" blender -b "$WORKDIR/bmw_cpu_mod.blend" \
+    -o "$WORKDIR/blenderbmw.jpg" -f 1 --verbose 0 -t ${CPUCORES} &>/dev/null &
+  local PID=$!
+  echo -n -e "* ${TNAMES[8]}:\t\t\t"
+  animate 8 && return 0 || return 99
 }
 
 runxz() {
-	local RESFILE="$WORKDIR/runxz" || exit 4
-	/usr/bin/time -f %e -o "$RESFILE" xz -z -k -T${CPUCORES} -Qqq \
-	  -f "$WORKDIR/firefox102.tar" &
-	local PID=$!
-	echo -n -e "* ${TNAMES[9]}:\t\t\t"
-	animate 9 && return 0 || return 99
+  local RESFILE="$WORKDIR/runxz" || exit 4
+  /usr/bin/time -f %e -o "$RESFILE" xz -z -k -T${CPUCORES} -Qqq \
+    -f "$WORKDIR/firefox102.tar" &
+  local PID=$!
+  echo -n -e "* ${TNAMES[9]}:\t\t\t"
+  animate 9 && return 0 || return 99
 }
 
 runkern() {
-	cd "$WORKDIR/linux-$KERNVER" || exit 4
-	local RESFILE="$WORKDIR/runkern"
-	/usr/bin/time -f %e -o "$RESFILE" make KCFLAGS='-Wno-error' -sj$CPUCORES vmlinux &>/dev/null &
-	local PID=$!
-	echo -n -e "* ${TNAMES[10]}:\t\t\t"
-	animate 10 && return 0 || return 99
+  cd "$WORKDIR/linux-$KERNVER" || exit 4
+  local RESFILE="$WORKDIR/runkern"
+  /usr/bin/time -f %e -o "$RESFILE" make KCFLAGS='-Wno-error' -sj$CPUCORES vmlinux &>/dev/null &
+  local PID=$!
+  echo -n -e "* ${TNAMES[10]}:\t\t\t"
+  animate 10 && return 0 || return 99
 }
 
 runyc() {
-	cd "$WORKDIR/y-cruncher v0.8.6.9545-static" || exit 4
-	rm -f "Pi*.txt"
-	local RESFILE="$WORKDIR/runyc"
-	/usr/bin/time -f%e -o "$RESFILE" ./y-cruncher bench 1b -od:0 \
-	  -o $WORKDIR &>/dev/null &
-	local PID=$!
-	echo -n -e "* ${TNAMES[11]}:\t\t\t"
-	animate 11 && return 0 || return 99
+  cd "$WORKDIR/y-cruncher v0.8.6.9545-static" || exit 4
+  rm -f "Pi*.txt"
+  local RESFILE="$WORKDIR/runyc"
+  /usr/bin/time -f%e -o "$RESFILE" ./y-cruncher bench 1b -od:0 \
+    -o $WORKDIR &>/dev/null &
+  local PID=$!
+  echo -n -e "* ${TNAMES[11]}:\t\t\t"
+  animate 11 && return 0 || return 99
 }
 
 # intro text and explanation
@@ -184,16 +190,16 @@ intro() {
 
 # traps (ctrl-c)
 killproc() {
-	echo -e "\n**** Received SIGINT, aborting! ****\n"
-	kill -- -$$ && exit 2
+  echo -e "\n**** Received SIGINT, aborting! ****\n"
+  kill -- -$$ && exit 2
 }
 
 exitproc() {
-	echo -e "\n-> Removing temporary files..."
-	for i in $WORKDIR/{"run*",stressC,"*.txt",firefox102.tar.xz,"*.zst","*.7z","*.jpg","*.ppm"}
-		do rm -f $i
-	done
-	rm $(echo $LOCKFILE) && echo -e "${TB}Bye!${TN}\n"
+  echo -e "\n-> Removing temporary files..."
+  for i in $WORKDIR/{"run*",stressC,"*.txt",firefox102.tar.xz,"*.zst","*.7z","*.jpg","*.ppm"}
+    do rm -f $i
+  done
+  rm $(echo $LOCKFILE) && echo -e "${TB}Bye!${TN}\n"
 }
 
 # vars
@@ -241,172 +247,172 @@ WORKDIR="$1"
 
 [[ "${WORKDIR:0:1}" != "/" ]] && WORKDIR="$PWD/$WORKDIR"
 if [[ ! -d "$WORKDIR" ]] ; then
-	read -p "The specified directory ${TB}$WORKDIR${TN} does not exist. Create it (y/N)? " DCHOICE
-	[[ $DCHOICE = "y" || $DCHOICE = "Y" ]] && mkdir -p $WORKDIR || exit 4
+  read -p "The specified directory ${TB}$WORKDIR${TN} does not exist. Create it (y/N)? " DCHOICE
+  [[ $DCHOICE = "y" || $DCHOICE = "Y" ]] && mkdir -p $WORKDIR || exit 4
 fi
 
 # check files function
 checkfiles() {
-	echo -e "\n${TB}Checking, downloading and preparing test files...${TN}"
+  echo -e "\n${TB}Checking, downloading and preparing test files...${TN}"
 
-	# stress-ng jobfile
-	cat > $WORKDIR/stressC <<- EOF
-	run sequential 0
-	no-rand-seed
-	temp-path /tmp
-	timeout 0
-	matrix CPUCORES
-	matrix-method prod
-	matrix-size 256
+  # stress-ng jobfile
+  cat > $WORKDIR/stressC <<- EOF
+  run sequential 0
+  no-rand-seed
+  temp-path /tmp
+  timeout 0
+  matrix CPUCORES
+  matrix-method prod
+  matrix-size 256
 	EOF
-	echo "matrix-ops $((2400 / ${CPUCORES}))" >> $WORKDIR/stressC
-	cat >> $WORKDIR/stressC <<- EOF
-	sparsematrix CPUCORES
-	sparsematrix-method hash
-	sparsematrix-items 15000
+  echo "matrix-ops $((2400 / ${CPUCORES}))" >> $WORKDIR/stressC
+  cat >> $WORKDIR/stressC <<- EOF
+  sparsematrix CPUCORES
+  sparsematrix-method hash
+  sparsematrix-items 15000
 	EOF
-	echo "sparsematrix-ops $((2400 / ${CPUCORES}))" >> $WORKDIR/stressC
-	cat >> $WORKDIR/stressC <<- EOF
-	shm CPUCORES
-	shm-bytes 16m
+  echo "sparsematrix-ops $((2400 / ${CPUCORES}))" >> $WORKDIR/stressC
+  cat >> $WORKDIR/stressC <<- EOF
+  shm CPUCORES
+  shm-bytes 16m
 	EOF
-	echo "shm-ops $((2400 / ${CPUCORES}))" >> $WORKDIR/stressC
-	cat >> $WORKDIR/stressC <<- EOF
-	fork CPUCORES
-	fork-max 8
+  echo "shm-ops $((2400 / ${CPUCORES}))" >> $WORKDIR/stressC
+  cat >> $WORKDIR/stressC <<- EOF
+  fork CPUCORES
+  fork-max 8
 	EOF
-	echo "fork-ops $((24000 / ${CPUCORES}))" >> $WORKDIR/stressC
-	cat >> $WORKDIR/stressC <<- EOF
-	cpu CPUCORES
-	cpu-method cdouble
+  echo "fork-ops $((24000 / ${CPUCORES}))" >> $WORKDIR/stressC
+  cat >> $WORKDIR/stressC <<- EOF
+  cpu CPUCORES
+  cpu-method cdouble
 	EOF
-	echo "cpu-ops $((4800 / ${CPUCORES}))" >> $WORKDIR/stressC
-	cat >> $WORKDIR/stressC <<- EOF
-	bsearch CPUCORES
+  echo "cpu-ops $((4800 / ${CPUCORES}))" >> $WORKDIR/stressC
+  cat >> $WORKDIR/stressC <<- EOF
+  bsearch CPUCORES
 	EOF
-	echo "bsearch-ops $((2400 / ${CPUCORES}))" >> $WORKDIR/stressC
-	cat >> $WORKDIR/stressC <<-EOF
-	stream CPUCORES
+  echo "bsearch-ops $((2400 / ${CPUCORES}))" >> $WORKDIR/stressC
+  cat >> $WORKDIR/stressC <<-EOF
+  stream CPUCORES
 	EOF
-	echo "stream-ops $((4800 / ${CPUCORES}))" >> $WORKDIR/stressC
-	cat >> $WORKDIR/stressC <<- EOF
-	list CPUCORES
+  echo "stream-ops $((4800 / ${CPUCORES}))" >> $WORKDIR/stressC
+  cat >> $WORKDIR/stressC <<- EOF
+  list CPUCORES
 	EOF
-	echo "list-ops $((2400 / ${CPUCORES}))" >> $WORKDIR/stressC
-	cat >> $WORKDIR/stressC <<- EOF
-	qsort CPUCORES
-	qsort-size 65536
+  echo "list-ops $((2400 / ${CPUCORES}))" >> $WORKDIR/stressC
+  cat >> $WORKDIR/stressC <<- EOF
+  qsort CPUCORES
+  qsort-size 65536
 	EOF
-	echo "qsort-ops $((2400 / ${CPUCORES}))" >> $WORKDIR/stressC
-	cat >> $WORKDIR/stressC <<- EOF
-	memfd CPUCORES
-	memfd-bytes 128m
-	memfd-fds 128
+  echo "qsort-ops $((2400 / ${CPUCORES}))" >> $WORKDIR/stressC
+  cat >> $WORKDIR/stressC <<- EOF
+  memfd CPUCORES
+  memfd-bytes 128m
+  memfd-fds 128
 	EOF
-	echo "memfd-ops $((2400 / ${CPUCORES}))" >> $WORKDIR/stressC
+  echo "memfd-ops $((2400 / ${CPUCORES}))" >> $WORKDIR/stressC
 
-	sed -i "s/CPUCORES/$CPUCORES/g" $WORKDIR/stressC
+  sed -i "s/CPUCORES/$CPUCORES/g" $WORKDIR/stressC
 
-	if [[ ! -f $WORKDIR/bosphorus_hd.y4m ]] ; then
-		wget --show-progress -N -qO $WORKDIR/bosphorus_hd.7z \
-		  http://ultravideo.cs.tut.fi/video/Bosphorus_1920x1080_120fps_420_8bit_YUV_Y4M.7z
-		echo "--> Unzipping video..."
-		cd $WORKDIR
-		7z e bosphorus_hd.7z -o./ &>/dev/null
-		mv Bosphorus_1920x1080_120fps_420_8bit_YUV.y4m bosphorus_hd.y4m
-	fi
+  if [[ ! -f $WORKDIR/bosphorus_hd.y4m ]] ; then
+    wget --show-progress -N -qO $WORKDIR/bosphorus_hd.7z \
+      http://ultravideo.cs.tut.fi/video/Bosphorus_1920x1080_120fps_420_8bit_YUV_Y4M.7z
+    echo "--> Unzipping video..."
+    cd $WORKDIR
+    7z e bosphorus_hd.7z -o./ &>/dev/null
+    mv Bosphorus_1920x1080_120fps_420_8bit_YUV.y4m bosphorus_hd.y4m
+  fi
 
-	if [[ ! -d $WORKDIR/ffmpeg-7.0.1 ]]; then
-		wget --show-progress -N -qO $WORKDIR/ffmpeg.tar.xz \
-		  https://ffmpeg.org/releases/ffmpeg-7.0.1.tar.xz
-		echo "--> Preparing ffmpeg..."
-		cd $WORKDIR
-		tar -xf ffmpeg.tar.xz
-	fi
+  if [[ ! -d $WORKDIR/ffmpeg-7.0.1 ]]; then
+    wget --show-progress -N -qO $WORKDIR/ffmpeg.tar.xz \
+      https://ffmpeg.org/releases/ffmpeg-7.0.1.tar.xz
+    echo "--> Preparing ffmpeg..."
+    cd $WORKDIR
+    tar -xf ffmpeg.tar.xz
+  fi
 
-	if [[ ! -d $WORKDIR/namd ]]; then
-		wget --show-progress -N -qO $WORKDIR/namd.tar.gz \
-		  http://www.ks.uiuc.edu/Research/namd/3.0b6/download/120834/NAMD_3.0b6_Linux-x86_64-multicore.tar.gz
-		wget --show-progress -N -qO $WORKDIR/namd-example.tar.gz \
-		  https://www.ks.uiuc.edu/Research/namd/utilities/apoa1.tar.gz
-		echo "--> Preparing NAMD..."
-		cd $WORKDIR
-		mkdir namd
-		tar -C namd -xf namd.tar.gz
-		tar -C namd -xf namd-example.tar.gz
-		sed -i 's/\/usr//;s/500/400/' namd/apoa1/apoa1.namd
-	fi
+  if [[ ! -d $WORKDIR/namd ]]; then
+    wget --show-progress -N -qO $WORKDIR/namd.tar.gz \
+      http://www.ks.uiuc.edu/Research/namd/3.0b6/download/120834/NAMD_3.0b6_Linux-x86_64-multicore.tar.gz
+    wget --show-progress -N -qO $WORKDIR/namd-example.tar.gz \
+      https://www.ks.uiuc.edu/Research/namd/utilities/apoa1.tar.gz
+    echo "--> Preparing NAMD..."
+    cd $WORKDIR
+    mkdir namd
+    tar -C namd -xf namd.tar.gz
+    tar -C namd -xf namd-example.tar.gz
+    sed -i 's/\/usr//;s/500/400/' namd/apoa1/apoa1.namd
+  fi
 
-	if [[ ! -f "$WORKDIR/bmw_cpu_mod.blend" ]]; then
-		wget --show-progress -N -qO "$WORKDIR/bmw_cpu_mod.blend" \
-		  https://gitlab.com/torvic9/mini-benchmarker/-/raw/master/bmw_cpu_mod.blend
-	fi
+  if [[ ! -f "$WORKDIR/bmw_cpu_mod.blend" ]]; then
+    wget --show-progress -N -qO "$WORKDIR/bmw_cpu_mod.blend" \
+      https://gitlab.com/torvic9/mini-benchmarker/-/raw/master/bmw_cpu_mod.blend
+  fi
 
-	if [[ ! -f $WORKDIR/firefox102.tar ]]; then
-		wget --show-progress -N -qO $WORKDIR/firefox102.tar.xz \
-		  http://ftp.mozilla.org/pub/firefox/releases/102.9.0esr/source/firefox-102.9.0esr.source.tar.xz
-		echo "--> Unzipping Firefox tarball..."
-		xz -d -q $WORKDIR/firefox102.tar.xz
-	fi
+  if [[ ! -f $WORKDIR/firefox102.tar ]]; then
+    wget --show-progress -N -qO $WORKDIR/firefox102.tar.xz \
+      http://ftp.mozilla.org/pub/firefox/releases/102.9.0esr/source/firefox-102.9.0esr.source.tar.xz
+    echo "--> Unzipping Firefox tarball..."
+    xz -d -q $WORKDIR/firefox102.tar.xz
+  fi
 
-	if [[ ! -d "$WORKDIR/linux-$KERNVER" ]]; then
-		wget --show-progress -N -qO "$WORKDIR/linux-$KERNVER.tar.xz" \
-		  https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-$KERNVER.tar.xz
-		echo "--> Uncompressing kernel source..."
-		cd "$WORKDIR"
-		tar -xf linux-$KERNVER.tar.xz
-	fi
+  if [[ ! -d "$WORKDIR/linux-$KERNVER" ]]; then
+    wget --show-progress -N -qO "$WORKDIR/linux-$KERNVER.tar.xz" \
+      https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-$KERNVER.tar.xz
+    echo "--> Uncompressing kernel source..."
+    cd "$WORKDIR"
+    tar -xf linux-$KERNVER.tar.xz
+  fi
 
-	if [[ ! -d "$WORKDIR/y-cruncher v0.8.6.9545-static" ]]; then
-		wget --show-progress -N -qO "$WORKDIR/y-cruncher.tar.xz" \
-		  https://github.com/Mysticial/y-cruncher/releases/download/v0.8.6.9545/y-cruncher.v0.8.6.9545-static.tar.xz
-		echo "--> Uncompressing y-cruncher..."
-		cd "$WORKDIR"
-		tar -xf y-cruncher.tar.xz
-	fi
+  if [[ ! -d "$WORKDIR/y-cruncher v0.8.6.9545-static" ]]; then
+    wget --show-progress -N -qO "$WORKDIR/y-cruncher.tar.xz" \
+      https://github.com/Mysticial/y-cruncher/releases/download/v0.8.6.9545/y-cruncher.v0.8.6.9545-static.tar.xz
+    echo "--> Uncompressing y-cruncher..."
+    cd "$WORKDIR"
+    tar -xf y-cruncher.tar.xz
+  fi
 
-	echo -e "\n${TB}Preparing kernel source...${TN}"
-	cd "$WORKDIR/linux-$KERNVER" || exit 4
-	make -s distclean && make -s defconfig
+  echo -e "\n${TB}Preparing kernel source...${TN}"
+  cd "$WORKDIR/linux-$KERNVER" || exit 4
+  make -s distclean && make -s defconfig
 
-	echo -e "\n${TB}Preparing ffmpeg source...${TN}"
-	cd "$WORKDIR/ffmpeg-7.0.1" || exit 4
-	make -s distclean &>/dev/null
-	./configure --prefix=$TMP --disable-debug --enable-static \
-	    --enable-gpl --enable-version3 --disable-ffplay --disable-ffprobe \
-	    --disable-programs --disable-doc --disable-network --disable-protocols \
-	    --disable-filters --disable-iconv --enable-libdrm --disable-stripping \
-	    --disable-autodetect --cpu=native &>/dev/null
+  echo -e "\n${TB}Preparing ffmpeg source...${TN}"
+  cd "$WORKDIR/ffmpeg-7.0.1" || exit 4
+  make -s distclean &>/dev/null
+  ./configure --prefix=$TMP --disable-debug --enable-static \
+      --enable-gpl --enable-version3 --disable-ffplay --disable-ffprobe \
+      --disable-programs --disable-doc --disable-network --disable-protocols \
+      --disable-filters --disable-iconv --enable-libdrm --disable-stripping \
+      --disable-autodetect --cpu=native &>/dev/null
 }
 
 checksys() {
-	# ask user for dropping page cache
-	echo -e "\n"
-	read -p "Do you want to drop page cache now? Root privileges needed! (y/N) " DCHOICE
-	[[ $DCHOICE = "y" || $DCHOICE = "Y" ]] && sync && su -c "echo 1 > /proc/sys/vm/drop_caches"
+  # ask user for dropping page cache
+  echo -e "\n"
+  read -p "Do you want to drop page cache now? Root privileges needed! (y/N) " DCHOICE
+  [[ $DCHOICE = "y" || $DCHOICE = "Y" ]] && sync && su -c "echo 1 > /proc/sys/vm/drop_caches"
 
-	LOCKFILE=$(mktemp $WORKDIR/benchie.XXXX)
+  LOCKFILE=$(mktemp $WORKDIR/benchie.XXXX)
 
-	read -p "Please enter a name for this run, or leave empty for default: " NCHOICE
-	[[ -z $NCHOICE ]] && NCHOICE="$USER@$HOSTNAME-${LOCKFILE#*benchie.}"
-	# results will be written to this file
-	LOGFILE="$WORKDIR/benchie_${NCHOICE}_${CDATE}.log"
+  read -p "Please enter a name for this run, or leave empty for default: " NCHOICE
+  [[ -z $NCHOICE ]] && NCHOICE="$USER@$HOSTNAME-${LOCKFILE#*benchie.}"
+  # results will be written to this file
+  LOGFILE="$WORKDIR/benchie_${NCHOICE}_${CDATE}.log"
 
-	# traps (ctrl-c)
-	trap killproc INT
-	trap exitproc EXIT
+  # traps (ctrl-c)
+  trap killproc INT
+  trap exitproc EXIT
 }
 
 # print header
 header() {
-	echo -e "\n${TB}Starting...${TN}\n" ; sync ; sleep 2
+  echo -e "\n${TB}Starting...${TN}\n" ; sync ; sleep 2
 
-	echo -e "__________________________________________________"
-	echo -e "=====${TB}__${TN}==${TB}__${TN} ===========================${TB}_____${TN} ====="
-	echo -e "====${TB}|  \/  |${TN}==== MINI BENCHMARKER ====${TB}| ___ ))${TN}===="
-	echo -e "====${TB}| |\/| |${TN}======= by torvic9 =======${TB}| ___ \\${TN}====="
-	echo -e "====${TB}|_|${TN}==${TB}|_|${TN}=========  $VER  =========${TB}|_____//${TN}===="
-	echo -e "==================================================\n"
+  echo -e "__________________________________________________"
+  echo -e "=====${TB}__${TN}==${TB}__${TN} ===========================${TB}_____${TN} ====="
+  echo -e "====${TB}|  \/  |${TN}==== MINI BENCHMARKER ====${TB}| ___ ))${TN}===="
+  echo -e "====${TB}| |\/| |${TN}======= by torvic9 =======${TB}| ___ \\${TN}====="
+  echo -e "====${TB}|_|${TN}==${TB}|_|${TN}=========  $VER  =========${TB}|_____//${TN}===="
+  echo -e "==================================================\n"
 }
 
 # run
@@ -432,7 +438,7 @@ ARRAYTIME=($(awk -F': ' '{print $2}' $LOGFILE))
 
 # using geometric mean for now
 for ((i=0; i<${NRTESTS}; i++)) ; do
-	ARRAY[$i]="$(python -c "print(round(( ${ARRAYTIME[$i]} * $COEFF * ${WEIGHTS[$i]}),4))")"
+  ARRAY[$i]="$(python -c "print(round(( ${ARRAYTIME[$i]} * $COEFF * ${WEIGHTS[$i]}),4))")"
 done
 
 TOTTIME="$(IFS="+" ; python -c "print(round((${ARRAYTIME[*]}),2))")"
