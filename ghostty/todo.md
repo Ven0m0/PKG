@@ -1,1 +1,0 @@
-- <https://github.com/pkgforge-dev/ghostty-appimage>
