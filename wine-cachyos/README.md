@@ -57,3 +57,4 @@ ln -s /opt/wine-cachyos/bin/wine ~/. local/bin/wine-cachyos
 
 - **Source**: https://github.com/CachyOS/wine-cachyos
 - **PKGBUILD**: https://github.com/CachyOS/CachyOS-PKGBUILDS
+- https://github.com/loathingKernel/PKGBUILDs/tree/master/multilib/wine
