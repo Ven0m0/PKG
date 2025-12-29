@@ -49,10 +49,12 @@ pkgname = llvm-minimal
   provides = lld
   provides = lldb
   provides = polly
+  provides = bolt
   conflicts = llvm
   conflicts = lld
   conflicts = lldb
   conflicts = polly
+  conflicts = bolt
 
 pkgname = llvm-libs-minimal
   pkgdesc = LLVM runtime libraries (optimized)
