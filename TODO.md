@@ -4,6 +4,8 @@ This document tracks planned features, improvements, and long-term goals for the
 
 ## High Priority
 
+- implement build workflows from https://github.com/loathingKernel/PKGBUILDs
+
 ### Documentation
 
 - [x] **Comprehensive README.md** - Added detailed project overview, quick start, features
