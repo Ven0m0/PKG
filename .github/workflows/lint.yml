@@ -104,7 +104,9 @@ jobs:
           pip install --no-cache-dir ruff black
 
           # Install YAML and JSON formatters
-          npm install -g --no-fund --no-audit @biome/biome yamlfmt
+          npm install -g --no-fund --no-audit @biomejs/biome
+          go install github.com/google/yamlfmt/cmd/yamlfmt@latest
+          sudo mv "$HOME/go/bin/yamlfmt" /usr/local/bin/
 
           # Install shfmt (pre-built binary)
           SHFMT_VERSION="3.10.0"
