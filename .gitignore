@@ -104,6 +104,7 @@ $RECYCLE.BIN/
 .ruff_cache/
 .ssh/
 .stylelintcache
+venv/
 .venv*/
 .venv/
 .vscode/
@@ -169,3 +170,17 @@ src/
 target/
 vendor/
 venv/
+SRCDEST/
+PKGDEST/
+.git_old/
+configs/
+*.tar
+*.tar.*
+*.jar
+*.exe
+*.msi
+*.zip
+*.tgz
+*.log
+*.log.*
+*.sig
