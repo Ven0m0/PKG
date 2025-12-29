@@ -44,7 +44,6 @@ pkgname = llvm-minimal
   optdepends = python: for using lit (LLVM Integrated Tester) and lldb
   optdepends = python-setuptools: for using lit
   optdepends = python-six: for lldb
-  optdepends = swig: for lldb python bindings
   provides = llvm
   provides = lld
   provides = lldb
