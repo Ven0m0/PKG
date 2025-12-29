@@ -230,6 +230,7 @@ package_llvm-minimal() {
   install -Dm644 "$srcdir"/llvm-project/lld/LICENSE.TXT "$pkgdir"/usr/share/licenses/"$pkgname"/lld-LICENSE.TXT 2>/dev/null || true
   install -Dm644 "$srcdir"/llvm-project/lldb/LICENSE.TXT "$pkgdir"/usr/share/licenses/"$pkgname"/lldb-LICENSE.TXT 2>/dev/null || true
   install -Dm644 "$srcdir"/llvm-project/polly/LICENSE.TXT "$pkgdir"/usr/share/licenses/"$pkgname"/polly-LICENSE.TXT 2>/dev/null || true
+  install -Dm644 "$srcdir"/llvm-project/bolt/LICENSE.TXT "$pkgdir"/usr/share/licenses/"$pkgname"/bolt-LICENSE.TXT 2>/dev/null || true
 }
 
 _python_optimize() {
