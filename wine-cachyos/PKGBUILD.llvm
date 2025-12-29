@@ -1,42 +1,40 @@
+# Maintainer: loathingkernel <loathingkernel _a_ gmail _d_ com>
 # Maintainer: Peter Jung <ptr1337@archlinux.org>
 # Contributor: Sven-Hendrik Haase <svenstaro@archlinux.org>
 # Contributor: Jan "heftig" Steffens <jan.steffens@gmail.com>
 # Contributor: Eduardo Romero <eduardo@archlinux.org>
 # Contributor: Giovanni Scafora <giovanni@archlinux.org>
 
-pkgname=wine
-pkgver=10.20
-pkgrel=2
-_tkg_commit=d9840ddec9d53f7379929ac3c8dc25ccf4d326be
+pkgname=wine-cachyos
+_srctag=10.0-20251222
+pkgver=${_srctag//-/.}
+_geckover=2.47.4
+_monover=10.4.0
+_xaliaver=0.4.6
+pkgrel=1
+epoch=2
 
 _pkgbasever=${pkgver/rc/-rc}
+_winever=$_pkgbasever
+#_winever=${_pkgbasever%.*}
 
-source=("git+https://gitlab.winehq.org/wine/wine.git?signed#tag=wine-$_pkgbasever"
-        compatibilitytool.vdf
-        toolmanifest.vdf
-        miniproton
+source=(wine-cachyos::git+https://github.com/CachyOS/wine-cachyos.git#tag=cachyos-${_srctag}-wine
+        https://dl.winehq.org/wine/wine-gecko/${_geckover}/wine-gecko-${_geckover}-x86{,_64}.tar.xz
+        https://github.com/madewokherd/wine-mono/releases/download/wine-mono-${_monover}/wine-mono-${_monover}-x86.tar.xz
+        https://github.com/madewokherd/xalia/releases/download/xalia-${_xaliaver}/xalia-${_xaliaver}-net48-mono.zip
         30-win32-aliases.conf
-        wine-binfmt.conf
-        ntsync.conf)
+        wine-binfmt.conf)
 source+=(
-        git+https://github.com/Frogging-Family/wine-tkg-git.git#commit=${_tkg_commit}
-        wine-sauce.patch
 )
-sha512sums=('6a082b9b0142631b199d63deb03fc44f0856515b955c1126c9f6547c88ca89df47e45bb220d10f1ab89bc5a36d3141bbcfdd38fc477ba574b9bd601f5a6d17e1'
-            '14a97ee7c9a023cf8b7cf8392325540ccc2e22673dd624d3add8e759c06ae98373fd3904835980803d661a174febfc2a3ad05e9e574b80435ebdcb7cc217fa31'
-            '61e0176986a9794855eb89367b123413039c5c4a8a16ce9bdc65abc7668ae48e7d4fd9feeeb4d300888998d44bb5c457f19a8defb482edefd719a7dfdced3235'
-            '5af31424909cda08a52daa31cd3baa436926953fb8f23348ae71c5d2f7aa353ae47febded60765c785d364d57d89c2fb5fbc5191bb3b02758fa511c6adb54070'
-            '6e54ece7ec7022b3c9d94ad64bdf1017338da16c618966e8baf398e6f18f80f7b0576edf1d1da47ed77b96d577e4cbb2bb0156b0b11c183a0accf22654b0a2bb'
-            'bdde7ae015d8a98ba55e84b86dc05aca1d4f8de85be7e4bd6187054bfe4ac83b5a20538945b63fb073caab78022141e9545685e4e3698c97ff173cf30859e285'
-            'ac2bd634838ffe6b90f2637e229013f0993fc1013271dbeefd216dc262a8bb79e4a5ce15a75cbfcb0c3b521d32f4ebe1ed25a6b066b99cc327b60bd6d7212e6f'
-            '8824cba32694080de9c28094bdb4cc404432409ecc4025fe83a7c46762070d22d5557907817fd9c2e52057cb3c9473d4cd7d19584f88a528539e6ef339d5a9d5'
-            '2e1f4872e6adcafe6aa5959e46058f30a3deda3b2e9cc5b699a1c2efa7041b111366a368832e213383d5b0ed3b488cf5d2725df938a99389d029d34726d3dde7')
+noextract=(
+    xalia-${_xaliaver}-net48-mono.zip
+)
 validpgpkeys=(5AC1A08B03BD7A313E0A955AF5E6E9EEB9461DD7
               DA23579A74D4AD9AF9D3F945CEFAC8EAAF17519D)
 
-pkgdesc="A compatibility layer for running Windows programs"
-url="https://www.winehq.org"
-arch=(x86_64)
+pkgdesc="A compatibility layer for running Windows programs, with extra CachyOS flavour"
+url="https://github.com/CachyOS/wine-cachyos"
+arch=(x86_64 x86_64_v3)
 options=(!staticlibs !lto !debug)
 license=(LGPL-2.1-or-later)
 depends=(
@@ -80,6 +78,7 @@ makedepends=(
   sane
   sdl2                  lib32-sdl2
   unixodbc
+  unzip
   v4l-utils             lib32-v4l-utils
   vulkan-headers
   vulkan-icd-loader     lib32-vulkan-icd-loader
@@ -109,12 +108,13 @@ optdepends=(
   unixodbc
   v4l-utils             lib32-v4l-utils
   vulkan-icd-loader     lib32-vulkan-icd-loader
-  wine-gecko
-  wine-mono
 )
 optdepends+=(
+  ntsync-common
   NTSYNC-MODULE
 )
+provides=("wine=10.0" 'wine-mono' 'wine-gecko')
+conflicts=('wine' 'wine-mono' 'wine-gecko')
 install=wine.install
 
 prepare() {
@@ -122,24 +122,18 @@ prepare() {
   rm -rf $pkgname-{32,64}-build
   mkdir $pkgname-{32,64}-build
 
-  cd wine
-  patch -Np1 -i "$srcdir"/wine-sauce.patch
-  _tkg_path="$srcdir"/wine-tkg-git/wine-tkg-git/wine-tkg-patches
-  patch -Np1 -i "$_tkg_path"/proton/LAA/LAA-unix.patch
-  patch -Np1 -i "$_tkg_path"/proton/msvcrt_nativebuiltin/msvcrt_nativebuiltin_mainline.patch
-  patch -Np1 -i "$_tkg_path"/proton/proton-win10-default/proton-win10-default.patch
+  cd $pkgname
+  git config user.email "wine@cachyos.org"
+  git config user.name "wine cachyos"
+  git tag wine-${_srctag} --annotate -m "$pkgver" --force
   ./tools/make_requests
   ./tools/make_specfiles
-  ./dlls/winevulkan/make_vulkan
+  ./dlls/winevulkan/make_vulkan -x vk.xml -X video.xml
   autoreconf -fiv
   rm -rf autom4te.cache
 }
 
 build() {
-  # Apply flags for cross-compilation
-  export CROSSCFLAGS="-O2 -pipe -g"
-  export CROSSCXXFLAGS="-O2 -pipe -g"
-  export CROSSLDFLAGS="-Wl,-O1"
 
   local -a split=($CFLAGS)
   local -A flags
@@ -179,7 +173,7 @@ build() {
   export CROSSCXXFLAGS="$COMMON_FLAGS -mcmodel=small -std=c++17"
   export PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/share/pkgconfig"
   cd "$srcdir/$pkgname-64-build"
-  ../wine/configure \
+  ../$pkgname/configure \
     --prefix=/usr \
     --libdir=/usr/lib \
     --with-x \
@@ -190,6 +184,7 @@ build() {
     --with-alsa \
     --with-ffmpeg \
     --without-oss \
+    --disable-lsteamclient \
     --disable-tests \
     --enable-win64
 
@@ -201,7 +196,7 @@ build() {
   export CROSSCXXFLAGS="$COMMON_FLAGS -mstackrealign -std=c++17"
   export PKG_CONFIG_PATH="/usr/lib32/pkgconfig:/usr/share/pkgconfig"
   cd "$srcdir/$pkgname-32-build"
-  ../wine/configure \
+  ../$pkgname/configure \
     --prefix=/usr \
     --libdir=/usr/lib \
     --with-x \
@@ -212,6 +207,7 @@ build() {
     --with-alsa \
     --without-ffmpeg \
     --without-oss \
+    --disable-lsteamclient \
     --disable-tests \
     --with-wine64="$srcdir/$pkgname-64-build"
 
@@ -222,12 +218,12 @@ package() {
   cd "$srcdir/$pkgname-32-build"
   make prefix="$pkgdir/usr" \
     libdir="$pkgdir/usr/lib" \
-    dlldir="$pkgdir/usr/lib/wine" install-lib
+    dlldir="$pkgdir/usr/lib/wine" install
 
   cd "$srcdir/$pkgname-64-build"
   make prefix="$pkgdir/usr" \
     libdir="$pkgdir/usr/lib" \
-    dlldir="$pkgdir/usr/lib/wine" install-lib
+    dlldir="$pkgdir/usr/lib/wine" install
 
   # Font aliasing settings for Win32 applications
   install -d "$pkgdir"/usr/share/fontconfig/conf.{avail,default}
@@ -235,19 +231,31 @@ package() {
   ln -s ../conf.avail/30-win32-aliases.conf "$pkgdir/usr/share/fontconfig/conf.default/30-win32-aliases.conf"
   install -Dm 644 "$srcdir/wine-binfmt.conf" "$pkgdir/usr/lib/binfmt.d/wine.conf"
 
-  llvm-strip --strip-unneeded "$pkgdir"/usr/lib/wine/i386-windows/*.{dll,exe,cpl}
-  llvm-strip --strip-unneeded "$pkgdir"/usr/lib/wine/x86_64-windows/*.{dll,exe,cpl}
+  llvm-strip --strip-unneeded "$pkgdir"/usr/lib/wine/i386-windows/*.{dll,exe}
+  llvm-strip --strip-unneeded "$pkgdir"/usr/lib/wine/x86_64-windows/*.{dll,exe}
 
-  find "$pkgdir"/usr/lib/wine -iname "*.a" -delete
-  find "$pkgdir"/usr/lib/wine -iname "*.def" -delete
 
-  install -d "$pkgdir/usr/share/steam/compatibilitytools.d/wine-miniproton"
-  install -m644 "$srcdir/compatibilitytool.vdf" "$pkgdir/usr/share/steam/compatibilitytools.d/wine-miniproton"
-  install -m644 "$srcdir/toolmanifest.vdf" "$pkgdir/usr/share/steam/compatibilitytools.d/wine-miniproton"
-  install -m755 "$srcdir/miniproton" "$pkgdir/usr/share/steam/compatibilitytools.d/wine-miniproton"
+  # Install wine-gecko
+  cd "$srcdir"
+  install -d -m755 "$pkgdir"/usr/share/wine/gecko/
+  cp -dr --no-preserve='ownership' wine-gecko-${_geckover}-x86{,_64} "$pkgdir"/usr/share/wine/gecko/
 
-  # Load ntsync module
-  install -Dm644 "$srcdir/ntsync.conf" "$pkgdir/usr/lib/modules-load.d/10-ntsync.conf"
+  # Install wine-mono
+  cd "$srcdir"
+  install -d -m755 "$pkgdir"/usr/share/wine/mono
+  cp -r -a --no-preserve='ownership' wine-mono-${_monover} "$pkgdir"/usr/share/wine/mono
+
+  # Install xalia
+  cd "$srcdir"
+  install -d -m755 "$pkgdir"/usr/share/xalia
+  unzip xalia-${_xaliaver}-net48-mono.zip -d "$pkgdir"/usr/share/xalia
 }
 
 # vim:set ts=8 sts=2 sw=2 et:
+b2sums=('797f45d6a7d6fe7fcbccd27bd1bfc6572cfc67e653aad409817e4c3d97d906de079c160048bcf34279e451aa382ad643db276ce54297466c45269a9403f3a5ae'
+        '2a73c12585b502ae11188482cbc9fb1f45f95bfe4383a7615011104b132f4845f9813d01fb40277e1934fab5f1b35ab40b4f4a66a9967463dd1d666a666904e9'
+        '62856a88266b4757602c0646e024f832974a93f03b9df253fd4895d4f11a41b435840ad8f7003ec85a0d8087dec15f2e096dbfb4b01ebe4d365521e48fd0c5c0'
+        '2abbf16156ad87feda3f413d71565e56db0ebf14a8cd920ecc24bdea7f818365751cb447b91f56f96bcec84e4e28e9c7d022fdaf0804330f056593a99a6e5c6b'
+        '4d30eea9306392790677a4e19f7e416a387aaf10c4a7681aa8fcd94faf07be81a984b28ba1437428d7c215c5ecdbba70993091547068fbdc224e809c3f7abd85'
+        '45db34fb35a679dc191b4119603eba37b8008326bd4f7d6bd422fbbb2a74b675bdbc9f0cc6995ed0c564cf088b7ecd9fbe2d06d42ff8a4464828f3c4f188075b'
+        'e9de76a32493c601ab32bde28a2c8f8aded12978057159dd9bf35eefbf82f2389a4d5e30170218956101331cf3e7452ae82ad0db6aad623651b0cc2174a61588')
