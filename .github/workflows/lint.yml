@@ -13,7 +13,7 @@ permissions:
   pull-requests: write
 env:
   DEBIAN_FRONTEND: noninteractive
-  GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   matrix:
     runs-on: ubuntu-slim
@@ -28,8 +28,10 @@ jobs:
         name: Determine modified packages and files
         shell: bash
         run: |
+          set -euo pipefail
           pkgs=(); files=()
           event="${{ github.event_name }}"
+
           if [[ "$event" == "workflow_dispatch" ]]; then
             mapfile -t pkgs < <(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | sort -u)
             mapfile -t files < <(find . -type f \( -name "*.sh" -o -name "*.py" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" \) -printf '%p\n' | sed 's|^\./||')
@@ -42,6 +44,7 @@ jobs:
             done < <(git diff --name-only "$base" HEAD 2>/dev/null | xargs -r dirname | sort -u)
             mapfile -t files < <(git diff --name-only "$base" HEAD 2>/dev/null | grep -E '\.(sh|py|json|ya?ml)$' || true)
           fi
+
           pkgs_json=$(printf '%s\n' "${pkgs[@]}" | jq -Rsc 'split("\n")[:-1]')
           files_json=$(printf '%s\n' "${files[@]}" | jq -Rsc 'split("\n")[:-1]')
           echo "pkgs=$pkgs_json" >> "$GITHUB_OUTPUT"
@@ -62,7 +65,7 @@ jobs:
           packages: shellcheck
           version: 1.0
       - name: Build and lint ${{ matrix.pkg }}
-        uses: 2m/arch-pkgbuild-builder@v1.21
+        uses: 2m/arch-pkgbuild-builder@v1.25
         with:
           target: pkgbuild
           pkgname: ${{ matrix.pkg }}
@@ -96,13 +99,19 @@ jobs:
       - name: Install linters
         shell: bash
         run: |
-          pip install --no-cache-dir ruff black yamllint
-          npm install -g --no-fund --no-audit prettier
+          set -euo pipefail
+          # Install Python linters
+          pip install --no-cache-dir ruff black
+
+          # Install YAML and JSON formatters
+          npm install -g --no-fund --no-audit @biome/biome yamlfmt
+
           # Install shfmt (pre-built binary)
-          SHFMT_VERSION="3.8.0"
+          SHFMT_VERSION="3.10.0"
           wget -q "https://github.com/mvdan/sh/releases/download/v${SHFMT_VERSION}/shfmt_v${SHFMT_VERSION}_linux_amd64" -O shfmt
           chmod +x shfmt
           sudo mv shfmt /usr/local/bin/
+
           # Install shellharden (pre-built binary)
           SHELLHARDEN_VERSION="4.3.1"
           wget -q "https://github.com/anordal/shellharden/releases/download/v${SHELLHARDEN_VERSION}/shellharden-x86_64-unknown-linux-gnu" -O shellharden
@@ -112,7 +121,8 @@ jobs:
         if: contains(needs.matrix.outputs.files, '.sh')
         shell: bash
         run: |
-          mapfile -t sh_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '. []' | grep '\.sh$' || true)
+          set -euo pipefail
+          mapfile -t sh_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep '\.sh$' || true)
           if [[ ${#sh_files[@]} -gt 0 ]]; then
             # shellcheck with comprehensive flags (matches lint.sh)
             shellcheck -x -a -s bash "${sh_files[@]}" || :
@@ -127,6 +137,7 @@ jobs:
         if: contains(needs.matrix.outputs.files, '.py')
         shell: bash
         run: |
+          set -euo pipefail
           mapfile -t py_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep '\.py$' || true)
           if [[ ${#py_files[@]} -gt 0 ]]; then
             ruff check "${py_files[@]}" || :
@@ -134,19 +145,19 @@ jobs:
       - name: Lint YAML files
         if: contains(needs.matrix.outputs.files, '.yml') || contains(needs.matrix.outputs.files, '.yaml')
         shell: bash
-        # TODO: replace with yamlfmt
         run: |
+          set -euo pipefail
           mapfile -t yaml_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep -E '\.ya?ml$' || true)
           if [[ ${#yaml_files[@]} -gt 0 ]]; then
-            yamllint -f parsable "${yaml_files[@]}" || :
+            yamlfmt -lint "${yaml_files[@]}" || :
           fi
       - name: Lint JSON files
         if: contains(needs.matrix.outputs.files, '.json')
         shell: bash
-        # TODO: replace with biome
         run: |
+          set -euo pipefail
           mapfile -t json_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep '\.json$' || true)
-          [[ ${#json_files[@]} -gt 0 ]] && prettier --check "${json_files[@]}" || :
+          [[ ${#json_files[@]} -gt 0 ]] && biome check "${json_files[@]}" || :
   megalinter:
     runs-on: ubuntu-latest
     steps:

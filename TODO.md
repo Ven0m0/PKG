@@ -69,12 +69,12 @@ This document tracks planned features, improvements, and long-term goals for the
 
 - [ ] **Code quality improvements**
   - [x] Pre-commit hooks setup
-  - [ ] Automated formatting enforcement
-  - [ ] Additional linting rules
+  - [x] Automated formatting enforcement (yamlfmt, biome integration)
+  - [x] Additional linting rules (enhanced shellcheck, ruff, yamlfmt)
 
 - [ ] **Security enhancements**
-  - [ ] Automated vulnerability scanning
-  - [ ] Supply chain verification
+  - [x] Automated vulnerability scanning (dependency-review with fail-on-severity)
+  - [x] Supply chain verification (dependency-review)
   - [ ] Reproducible builds
 
 ## Low Priority / Long-term
@@ -150,6 +150,10 @@ This document tracks planned features, improvements, and long-term goals for the
 ### Automation
 
 - [ ] **CI/CD enhancements**
+  - [x] Multi-architecture builds (arm64 support enabled)
+  - [x] Enhanced Docker security (capability dropping, no-new-privileges)
+  - [x] Input validation for workflow_dispatch
+  - [x] Optimized caching strategies
   - [ ] Automated package updates
   - [ ] Upstream monitoring
   - [ ] Changelog generation
@@ -173,6 +177,15 @@ This document tracks planned features, improvements, and long-term goals for the
 - [x] **Package README template** (2025-12-20)
 - [x] **Better TODO.md organization** (2025-12-20)
 - [x] **Git hooks setup with lefthook** (2025-12-24)
+- [x] **Workflow refactoring and optimization** (2025-12-29)
+  - Removed irrelevant webpack.yml workflow
+  - Enhanced build.yml with multi-arch support, Docker security hardening, input validation
+  - Upgraded to latest action versions (arch-pkgbuild-builder@v1.25)
+  - Replaced yamllint with yamlfmt and prettier with biome in lint.yml
+  - Enhanced dependency-review.yml with security options (fail-on-severity, license controls)
+  - Added proper error handling with set -euo pipefail across workflows
+  - Removed unsafe apt-get upgrade operations from CI
+  - Added Docker operation timeouts and security constraints
 
 ## Ideas / Research
 

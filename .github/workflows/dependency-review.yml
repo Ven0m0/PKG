@@ -31,9 +31,15 @@ jobs:
         uses: actions/checkout@v6
       - name: 'Dependency Review'
         uses: actions/dependency-review-action@v4
-        # Commonly enabled options, see https://github.com/actions/dependency-review-action#configuration-options for all available options.
         with:
+          # Enable PR comments with detailed summary
           comment-summary-in-pr: always
-        #   fail-on-severity: moderate
-        #   deny-licenses: GPL-1.0-or-later, LGPL-2.0-or-later
-        #   retry-on-snapshot-warnings: true
+          # Fail on moderate or higher severity vulnerabilities
+          fail-on-severity: moderate
+          # Deny problematic licenses (adjust based on project needs)
+          deny-licenses: GPL-1.0-only, GPL-1.0-or-later, LGPL-2.0-only
+          # Retry on snapshot warnings for better reliability
+          retry-on-snapshot-warnings: true
+          # Additional security settings
+          warn-only: false
+          allow-dependencies-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD
