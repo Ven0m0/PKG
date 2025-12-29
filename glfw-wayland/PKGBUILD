@@ -24,14 +24,8 @@ makedepends=('mesa' 'cmake' 'doxygen' 'vulkan-headers' 'vulkan-icd-loader'
   'extra-cmake-modules' 'wayland-protocols' 'libxi' 'libxrandr'
   'libxcursor' 'libxinerama')
 source=("https://github.com/glfw/glfw/archive/${pkgver}.tar.gz"
-  "0001-Key-Modifiers-Fix.patch"
-  "0002-Fix-duplicate-pointer-scroll-events.patch"
-  "0003-Implement-glfwSetCursorPosWayland.patch"
-  "0004-Fix-Window-size-on-unset-fullscreen.patch"
-  "0005-Add-warning-about-being-an-unofficial-patch.patch"
-  "0006-Avoid-error-on-startup.patch"
-  "0007-Fix-fullscreen-location.patch"
-  "0008-Fix-forge-crash.patch")
+  patches/*.patch
+)
 sha512sums=('39ad7a4521267fbebc35d2ff0c389a56236ead5fa4bdff33db113bd302f70f5f2869ff4e6db1979512e1542813292dff5a482e94dfce231750f0746c301ae9ed'
   '00a6731d5e22162bcfb4e9672b3f819f5331b05c96fb61ba62b65a676c4e36af6460f66fe9974f575fc6f48ae277ee67a7b5db98342963e65018ccdc11ac1f71'
   'e2a4640154fb5755f5f7fdcf3ca4ac1b8ccef9a61599b49344740dd36dc03a723b8e85ed850692db1ea1048982bd392c68ea8f4eeb8475219ee052f0a9581fc5'
