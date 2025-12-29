@@ -1,5 +1,22 @@
-# dxvk-gplasync
+---
+post_title: "DXVK Unified Package: dxvk-gplasync-lowlatency / dxvk-sarek"
+author1: "REPLACE_WITH_AUTHOR_NAME"
+post_slug: "dxvk-gplasync-lowlatency-dxvk-sarek"
+microsoft_alias: "REPLACE_WITH_ALIAS"
+featured_image: "REPLACE_WITH_IMAGE_URL"
+categories:
+  - gaming
+tags:
+  - dxvk
+  - vulkan
+  - wine
+  - performance
+ai_note: "AI-assisted content"
+summary: "Unified DXVK package providing dxvk-gplasync-lowlatency and dxvk-sarek variants for modern and legacy Vulkan-capable GPUs."
+post_date: "2025-01-01"
+---
 
+## dxvk-gplasync-lowlatency / dxvk-sarek
 ## Description
 
 Unified DXVK package supporting two variants:
