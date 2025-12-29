@@ -300,6 +300,7 @@ Security is a priority. See [SECURITY.md](SECURITY.md) for:
 - [lseman's PKGBUILDs](https://github.com/lseman/PKGBUILDs) - PGO-optimized packages
 - [KISS-repo](https://github.com/XDream8/kiss-repo) - Keep it simple packages
 - [Pika OS](https://pika-os.com) - Gaming-focused distribution
+- [loathingKernel PKGBUILDS](https://github.com/loathingKernel/PKGBUILDs)
 
 ### Upstream Resources
 
