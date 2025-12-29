@@ -165,8 +165,8 @@ check() {
 package_llvm-minimal() {
   pkgdesc="Collection of modular and reusable compiler and toolchain technologies with lld, lldb, polly, bolt (optimized)"
   depends=(llvm-libs-minimal="$pkgver-$pkgrel" zstd zlib glibc gcc-libs curl perl)
-  provides=('llvm' 'lld' 'lldb' 'polly')
-  conflicts=('llvm' 'lld' 'lldb' 'polly')
+  provides=('llvm' 'lld' 'lldb' 'polly' 'bolt')
+  conflicts=('llvm' 'lld' 'lldb' 'polly' 'bolt')
   optdepends=('python: for using lit (LLVM Integrated Tester) and lldb'
               'python-setuptools: for using lit'
               'python-six: for lldb'
