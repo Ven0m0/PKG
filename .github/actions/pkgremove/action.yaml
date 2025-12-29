@@ -1,0 +1,24 @@
+name: Remove Package
+author: Stelios Tsampas
+description: Remove package from Releases repository
+branding:
+  color: blue
+  icon: chevron-down
+inputs:
+  pkgdir:
+    description: "Relative path to directory containing the PKGBUILD file."
+    required: true
+    default: "."
+  repoReleaseTag:
+    description: "Tag to use as repository name."
+    required: true
+    default: ""
+outputs:
+  oldfiles:
+    description: "List of removed package archives in JSON format. Usually only one."
+  repofiles:
+    description: "List of repository files in JSON format."
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
