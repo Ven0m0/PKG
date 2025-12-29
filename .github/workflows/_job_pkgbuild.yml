@@ -1,0 +1,125 @@
+name: _job_pkgbuild
+
+on:
+  workflow_call:
+    inputs:
+      pkgdir:
+        required: true
+        type: string
+      pacman_conf:
+        required: true
+        type: string
+      makepkg_conf:
+        required: true
+        type: string
+      makepkg_args:
+        required: false
+        type: string
+      multilib:
+        required: false
+        type: boolean
+        default: false
+      ccache_ext:
+        required: false
+        type: boolean
+        default: true
+      release_tag:
+        required: true
+        type: string
+
+jobs:
+  pkgbuild:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Debloat GitHub runner
+      uses: endersonmenezes/free-disk-space@v3
+      with:
+        remove_android: true
+        remove_dotnet: true
+        remove_haskell: true
+        remove_tool_cache: true
+        remove_swap: true
+        remove_packages: >-
+          azure-cli
+          google-cloud-cli
+          microsoft-edge-stable
+          google-chrome-stable
+          firefox
+          postgresql*
+          temurin-*
+          *llvm*
+          mysql*
+          dotnet-sdk-*
+        remove_packages_one_command: false
+        remove_folders: >-
+          /usr/share/swift
+          /usr/share/miniconda
+          /usr/share/az*
+          /usr/local/lib/node_modules
+          /usr/local/share/chromium
+          /usr/local/share/powershell
+          /usr/local/julia
+          /usr/local/aws-cli
+          /usr/local/aws-sam-cli
+          /usr/share/gradle
+        testing: false
+
+    - name: Restore cache
+      id: ccache-restore
+      uses: actions/cache/restore@v5
+      with:
+        path: ./.ccache
+        key: ${{ github.workflow }}-${{ inputs.release_tag }}-${{ github.run_id }}
+        restore-keys: |
+          ${{ github.workflow }}-${{ inputs.release_tag }}
+
+    - name: Run 'pkgbuild' action
+      id: pkgbuild
+      uses: ./.github/actions/pkgbuild
+      with:
+        pkgdir: ${{ inputs.pkgdir }}
+        namcapDisable: true
+        pacmanConf: ${{ inputs.pacman_conf }}
+        makepkgConf: ${{ inputs.makepkg_conf }}
+        makepkgArgs: ${{ inputs.makepkg_args }}
+        multilib: ${{ inputs.multilib }}
+        useCcacheExt: ${{ inputs.ccache_ext }}
+        repoReleaseTag: ${{ inputs.release_tag }}
+
+    - name: Save cache
+      id: ccache-save
+      if: always()
+      uses: actions/cache/save@v5
+      with:
+        path: ./.ccache
+        key: ${{ steps.ccache-restore.outputs.cache-primary-key }}
+
+    - name: Print package files
+      run: |
+        echo "* Successfully built package archives"
+        for file in ${{ join(fromJSON(steps.pkgbuild.outputs.pkgfiles), ' ') }}; do echo "    $file"; done
+        echo "* Repository database files"
+        for file in ${{ join(fromJSON(steps.pkgbuild.outputs.repofiles), ' ') }}; do echo "    $file"; done
+        echo "* Removing package archives"
+        for file in ${{ join(fromJSON(steps.pkgbuild.outputs.oldfiles), ' ') }}; do echo "    $file"; done
+
+    - uses: ./.github/actions/assets-upload
+      name: Upload new package artifacts
+      with:
+        release_tag: ${{ inputs.release_tag }}
+        assets: ${{ steps.pkgbuild.outputs.pkgfiles }}
+
+    - uses: ./.github/actions/assets-upload
+      name: Upload repository database
+      with:
+        release_tag: ${{ inputs.release_tag }}
+        assets: ${{ steps.pkgbuild.outputs.repofiles }}
+
+    - uses: ./.github/actions/assets-delete
+      name: Remove old package artifacts
+      with:
+        release_tag: ${{ inputs.release_tag }}
+        assets: ${{ steps.pkgbuild.outputs.oldfiles }}

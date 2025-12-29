@@ -1,0 +1,44 @@
+name: _job_pkgremove
+
+on:
+  workflow_call:
+    inputs:
+      pkgdir:
+        required: true
+        type: string
+      release_tag:
+        required: true
+        type: string
+
+jobs:
+  pkgremove:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Run 'pkgremove' action
+      id: pkgbuild
+      uses: ./.github/actions/pkgremove
+      with:
+        pkgdir: ${{ inputs.pkgdir }}
+        repoReleaseTag: ${{ inputs.release_tag }}
+
+    - name: Print package files
+      run: |
+        echo "* Repository database files"
+        for file in ${{ join(fromJSON(steps.pkgbuild.outputs.repofiles), ' ') }}; do echo "    $file"; done
+        echo "* Removing package archives"
+        for file in ${{ join(fromJSON(steps.pkgbuild.outputs.oldfiles), ' ') }}; do echo "    $file"; done
+
+    - uses: ./.github/actions/assets-upload
+      name: Upload repository database
+      with:
+        release_tag: ${{ inputs.release_tag }}
+        assets: ${{ steps.pkgbuild.outputs.repofiles }}
+
+    - uses: ./.github/actions/assets-delete
+      name: Remove old package artifacts
+      with:
+        release_tag: ${{ inputs.release_tag }}
+        assets: ${{ steps.pkgbuild.outputs.oldfiles }}
