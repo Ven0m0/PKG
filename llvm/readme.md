@@ -33,7 +33,7 @@ makepkg -si
 ## Packages
 
 This PKGBUILD produces five packages:
-- **llvm-minimal**: LLVM tools, clang, lld, lldb, polly, bolt
+- **llvm-minimal**: LLVM tools, lld, lldb, polly, bolt
 - **llvm-libs-minimal**: Runtime libraries
 - **clang-minimal**: Clang compiler and tools
 - **clang-libs-minimal**: Clang runtime libraries
