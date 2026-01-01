@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+# shellcheck enable=all shell=bash source-path=SCRIPTDIR
+set -euo pipefail; shopt -s nullglob globstar
+IFS=$'\n\t' LC_ALL=C
+has(){ command -v -- "$1" &>/dev/null; }
+msg(){ printf '%s\n' "$@"; }
+log(){ printf '%s\n' "$@" >&2; }
+die(){ printf '%s\n' "$1" >&2; exit "${2:-1}"; }
+
+REPO="https://ven0m0.github.io/PKG"
+RAW="https://raw.githubusercontent.com/Ven0m0/PKG/main"
+VERSION="1.0.0"
+
+# ANSI codes
+R=$'\033[0;31m' G=$'\033[0;32m' B=$'\033[0;34m' Y=$'\033[1;33m' N=$'\033[0m'
+
+fetch_json(){ curl -fsS "$REPO/packages.json" 2>/dev/null || curl -fsS "$RAW/packages.json" 2>/dev/null || echo '{"packages":[]}'; }
+
+install(){
+  [[ -z ${1:-} ]] && die "${R}Error:${N} Package name required\nUsage: vp install <package-name>"
+  local pkg=$1 tmp files url
+  msg "${B}📦 Installing${N} $pkg..."
+  tmp=$(mktemp -d) || die "mktemp failed"
+  trap 'rm -rf "$tmp"' EXIT
+  
+  # Try GitHub Pages first, fallback to raw GitHub
+  for url in "$REPO/$pkg/PKGBUILD" "$RAW/$pkg/PKGBUILD"; do
+    curl -fsL "$url" -o "$tmp/PKGBUILD" 2>/dev/null && break
+  done
+  [[ -f "$tmp/PKGBUILD" ]] || die "${R}Error:${N} Package '$pkg' not found!"
+  
+  msg "${B}→${N} Downloading package files..."
+  files=$(fetch_json | jq -r ".packages[]|select(.name==\"$pkg\")|.files[]?" 2>/dev/null)
+  
+  if [[ -n $files ]]; then
+    while IFS= read -r f; do
+      msg "  ${B}↓${N} $f"
+      for url in "$REPO/$pkg/$f" "$RAW/$pkg/$f"; do
+        curl -fsL "$url" -o "$tmp/$f" 2>/dev/null && break
+      done
+      [[ -f "$tmp/$f" ]] || die "${R}Error:${N} Failed to download $f"
+    done <<<"$files"
+  fi
+  
+  msg "${B}→${N} Building package..."
+  (cd "$tmp" && makepkg -si) || die "makepkg failed"
+  msg "${G}✓${N} Installation complete!"
+}
+
+list(){ fetch_json | jq -r '.packages[].name' 2>/dev/null | sort || msg "${Y}No packages.json found${N}"; }
+
+search(){
+  local q=${1:-}
+  [[ -z $q ]] && { list; return 0; }
+  msg "${B}🔍 Searching for '${q}'...${N}"
+  local res
+  res=$(fetch_json | jq -r ".packages[]|select(.name|contains(\"$q\"))|.name" 2>/dev/null | sort)
+  [[ -n $res ]] && msg "$res" || msg "${Y}No packages found${N}"
+}
+
+info(){
+  [[ -z ${1:-} ]] && die "${R}Error:${N} Package name required\nUsage: vp info <package-name>"
+  local pkg=$1 data
+  data=$(fetch_json | jq -r ".packages[]|select(.name==\"$pkg\")|\"Name: \(.name)\nVersion: \(.version)\nDescription: \(.description)\nURL: \(.url // \"N/A\")\nFiles: \(.files|join(\", \"))\"" 2>/dev/null)
+  [[ -n $data ]] && msg "$data" || die "${R}Error:${N} Package '$pkg' not found"
+}
+
+update(){
+  msg "${B}🔄 Checking for updates...${N}"
+  local remote
+  for url in "$REPO/vp" "$RAW/vp"; do
+    remote=$(curl -fsS "$url" 2>/dev/null | grep '^VERSION=' | cut -d'"' -f2) && break
+  done
+  [[ -z $remote ]] && die "${R}Error:${N} Could not fetch remote version"
+  [[ $remote == "$VERSION" ]] && { msg "${G}✓${N} Already up to date (v$VERSION)"; return 0; }
+  msg "${Y}→${N} Updating from v$VERSION to v$remote"
+  for url in "$REPO/vp" "$RAW/vp"; do
+    curl -fsL "$url" -o /tmp/vp.new 2>/dev/null && break
+  done
+  [[ -f /tmp/vp.new ]] || die "${R}Error:${N} Failed to download update"
+  chmod +x /tmp/vp.new
+  sudo mv /tmp/vp.new /usr/local/bin/vp
+  msg "${G}✓${N} Updated successfully to v$remote!"
+}
+
+version(){
+  msg "vp (Ven0m0 Packages) version $VERSION\nRepository: $REPO\n${B}Checking for updates...${N}"
+  local remote
+  for url in "$REPO/vp" "$RAW/vp"; do
+    remote=$(curl -fsS "$url" 2>/dev/null | grep '^VERSION=' | cut -d'"' -f2) && break
+  done
+  if [[ -n $remote ]]; then
+    [[ $remote != "$VERSION" ]] && msg "${Y}→ Update available:${N} v$remote\n  Run 'vp update' to upgrade" || msg "${G}✓${N} You're on the latest version"
+  else
+    msg "${Y}⚠${N} Could not check for updates"
+  fi
+}
+
+help(){
+  cat <<EOF
+vp - Ven0m0's Package helper v$VERSION
+
+Usage: vp <command> [options]
+
+Commands:
+  install <package>  Install a package
+  info <package>     Show package information
+  list              List available packages
+  search <query>    Search for packages
+  update            Update vp itself
+  version           Show version info
+  help              Show this help
+
+Examples:
+  vp install firefox
+  vp search obs
+  vp info chromium
+  vp update
+
+Repository: $REPO
+GitHub: https://github.com/Ven0m0/PKG
+EOF
+}
+
+case ${1:-} in
+  install|i) install "${2:-}" ;;
+  info) info "${2:-}" ;;
+  list|l) list ;;
+  search|s) search "${2:-}" ;;
+  update|u) update ;;
+  version|v) version ;;
+  help|h|"") help ;;
+  *) die "${R}Unknown command:${N} $1\nTry 'vp help' for usage" ;;
+esac
