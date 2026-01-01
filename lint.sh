@@ -4,20 +4,15 @@ set -euo pipefail
 shopt -s globstar nullglob
 export LC_ALL=C
 IFS=$'\n\t'
-s=${BASH_SOURCE[0]}
-[[ $s != /* ]] && s=$PWD/$s
-cd -P -- "${s%/*}"
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Lint Script - PKGBUILD & Shell Script Quality Enforcement
 # ═══════════════════════════════════════════════════════════════════════════
 
-# ─── Helpers ───────────────────────────────────────────────────────────────
-readonly R=$'\e[31m' G=$'\e[32m' Y=$'\e[33m' D=$'\e[0m'
-err(){ printf '%b\n' "${R}✘ $*${D}" >&2; }
-ok(){ printf '%b\n' "${G}✓ $*${D}"; }
-warn(){ printf '%b\n' "${Y}⚠ $*${D}" >&2; }
-has(){ command -v -- "$1" &>/dev/null; }
+# Source shared helpers and change to script directory
+# shellcheck source=lib/helpers.sh
+source "${BASH_SOURCE[0]%/*}/lib/helpers.sh"
+cd_to_script_dir
 
 # ─── Lint Package ─────────────────────────────────────────────────────────
 lint_pkg(){
@@ -87,11 +82,7 @@ main(){
   local max_jobs=${MAX_JOBS:-$(nproc)}
   local parallel=${PARALLEL:-true}
 
-  if has fd; then
-    mapfile -t pkgs < <(fd -t f -g 'PKGBUILD' -x printf '%{//}\n' | sort -u)
-  else
-    mapfile -t pkgs < <(find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | sort -u)
-  fi
+  mapfile -t pkgs < <(find_pkgbuilds)
 
   local sc=0 sh=0 sf=0 nc=0
   has shellcheck && sc=1 || warn "shellcheck not found"

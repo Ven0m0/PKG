@@ -39,6 +39,12 @@ This document tracks planned features, improvements, and long-term goals for the
   - [ ] Chromium: Update to latest patches
   - [ ] Mesa: Latest upstream features
   - [ ] LLVM: PGO instrumentation
+  - [ ] gitoxide: Fix optimize.patch to be valid
+  - [ ] varia: Create PKGBUILD from make-appimage.sh
+
+- [ ] **AppImage integration research**
+  - [ ] [Citron AppImage](https://github.com/pkgforge-dev/Citron-AppImage)
+  - [ ] [Azahar AppImage Enhanced](https://github.com/pkgforge-dev/Azahar-AppImage-Enhanced)
 
 - [ ] **Package documentation improvements**
   - [ ] Standardize all package READMEs using template
@@ -229,5 +235,5 @@ To suggest additions or changes to this roadmap:
 
 ---
 
-**Last Updated**: 2025-12-24
+**Last Updated**: 2026-01-01
 **Maintainer**: Ven0m0

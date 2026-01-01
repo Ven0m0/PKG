@@ -5,9 +5,13 @@ IFS=$'\n\t' LC_ALL=C
 # ═══════════════════════════════════════════════════════════════════════════
 # Unified Arch Linux Package Builder
 # ═══════════════════════════════════════════════════════════════════════════
+
+# Source shared helpers
+# shellcheck source=lib/helpers.sh
+source "${BASH_SOURCE[0]%/*}/lib/helpers.sh"
+
 readonly ARCH=$(uname -m)
 readonly IMAGE="archlinux:latest"
-readonly R=$'\e[31m' G=$'\e[32m' Y=$'\e[33m' D=$'\e[0m'
 declare -A DOCKER_PKGS=([obs-studio]=1 [firefox]=1 [egl-wayland2]=1 [onlyoffice]=1)
 # ─── Config (env overridable) ──────────────────────────────────────────────
 MAX_JOBS=${MAX_JOBS:-$(nproc)}
@@ -16,15 +20,6 @@ RETRIES=${RETRIES:-3}
 FORCE_BUILD=${FORCE_BUILD:-0}
 ONE_PACKAGE=${ONE_PACKAGE:-}
 DIST_MODE=${DIST_MODE:-0}
-
-# ─── Helpers ───────────────────────────────────────────────────────────────
-has(){ command -v -- "$1" &>/dev/null; }
-msg(){ printf '%s\n' "$@"; }
-log(){ printf '%b\n' "${G}➜ $*${D}"; }
-err(){ printf '%b\n' "${R}✘ $*${D}" >&2; }
-warn(){ printf '%b\n' "${Y}⚠ $*${D}" >&2; }
-die(){ err "$1"; exit "${2:-1}"; }
-sep(){ msg '────────────────────────────────────────'; }
 usage(){
   cat <<'EOF'
 Usage: build.sh [OPTIONS] [PACKAGE...]
