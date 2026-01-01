@@ -1,7 +1,7 @@
+#!/usr/bin/env bash
 # Maintainer: Ven0m0
 pkgname=preload-ng
-pkgver=0.6.7
-_commit=5a637c13652916666ca7d8214403ca22a55e4d48
+pkgver=0.6.6
 pkgrel=1
 pkgdesc='Adaptive readahead daemon that prefetches files to reduce application startup times'
 arch=('x86_64')
@@ -9,41 +9,62 @@ url='https://github.com/miguel-b-p/preload-ng'
 license=('GPL-2.0-only')
 depends=('glib2')
 makedepends=('git')
+optdepends=('ionice: reduce I/O priority' 'schedtool: adjust process scheduling')
 backup=('etc/preload.conf')
-source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/${_commit}.tar.gz")
-sha256sums=('663199e22197e5c3baf5c6fa2e734eaaeca16b2eb50efec578cf5320a6d32a5c')
+source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/${pkgver}.tar.gz")
+sha256sums=('SKIP')
 
-build() {
-  cd "${pkgname}-${_commit}/preload-src"
-  make -j"$(nproc)"
+build(){
+  cd "${pkgname}-${pkgver}/preload-src"
+  make -j"$(nproc)" CFLAGS="${CFLAGS} -O3 -march=native -flto" LDFLAGS="${LDFLAGS} -flto"
 }
 
-package() {
-  cd "${pkgname}-${_commit}/preload-src"
-  install -Dm755 preload "${pkgdir}/usr/sbin/preload"
+package(){
+  cd "${pkgname}-${pkgver}/preload-src"
+  install -Dm755 preload "${pkgdir}/usr/bin/preload"
   install -Dm644 preload.conf "${pkgdir}/etc/preload.conf"
-  # Install systemd service
   install -Dm644 /dev/stdin "${pkgdir}/usr/lib/systemd/system/${pkgname}.service" <<'EOF'
 [Unit]
 Description=Preload-NG Adaptive Readahead Daemon
 Documentation=https://github.com/miguel-b-p/preload-ng
 After=local-fs.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
 
 [Service]
 Type=simple
-ExecStart=/usr/sbin/preload --foreground --logfile ""
-ExecReload=/bin/kill -HUP $MAINPID
+ExecStart=/usr/bin/preload --foreground --logfile ""
 Restart=on-failure
-RestartSec=5
-ProtectSystem=full
-ProtectHome=true
+RestartSec=10
+
+# Security hardening
+CapabilityBoundingSet=CAP_SYS_ADMIN CAP_IPC_LOCK CAP_SYS_PTRACE CAP_DAC_READ_SEARCH
 PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
 NoNewPrivileges=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictAddressFamilies=AF_UNIX AF_NETLINK
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+# Resource limits
+Nice=19
+IOSchedulingClass=idle
 StateDirectory=preload
-ReadWritePaths=/var/log
+ReadWritePaths=/var/lib/preload /var/log
 
 [Install]
 WantedBy=multi-user.target
+EOF
+  install -Dm644 /dev/stdin "${pkgdir}/usr/lib/sysusers.d/${pkgname}.conf" <<'EOF'
+u preload - "Preload daemon" /var/lib/preload -
 EOF
 }
 # vim: ts=2 sw=2 et:
