@@ -30,6 +30,9 @@ PKG/
 ├── .editorconfig           # Editor configuration
 ├── .shellcheckrc           # ShellCheck linting rules
 ├── .gitconfig              # Git optimization settings
+├── llms.txt                # LLM context file (concise project summary)
+├── CLAUDE.md               # AI assistant guide (Claude Code)
+├── GEMINI.md               # AI assistant guide (Google Gemini)
 ├── README.md               # Main repository documentation
 ├── TODO.MD                 # Planned features
 └── SECURITY.md             # Security policy
@@ -745,7 +748,9 @@ shfmt -ln bash -bn -s -i 2 -w PKGBUILD *.sh
 
 ### Internal Documentation
 
+- `llms.txt` - Concise LLM context file
 - `README.md` - Main repository information
+- `GEMINI.md` - AI assistant guide for Google Gemini
 - `TODO.MD` - Planned features
 - `SECURITY.md` - Security policy
 - `<package>/readme.md` - Package-specific docs

@@ -1,0 +1,103 @@
+# PKG - Optimized Arch Linux Package Builds
+
+> Performance-optimized PKGBUILDs for Arch Linux with custom patches, aggressive compiler optimizations, and enhanced configurations.
+
+## Overview
+
+This repository maintains a collection of PKGBUILDs (Arch Linux package build scripts) optimized for performance, security, and customization. Packages are built with -O3, LTO, PGO where applicable, and modern compiler flags.
+
+## Key Files
+
+- README.md: Main repository documentation
+- CLAUDE.md: Comprehensive AI assistant guide (Claude Code)
+- GEMINI.md: AI assistant guide for Google Gemini
+- .github/agents/copilot-instructions.md: GitHub Copilot guardrails
+- CONTRIBUTING.md: Contribution guidelines
+- SECURITY.md: Security policy
+- TODO.md: Planned features
+- build.sh: Universal build script
+- lint.sh: Linting and validation script
+
+## Repository Structure
+
+```
+PKG/
+├── .github/workflows/       # CI/CD (build, lint, automerge)
+├── <package-name>/          # Individual package directories
+│   ├── PKGBUILD            # Build script (required)
+│   ├── .SRCINFO            # Metadata (auto-generated)
+│   ├── readme.md           # Package documentation
+│   └── *.patch             # Custom patches
+├── build.sh                # Universal build script
+├── lint.sh                 # Linting script
+└── llms.txt                # This file
+```
+
+## Technologies
+
+- Arch Linux packaging (makepkg, PKGBUILD, pacman)
+- Bash shell scripting
+- Docker for isolated builds
+- GitHub Actions CI/CD
+- Clang/LLVM compiler toolchain
+
+## Core Standards
+
+### Shell Scripts
+- Use `set -euo pipefail` for safety
+- 2-space indentation, LF line endings
+- Must pass shellcheck, shellharden, shfmt
+
+### PKGBUILDs
+- Always update .SRCINFO after changes: `makepkg --printsrcinfo > .SRCINFO`
+- Use HTTPS sources, verify checksums
+- Apply optimization flags: `-O3 -pipe -fno-plt`
+
+### Workflow
+1. Read existing code before modifying
+2. Update both PKGBUILD and .SRCINFO together
+3. Run `./lint.sh` to validate
+4. Test with `makepkg -srC`
+
+## Common Commands
+
+```bash
+# Build package
+cd <package> && makepkg -si
+
+# Build with script
+./build.sh firefox aria2
+
+# Run linters
+./lint.sh
+
+# Update metadata
+makepkg --printsrcinfo > .SRCINFO
+
+# Format shell scripts
+shfmt -ln bash -bn -s -i 2 -w PKGBUILD
+```
+
+## Optimization Flags
+
+```bash
+export CFLAGS="${CFLAGS/-O2/-O3} -pipe -fno-plt -fstack-protector-strong"
+export CXXFLAGS="${CXXFLAGS/-O2/-O3} -pipe -fno-plt -fstack-protector-strong"
+export LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
+export MAKEFLAGS="-j$(nproc)"
+```
+
+## AI Assistant Guidelines
+
+- Read PKGBUILD before modifying
+- Follow established patterns in codebase
+- Update .SRCINFO after PKGBUILD edits
+- Use proper error handling
+- Prefer existing tools (fd over find, rg over grep)
+- Never commit build artifacts (pkg/, src/, *.tar.*)
+
+## Links
+
+- Repository: https://github.com/Ven0m0/PKG
+- Arch PKGBUILD Wiki: https://wiki.archlinux.org/title/PKGBUILD
+- makepkg Docs: https://man.archlinux.org/man/makepkg.8
