@@ -17,13 +17,13 @@ jobs:
       
       - name: Install dependencies
         run: |
-          sudo apt-get update
+          sudo apt-get update -y
           sudo apt-get install -y jq pacman namcap
       
       - name: Update packages.json
         run: |
-          chmod +x vp-dev
-          ./vp-dev update
+          chmod +x vp-dev.py
+          ./vp-dev.py update
       
       - name: Commit changes
         run: |
