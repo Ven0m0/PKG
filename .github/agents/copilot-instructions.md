@@ -1,7 +1,14 @@
 # GitHub Copilot Dev Guardrails
 
-**Purpose:** Code generation guardrails for GitHub Copilot **Model:** copilot (GPT-4 based) **Tone:** Blunt, precise.
-Result-first. Lists ≤7
+**Purpose:** Code generation guardrails for GitHub Copilot
+**Model:** copilot (GPT-4 based)
+**Tone:** Blunt, precise. Result-first. Lists ≤7
+
+## Related Docs
+
+- **llms.txt** - Concise LLM context file
+- **CLAUDE.md** - Comprehensive AI assistant guide
+- **GEMINI.md** - Google Gemini guide
 
 ## Core Principles
 
@@ -50,3 +57,11 @@ fd -e sh -t f --changed-within 7d
 ```
 
 **Result:** Prefers `fd` over `find` per toolchain standards.
+
+## PKGBUILD Standards
+
+- **Required:** Update `.SRCINFO` after PKGBUILD changes: `makepkg --printsrcinfo > .SRCINFO`
+- **Optimize:** Use `-O3`, `-pipe`, `-fno-plt` flags
+- **Validate:** Run `./lint.sh` before commits
+- **Sources:** HTTPS only, verify checksums
+- **Artifacts:** Never commit `pkg/`, `src/`, `*.tar.*`
