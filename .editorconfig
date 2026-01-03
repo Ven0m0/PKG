@@ -26,37 +26,32 @@ binary_next_line = true
 [*.{sh,bash*},bash_*,PKGBUILD]
 shell_variant = bash
 
-[.profile,**.dash]
-shell_variant = posix
-
-[**.{fish,fish_*,fishd.*}]
+[*.{fish,fish_*,fishd.*}]
 indent_size = 4
 
-[**.{bat,cmd}]
+[*.{bat,cmd}]
 indent_style = tab
 indent_size = 4
 
 # Text
-[**.{md,patch,rst}]
+[*.{md,patch,rst}]
 trim_trailing_whitespace = false
-
-[**.md]
 max_line_length = 140
 
-[**.{yml,yaml}]
+[*.{yml,yaml}]
 max_line_length = 120
 
-[**.xml]
+[*.xml]
 indent_size = 4
 
 # Code
-[Makefile,go.mod,go.sum,.gitmodules,**.{mk,go,rs,zig}]
+[Makefile,go.mod,go.sum,.gitmodules,*.{mk,go,rs,zig}]
 indent_style = tab
 indent_size = 4
 
-[**.{py,pyw,pyi}]
+[*.{py,pyw,pyi}]
 indent_size = 4
 max_line_length = 120
 
-[**.{js,mjs,cjs,jsx,ts,mts,cts,tsx}]
+[*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}]
 quote_type = single
