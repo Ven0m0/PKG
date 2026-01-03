@@ -56,7 +56,7 @@ PKG/
 ### Workflow
 1. Read existing code before modifying
 2. Update both PKGBUILD and .SRCINFO together
-3. Run `./lint.sh` to validate
+3. Run `./pkg.sh lint` to validate
 4. Test with `makepkg -srC`
 
 ## Common Commands
@@ -66,10 +66,10 @@ PKG/
 cd <package> && makepkg -si
 
 # Build with script
-./build.sh firefox aria2
+./pkg.sh build firefox aria2
 
 # Run linters
-./lint.sh
+./pkg.sh lint
 
 # Update metadata
 makepkg --printsrcinfo > .SRCINFO

@@ -65,6 +65,41 @@ info(){
   [[ -n $data ]] && msg "$data" || die "${R}Error:${N} Package '$pkg' not found"
 }
 
+setup(){
+  msg "======================================"
+  msg "   vp - Ven0m0's Package Helper"
+  msg "======================================"
+  msg ""
+  if has vp; then
+    msg "${G}✓${N} vp is already installed at $(command -v vp)"
+    msg ""
+    read -rp "Reinstall/update? (y/N) " -n 1 r
+    msg ""
+    [[ $r =~ ^[Yy]$ ]] || exit 0
+  fi
+  msg "Installing vp..."
+  msg "→ Downloading vp..."
+  for url in "$REPO/vp" "$RAW/vp"; do
+    curl -fsL "$url" -o /tmp/vp 2>/dev/null && break
+  done
+  [[ -f /tmp/vp ]] || die "${R}Error:${N} Failed to download vp"
+  chmod +x /tmp/vp
+  msg "→ Installing to /usr/local/bin/vp (requires sudo)..."
+  sudo mv /tmp/vp /usr/local/bin/vp
+  has vp || die "${R}Error:${N} Installation failed"
+  msg ""
+  msg "${G}✓${N} Installation successful!"
+  msg ""
+  msg "Usage:"
+  msg "  vp list                   # List available packages"
+  msg "  vp search <query>         # Search packages"
+  msg "  vp install <package>      # Install a package"
+  msg "  vp info <package>         # Show package info"
+  msg "  vp update                 # Update vp itself"
+  msg ""
+  msg "Try: vp install firefox"
+}
+
 update(){
   msg "${B}🔄 Checking for updates...${N}"
   local remote
@@ -105,17 +140,21 @@ Usage: vp <command> [options]
 Commands:
   install <package>  Install a package
   info <package>     Show package information
-  list              List available packages
-  search <query>    Search for packages
-  update            Update vp itself
-  version           Show version info
-  help              Show this help
+  list               List available packages
+  search <query>     Search for packages
+  setup              Install vp to /usr/local/bin
+  update             Update vp itself
+  version            Show version info
+  help               Show this help
 
 Examples:
   vp install firefox
   vp search obs
   vp info chromium
   vp update
+
+Installation:
+  curl -fsL https://raw.githubusercontent.com/Ven0m0/PKG/main/vp | bash -s setup
 
 Repository: $REPO
 GitHub: https://github.com/Ven0m0/PKG
@@ -127,6 +166,7 @@ case ${1:-} in
   info) info "${2:-}" ;;
   list|l) list ;;
   search|s) search "${2:-}" ;;
+  setup) setup ;;
   update|u) update ;;
   version|v) version ;;
   help|h|"") help ;;

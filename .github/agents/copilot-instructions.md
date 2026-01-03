@@ -62,6 +62,6 @@ fd -e sh -t f --changed-within 7d
 
 - **Required:** Update `.SRCINFO` after PKGBUILD changes: `makepkg --printsrcinfo > .SRCINFO`
 - **Optimize:** Use `-O3`, `-pipe`, `-fno-plt` flags
-- **Validate:** Run `./lint.sh` before commits
+- **Validate:** Run `./pkg.sh lint` before commits
 - **Sources:** HTTPS only, verify checksums
 - **Artifacts:** Never commit `pkg/`, `src/`, `*.tar.*`

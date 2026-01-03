@@ -40,7 +40,7 @@ format-python:
 format-shell:
 	@echo "→ Formatting shell scripts..."
 	@if command -v shfmt >/dev/null 2>&1; then \
-		shfmt -w -i 2 -bn -ci vp setup.sh; \
+		shfmt -w -i 2 -bn -ci vp pkg.sh; \
 		find . -maxdepth 2 -type f -name "PKGBUILD" -exec shfmt -w -i 2 -bn -ci {} \; 2>/dev/null || true; \
 	else \
 		echo "  ⚠ shfmt not found, skipping shell formatting"; \
@@ -50,7 +50,7 @@ format-shell:
 lint-shell:
 	@echo "→ Linting shell scripts..."
 	@if command -v shellcheck >/dev/null 2>&1; then \
-		shellcheck vp setup.sh || true; \
+		shellcheck vp pkg.sh || true; \
 	else \
 		echo "  ⚠ shellcheck not found, skipping shell linting"; \
 	fi
