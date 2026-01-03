@@ -68,14 +68,14 @@ makepkg -si
 
 # Or use the build script
 cd ..
-./build.sh firefox aria2 obs-studio
+./pkg.sh build firefox aria2 obs-studio
 ```
 
 ### Docker Build (for complex packages)
 
 ```bash
 # Automatically handled for Firefox, OBS Studio, etc.
-./build.sh firefox
+./pkg.sh build firefox
 ```
 
 ## Repository Structure
@@ -84,6 +84,7 @@ cd ..
 PKG/
 ├── .github/
 │   ├── workflows/          # CI/CD pipelines (build, lint, automerge)
+│   ├── scripts/            # CI-only helper scripts
 │   ├── instructions/       # GitHub-specific guidelines
 │   └── agents/             # AI agent configurations
 ├── <package-name>/         # Individual package directories
@@ -92,8 +93,9 @@ PKG/
 │   ├── README.md          # Package documentation
 │   ├── patches/           # Custom patches
 │   └── *.patch            # Individual patch files
-├── build.sh               # Universal build script
-├── lint.sh                # Linting and validation
+├── lib/helpers.sh         # Shared shell helper functions
+├── pkg.sh                 # Unified build/lint/srcinfo tool
+├── vp                     # Package helper CLI
 ├── CLAUDE.md              # AI assistant documentation
 ├── CONTRIBUTING.md        # Contribution guidelines
 ├── SECURITY.md            # Security policy
@@ -163,13 +165,13 @@ makepkg -s
 
 ```bash
 # Build specific packages
-./build.sh firefox chromium obs-studio
+./pkg.sh build firefox chromium obs-studio
 
 # Build all packages (not recommended)
-./build.sh
+./pkg.sh build
 
 # Force clean builds
-./build.sh --clean firefox
+./pkg.sh build --force firefox
 ```
 
 ## Development
@@ -207,7 +209,7 @@ LEFTHOOK=0 git commit -m "message"
 
 ```bash
 # Run all linters
-./lint.sh
+./pkg.sh lint
 
 # Lint specific package
 cd <package>
@@ -233,7 +235,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 2. Update checksums: `updpkgsums`
 3. Regenerate metadata: `makepkg --printsrcinfo > .SRCINFO`
 4. Test: `makepkg -srC`
-5. Lint: `cd .. && ./lint.sh`
+5. Lint: `cd .. && ./pkg.sh lint`
 6. Commit with descriptive message
 
 ## CI/CD Integration

@@ -232,9 +232,9 @@ pre-push:
     run-tests:
       tags: [test]
       run: |
-        if [[ -f "./lint.sh" ]]; then
-          echo "🔍 Running lint.sh..."
-          ./lint.sh
+        if [[ -f "./pkg.sh" ]]; then
+          echo "🔍 Running pkg.sh lint..."
+          ./pkg.sh lint
         fi
 
 # ══════════════════════════════════════════════════════════════════════════

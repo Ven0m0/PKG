@@ -18,24 +18,25 @@ This repository contains optimized **PKGBUILDs** (Arch Linux package build scrip
 
 ```
 PKG/
-├── .github/workflows/       # CI/CD workflows (build, lint, automerge)
+├── .github/
+│   ├── workflows/           # CI/CD workflows (build, lint, automerge)
+│   └── scripts/             # CI-only helper scripts
 ├── <package-name>/          # Individual package directories
 │   ├── PKGBUILD            # Arch Linux package build script (REQUIRED)
 │   ├── .SRCINFO            # Source info metadata (auto-generated)
 │   ├── readme.md           # Package-specific documentation
 │   ├── patches/            # Custom patches (if applicable)
 │   └── *.patch             # Individual patch files
-├── build.sh                # Universal build script
-├── lint.sh                 # Linting and formatting script
+├── lib/helpers.sh          # Shared shell helper functions
+├── pkg.sh                  # Unified build/lint/srcinfo tool
+├── vp                      # Package helper CLI (install packages from repo)
 ├── .editorconfig           # Editor configuration
 ├── .shellcheckrc           # ShellCheck linting rules
-├── .gitconfig              # Git optimization settings
-├── llms.txt                # LLM context file (concise project summary)
 ├── CLAUDE.md               # AI assistant guide (Claude Code)
 ├── GEMINI.md               # AI assistant guide (Google Gemini)
 ├── README.md               # Main repository documentation
-├── TODO.MD                 # Planned features
-└── SECURITY.md             # Security policy
+├── TODO.md                 # Planned features
+└── Makefile                # Make targets for common tasks
 ```
 
 ### Package Directory Structure
@@ -215,21 +216,21 @@ cd <package-name>
 makepkg -si  # Build and install
 ```
 
-**Build with build.sh Script**:
+**Build with pkg.sh Script**:
 
 ```bash
 # Build specific packages
-./build.sh aria2 firefox
+./pkg.sh build aria2 firefox
 
 # Build all packages
-./build.sh
+./pkg.sh build
 ```
 
 **Docker Build** (for packages in `DOCKER_REGEX`):
 
 ```bash
 # Automatically detected for: obs-studio, firefox, egl-wayland2, onlyoffice
-./build.sh obs-studio
+./pkg.sh build obs-studio
 ```
 
 ### Linting and Validation
@@ -237,7 +238,7 @@ makepkg -si  # Build and install
 **Run All Linters**:
 
 ```bash
-./lint.sh
+./pkg.sh lint
 ```
 
 This script performs:
@@ -374,7 +375,7 @@ shellcheck -x -a -s bash PKGBUILD
 
    ```bash
    cd /path/to/PKG
-   ./lint.sh
+   ./pkg.sh lint
    ```
 
 5. **Commit with descriptive message**:
@@ -486,7 +487,7 @@ readonly DOCKER_REGEX="^(obs-studio|firefox)$"
 readonly IMAGE="archlinux:latest"
 ```
 
-**Helper functions** (from build.sh):
+**Helper functions** (from lib/helpers.sh):
 
 ```bash
 err(){ printf "\e[31m✘ %s\e[0m\n" "$*" >&2; }
@@ -506,7 +507,7 @@ popd >/dev/null
 
 ### Finding PKGBUILDs
 
-**Optimized search** (from build.sh):
+**Optimized search** (from lib/helpers.sh):
 
 ```bash
 if has fd; then
@@ -516,7 +517,7 @@ else
 fi
 ```
 
-**Caching tool availability** (from lint.sh):
+**Caching tool availability** (from pkg.sh):
 
 ```bash
 has_shellcheck=false
@@ -632,7 +633,7 @@ shfmt -ln bash -bn -s -i 2 -w PKGBUILD *.sh
 - Check caching issues (clear cache)
 - Verify environment variables match
 - Review CI logs for dependency issues
-- Test in Docker locally: `./build.sh <package>`
+- Test in Docker locally: `./pkg.sh build <package>`
 
 **Lint passes locally but fails in CI**:
 
@@ -645,7 +646,7 @@ shfmt -ln bash -bn -s -i 2 -w PKGBUILD *.sh
 ### When Working with This Repository
 
 1. **Always read PKGBUILD before modifying** - Understand current state
-2. **Run lint.sh after changes** - Ensure quality standards
+2. **Run pkg.sh lint after changes** - Ensure quality standards
 3. **Update .SRCINFO after PKGBUILD edits** - Keep metadata in sync
 4. **Test builds locally** - Don't rely solely on CI
 5. **Follow shell script standards** - Use set -euo pipefail, proper quoting
@@ -665,7 +666,7 @@ shfmt -ln bash -bn -s -i 2 -w PKGBUILD *.sh
 - ✅ Add descriptive commit messages
 - ✅ Validate shell scripts with shellcheck
 - ✅ Use proper error handling (set -euo pipefail)
-- ✅ Cache expensive operations (see lint.sh pattern)
+- ✅ Cache expensive operations (see pkg.sh pattern)
 - ✅ Prefer existing tools (fd over find when available)
 
 ### DON'T
@@ -707,7 +708,7 @@ shfmt -ln bash -bn -s -i 2 -w PKGBUILD *.sh
 5. **Validate**
 
    ```bash
-   ./lint.sh  # From repo root
+   ./pkg.sh lint  # From repo root
    ```
 
 6. **Test build**

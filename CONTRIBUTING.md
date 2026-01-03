@@ -123,7 +123,7 @@ makepkg -si
 
 # Run linters (from repository root)
 cd ..
-./lint.sh
+./pkg.sh lint
 ```
 
 ### 4. Committing Changes
@@ -465,7 +465,7 @@ Before submitting:
 - [ ] PKGBUILD follows coding standards
 - [ ] .SRCINFO is up to date (`makepkg --printsrcinfo > .SRCINFO`)
 - [ ] Package builds successfully (`makepkg -srC`)
-- [ ] All linters pass (`./lint.sh`)
+- [ ] All linters pass (`./pkg.sh lint`)
 - [ ] Documentation is updated
 - [ ] Commit messages are descriptive
 - [ ] No merge conflicts with main branch

@@ -124,17 +124,17 @@ cd <package-name>
 makepkg -si
 
 # Build with script
-./build.sh firefox aria2
+./pkg.sh build firefox aria2
 
 # Build all packages
-./build.sh
+./pkg.sh build
 ```
 
 ### Linting and Validation
 
 ```bash
 # Run all linters
-./lint.sh
+./pkg.sh lint
 
 # Update .SRCINFO
 makepkg --printsrcinfo > .SRCINFO
@@ -161,7 +161,7 @@ shellcheck -x -a -s bash PKGBUILD
 2. Update checksums if sources change
 3. Regenerate metadata: `makepkg --printsrcinfo > .SRCINFO`
 4. Test: `makepkg -srC`
-5. Lint: `./lint.sh`
+5. Lint: `./pkg.sh lint`
 6. Commit with descriptive message
 
 ## Optimization Flags
@@ -206,7 +206,7 @@ export MAKEFLAGS="-j$(nproc)"
 2. **Plan**: Identify what needs modification
 3. **Implement**: Edit following conventions
 4. **Update metadata**: `makepkg --printsrcinfo > .SRCINFO`
-5. **Validate**: `./lint.sh`
+5. **Validate**: `./pkg.sh lint`
 6. **Test**: `makepkg -srC`
 7. **Commit**: `git commit -m "package: descriptive message"`
 
