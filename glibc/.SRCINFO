@@ -56,5 +56,5 @@ pkgname = lib32-glibc-eac-roco
 pkgname = glibc-eac-roco-locales
 	pkgdesc = Pregenerated locales for GNU C Library
 	depends = glibc-eac-roco=2.42+r33+gde1fe81f4714
-	provides = glibc-locales
+	provides = glibc-locales=2.42+r33+gde1fe81f4714
 	conflicts = glibc-locales
