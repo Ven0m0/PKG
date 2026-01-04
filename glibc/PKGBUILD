@@ -57,7 +57,7 @@ prepare() {
   # 6bf789d69e6be48419094ca98f064e00297a27d5 - Generalize name-based DSO recognition in ldconfig
   # b89d5de2508215ef3131db7bed76ac50b3f4c205 - Remove lib-version, $(subdir-version)
   # 86f0179bc003ffc34ffaa8d528a7a90153ac06c6 - Install libthread_db under a regular implementation name
-  patch -Np1 -F100 -i "${srcdir}"/rogue_company_reverts.patch
+  patch -Np1 -i "${srcdir}"/rogue_company_reverts.patch
 }
 
 build() {
