@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 if command -v electron39 &>/dev/null; then
   electron="$(command -v electron39 2>/dev/null)"
