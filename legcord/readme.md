@@ -6,14 +6,13 @@ Arch Linux PKGBUILD for legcord, a package or tool (add details here).
 
 ## Source
 
-- Upstream: <add-upstream-url>
-- PKGBUILD Maintainer: <your-name>
+- Upstream: <https://aur.archlinux.org/packages/legcord-git>
+- PKGBUILD Maintainer: [Ven0m0](https://github.com/Ven0m0)
 
 ## Build Instructions
 
 ```bash
-cd legcord
-makepkg -si
+cd legcord && makepkg -si
 ```
 
 ## Usage
@@ -26,4 +25,4 @@ See upstream documentation for usage details.
 
 ## License
 
-<add-license>
+OSL-3.0 
