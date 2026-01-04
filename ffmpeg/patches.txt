@@ -1,0 +1,9 @@
+https://raw.githubusercontent.com/negativo17/ffmpeg/master/ffmpeg-chromium.patch
+https://raw.githubusercontent.com/negativo17/ffmpeg/master/ffmpeg-HandBrake.patch
+https://raw.githubusercontent.com/negativo17/ffmpeg/master/ffmpeg-svt-vp9.patch
+https://raw.githubusercontent.com/negativo17/ffmpeg/master/ffmpeg-vapoursynth-script-soname.patch
+https://raw.githubusercontent.com/negativo17/ffmpeg/master/ffmpeg-nvcc.patch
+https://raw.githubusercontent.com/negativo17/ffmpeg/master/ffmpeg-decklink-14.patch
+# Cuda
+https://raw.githubusercontent.com/negativo17/ffmpeg/master/ffmpeg-cuda-13.patch
+https://raw.githubusercontent.com/negativo17/ffmpeg/master/ffmpeg-LCEVCdec-4.patch
