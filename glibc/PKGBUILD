@@ -47,7 +47,7 @@ prepare() {
   [[ -d glibc-$pkgver ]] && ln -s glibc-$pkgver glibc
   cd glibc
 
-  # Re-enable `--hash-style=both` for building shared objects due to issues with EPIC's EAC
+  # Re-enable `--hash-style=both` for building shared objects due to issues with Epic's EAC
   # which relies on DT_HASH to be present in these libs.
   patch -Np1 -i "${srcdir}"/reenable_DT_HASH.patch
 
