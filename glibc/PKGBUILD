@@ -240,7 +240,7 @@ package_lib32-glibc-eac-roco() {
 package_glibc-eac-roco-locales() {
   pkgdesc='Pregenerated locales for GNU C Library'
   depends=("glibc-eac-roco=$pkgver")
-  provides=("glibc-locales")
+  provides=("glibc-locales=$pkgver")
   conflicts=("glibc-locales")
 
   cp -r locales/* -t "${pkgdir}"
