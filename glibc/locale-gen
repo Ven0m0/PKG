@@ -9,7 +9,7 @@ if [ -n "$POSIXLY_CORRECT" ]; then
 fi
 
 
-[ -f $LOCALEGEN -a -s $LOCALEGEN ] || exit 0;
+[ -f "$LOCALEGEN" -a -s "$LOCALEGEN" ] || exit 0;
 
 # Remove all old locale dir and locale-archive before generating new
 # locale data.
