@@ -5,6 +5,6 @@ GenericName=Internet Messenger
 Type=Application
 Exec=/usr/bin/legcord
 Icon=legcord
-Categories=Network;InstantMessaging;
+Categories=Internet;Network;InstantMessaging;
 StartupWMClass=legcord
 Keywords=discord;legcord;vencord;shelter;electron;
