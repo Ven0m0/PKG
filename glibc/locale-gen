@@ -34,7 +34,7 @@ while read locale charset; do \
 	echo -n ".$charset"; \
 	echo -n `echo $locale | sed 's/\([^\@]*\)\(\@.*\)*/\2/'`; \
 	echo -n '...'; \
-        if [ -f $LOCALES/$locale ]; then input=$locale; else \
+        if [ -f "$LOCALES/$locale" ]; then input=$locale; else \
         input=`echo $locale | sed 's/\([^.]*\)[^@]*\(.*\)/\1\2/'`; fi; \
 	localedef -i $input -c -f $charset -A /usr/share/locale/locale.alias $locale; \
 	echo ' done'; \
