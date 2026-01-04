@@ -1,0 +1,10 @@
+post_install() {
+  # Locales need to be regenerated after installation
+  if [ -f /etc/locale.gen ]; then
+    locale-gen
+  fi
+}
+
+post_upgrade() {
+  post_install
+}

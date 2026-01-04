@@ -1,0 +1,8 @@
+post_install() {
+  # Update the dynamic linker cache
+  ldconfig -r .
+}
+
+post_upgrade() {
+  post_install
+}
