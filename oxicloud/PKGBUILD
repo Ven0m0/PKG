@@ -19,6 +19,7 @@ prepare() {
 }
 build() {
   cd "OxiCloud-${pkgver}"
+  CFLAGS+=' -ffat-lto-objects'
   export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target RUSTFLAGS="-C target-cpu=native -C opt-level=3"
   # Use sccache if available
   if command -v sccache &>/dev/null; then
