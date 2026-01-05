@@ -23,14 +23,15 @@ prepare() {
 
 build() {
   cd "$pkgname-$pkgver"
+  CFLAGS+=' -ffat-lto-objects'
   export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target RUSTFLAGS="-Ctarget-cpu=native -Copt-level=3 -Clink-arg=-fuse-ld=lld"
-  cargo build -r --frozen --all-features
+  cargo build -r --frozen
 }
 
 check() {
   cd "$pkgname-$pkgver"
   export RUSTUP_TOOLCHAIN=stable
-  cargo test --frozen --all-features
+  cargo test --frozen -r
 }
 package() {
   cd "$pkgname-$pkgver"
