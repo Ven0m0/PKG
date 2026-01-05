@@ -1,0 +1,14 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Type = Path
+# Re-run when these areas may change
+Target = usr/bin/*
+Target = usr/local/bin/*
+Target = etc/alternatives/*
+
+[Action]
+Description = Rebuilding alternatives symlinks
+When = PostTransaction
+Exec = /usr/bin/update-alternatives sync
