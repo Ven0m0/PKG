@@ -1,5 +1,5 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
 sed -i -e 's|-O2|-Oz|' /etc/makepkg.conf
 get-pkgbuild

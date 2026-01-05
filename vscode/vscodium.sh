@@ -1,7 +1,6 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # VSCodium launcher script for system Electron
-
-set -eu
+set -euo pipefail
 
 readonly ELECTRON=@ELECTRON@
 readonly CLI_PATH=/usr/lib/vscodium/vscodium.js

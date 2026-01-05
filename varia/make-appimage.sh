@@ -1,6 +1,5 @@
-#!/bin/sh
-
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
 
 ARCH=$(uname -m)
 VERSION=$(pacman -Q varia | awk '{print $2; exit}')

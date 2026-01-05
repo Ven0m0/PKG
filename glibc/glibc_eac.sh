@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 # Enable/disable each fix we offer
 : ${_reenable_dt_hash=true}
