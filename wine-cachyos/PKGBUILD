@@ -118,7 +118,6 @@ conflicts=('wine' 'wine-mono' 'wine-gecko')
 prepare(){
   rm -rf "${pkgname}"-{32,64}-build
   mkdir "${pkgname}"-{32,64}-build
-
   cd "${pkgname}"
   git config user.email "wine@cachyos.org"
   git config user.name "wine cachyos"
@@ -128,12 +127,14 @@ prepare(){
   ./dlls/winevulkan/make_vulkan -x vk. xml -X video.xml
   autoreconf -fiv
   rm -rf autom4te.cache
+  # TODO: apply wine staging
+  # apply wine-staging patchset
+  #../wine-staging/staging/patchinstall.py --backend=git-apply --all \
+    #-W server-Signal_Thread
 }
 
 build(){
-  local march="nocona"
-  local mtune="core-avx2"
-
+  local march="nocona" mtune="core-avx2"
   local OPTIMIZE_FLAGS="-O3 -march=$march -mtune=$mtune -mfpmath=sse -pipe"
   OPTIMIZE_FLAGS+=" -mprefer-avx128 -fvect-cost-model=cheap -fipa-pta"
   local SANITY_FLAGS="-fwrapv -fno-strict-aliasing -D_TIME_BITS=64 -D_FILE_OFFSET_BITS=64"
@@ -141,10 +142,10 @@ build(){
   local WARNING_FLAGS="-Wno-incompatible-pointer-types"
   local STRIP_FLAGS="-s"
   local COMMON_FLAGS="$OPTIMIZE_FLAGS $SANITY_FLAGS $DEBUG_FLAGS $WARNING_FLAGS $STRIP_FLAGS"
-  local COMMON_LDFLAGS="-Wl,-O1,--sort-common,--as-needed"
+  local COMMON_LDFLAGS="-Wl,-O1,--sort-common,--as-needed -fuse-ld=lld"
 
   export LDFLAGS="$COMMON_LDFLAGS"
-  export CROSSLDFLAGS="$COMMON_LDFLAGS -Wl,--file-alignment,4096"
+  export CROSSLDFLAGS="$COMMON_LDFLAGS -Wl,--file-alignment,4096 -Wl,/FILEALIGN:4096,/OPT:REF,/OPT:ICF"
 
   # 64-bit build
   export CFLAGS="$COMMON_FLAGS -mcmodel=small"
@@ -152,7 +153,7 @@ build(){
   export CROSSCFLAGS="$COMMON_FLAGS -mcmodel=small"
   export CROSSCXXFLAGS="$COMMON_FLAGS -mcmodel=small -std=c++17"
   export PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/share/pkgconfig"
-
+  export CC="clang" CXX="clang++"
   cd "$srcdir/${pkgname}-64-build"
   "../${pkgname}/configure" \
     --prefix=/usr \
@@ -161,13 +162,13 @@ build(){
     --with-wayland \
     --with-gstreamer \
     --with-freetype \
-    --with-mingw \
+    --with-mingw=clang \
     --with-alsa \
     --with-ffmpeg \
-    --without-oss \
-    --disable-lsteamclient \
-    --disable-tests \
-    --enable-win64
+    --without-oss --without-pcap --without-xxf86vm \
+    --disable-lsteamclient --without-v4l2 \
+    --disable-tests --without-pcsclite --without-xinerama --without-gphoto --without-cups \
+    --enable-win64 --enable-archs=x86_64
   make
 
   # 32-bit build
@@ -176,7 +177,6 @@ build(){
   export CROSSCFLAGS="$COMMON_FLAGS -mstackrealign"
   export CROSSCXXFLAGS="$COMMON_FLAGS -mstackrealign -std=c++17"
   export PKG_CONFIG_PATH="/usr/lib32/pkgconfig:/usr/share/pkgconfig"
-
   cd "$srcdir/${pkgname}-32-build"
   "../${pkgname}/configure" \
     --prefix=/usr \
@@ -186,11 +186,11 @@ build(){
     --with-gstreamer \
     --with-freetype \
     --with-mingw \
-    --with-alsa \
-    --without-ffmpeg \
-    --without-oss \
+    --with-alsa --without-xinerama --without-pcsclite \
+    --without-ffmpeg --without-xxf86vm --without-pcap \
+    --without-oss --without-sane --without-v4l2  --without-cups --without-gphoto \
     --disable-lsteamclient \
-    --disable-tests \
+    --disable-tests --enable-archs=x86_64 \
     --with-wine64="$srcdir/${pkgname}-64-build"
   make
 }
@@ -212,6 +212,13 @@ package(){
   ln -s ../conf.avail/30-win32-aliases.conf "$pkgdir/usr/share/fontconfig/conf.default/30-win32-aliases.conf"
   install -Dm644 "$srcdir/wine-binfmt.conf" "$pkgdir/usr/lib/binfmt.d/wine. conf"
 
+  # Symlink for comptability with older scripts such as winetricks/setup_dxvk
+  ln -sf /usr/bin/wine "$pkgdir"/usr/bin/wine64
+
+  # Strip Windows binaries
+  llvm-strip --strip-unneeded "$pkgdir"/usr/lib/wine/i386-windows/*.{dll,exe}
+  llvm-strip --strip-unneeded "$pkgdir"/usr/lib/wine/x86_64-windows/*.{dll,exe}
+
   # Strip PE binaries
   i686-w64-mingw32-strip --strip-unneeded "$pkgdir"/usr/lib/wine/i386-windows/*. {dll,exe}
   x86_64-w64-mingw32-strip --strip-unneeded "$pkgdir"/usr/lib/wine/x86_64-windows/*.{dll,exe}
@@ -227,4 +234,7 @@ package(){
   # Install xalia
   install -d -m755 "$pkgdir/usr/share/xalia"
   unzip "xalia-${_xaliaver}-net48-mono.zip" -d "$pkgdir/usr/share/xalia"
+
+  # NTSync additions
+  echo "ntsync" | install -Dm644 /dev/stdin "$pkgdir/usr/lib/modules-load.d/wine-pure.conf"
 }
