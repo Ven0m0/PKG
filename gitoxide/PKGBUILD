@@ -22,6 +22,7 @@ prepare() {
 
 build() {
   cd "$pkgname-$pkgver"
+  CFLAGS+=' -ffat-lto-objects'
   # define PGO_PROFILE_DIR to use a custom directory for the profile data
   export MALLOC_CONF="thp:always,metadata_thp:always" RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target \
     RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C link-arg=-fuse-ld=lld" PGO_PROFILE_DIR=/tmp/pgo-data
