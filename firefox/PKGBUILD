@@ -148,15 +148,20 @@ export NM=llvm-nm
 export RANLIB=llvm-ranlib
 ac_add_options --enable-linker=lld
 ac_add_options --enable-clang-plugin
-
+ac_add_options --disable-cargo-incremental
 # Optimization
 ac_add_options --enable-optimize="-O3 -w -march=native -mtune=native -ftree-vectorize"
+export RUSTC_OPT_LEVEL=3
+export OPT_LEVEL=3
+export CARGO_PROFILE_RELEASE_OPT_LEVEL=3
+ac_add_options OPT_LEVEL="3"
+ac_add_options RUSTC_OPT_LEVEL="3"
 ac_add_options --enable-hardening
 ac_add_options --disable-bootstrap
 ac_add_options --disable-elf-hack
 
 # LTO
-ac_add_options --enable-lto=full
+ac_add_options --enable-lto=cross,full
 
 # Stripping and minification
 ac_add_options --enable-strip
@@ -210,7 +215,7 @@ ac_add_options --enable-wasm-branch-hinting
 # Audio backends
 ac_add_options --enable-pulseaudio
 ac_add_options --enable-alsa
-ac_add_options --enable-jack
+ac_add_options --disable-jack
 
 # DRM
 ac_add_options --enable-eme=widevine
@@ -251,6 +256,13 @@ ac_add_options --disable-valgrind
 ac_add_options --disable-dmd
 ac_add_options --disable-phc
 ac_add_options --disable-bits-download
+ac_add_options --disable-legacy-profile-creation
+ac_add_options --disable-accessibility
+ac_add_options --disable-wmf
+ac_add_options --disable-gecko-profiler
+ac_add_options --disable-real-time-tracing
+ac_add_options --disable-webdriver
+ac_add_options --disable-negotiateauth
 
 # Branding
 ac_add_options --enable-official-branding
@@ -267,15 +279,9 @@ mk_add_options MOZ_CRASHREPORTER=0
 mk_add_options MOZ_DATA_REPORTING=0
 mk_add_options MOZ_SERVICES_HEALTHREPORT=0
 mk_add_options MOZ_TELEMETRY_REPORTING=0
+mk_add_options MOZ_NORMANDY=0
 ac_add_options --disable-client-telemetry
 ac_add_options --disable-health-report
-
-# Optimization levels
-ac_add_options OPT_LEVEL="3"
-ac_add_options RUSTC_OPT_LEVEL="3"
-export RUSTC_OPT_LEVEL=3
-export OPT_LEVEL=3
-export CARGO_PROFILE_RELEASE_OPT_LEVEL=3
 
 # JS Shell (for PGO)
 ac_add_options --enable-js-shell
