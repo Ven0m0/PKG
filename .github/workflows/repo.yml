@@ -1,0 +1,244 @@
+name: Rebuild repository
+on:
+  push:
+    paths:
+      - '**/PKGBUILD'
+      - '.github/workflows/**'
+  pull_request:
+    paths:
+      - '**/PKGBUILD'
+      - '.github/workflows/**'
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-state:
+    name: Check repository state
+    runs-on: ubuntu-latest
+    outputs:
+      state: ${{ steps.state.outputs.repo_state }}
+    steps:
+      - name: Check state
+        id: state
+        run: |
+          state="$(curl -sL "https://github.com/Ven0m0/PKG/releases/download/pure/state")"
+          if [ "$state" != "Not Found" ]; then
+            echo "repo_state=$state" >> "$GITHUB_OUTPUT"
+          else
+            echo "repo_state=undefined" >> "$GITHUB_OUTPUT"
+          fi
+  get-changed-packages:
+    name: Get changed packages
+    runs-on: ubuntu-latest
+    needs: check-state
+    outputs:
+      changed: ${{ steps.changed-packages.outputs.changed }}
+      removed: ${{ steps.changed-packages.outputs.removed }}
+    steps:
+      - name: Clone PKGBUILDs
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Find changed packages
+        id: changed-packages
+        run: |
+          declare -r commit="${{needs.check-state.outputs.state}}"
+          function jsonify() {
+            local json="" pkgname input="$2"
+            if [ -n "$input" ]; then
+              mapfile -t <<< "$input"
+              local size="${#MAPFILE[@]}"
+              for ((i=0; i < size; i++)); do
+                ((i == 0)) && json+="{\"$1\": ["
+                pkgname="$(dirname "${MAPFILE[$i]}")"
+                [[ ! -e "$pkgname/.ci-skip" ]] && json+="\"$pkgname\""
+                if ((i == size - 1)); then
+                    json+="]}"
+                else
+                  next="$(dirname "${MAPFILE[$i+1]}")"
+                  if [ ! -e "$next/.ci-skip" ]; then
+                    json+=", "
+                  fi
+                fi
+              done
+            fi
+            echo "$json"
+          }
+          if [ "$commit" = "undefined" ]; then
+            echo "changed=$(jsonify "package" "$(printf "%s\n" */PKGBUILD)")" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=$(jsonify "package" "$(git diff --diff-filter=d --name-only "$commit" HEAD "*/PKGBUILD")")" >> "$GITHUB_OUTPUT"
+            echo "removed=$(jsonify "package" "$(git diff --diff-filter=D --name-only "$commit" HEAD "*/PKGBUILD")")" >> "$GITHUB_OUTPUT"
+          fi
+  build:
+    name: Build ${{ matrix.package }}
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    if: needs.get-changed-packages.outputs.changed != ''
+    needs: get-changed-packages
+    env:
+      CCACHE_DIR: /home/builder/.ccache
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix: ${{fromJSON(needs.get-changed-packages.outputs.changed)}}
+    steps:
+      - name: Clone PKGBUILDs
+        uses: actions/checkout@v6
+      - name: Setup build environment
+        run: |
+          # Plug-in binary packages repository
+          cat << 'EOF' >> /etc/pacman.conf
+          [pure]
+          Server = https://github.com/Ven0m0/PKG/releases/download/$repo
+          EOF
+
+          # Import keys
+          pacman-key --init
+          pacman-key --keyserver hkps://keyserver.ubuntu.com --recv-keys 7E8BBA85FD77B760
+          pacman-key --lsign-key  7E8BBA85FD77B760
+          pacman -Syu --noconfirm ccache
+          # Setup builder user
+          useradd builder -m
+          echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+          chmod -R a+rw .
+          # Use all threads for building
+          sed -i 's/#MAKEFLAGS="-j2"/MAKEFLAGS="-j$(nproc) -l$(nproc)"/g' /etc/makepkg.conf
+          # Disable creating debug packages
+          sed -i 's/OPTIONS=(.*)/OPTIONS=(strip docs !libtool !staticlibs emptydirs zipman purge lto)/g' /etc/makepkg.conf
+          # Build packages for x86-64-v3 only
+          sed -i 's/-march=x86-64/-march=x86-64-v3/g' /etc/makepkg.conf
+          sed -i 's/-mtune=generic/-mtune=haswell/g' /etc/makepkg.conf
+          # Setup packager name
+          sed -i 's/#PACKAGER=".*"/PACKAGER="Vasiliy Stelmachenok <ventureo@yandex.ru>"/g' /etc/makepkg.conf
+          # Compress packages more aggressively to save space
+          sed -i 's/COMPRESSZST=(.*)/COMPRESSZST=(zstd -c -T0 --ultra -20)/g' /etc/makepkg.conf
+          # Setup ccache
+          sed -i 's|!ccache|ccache|' /etc/makepkg.conf
+          sudo -u builder mkdir -p ${{ env.CCACHE_DIR }}
+      - name: Setup ccache
+        uses: actions/cache@v5
+        if: github.ref == 'refs/heads/main'
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ccache-${{ matrix.package }}-${{ github.run_id }}
+          restore-keys: |
+            ccache-${{ matrix.package }}
+      - name: Build package
+        run: |
+          cd "${{ matrix.package }}"
+          sudo -H -E -u builder makepkg --syncdeps --noconfirm
+      - name: Signing package
+        if: github.ref == 'refs/heads/main'
+        env:
+          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+          GPG_SIGNING_PASSWORD: ${{ secrets.GPG_SIGNING_PASSWORD }}
+        run: |
+          cd "${{ matrix.package }}"
+          echo -n "$GPG_SIGNING_KEY" | base64 --decode | gpg --batch --import
+          echo -n "$GPG_SIGNING_PASSWORD" | gpg --pinentry-mode loopback --batch --yes --passphrase-fd 0 --detach-sign --no-armor *.pkg.tar.zst
+      - name: Upload package to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.package }}
+          path: ${{ matrix.package }}/*.pkg.tar.zst*
+  deploy:
+    name: Deploy packages
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    if: always() && (needs.build.result == 'success' || needs.get-changed-packages.outputs.removed != '') && github.ref == 'refs/heads/main'
+    needs: [build, get-changed-packages]
+    steps:
+      - name: Download repository database
+        uses: robinraju/release-downloader@v1
+        with:
+          token: ${{ secrets.GH_REPO_TOKEN }}
+          tag: pure
+          fileName: pure.db.tar.zst
+      - name: Purge removed packages from the database
+        if: needs.get-changed-packages.outputs.removed != ''
+        run: |
+          repo-remove --nocolor pure.db.tar.zst ${{ join(fromJSON(needs.get-changed-packages.outputs.removed).package, ' ') }}
+      - uses: mknejp/delete-release-assets@v1
+        name: Purge removed packages from the release
+        if: needs.get-changed-packages.outputs.removed != ''
+        with:
+          token: ${{ secrets.GH_REPO_TOKEN }}
+          tag: pure
+          assets: ${{ format('{0}*.pkg.tar.zst*', join(fromJSON(needs.get-changed-packages.outputs.removed).package, fromJSON('"*.pkg.tar.zst*\n"'))) }}
+          fail-if-no-assets: false
+          fail-if-no-release: false
+      - uses: mknejp/delete-release-assets@v1
+        name: Remove old package versions
+        if: needs.get-changed-packages.outputs.changed != '' && needs.build.result == 'success'
+        with:
+          token: ${{ secrets.GH_REPO_TOKEN }}
+          tag: pure
+          assets: ${{ format('{0}*.pkg.tar.zst*', join(fromJSON(needs.get-changed-packages.outputs.changed).package, fromJSON('"*.pkg.tar.zst*\n"'))) }}
+          fail-if-no-assets: false
+          fail-if-no-release: false
+      - name: Download packages
+        if: needs.build.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/artifacts
+          merge-multiple: true
+      - name: Upload packages to release
+        if: needs.build.result == 'success'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GH_REPO_TOKEN }}
+          file: /tmp/artifacts/*.pkg.tar.zst*
+          tag: pure
+          file_glob: true
+          overwrite: true
+      - name: Update repository database
+        if: needs.build.result == 'success'
+        run: |
+          repo-add -R --nocolor pure.db.tar.zst /tmp/artifacts/*.pkg.tar.zst
+      - name: Replace symlinks to repository database
+        run: |
+          rm -f pure.files pure.db pure.db.sig pure.files.sig
+          cp -v pure.files.tar.zst pure.files
+          cp -v pure.db.tar.zst pure.db
+      - name: Sign repository database
+        env:
+          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+          GPG_SIGNING_PASSWORD: ${{ secrets.GPG_SIGNING_PASSWORD }}
+        run: |
+          echo -n "$GPG_SIGNING_KEY" | base64 --decode | gpg --batch --import
+          for file in pure.db pure.db.tar.zst pure.files pure.files.tar.zst; do
+            echo -n "$GPG_SIGNING_PASSWORD" | gpg --pinentry-mode loopback --batch --detach-sign --yes --passphrase-fd 0 --no-armor "$file"
+          done
+      - name: Remove symlinks to repository signature
+        run: |
+          rm -f pure.db.sig .pure.files.sig
+          cp -v pure.db.tar.zst.sig pure.db.sig
+          cp -v pure.files.tar.zst.sig pure.files.sig
+      - name: Upload repository files database to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GH_REPO_TOKEN }}
+          tag: pure
+          file: pure.files*
+          file_glob: true
+          overwrite: true
+      - name: Upload repository package database to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GH_REPO_TOKEN }}
+          tag: pure
+          file: pure.db*
+          file_glob: true
+          overwrite: true
+      - name: Update repository state
+        run: |
+          echo ${{ github.sha }} > state
+      - name: Upload repository state
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GH_REPO_TOKEN }}
+          tag: pure
+          file: state
+          overwrite: true
