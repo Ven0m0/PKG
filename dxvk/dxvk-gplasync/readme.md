@@ -257,3 +257,4 @@ Zlib License
 - **GPL Async + Low Latency**: <https://github.com/Digger1955/dxvk-gplasync-lowlatency>
 - **Sarek**: <https://github.com/pythonlover02/DXVK-Sarek>
 - **Original DXVK**: <https://github.com/doitsujin/dxvk>
+- **DXVK-pure**: <https://github.com/ventureoo/PKGBUILDs/tree/main/dxvk-pure-git>
