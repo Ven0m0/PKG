@@ -5,7 +5,7 @@ pkgrel=1
 pkgdesc="A simple update-alternatives replacement written in Rust"
 arch=('x86_64')
 url="https://github.com/fthomys/update-alternatives"
-options=('!debug')
+options=('strip' '!emptydirs' '!debug')
 license=('BSD')
 depends=('gcc-libs' 'glibc' 'zenity')
 makedepends=('git' 'rust' 'cargo')
@@ -21,7 +21,8 @@ pkgver() {
 
 build() {
   cd "${srcdir}/update-alternatives"
-  cargo build --release --locked
+  CFLAGS+=' -ffat-lto-objects'
+  cargo build -r --locked
 }
 
 package() {
