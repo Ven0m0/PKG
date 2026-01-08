@@ -1,0 +1,21 @@
+post_install(){
+  printf '\n==> SmartDNS-RS installed\n'
+  printf '==> Config: /etc/smartdns/smartdns.conf\n'
+  printf '==> To enable:\n'
+  printf '    1. Disable systemd-resolved if active:\n'
+  printf '       systemctl disable --now systemd-resolved.service\n'
+  printf '    2. Enable smartdns-rs:\n'
+  printf '       systemctl enable --now smartdns-rs.service\n'
+  printf '==> Status: systemctl status smartdns-rs\n\n'
+}
+
+post_upgrade(){
+  printf '\n==> SmartDNS-RS upgraded\n'
+  printf '==> Review: /etc/smartdns/smartdns.conf.pacnew (if exists)\n'
+  printf '==> Restart: systemctl restart smartdns-rs\n\n'
+}
+
+pre_remove(){
+  systemctl is-active smartdns-rs.service &>/dev/null && systemctl stop smartdns-rs.service
+  systemctl is-enabled smartdns-rs.service &>/dev/null && systemctl disable smartdns-rs.service
+}
