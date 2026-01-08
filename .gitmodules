@@ -10,3 +10,9 @@
 [submodule "ffmpeg/patches/svt-av1-essential"]
 	path = ffmpeg/patches/svt-av1-essential
 	url = https://github.com/nekotrix/FFmpeg-Builds-SVT-AV1-Essential.git
+[submodule "wine-cachyos/wine-osu-patches"]
+	path = wine-cachyos/wine-osu-patches
+	url = https://github.com/whrvt/wine-osu-patches.git
+[submodule "wine-tkg-git/wine-osu-patches"]
+	path = wine-tkg-git/wine-osu-patches
+	url = https://github.com/whrvt/wine-osu-patches.git
