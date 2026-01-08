@@ -9,28 +9,30 @@ arch=('x86_64' 'aarch64')
 url='https://github.com/mokeyish/smartdns-rs'
 license=('GPL-3.0-or-later')
 depends=('gcc-libs' 'glibc')
-makedepends=('rust' 'cargo')
+makedepends=('rust' 'cargo' 'clang' 'llvm' 'llvm-libs')
 provides=('smartdns')
 conflicts=('smartdns')
-options=('strip' '!emptydirs' '!debug')
+options=('strip' '!emptydirs' '!debug' '!lto')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('4ffd4021d751dcdd572df9dffd2f2b554c12192baa9cdb93a604bace53644bb4')
+sha256sums=('SKIP')
+
+export CARGO_PROFILE_RELEASE_LTO=true CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 CARGO_PROFILE_RELEASE_DEBUG=0
 
 prepare() {
   cd "$pkgname-$pkgver"
+  git clean -dfx
   cargo fetch --locked --target "$(rustc --print host-tuple)"
 }
 
 build() {
   cd "$pkgname-$pkgver"
   CFLAGS+=' -ffat-lto-objects'
-  export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target RUSTFLAGS="-Ctarget-cpu=native -Copt-level=3 -Clink-arg=-fuse-ld=lld"
+  export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target RUSTFLAGS="-Ctarget-cpu=native -Copt-level=3 -Clink-arg=-fuse-ld=lld" CFLAGS
   cargo build -r --frozen --no-default-features -F resolve-cli,dns-over-tls,dns-over-quic,mdns,dnssec,service,nft,nom-recipes-all,swagger-ui-cdn,http_client,serde
 }
-
 check() {
   cd "$pkgname-$pkgver"
-  RUSTUP_TOOLCHAIN=stable cargo test --frozen -r
+  RUSTUP_TOOLCHAIN=stable cargo test -r --frozen
 }
 package() {
   cd "$pkgname-$pkgver"
