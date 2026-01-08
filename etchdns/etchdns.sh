@@ -1,20 +1,13 @@
 #!/usr/bin/env bash
-# shellcheck enable=all shell=bash source-path=SCRIPTDIR external-sources=true
-set -euo pipefail
-shopt -s nullglob globstar
-export LC_ALL=C HOME="/home/${SUDO_USER:-$USER}"
-IFS=$'\n\t'
+# shellcheck enable=all shell=bash source-path=SCRIPTDIR
+set -euo pipefail; shopt -s nullglob globstar
 s=${BASH_SOURCE[0]}
 [[ $s != /* ]] && s=$PWD/$s
 cd -P -- "${s%/*}"
 has() { command -v -- "$1" &>/dev/null; }
 
 sudo -v
-
-if has sccache; then
-  export CC="sccache clang" CXX="sccache clang++" RUSTC_WRAPPER=sccache SCCACHE_IDLE_TIMEOUT=10800
-  sccache --start-server &>/dev/null
-fi
+has sccache && export CC="sccache clang" CXX="sccache clang++" RUSTC_WRAPPER=sccache SCCACHE_IDLE_TIMEOUT=10800
 
 readonly MALLOC_CONF="thp:always,metadata_thp:always,tcache:true,percpu_arena:percpu"
 export RUSTFLAGS="-Copt-level=3 -Ctarget-cpu=native -Ccodegen-units=1 -Cstrip=symbols -Clto=fat -Clink-arg=-fuse-ld=mold -Cpanic=immediate-abort -Zunstable-options -Ztune-cpu=native -Cllvm-args=-enable-dfa-jump-thread -Zfunction-sections -Zfmt-debug=none -Zlocation-detail=none"
