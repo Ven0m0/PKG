@@ -1,6 +1,5 @@
-#!/bin/sh
-
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
 get-pkgbuild
 cd "$BUILD_DIR"

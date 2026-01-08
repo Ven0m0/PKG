@@ -68,10 +68,10 @@ update_patch_from_version(){
   [[ -n $ver ]] || die "Version required"
   local tmp; tmp=$(mktemp -d); trap 'rm -rf "$tmp"' RETURN
   dl "https://update.code.visualstudio.com/${ver}/linux-x64/stable" "$tmp/code.tgz"
-  tar xf "$tmp/code. tgz" -C "$tmp" --strip-components=3 \
+  tar xf "$tmp/code.tgz" -C "$tmp" --strip-components=3 \
     VSCode-linux-x64/resources/app/product.json 2>/dev/null || die "Extract failed"
   jq -r --argjson k "$(keys_json kref)" '
-    reduce $k[] as $x ({}; . + {($x): (getpath($x|split(". "))?)}) |
+    reduce $k[] as $x ({}; . + {($x): (getpath($x|split("."))?)}) |
     . + {enableTelemetry:false}
   ' "$tmp/product.json" >"$out_patch"
   ok "Updated patch -> $out_patch"
@@ -88,7 +88,7 @@ json_apply(){
     ($b|to_entries|map(select(.key as $k | $p|has($k)))|from_entries) as $c |
     {p:($b+$p), c:$c}
   ' "$prod" "$patch" >"$tmp" || die "jq apply failed"
-  jq -r . p "$tmp" >"$prod"
+  jq -r .p "$tmp" >"$prod"
   jq -r .c "$tmp" >"$cache"
   rm -f "$tmp"
   ok "Applied -> $prod"
@@ -110,7 +110,7 @@ xdg_patch(){
   local -a files=()
   mapfile -t files < <(
     find /usr/{lib/code*,share/applications} /opt/{visual-studio-code*,vscodium*} \
-      -type f \( -name 'package.json' -o -name '*.desktop' \) ! -name '*-url-handler. desktop' 2>/dev/null
+      -type f \( -name 'package.json' -o -name '*.desktop' \) ! -name '*-url-handler.desktop' 2>/dev/null
   )
   ((${#files[@]})) || { warn "No XDG files found"; return 0; }
   local f
@@ -127,7 +127,7 @@ xdg_patch(){
         ok "XDG desktop patched:  $f"
         ;;
       */package.json)
-        sed -i -E 's/"desktopName":[[:space:]]*"([^"]+)-url-handler\. desktop"/"desktopName":  "\1.desktop"/' "$f"
+        sed -i -E 's/"desktopName":[[:space:]]*"([^"]+)-url-handler\.desktop"/"desktopName": "\1.desktop"/' "$f"
         ok "package.json patched: $f"
         ;;
     esac
@@ -146,28 +146,28 @@ repo_swap(){
     sed -i \
       -e 's|"serviceUrl":[[:space:]]*"[^"]*"|"serviceUrl": "https://open-vsx.org/vscode/gallery",|' \
       -e '/"cacheUrl"/d' \
-      -e 's|"itemUrl":[[:space:]]*"[^"]*"|"itemUrl":  "https://open-vsx.org/vscode/item"|' \
+      -e 's|"itemUrl":[[:space:]]*"[^"]*"|"itemUrl": "https://open-vsx.org/vscode/item"|' \
       -e '/"linkProtectionTrustedDomains"/d' "$file"
     ok "Repo -> Open-VSX"
   else
     sed -i \
       -e 's|"serviceUrl":[[:space:]]*"[^"]*"|"serviceUrl": "https://marketplace.visualstudio.com/_apis/public/gallery",|' \
       -e '/"cacheUrl"/d' \
-      -e '/"serviceUrl"/a\    "cacheUrl": "https://vscode.blob.core.windows. net/gallery/index",' \
-      -e 's|"itemUrl":[[: space:]]*"[^"]*"|"itemUrl": "https://marketplace.visualstudio.com/items",|' \
+      -e '/"serviceUrl"/a\    "cacheUrl": "https://vscode.blob.core.windows.net/gallery/index",' \
+      -e 's|"itemUrl":[[:space:]]*"[^"]*"|"itemUrl": "https://marketplace.visualstudio.com/items"|' \
       -e '/"linkProtectionTrustedDomains"/d' "$file"
     ok "Repo -> MS Marketplace"
   fi
 }
 vscodium_prod_full(){
   local dst=${1:-/usr/share/vscodium/resources/app/product.json}
-  [[ -f $dst ]] || die "Missing:  $dst"
+  [[ -f $dst ]] || die "Missing: $dst"
   local ver tmp bak
   ver=$(jq -r '.version//empty' "$dst") || die "No version in $dst"
   [[ -n $ver ]] || die "Empty version in $dst"
 
   tmp=$(mktemp -d); trap 'rm -rf "$tmp"' RETURN
-  bak="${dst}. backup.$(date +%s)"
+  bak="${dst}.backup.$(date +%s)"
   cp -f "$dst" "$bak"
   dl "https://update.code.visualstudio.com/$ver/linux-x64/stable" "$tmp/code.tgz"
   tar xf "$tmp/code.tgz" -C "$tmp" --strip-components=3 \
@@ -176,7 +176,7 @@ vscodium_prod_full(){
     .[0] as $d | .[1] as $s |
     $d + ($s|with_entries(select(.key as $x | $k|index($x)))) |
     . + {enableTelemetry:false, dataFolderName:".vscode-oss"}
-  ' "$dst" "$tmp/product.json" >"$tmp/out. json" || die "jq merge failed"
+  ' "$dst" "$tmp/product.json" >"$tmp/out.json" || die "jq merge failed"
   mv -f "$tmp/out.json" "$dst"
   ok "VSCodium full patch (backup: $bak)"
 }
@@ -203,12 +203,12 @@ target = json.loads(sys.argv[2])
 home = sys.argv[3]
 paths = [
   f"{home}/.config/Code/User/settings.json",
-  f"{home}/. var/app/com.visualstudio.code/config/Code/User/settings.json",
-  f"{home}/.config/VSCodium/User/settings. json",
-  f"{home}/.var/app/com.vscodium.codium/config/VSCodium/User/settings. json",
+  f"{home}/.var/app/com.visualstudio.code/config/Code/User/settings.json",
+  f"{home}/.config/VSCodium/User/settings.json",
+  f"{home}/.var/app/com.vscodium.codium/config/VSCodium/User/settings.json",
 ]
 changed = 0
-for p in paths: 
+for p in paths:
   f = Path(p)
   if not f.exists():
     f.parent.mkdir(parents=True, exist_ok=True)
@@ -216,7 +216,7 @@ for p in paths:
   try:
     obj = json.loads(f.read_text(encoding="utf-8") or "{}")
   except json.JSONDecodeError:
-    print(f"Invalid JSON:  {p}", file=sys.stderr)
+    print(f"Invalid JSON: {p}", file=sys.stderr)
     continue
   if obj.get(prop) == target:
     continue
@@ -232,7 +232,7 @@ configure_privacy(){
   local -a settings=(
     'telemetry.telemetryLevel;"off"'
     'telemetry.enableTelemetry;false'
-    'telemetry. enableCrashReporter;false'
+    'telemetry.enableCrashReporter;false'
     'workbench.enableExperiments;false'
     'update.mode;"none"'
   )
@@ -244,7 +244,7 @@ configure_privacy(){
 }
 usage(){
   cat <<'USAGE'
-Usage: vscodium-patch. sh <cmd> [args]
+Usage: vscodium-patch.sh <cmd> [args]
 
 Commands:
   xdg
@@ -252,7 +252,7 @@ Commands:
   vscodium [product.json]                 switch repo -> MS marketplace
   vscodium-restore [product.json]         switch repo -> Open-VSX
   vscodium-prod [product.json]            merge upstream VSCode product.json keys into VSCodium product.json
-  vscodium-prod-restore [product.json]    restore latest . backup.* for product.json
+  vscodium-prod-restore [product.json]    restore latest .backup.* for product.json
   feat [prod] [patch] [cache]             apply patch w/ cache
   feat-restore [prod] [patch] [cache]     restore using cache
   feat-update <vscode_ver> [out_patch]    emit patch.json from VSCode version (uses KEYS_PROD)
@@ -273,8 +273,8 @@ main(){
     vscodium-restore) repo_swap "${2:-}" 1 ;;
     vscodium-prod) vscodium_prod_full "${2:-}" ;;
     vscodium-prod-restore) vscodium_restore "${2:-}" ;;
-    feat) json_apply "${2:-$CP}" "${3:-$CD/code-features/patch.json}" "${4:-$CD/code-features/cache. json}" ;;
-    feat-restore) json_restore "${2:-$CP}" "${3:-$CD/code-features/patch. json}" "${4:-$CD/code-features/cache.json}" ;;
+    feat) json_apply "${2:-$CP}" "${3:-$CD/code-features/patch.json}" "${4:-$CD/code-features/cache.json}" ;;
+    feat-restore) json_restore "${2:-$CP}" "${3:-$CD/code-features/patch.json}" "${4:-$CD/code-features/cache.json}" ;;
     feat-update) update_patch_from_version "${2:-}" "${3:-./patch.json}" KEYS_PROD ;;
     mkt) json_apply "${2:-$CP}" "${3:-$CD/code-marketplace/patch.json}" "${4:-$CD/code-marketplace/cache.json}"; sign_fix "@vscode/vsce-sign" "node-ovsx-sign" ;;
     mkt-restore) json_restore "${2:-$CP}" "${3:-$CD/code-marketplace/patch.json}" "${4:-$CD/code-marketplace/cache.json}"; sign_fix "node-ovsx-sign" "@vscode/vsce-sign" ;;
@@ -283,7 +283,7 @@ main(){
         configBasedExtensionTips webExtensionTips virtualWorkspaceExtensionTips remoteExtensionTips
         extensionEnabledApiProposals extensionAllowedProposedApi extensionAllowedBadgeProviders
         extensionAllowedBadgeProvidersRegex msftInternalDomains linkProtectionTrustedDomains)
-      update_patch_from_version "${2:-}" "${3:-./patch. json}" K
+      update_patch_from_version "${2:-}" "${3:-./patch.json}" K
       ;;
     privacy) configure_privacy ;;
     all)
