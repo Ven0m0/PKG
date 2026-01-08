@@ -1,0 +1,29 @@
+diff --git a/dlls/kernelbase/debug.c b/dlls/kernelbase/debug.c
+index 11111111111..11111111111 100644
+--- a/dlls/kernelbase/debug.c
++++ b/dlls/kernelbase/debug.c
+@@ -834,7 +834,7 @@ HRESULT WINAPI /* DECLSPEC_HOTPATCH */ WerRegisterRuntimeExceptionModule( const
+  */
+ HRESULT WINAPI /* DECLSPEC_HOTPATCH */ WerSetFlags( DWORD flags )
+ {
+-    FIXME("(%ld) stub\n", flags);
++    WARN("(%ld) stub\n", flags);
+     return S_OK;
+ }
+ 
+diff --git a/programs/wineboot/wineboot.c b/programs/wineboot/wineboot.c
+index 11111111111..11111111111 100644
+--- a/programs/wineboot/wineboot.c
++++ b/programs/wineboot/wineboot.c
+@@ -1708,7 +1708,10 @@ static void process_run_key( HKEY key, const WCHAR *keyname, BOOL delete, BOOL s
+         }
+         if (runCmd( cmdline, NULL, synchronous, FALSE ) == INVALID_RUNCMD_RETURN)
+         {
+-            WINE_ERR( "Error running cmd %s (%lu).\n", wine_dbgstr_w(cmdline), GetLastError() );
++            if (GetLastError() == ERROR_FILE_NOT_FOUND)
++                WINE_WARN( "Error running cmd %s (%lu).\n", wine_dbgstr_w(cmdline), GetLastError() );
++            else
++                WINE_ERR( "Error running cmd %s (%lu).\n", wine_dbgstr_w(cmdline), GetLastError() );
+         }
+         WINE_TRACE( "Done processing cmd %lu.\n", i );
+     }
