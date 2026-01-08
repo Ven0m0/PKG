@@ -1,41 +1,39 @@
 # Maintainer: Ven0m0
 pkgname=oxicloud
 pkgver=0.1.0
-pkgrel=1
+pkgrel=2
 pkgdesc='Cloud storage management tool written in Rust'
-arch=('x86_64')
+arch=('x86_64' 'aarch64')
 url='https://github.com/DioCrafts/OxiCloud'
 license=('MIT')
-depends=('gcc-libs')
+depends=('gcc-libs' 'glibc')
 makedepends=('rust' 'cargo')
 options=('strip' '!emptydirs' '!debug')
-source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/v${pkgver}.tar.gz")
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
 sha256sums=('d5558cd419c8d46bdc958064cb97f963d1ea793866414c025906ec15033512ed')
 
-prepare() {
-  cd "OxiCloud-${pkgver}"
-  RUSTUP_TOOLCHAIN=stable cargo fetch --config git-fetch-with-cli=false --config multiplexing=true --locked --target "$(rustc --print host-tuple)"
-}
-build() {
-  cd "OxiCloud-${pkgver}"
-  CFLAGS+=' -ffat-lto-objects'
-  export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target RUSTFLAGS="-C target-cpu=native -C opt-level=3"
-  # Use sccache if available
-  if command -v sccache &>/dev/null; then
-    export RUSTC_WRAPPER=sccache
-  fi
-  cargo build --frozen -r
-}
-check() {
-  cd "OxiCloud-${pkgver}"
-  export RUSTUP_TOOLCHAIN=stable
-  cargo test --frozen
-}
-package() {
-  cd "OxiCloud-${pkgver}"
-  install -Dm755 "target/release/${pkgname}" "${pkgdir}/usr/bin/${pkgname}"
-  # Install license
-  install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+export CARGO_PROFILE_RELEASE_LTO=true CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 CARGO_PROFILE_RELEASE_DEBUG=0 CARGO_INCREMENTAL=0
+export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target
+command -v sccache &>/dev/null && export RUSTC_WRAPPER=sccache SCCACHE_IDLE_TIMEOUT=10800 SCCACHE_DIRECT=true
+
+prepare(){
+  cd "OxiCloud-$pkgver"
+  cargo fetch --config git-fetch-with-cli=false --config multiplexing=true --locked --target "$(rustc --print host-tuple)"
 }
 
-# vim: ts=2 sw=2 et:
+build(){
+  cd "OxiCloud-$pkgver"
+  export RUSTFLAGS="-Ctarget-cpu=native -Copt-level=3 -Ccodegen-units=1 -Clto=fat -Clink-arg=-fuse-ld=lld -Cstrip=symbols -Cpanic=abort" CFLAGS+=' -ffat-lto-objects'
+  cargo build -r --frozen
+}
+
+check(){
+  cd "OxiCloud-$pkgver"
+  cargo test -r --frozen
+}
+
+package(){
+  cd "OxiCloud-$pkgver"
+  install -Dm755 "target/release/$pkgname" "$pkgdir/usr/bin/$pkgname"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
