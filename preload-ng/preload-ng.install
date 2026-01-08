@@ -1,0 +1,29 @@
+post_install(){
+  systemd-sysusers preload-ng.conf 2>/dev/null
+  systemd-tmpfiles --create preload-ng.conf 2>/dev/null
+  
+  printf '\n==> Preload-NG installed\n'
+  printf '==> Config: /etc/preload.conf\n'
+  printf '==> Enable: systemctl enable --now preload-ng.service\n'
+  printf '==> Status: systemctl status preload-ng.service\n'
+  printf '==> Logs:   journalctl -u preload-ng.service\n\n'
+}
+
+post_upgrade(){
+  systemd-tmpfiles --create preload-ng.conf 2>/dev/null
+  
+  printf '\n==> Preload-NG upgraded\n'
+  printf '==> Review: /etc/preload.conf.pacnew (if exists)\n'
+  printf '==> Restart: systemctl restart preload-ng.service\n\n'
+}
+
+pre_remove(){
+  systemctl is-active preload-ng.service &>/dev/null && systemctl stop preload-ng.service
+  systemctl is-enabled preload-ng.service &>/dev/null && systemctl disable preload-ng.service
+}
+
+post_remove(){
+  printf '\n==> Preload-NG removed\n'
+  printf '==> User/group "preload" and state files remain\n'
+  printf '==> Manual cleanup: userdel preload && rm -rf /var/lib/preload\n\n'
+}
