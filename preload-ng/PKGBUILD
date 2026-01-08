@@ -1,8 +1,7 @@
-#!/usr/bin/env bash
 # Maintainer: Ven0m0
 pkgname=preload-ng
 pkgver=0.6.6
-pkgrel=1
+pkgrel=2
 pkgdesc='Adaptive readahead daemon that prefetches files to reduce application startup times'
 arch=('x86_64')
 url='https://github.com/miguel-b-p/preload-ng'
@@ -11,19 +10,27 @@ depends=('glib2')
 makedepends=('git')
 optdepends=('ionice: reduce I/O priority' 'schedtool: adjust process scheduling')
 backup=('etc/preload.conf')
-source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/${pkgver}.tar.gz")
+install="$pkgname.install"
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/$pkgver.tar.gz")
 sha256sums=('SKIP')
 
 build(){
-  cd "${pkgname}-${pkgver}/preload-src"
-  make -j"$(nproc)" CFLAGS="${CFLAGS} -O3 -march=native -flto" LDFLAGS="${LDFLAGS} -flto"
+  cd "$pkgname-$pkgver/preload-src"
+  make -j"$(nproc)" \
+    CFLAGS="$CFLAGS -O3 -march=native -mtune=native -flto=auto -fuse-linker-plugin" \
+    LDFLAGS="$LDFLAGS -Wl,-O3,--sort-common,--as-needed,--gc-sections,-z,relro,-z,now -flto=auto"
+}
+
+check(){
+  cd "$pkgname-$pkgver/preload-src"
+  [[ -x preload ]] || return 1
 }
 
 package(){
-  cd "${pkgname}-${pkgver}/preload-src"
-  install -Dm755 preload "${pkgdir}/usr/bin/preload"
-  install -Dm644 preload.conf "${pkgdir}/etc/preload.conf"
-  install -Dm644 /dev/stdin "${pkgdir}/usr/lib/systemd/system/${pkgname}.service" <<'EOF'
+  cd "$pkgname-$pkgver/preload-src"
+  install -Dm755 preload "$pkgdir/usr/bin/preload"
+  install -Dm644 preload.conf "$pkgdir/etc/preload.conf"
+  install -Dm644 /dev/stdin "$pkgdir/usr/lib/systemd/system/$pkgname.service" <<'EOF'
 [Unit]
 Description=Preload-NG Adaptive Readahead Daemon
 Documentation=https://github.com/miguel-b-p/preload-ng
@@ -33,38 +40,49 @@ StartLimitBurst=5
 
 [Service]
 Type=simple
+User=preload
+Group=preload
 ExecStart=/usr/bin/preload --foreground --logfile ""
 Restart=on-failure
 RestartSec=10
 
-# Security hardening
-CapabilityBoundingSet=CAP_SYS_ADMIN CAP_IPC_LOCK CAP_SYS_PTRACE CAP_DAC_READ_SEARCH
+CapabilityBoundingSet=CAP_SYS_ADMIN CAP_IPC_LOCK CAP_DAC_READ_SEARCH
+AmbientCapabilities=CAP_SYS_ADMIN CAP_IPC_LOCK CAP_DAC_READ_SEARCH
+NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
-ProtectHome=true
-NoNewPrivileges=true
+ProtectHome=read-only
 ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true
 RestrictRealtime=true
 RestrictNamespaces=true
 LockPersonality=true
-MemoryDenyWriteExecute=true
 RestrictAddressFamilies=AF_UNIX AF_NETLINK
-SystemCallFilter=@system-service
+SystemCallFilter=@system-service @file-system @io-event
 SystemCallErrorNumber=EPERM
 
-# Resource limits
+StateDirectory=preload
+StateDirectoryMode=0750
+LogsDirectory=preload
+LogsDirectoryMode=0750
+CacheDirectory=preload
+CacheDirectoryMode=0750
+ReadWritePaths=/var/lib/preload
+
 Nice=19
 IOSchedulingClass=idle
-StateDirectory=preload
-ReadWritePaths=/var/lib/preload /var/log
+IOSchedulingPriority=7
 
 [Install]
 WantedBy=multi-user.target
 EOF
-  install -Dm644 /dev/stdin "${pkgdir}/usr/lib/sysusers.d/${pkgname}.conf" <<'EOF'
-u preload - "Preload daemon" /var/lib/preload -
+  install -Dm644 /dev/stdin "$pkgdir/usr/lib/sysusers.d/$pkgname.conf" <<'EOF'
+u preload - "Preload-NG daemon" /var/lib/preload -
+EOF
+  install -Dm644 /dev/stdin "$pkgdir/usr/lib/tmpfiles.d/$pkgname.conf" <<'EOF'
+d /var/lib/preload 0750 preload preload -
+d /var/log/preload 0750 preload preload -
+d /var/cache/preload 0750 preload preload -
 EOF
 }
-# vim: ts=2 sw=2 et:
