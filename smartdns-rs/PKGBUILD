@@ -1,43 +1,94 @@
 # Maintainer: Ven0m0
-# shellcheck shell=bash disable=SC2034,SC2154
-
 pkgname=smartdns-rs
 pkgver=0.13.0
-pkgrel=1
-pkgdesc='A cross-platform local DNS server written in Rust that returns the fastest IP address'
+pkgrel=2
+pkgdesc='Cross-platform local DNS server that returns the fastest IP address'
 arch=('x86_64' 'aarch64')
 url='https://github.com/mokeyish/smartdns-rs'
 license=('GPL-3.0-or-later')
 depends=('gcc-libs' 'glibc')
-makedepends=('rust' 'cargo' 'clang' 'llvm' 'llvm-libs')
+makedepends=('rust' 'cargo' 'clang' 'llvm')
 provides=('smartdns')
 conflicts=('smartdns')
-options=('strip' '!emptydirs' '!debug' '!lto')
+backup=('etc/smartdns/smartdns.conf')
+options=('strip' '!emptydirs' '!debug')
+install="$pkgname.install"
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
 sha256sums=('SKIP')
 
-export CARGO_PROFILE_RELEASE_LTO=true CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 CARGO_PROFILE_RELEASE_DEBUG=0
+export CARGO_PROFILE_RELEASE_LTO=true CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 CARGO_PROFILE_RELEASE_DEBUG=0 CARGO_INCREMENTAL=0
+export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target
+command -v sccache &>/dev/null && export RUSTC_WRAPPER=sccache SCCACHE_IDLE_TIMEOUT=10800 SCCACHE_DIRECT=true
 
-prepare() {
+prepare(){
   cd "$pkgname-$pkgver"
-  RUSTUP_TOOLCHAIN=stable cargo fetch --config git-fetch-with-cli=false --config multiplexing=true --locked --target "$(rustc --print host-tuple)"
-}
-
-build() {
-  cd "$pkgname-$pkgver"
-  CFLAGS+=' -ffat-lto-objects'
-  export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target RUSTFLAGS="-Ctarget-cpu=native -Copt-level=3 -Clink-arg=-fuse-ld=lld" CFLAGS
-  cargo build -r --frozen --no-default-features -F resolve-cli,dns-over-tls,dns-over-quic,mdns,dnssec,service,nft,nom-recipes-all,swagger-ui-cdn,http_client,serde
-}
-check() {
-  cd "$pkgname-$pkgver"
-  RUSTUP_TOOLCHAIN=stable cargo test -r --frozen
-}
-package() {
-  cd "$pkgname-$pkgver"
-  install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/smartdns"
-  install -Dm0644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
-  install -Dm0644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+  cargo fetch --config git-fetch-with-cli=false --config multiplexing=true --locked --target "$(rustc --print host-tuple)"
 }
 
-# vim: ts=2 sw=2 et:
+build(){
+  cd "$pkgname-$pkgver"
+  export RUSTFLAGS="-Ctarget-cpu=native -Copt-level=3 -Ccodegen-units=1 -Clto=fat -Clink-arg=-fuse-ld=lld -Cstrip=symbols -Cpanic=abort" CFLAGS+=' -ffat-lto-objects'
+  cargo build -r --frozen --no-default-features \
+    -F resolve-cli,dns-over-tls,dns-over-quic,mdns,dnssec,service,nft,nom-recipes-all,swagger-ui-cdn,http_client,serde
+}
+
+check(){
+  cd "$pkgname-$pkgver"
+  cargo test -r --frozen
+}
+
+package(){
+  cd "$pkgname-$pkgver"
+  install -Dm755 "target/release/smartdns" "$pkgdir/usr/bin/smartdns"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+  install -Dm644 /dev/stdin "$pkgdir/etc/smartdns/smartdns.conf" <<'EOF'
+bind 127.0.0.1:53
+bind [::1]:53
+cache-size 10000
+cache-persist yes
+prefetch-domain yes
+serve-expired yes
+serve-expired-ttl 86400
+speed-check-mode tcp:443,tcp:80,ping
+log-level warn
+log-num 2
+log-size 128K
+
+server 1.1.1.1
+server 1.0.0.1
+server 8.8.8.8
+server 8.8.4.4
+server-tls 1.1.1.1
+server-tls 1.0.0.1
+EOF
+
+  install -Dm644 /dev/stdin "$pkgdir/usr/lib/systemd/system/$pkgname.service" <<'EOF'
+[Unit]
+Description=SmartDNS-RS high-performance DNS server
+Documentation=https://github.com/mokeyish/smartdns-rs
+After=network-online.target
+Wants=network-online.target
+Before=nss-lookup.target
+Conflicts=systemd-resolved.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/smartdns run -c /etc/smartdns/smartdns.conf
+Restart=on-failure
+RestartSec=5
+User=root
+Group=root
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/cache /var/log
+PrivateTmp=true
+LimitNOFILE=65536
+LimitNPROC=512
+
+[Install]
+WantedBy=multi-user.target
+EOF
+}
