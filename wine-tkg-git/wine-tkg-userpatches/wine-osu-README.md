@@ -1,6 +1,18 @@
 # Wine OSU Patches Integration
 
-This directory contains patches from the [wine-osu-patches](https://github.com/whrvt/wine-osu-patches) repository, which provides optimizations and customizations specifically for running osu! (and other games) on Linux via Wine.
+The wine-osu patches are integrated via a **git submodule** located at `wine-tkg-git/wine-osu-patches/`. This submodule references the [wine-osu-patches](https://github.com/whrvt/wine-osu-patches) repository, which provides optimizations and customizations specifically for running osu! (and other games) on Linux via Wine.
+
+## Updating the Patches
+
+To update to the latest wine-osu patches:
+
+```bash
+cd wine-tkg-git/wine-osu-patches
+git pull origin master
+cd ../..
+git add wine-tkg-git/wine-osu-patches
+git commit -m "wine-tkg-git: Update wine-osu-patches submodule"
+```
 
 ## What's Included
 
