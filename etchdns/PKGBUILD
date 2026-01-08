@@ -1,14 +1,15 @@
-# Maintainer:  Frank Denis
+# Maintainer: Frank Denis
 pkgname=etchdns
 pkgver=0.1.2
-pkgrel=1
+pkgrel=2
 makedepends=('rust' 'cargo')
 depends=('gcc-libs' 'glibc')
 arch=('x86_64' 'aarch64')
-pkgdesc="A caching DNS proxy with advanced security features, WebAssembly hooks, and comprehensive protection mechanisms"
+pkgdesc="Caching DNS proxy with advanced security features and WebAssembly hooks"
 url="https://github.com/jedisct1/etchdns"
 license=('MIT')
 options=('strip' '!emptydirs' '!debug' '!libtool')
+install="$pkgname.install"
 source=("$pkgname-$pkgver.tar.gz::https://github.com/jedisct1/$pkgname/archive/refs/tags/$pkgver.tar.gz")
 sha256sums=('SKIP')
 
@@ -23,8 +24,8 @@ prepare(){
 
 build(){
   cd "$pkgname-$pkgver"
-  export RUSTFLAGS="-Ctarget-cpu=native -Copt-level=3 -Ccodegen-units=1 -Clto=fat -Clink-arg=-fuse-ld=lld -Cstrip=symbols"
-  export CFLAGS+=' -ffat-lto-objects'
+  CFLAGS+=' -ffat-lto-objects'
+  export RUSTFLAGS="-Ctarget-cpu=native -Copt-level=3 -Ccodegen-units=1 -Clto=true -Clink-arg=-fuse-ld=lld -Cstrip=symbols" CFLAGS
   cargo build -r --frozen --bins --lib --no-default-features
 }
 
@@ -36,19 +37,103 @@ check(){
 package(){
   cd "$pkgname-$pkgver"
   install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/$pkgname"
-  install -Dm0644 /dev/stdin "$pkgdir/usr/lib/systemd/system/etchdns.service" <<'EOF'
+  
+  install -Dm0644 /dev/stdin "$pkgdir/etc/$pkgname.toml" <<'EOF'
+listen_addr = "127.0.0.1:53"
+cache = true
+cache_size = 10000
+cache_ttl_cap = 86400
+cache_in_memory_only = false
+prefetch_popular_queries = true
+prefetch_threshold = 5
+log_level = "warn"
+listen_addresses = ["0.0.0.0:53"]
+dns_packet_len_max = 4096
+upstream_servers = [
+  "1.1.1.2:53",
+  "1.0.0.2:53",
+  "1.1.1.1:53",
+  "1.0.0.1:53"
+]
+load_balancing_strategy = "fastest"
+server_timeout = 3
+probe_interval = 60
+max_udp_clients = 1000
+max_tcp_clients = 1000
+max_doh_connections = 100
+max_inflight_queries = 1000
+authoritative_dns = false
+serve_stale_grace_time = 86400
+serve_stale_ttl = 120
+negative_cache_ttl = 120
+min_cache_ttl = 1
+udp_rate_limit_window = 0
+udp_rate_limit_count = 1000
+udp_rate_limit_max_clients = 100000
+tcp_rate_limit_window = 0
+tcp_rate_limit_count = 100
+tcp_rate_limit_max_clients = 50000
+doh_rate_limit_window = 0
+doh_rate_limit_count = 400
+doh_rate_limit_max_clients = 50000
+metrics_address = "127.0.0.1:9100"
+metrics_path = "/metrics"
+max_metrics_connections = 25
+control_listen_addresses = ["127.0.0.1:8080"]
+control_path = "/control"
+max_control_connections = 16
+query_log_include_client_addr = false
+query_log_include_query_type = false
+enable_ecs = true
+ecs_prefix_v4 = 24
+ecs_prefix_v6 = 56
+enable_strict_ip_validation = false
+block_private_ips = false
+block_loopback_ips = false
+min_client_port = 1024
+blocked_ip_ranges = []
+user = "root"
+group = "root"
+EOF
+
+  install -Dm0644 /dev/stdin "$pkgdir/usr/lib/systemd/system/$pkgname.service" <<'EOF'
 [Unit]
 Description=EtchDNS high-performance DNS proxy
-After=network.target
+After=network-online.target
+Wants=network-online.target
+Before=nss-lookup.target
+Conflicts=systemd-resolved.service
 
 [Service]
+Type=simple
 ExecStart=/usr/bin/etchdns -c /etc/etchdns.toml
+Restart=on-failure
+RestartSec=5
 User=root
 Group=root
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/cache
+PrivateTmp=true
 LimitNOFILE=65536
-Restart=on-failure
+LimitNPROC=512
 
 [Install]
 WantedBy=multi-user.target
+EOF
+
+  install -Dm0644 /dev/stdin "$pkgdir/usr/lib/systemd/system/$pkgname.socket" <<'EOF'
+[Unit]
+Description=EtchDNS DNS Proxy Socket
+PartOf=etchdns.service
+
+[Socket]
+ListenDatagram=127.0.0.1:53
+ListenStream=127.0.0.1:53
+
+[Install]
+WantedBy=sockets.target
 EOF
 }
