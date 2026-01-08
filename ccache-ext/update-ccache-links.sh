@@ -12,8 +12,8 @@ done
 # Recreate symlinks
 cd /usr/bin || exit 1
 for file in {*-,}{c++,cc,clang,clang++,g++,gcc}{,-[0-9]*}; do
-  if [[ -x $file ]]; then
-    ret=$(pacman -Qqo "/usr/bin/$file" 2>/dev/null | grep -e gcc -e clang || true)
+  if [[ -x "$file" ]]; then
+    ret=$(pacman -Qqo "./$file" 2>/dev/null | grep -e gcc -e clang || true)
     if [[ $ret ]]; then
       ln -s /usr/bin/ccache "/usr/lib/ccache/bin/$file"
     fi
