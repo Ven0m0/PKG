@@ -20,8 +20,7 @@ export CARGO_PROFILE_RELEASE_LTO=true CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 CARG
 
 prepare() {
   cd "$pkgname-$pkgver"
-  git clean -dfx
-  cargo fetch --locked --target "$(rustc --print host-tuple)"
+  RUSTUP_TOOLCHAIN=stable cargo fetch --config git-fetch-with-cli=false --config multiplexing=true --locked --target "$(rustc --print host-tuple)"
 }
 
 build() {
