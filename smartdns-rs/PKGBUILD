@@ -25,13 +25,12 @@ build() {
   cd "$pkgname-$pkgver"
   CFLAGS+=' -ffat-lto-objects'
   export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target RUSTFLAGS="-Ctarget-cpu=native -Copt-level=3 -Clink-arg=-fuse-ld=lld"
-  cargo build -r --frozen
+  cargo build -r --frozen --no-default-features -F resolve-cli,dns-over-tls,dns-over-quic,mdns,dnssec,service,nft,nom-recipes-all,swagger-ui-cdn,http_client,serde
 }
 
 check() {
   cd "$pkgname-$pkgver"
-  export RUSTUP_TOOLCHAIN=stable
-  cargo test --frozen -r
+  RUSTUP_TOOLCHAIN=stable cargo test --frozen -r
 }
 package() {
   cd "$pkgname-$pkgver"
@@ -39,4 +38,5 @@ package() {
   install -Dm0644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
   install -Dm0644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
 }
+
 # vim: ts=2 sw=2 et:
