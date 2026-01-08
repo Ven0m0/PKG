@@ -4,8 +4,8 @@ set -euo pipefail
 # Clear symlinks
 cd /usr/lib/ccache/bin || exit 1
 for file in {*-,}{c++,cc,clang,clang++,g++,gcc}{,-[0-9]*}; do
-  if [[ -L $file ]]; then
-    rm "/usr/lib/ccache/bin/$file"
+  if [[ -L "$file" ]]; then
+    rm -- "$file"
   fi
 done
 
