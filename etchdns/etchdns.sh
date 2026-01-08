@@ -1,24 +1,32 @@
 #!/usr/bin/env bash
 # shellcheck enable=all shell=bash source-path=SCRIPTDIR
 set -euo pipefail; shopt -s nullglob globstar
-s=${BASH_SOURCE[0]}
-[[ $s != /* ]] && s=$PWD/$s
-cd -P -- "${s%/*}"
-has() { command -v -- "$1" &>/dev/null; }
+IFS=$'\n\t' LC_ALL=C
+has(){ command -v -- "$1" &>/dev/null; }
+die(){ printf '%s\n' "$1" >&2; exit "${2:-1}"; }
 
 sudo -v
-has sccache && export CC="sccache clang" CXX="sccache clang++" RUSTC_WRAPPER=sccache SCCACHE_IDLE_TIMEOUT=10800
 
-readonly MALLOC_CONF="thp:always,metadata_thp:always,tcache:true,percpu_arena:percpu"
-export RUSTFLAGS="-Copt-level=3 -Ctarget-cpu=native -Ccodegen-units=1 -Cstrip=symbols -Clto=fat -Clink-arg=-fuse-ld=mold -Cpanic=immediate-abort -Zunstable-options -Ztune-cpu=native -Cllvm-args=-enable-dfa-jump-thread -Zfunction-sections -Zfmt-debug=none -Zlocation-detail=none"
-export MALLOC_CONF _RJEM_MALLOC_CONF="$MALLOC_CONF" RUSTC_BOOTSTRAP=1 CARGO_INCREMENTAL=0 OPT_LEVEL=3 CARGO_PROFILE_RELEASE_LTO=true CARGO_CACHE_RUSTC_INFO=1
+readonly MALLOC_CONF="thp:always,metadata_thp: always,tcache:true,percpu_arena:percpu"
+export MALLOC_CONF _RJEM_MALLOC_CONF="$MALLOC_CONF" RUSTC_BOOTSTRAP=1 CARGO_INCREMENTAL=0 CARGO_PROFILE_RELEASE_LTO=true CARGO_CACHE_RUSTC_INFO=1
 
-cargo +nightly -Zunstable-options -Zavoid-dev-deps install etchdns -f
+if has sccache; then
+  export CC="sccache clang" CXX="sccache clang++" RUSTC_WRAPPER=sccache SCCACHE_IDLE_TIMEOUT=10800
+fi
+
+export RUSTFLAGS="-Copt-level=3 -Ctarget-cpu=native -Ccodegen-units=1 -Cstrip=symbols -Clto=fat -Clink-arg=-fuse-ld=mold -Cpanic=immediate-abort"
+[[ ${CARGO_NIGHTLY:-} == 1 ]] && RUSTFLAGS+=" -Zunstable-options -Ztune-cpu=native"
+
+cargo +nightly install etchdns -f 2>/dev/null || cargo install etchdns -f
 pbin=$(command -v etchdns || printf '%s\n' "$HOME/.cargo/bin/etchdns")
+[[ -x $pbin ]] || die "etchdns binary not found after install"
 pbin_name=$(basename "$pbin")
 
-sudo bash <<SUDO_BLOCK
+sudo bash <<'SUDO_BLOCK'
+set -euo pipefail
+pbin="$1" pbin_name="$2"
 ln -sf "$pbin" "/usr/local/bin/$pbin_name"
+
 cat >/etc/etchdns.toml <<'EOF'
 listen_addr = "127.0.0.1:53"
 cache = true
@@ -83,7 +91,7 @@ Description=EtchDNS high-performance DNS proxy
 After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/etchdns -c /etc/etchdns.toml
+ExecStart=/usr/local/bin/etchdns -c /etc/etchdns. toml
 User=root
 Group=root
 LimitNOFILE=65536
@@ -93,9 +101,11 @@ Restart=on-failure
 WantedBy=multi-user.target
 EOF
 
-systemctl disable --now systemd-resolved-monitor.socket systemd-resolved-varlink.socket systemd-resolved.service
 systemctl daemon-reload
+for unit in systemd-resolved-monitor.socket systemd-resolved-varlink.socket systemd-resolved.service; do
+  systemctl is-enabled "$unit" &>/dev/null && systemctl disable --now "$unit"
+done
 systemctl enable --now etchdns
-SUDO_BLOCK
+SUDO_BLOCK "$pbin" "$pbin_name"
 
-printf 'EtchDNS setup complete. Check service status: systemctl status etchdns\n'
+printf 'EtchDNS setup complete. Check: systemctl status etchdns\n'
