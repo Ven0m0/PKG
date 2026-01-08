@@ -1,0 +1,21 @@
+post_install(){
+  printf '\n==> EtchDNS installed\n'
+  printf '==> Config: /etc/etchdns.toml\n'
+  printf '==> To enable:\n'
+  printf '    1. Disable systemd-resolved if active:\n'
+  printf '       systemctl disable --now systemd-resolved.service\n'
+  printf '    2. Enable etchdns:\n'
+  printf '       systemctl enable --now etchdns.service\n'
+  printf '==> Check status: systemctl status etchdns\n\n'
+}
+
+post_upgrade(){
+  printf '\n==> EtchDNS upgraded\n'
+  printf '==> Review config changes: /etc/etchdns.toml.pacnew (if exists)\n'
+  printf '==> Restart: systemctl restart etchdns\n\n'
+}
+
+pre_remove(){
+  systemctl is-active etchdns.service &>/dev/null && systemctl stop etchdns.service
+  systemctl is-enabled etchdns.service &>/dev/null && systemctl disable etchdns.service
+}
