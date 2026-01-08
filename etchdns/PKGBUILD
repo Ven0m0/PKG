@@ -8,8 +8,8 @@ arch=('x86_64' 'aarch64')
 pkgdesc="A caching DNS proxy with advanced security features, WebAssembly hooks, and comprehensive protection mechanisms"
 url="https://github.com/jedisct1/etchdns"
 license=('MIT')
-options=('strip' '! emptydirs' '!debug' '!libtool')
-source=("$pkgname-$pkgver.tar.gz:: https://github.com/jedisct1/$pkgname/archive/refs/tags/$pkgver.tar.gz")
+options=('strip' '!emptydirs' '!debug' '!libtool')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/jedisct1/$pkgname/archive/refs/tags/$pkgver.tar.gz")
 sha256sums=('SKIP')
 
 export CARGO_PROFILE_RELEASE_LTO=true CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 CARGO_INCREMENTAL=0
