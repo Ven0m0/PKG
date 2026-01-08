@@ -1,4 +1,4 @@
-# Maintainer: Frank Denis
+# Maintainer:  Frank Denis
 pkgname=etchdns
 pkgver=0.1.2
 pkgrel=1
@@ -8,32 +8,32 @@ arch=('x86_64' 'aarch64')
 pkgdesc="A caching DNS proxy with advanced security features, WebAssembly hooks, and comprehensive protection mechanisms"
 url="https://github.com/jedisct1/etchdns"
 license=('MIT')
-options=('strip' '!emptydirs' '!debug' '!libtool')
-source=("$pkgname-$pkgver.tar.gz::https://github.com/jedisct1/$pkgname/archive/refs/tags/$pkgver.tar.gz")
+options=('strip' '! emptydirs' '!debug' '!libtool')
+source=("$pkgname-$pkgver.tar.gz:: https://github.com/jedisct1/$pkgname/archive/refs/tags/$pkgver.tar.gz")
 sha256sums=('SKIP')
 
 export CARGO_PROFILE_RELEASE_LTO=true CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 CARGO_INCREMENTAL=0
 export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target
 command -v sccache &>/dev/null && export RUSTC_WRAPPER=sccache SCCACHE_IDLE_TIMEOUT=10800 SCCACHE_DIRECT=true
 
-prepare() {
+prepare(){
   cd "$pkgname-$pkgver"
   cargo fetch --config git-fetch-with-cli=false --config multiplexing=true --locked --target "$(rustc --print host-tuple)"
 }
 
-build() {
+build(){
   cd "$pkgname-$pkgver"
-  CFLAGS+=' -ffat-lto-objects'
-  export RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C link-arg=-fuse-ld=lld" CFLAGS
+  export RUSTFLAGS="-Ctarget-cpu=native -Copt-level=3 -Ccodegen-units=1 -Clto=fat -Clink-arg=-fuse-ld=lld -Cstrip=symbols"
+  export CFLAGS+=' -ffat-lto-objects'
   cargo build -r --frozen --bins --lib --no-default-features
 }
 
-check() {
+check(){
   cd "$pkgname-$pkgver"
   cargo test -r --frozen --no-default-features
 }
 
-package() {
+package(){
   cd "$pkgname-$pkgver"
   install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/$pkgname"
   install -Dm0644 /dev/stdin "$pkgdir/usr/lib/systemd/system/etchdns.service" <<'EOF'
@@ -52,5 +52,3 @@ Restart=on-failure
 WantedBy=multi-user.target
 EOF
 }
-
-# vim: ts=2 sw=2 et:
