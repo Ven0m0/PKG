@@ -32,7 +32,7 @@ jobs:
     outputs:
       pkgs: ${{ steps.set.outputs.pkgs }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - id: set
@@ -85,7 +85,7 @@ jobs:
         pkg: ${{ fromJSON(needs.matrix.outputs.pkgs) }}
         arch: [amd64, arm64]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Determine build method
         id: build_method
         shell: bash

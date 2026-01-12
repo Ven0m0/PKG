@@ -37,7 +37,7 @@ jobs:
       removed: ${{ steps.changed-packages.outputs.removed }}
     steps:
       - name: Clone PKGBUILDs
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Find changed packages
@@ -85,7 +85,7 @@ jobs:
       matrix: ${{fromJSON(needs.get-changed-packages.outputs.changed)}}
     steps:
       - name: Clone PKGBUILDs
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup build environment
         run: |
           # Plug-in binary packages repository
