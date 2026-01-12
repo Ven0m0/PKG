@@ -32,7 +32,7 @@ jobs:
     outputs:
       pkgs: ${{ steps.set.outputs.pkgs }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - id: set
@@ -85,7 +85,7 @@ jobs:
         pkg: ${{ fromJSON(needs.matrix.outputs.pkgs) }}
         arch: [amd64, arm64]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
       - name: Determine build method
         id: build_method
         shell: bash
@@ -254,8 +254,19 @@ jobs:
         run: |
           cd "${{ matrix.pkg }}"
           source PKGBUILD
-          PKGFILE="${{ steps.makepkg_standard.outputs.pkgfile0 }}"
-          [[ -z "$PKGFILE" ]] && PKGFILE=$(find . -maxdepth 1 -name "*.pkg.tar.zst" -printf '%f\n' | head -1)
+          # Handle both standard and Docker builds
+          if [[ "${{ steps.build_method.outputs.method }}" == "standard" ]]; then
+            PKGFILE="${{ steps.makepkg_standard.outputs.pkgfile0 }}"
+          fi
+          # Fallback to finding the package file
+          if [[ -z "$PKGFILE" ]]; then
+            PKGFILE=$(find . -maxdepth 1 -name "*.pkg.tar.zst" -printf '%f\n' | head -1)
+          fi
+          # Validate PKGFILE exists
+          if [[ -z "$PKGFILE" ]] || [[ ! -f "$PKGFILE" ]]; then
+            echo "Error: Package file not found"
+            exit 1
+          fi
           {
             echo "PKGNAME=${pkgname}"
             echo "PKGVER=${pkgver}"
