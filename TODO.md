@@ -5,6 +5,7 @@ This document tracks planned features, improvements, and long-term goals for the
 ## High Priority
 
 - implement build workflows from https://github.com/loathingKernel/PKGBUILDs
+- https://github.com/John-CPP/ABS
 
 ### Documentation
 
