@@ -1,0 +1,57 @@
+# Maintainer: Carl Smedstad <carsme@archlinux.org>
+# Contributor: huyz
+
+pkgname=gemini-cli
+pkgver=0.23.0
+pkgrel=1
+epoch=1
+pkgdesc="Open-source AI agent that brings the power of Gemini directly into your terminal"
+arch=(x86_64)
+options=(!debug)
+url="https://github.com/google-gemini/gemini-cli"
+license=(Apache-2.0)
+depends=(
+  gcc-libs
+  glibc
+  nodejs
+)
+makedepends=(
+  git
+  jq
+  npm
+)
+source=("git+$url.git#tag=v$pkgver")
+b2sums=('21bd948eda63cb63866c822a07fdd0b860313c5569bad09709e33b79bfeeb39461b31763f06fe86bd8728127a342cfc8a0d31a053566f84b95af666e765639ec')
+
+prepare() {
+  cd $pkgname
+  npm clean-install --ignore-scripts
+}
+
+build() {
+  cd $pkgname
+  npm run bundle
+  local bundled=$(jq '.dependencies + .optionalDependencies | keys' package.json)
+  npm pkg set --json bundledDependencies="$bundled"
+  npm pack
+}
+
+check() {
+  cd $pkgname
+  npm run build
+  # Deselect failing tests
+  npm test -- \
+    --exclude='**/BuiltinCommandLoader.test.ts' \
+    --exclude='**/config.integration.test.ts' \
+    --exclude='**/mcp-client.test.ts'
+}
+
+package() {
+  cd $pkgname
+  npm install --global --offline --prefix "$pkgdir/usr" \
+    google-$pkgname-$pkgver.tgz
+  install -vDm644 -t "$pkgdir/usr/share/doc/$pkgname" README.md
+  install -vDm644 -t "$pkgdir/usr/share/licenses/$pkgname" LICENSE
+}
+
+# vim:set ts=2 sw=2 et:

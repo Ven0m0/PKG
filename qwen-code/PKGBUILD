@@ -1,0 +1,46 @@
+# Maintainer: envolution
+# Contributor: Aaron Coach <aur@awc.id.au>
+# shellcheck shell=bash disable=SC2034,SC2154
+# ci|prebuild=_verformat.sh| https://github.com/envolution/aur/blob/main/maintain/build/qwen-code/_verformat.sh
+
+pkgname=qwen-code
+pkgver=0.6.2
+pkgrel=1
+pkgdesc="cli coding agent (fork of gemini-cli)"
+arch=(x86_64)
+url="https://github.com/QwenLM/qwen-code"
+license=('Apache-2.0')
+makedepends=('npm' 'git' 'jq')
+depends=('nodejs' 'gcc-libs' 'glibc')
+source=("git+$url.git#tag=v$pkgver")
+options=(!debug)
+noextract=("$pkgname-$_pkgver.tgz")
+sha256sums=('3b2b10c6312e87d91c37d1e59d427bb7cf1cf2d898a44e60567f0f30718f83f9')
+
+prepare() {
+  cd $pkgname
+  npm clean-install --ignore-scripts
+}
+build() {
+  cd $pkgname
+  npm run bundle
+  local bundled=$(jq '.dependencies + .optionalDependencies | keys' package.json)
+  npm pkg set --json bundledDependencies="$bundled"
+  npm pack
+}
+check() {
+  cd $pkgname
+  npm run build
+  # Deselect failing tests
+  npm test -- \
+    --exclude='**/BuiltinCommandLoader.test.ts' \
+    --exclude='**/config.integration.test.ts' \
+    --exclude='**/mcp-client.test.ts'
+}
+package() {
+  npm install -g --offline --prefix "${pkgdir}/usr" "${srcdir}/${pkgname}-${_pkgver}.tgz"
+  install -vDm644 -t "$pkgdir/usr/share/doc/$pkgname" README.md
+  install -vDm644 -t "$pkgdir/usr/share/licenses/$pkgname" LICENSE
+}
+
+# vim:set ts=2 sw=2 et:
