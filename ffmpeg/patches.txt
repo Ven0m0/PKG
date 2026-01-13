@@ -7,3 +7,8 @@ https://raw.githubusercontent.com/negativo17/ffmpeg/master/ffmpeg-decklink-14.pa
 # Cuda
 https://raw.githubusercontent.com/negativo17/ffmpeg/master/ffmpeg-cuda-13.patch
 https://raw.githubusercontent.com/negativo17/ffmpeg/master/ffmpeg-LCEVCdec-4.patch
+
+
+# Jellyfin
+# TODO: check out which patches could be useful
+# https://github.com/jellyfin/jellyfin-ffmpeg/tree/jellyfin/debian/patches/
