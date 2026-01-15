@@ -8,6 +8,8 @@ This document tracks planned features, improvements, and long-term goals for the
 - https://github.com/John-CPP/ABS
 - https://github.com/ms178/archpkgbuilds
 - https://github.com/Terromur/PKGBUILDs
+- https://github.com/ms178/archpkgbuilds/tree/main/packages/vkd3d-proton-mingw-git
+- https://github.com/ms178/archpkgbuilds/tree/main/packages/tar-parallel
 
 ### Documentation
 
