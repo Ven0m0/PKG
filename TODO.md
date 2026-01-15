@@ -10,6 +10,7 @@ This document tracks planned features, improvements, and long-term goals for the
 - https://github.com/Terromur/PKGBUILDs
 - https://github.com/ms178/archpkgbuilds/tree/main/packages/vkd3d-proton-mingw-git
 - https://github.com/ms178/archpkgbuilds/tree/main/packages/tar-parallel
+- https://github.com/FabioLolix/PKGBUILD-AUR_fix
 
 ### Documentation
 
