@@ -6,6 +6,7 @@ This document tracks planned features, improvements, and long-term goals for the
 
 - implement build workflows from https://github.com/loathingKernel/PKGBUILDs
 - https://github.com/John-CPP/ABS
+- https://github.com/ms178/archpkgbuilds
 
 ### Documentation
 
