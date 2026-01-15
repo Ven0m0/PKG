@@ -1,1 +1,2 @@
 - https://github.com/ms178/archpkgbuilds/tree/main/packages/dxvk-mingw-git
+- https://github.com/Terromur/PKGBUILDs/tree/main/dxvk-pure-clang-git
