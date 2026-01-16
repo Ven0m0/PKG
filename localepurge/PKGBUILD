@@ -9,10 +9,10 @@ pkgver=0.7.3.11
 pkgrel=1
 pkgdesc="Script to remove disk space wasted for unneeded localizations."
 arch=('any')
-url="http://packages.debian.org/source/sid/localepurge"
+url="https://packages.debian.org/source/sid/localepurge"
 license=('GPL')
 backup=('etc/locale.nopurge')
-source=("http://deb.debian.org/debian/pool/main/l/localepurge/${pkgname}_${pkgver}.tar.xz"
+source=("https://deb.debian.org/debian/pool/main/l/localepurge/${pkgname}_${pkgver}.tar.xz"
         "${pkgname}.diff"
         "${pkgname}_fgrep.diff"
         "${pkgname}.8.diff"
