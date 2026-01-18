@@ -172,7 +172,7 @@ makepkg -si
 
 ## License
 
-- glibc is licensed under LGPL 2.1 or later
+- glibc is licensed under LGPL-2.1-or-later
 - Patches are modifications for compatibility
 
 ---
