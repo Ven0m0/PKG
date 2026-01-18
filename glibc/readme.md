@@ -84,7 +84,7 @@ This build is **NOT recommended** for:
 ## Trade-Off Summary
 
 | Aspect | Official glibc | glibc-eac-roco |
-|--------|---------------|----------------|
+| :------ | :------------- | :------------- |
 | **Security** | ✅ Latest patches | ⚠️ Reverted improvements |
 | **Performance** | ✅ Optimized | ⚠️ Older code paths |
 | **Compatibility** | ✅ Standard | ⚠️ Divergent |
