@@ -182,7 +182,7 @@ makepkg -si
 **Issues with:**
 - **Gaming/EAC compatibility:** Report in this repository
 - **General glibc bugs:** Report to [upstream glibc](https://sourceware.org/bugzilla/)
-- **Security vulnerabilities:** See [SECURITY.md](../SECURITY.md)
+- **Security vulnerabilities:** Report via your distribution's standard security response process.
 
 ---
 
