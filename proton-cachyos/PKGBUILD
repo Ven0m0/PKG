@@ -54,42 +54,6 @@ depends=(
   python-six
   sdl2            lib32-sdl2
   speex           lib32-speex
-# Start of old steam-native-runtime
-  atk             lib32-atk
-  cairo           lib32-cairo
-  curl            lib32-curl
-  dbus-glib       lib32-dbus-glib
-  freeglut        lib32-freeglut
-  gdk-pixbuf2     lib32-gdk-pixbuf2
-  glu             lib32-glu
-  lcms2           lib32-lcms2
-  libcaca         lib32-libcaca
-  libcanberra     lib32-libcanberra
-  dbus            lib32-dbus
-  libdrm          lib32-libdrm
-  libice          lib32-libice
-  libibus
-  libnm           lib32-libnm
-  libusb          lib32-libusb
-  libvdpau        lib32-libvdpau
-  libvorbis       lib32-libvorbis
-  libxft          lib32-libxft
-  libxmu          lib32-libxmu
-  libxrender      lib32-libxrender
-  libxtst         lib32-libxtst
-  nspr            lib32-nspr
-  openal          lib32-openal
-  pango           lib32-pango
-  sdl2            lib32-sdl2
-  sdl2_image      lib32-sdl2_image
-  sdl2_mixer      lib32-sdl2_mixer
-  sdl2_ttf        lib32-sdl2_ttf
-  pipewire        lib32-pipewire
-  librsvg
-  libsm           lib32-libsm
-  libtheora       lib32-libtheora
-  vulkan-driver   lib32-vulkan-driver
-# End of old steam-native-runtime
   unzip
   wayland         lib32-wayland
 )
@@ -142,33 +106,111 @@ makedepends=(
   xorg-util-macros
 )
 optdepends=(
-  alsa-lib              lib32-alsa-lib
-  alsa-plugins          lib32-alsa-plugins
-  ffmpeg
-  gnutls                lib32-gnutls
-  gst-plugins-bad
-  gst-plugins-base      lib32-gst-plugins-base
-  gst-plugins-base-libs lib32-gst-plugins-base-libs
-  gst-plugins-good      lib32-gst-plugins-good
-  gst-plugins-ugly
-  gtk3                  lib32-gtk3
-  libgphoto2
-  libpulse              lib32-libpulse
-  libva                 lib32-libva
-  libxcomposite         lib32-libxcomposite
-  libxinerama           lib32-libxinerama
-  opencl-icd-loader     lib32-opencl-icd-loader
-  pcsclite              lib32-pcsclite
-  samba
-  sdl2                  lib32-sdl2
-  steam
-  unixodbc
-  v4l-utils             lib32-v4l-utils
-  vulkan-icd-loader     lib32-vulkan-icd-loader
+  'steam: Required for running Proton games (highly recommended)'
+  'alsa-lib: ALSA audio support'
+  'lib32-alsa-lib: 32-bit ALSA audio support'
+  'alsa-plugins: Advanced ALSA plugins'
+  'lib32-alsa-plugins: 32-bit ALSA plugins'
+  'ffmpeg: Video codec support'
+  'gnutls: Advanced networking support'
+  'lib32-gnutls: 32-bit advanced networking'
+  'gst-plugins-bad: Additional video codecs'
+  'gst-plugins-base: Basic GStreamer plugins'
+  'lib32-gst-plugins-base: 32-bit GStreamer plugins'
+  'gst-plugins-base-libs: GStreamer base libraries'
+  'lib32-gst-plugins-base-libs: 32-bit GStreamer libraries'
+  'gst-plugins-good: Good quality codecs'
+  'lib32-gst-plugins-good: 32-bit good codecs'
+  'gst-plugins-ugly: Additional codec support'
+  'gtk3: GTK3 theming support'
+  'lib32-gtk3: 32-bit GTK3 support'
+  'libgphoto2: Camera/photo device support'
+  'libpulse: PulseAudio support'
+  'lib32-libpulse: 32-bit PulseAudio'
+  'libva: Hardware video acceleration'
+  'lib32-libva: 32-bit hardware video acceleration'
+  'libxcomposite: X11 composite extension'
+  'lib32-libxcomposite: 32-bit X11 composite'
+  'libxinerama: Multi-monitor support'
+  'lib32-libxinerama: 32-bit multi-monitor'
+  'opencl-icd-loader: OpenCL compute support'
+  'lib32-opencl-icd-loader: 32-bit OpenCL'
+  'pcsclite: Smart card support'
+  'lib32-pcsclite: 32-bit smart card support'
+  'samba: Windows file sharing (SMB/CIFS)'
+  'unixodbc: ODBC database connectivity'
+  'v4l-utils: Video4Linux webcam support'
+  'lib32-v4l-utils: 32-bit webcam support'
+  'vulkan-icd-loader: Vulkan graphics API'
+  'lib32-vulkan-icd-loader: 32-bit Vulkan'
+  'atk: Accessibility toolkit (only needed outside Steam)'
+  'lib32-atk: 32-bit accessibility (only needed outside Steam)'
+  'cairo: 2D graphics library (only needed outside Steam)'
+  'lib32-cairo: 32-bit 2D graphics (only needed outside Steam)'
+  'curl: URL transfer library (only needed outside Steam)'
+  'lib32-curl: 32-bit URL library (only needed outside Steam)'
+  'dbus-glib: D-Bus GLib bindings (only needed outside Steam)'
+  'lib32-dbus-glib: 32-bit D-Bus GLib (only needed outside Steam)'
+  'freeglut: OpenGL utility toolkit (only needed outside Steam)'
+  'lib32-freeglut: 32-bit OpenGL toolkit (only needed outside Steam)'
+  'gdk-pixbuf2: Image loading library (only needed outside Steam)'
+  'lib32-gdk-pixbuf2: 32-bit image loading (only needed outside Steam)'
+  'glu: OpenGL utility library (only needed outside Steam)'
+  'lib32-glu: 32-bit OpenGL utility (only needed outside Steam)'
+  'lcms2: Color management (only needed outside Steam)'
+  'lib32-lcms2: 32-bit color management (only needed outside Steam)'
+  'libcaca: Text mode graphics (only needed outside Steam)'
+  'lib32-libcaca: 32-bit text graphics (only needed outside Steam)'
+  'libcanberra: Event sound support (only needed outside Steam)'
+  'lib32-libcanberra: 32-bit event sounds (only needed outside Steam)'
+  'dbus: Message bus system (only needed outside Steam)'
+  'lib32-dbus: 32-bit message bus (only needed outside Steam)'
+  'libdrm: Direct rendering manager (only needed outside Steam)'
+  'lib32-libdrm: 32-bit DRM (only needed outside Steam)'
+  'libice: Inter-client exchange (only needed outside Steam)'
+  'lib32-libice: 32-bit ICE (only needed outside Steam)'
+  'libibus: Intelligent input bus (only needed outside Steam)'
+  'libnm: NetworkManager library (only needed outside Steam)'
+  'lib32-libnm: 32-bit NetworkManager (only needed outside Steam)'
+  'libusb: USB device access (only needed outside Steam)'
+  'lib32-libusb: 32-bit USB access (only needed outside Steam)'
+  'libvdpau: VDPAU video acceleration (only needed outside Steam)'
+  'lib32-libvdpau: 32-bit VDPAU (only needed outside Steam)'
+  'libvorbis: Vorbis audio codec (only needed outside Steam)'
+  'lib32-libvorbis: 32-bit Vorbis (only needed outside Steam)'
+  'libxft: X11 font rendering (only needed outside Steam)'
+  'lib32-libxft: 32-bit font rendering (only needed outside Steam)'
+  'libxmu: X11 miscellaneous utilities (only needed outside Steam)'
+  'lib32-libxmu: 32-bit X11 utilities (only needed outside Steam)'
+  'libxrender: X11 rendering extension (only needed outside Steam)'
+  'lib32-libxrender: 32-bit X11 rendering (only needed outside Steam)'
+  'libxtst: X11 testing extension (only needed outside Steam)'
+  'lib32-libxtst: 32-bit X11 testing (only needed outside Steam)'
+  'nspr: Netscape Portable Runtime (only needed outside Steam)'
+  'lib32-nspr: 32-bit NSPR (only needed outside Steam)'
+  'openal: OpenAL audio API (only needed outside Steam)'
+  'lib32-openal: 32-bit OpenAL (only needed outside Steam)'
+  'pango: Text layout and rendering (only needed outside Steam)'
+  'lib32-pango: 32-bit text rendering (only needed outside Steam)'
+  'sdl2_image: SDL2 image loading (only needed outside Steam)'
+  'lib32-sdl2_image: 32-bit SDL2 image (only needed outside Steam)'
+  'sdl2_mixer: SDL2 audio mixing (only needed outside Steam)'
+  'lib32-sdl2_mixer: 32-bit SDL2 mixer (only needed outside Steam)'
+  'sdl2_ttf: SDL2 TrueType fonts (only needed outside Steam)'
+  'lib32-sdl2_ttf: 32-bit SDL2 TTF (only needed outside Steam)'
+  'pipewire: Modern audio/video server (only needed outside Steam)'
+  'lib32-pipewire: 32-bit PipeWire (only needed outside Steam)'
+  'librsvg: SVG rendering library (only needed outside Steam)'
+  'libsm: X11 session management (only needed outside Steam)'
+  'lib32-libsm: 32-bit session management (only needed outside Steam)'
+  'libtheora: Theora video codec (only needed outside Steam)'
+  'lib32-libtheora: 32-bit Theora (only needed outside Steam)'
+  'vulkan-driver: Vulkan graphics driver (only needed outside Steam)'
+  'lib32-vulkan-driver: 32-bit Vulkan driver (only needed outside Steam)'
 )
 optdepends+=(
-  ntsync-common
-  NTSYNC-MODULE
+  'ntsync-common: NT synchronization primitives for better performance'
+  'NTSYNC-MODULE: Kernel module for NT synchronization support'
 )
 provides=('proton')
 install=${pkgname}.install
