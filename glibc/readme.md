@@ -81,7 +81,7 @@ This build is **NOT recommended** for:
 
 ---
 
-## Trade-Off Summary
+## Trade-off Summary
 
 | Aspect | Official glibc | glibc-eac-roco |
 | :------ | :------------- | :------------- |
