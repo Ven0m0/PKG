@@ -176,7 +176,7 @@ optdepends=(
   'libxslt: XML transformation support'
   'libva: Hardware video acceleration (Intel/AMD)'
   'gtk3: GTK3 theming for Wine applications'
-  'gst-plugins-base-libs: GStreamer multimedia framework'
+  'gst-plugins-base-libs: GStreamer multimedia base libraries'
   'vulkan-icd-loader: Vulkan graphics API support'
   'sdl2: SDL2 game controller and graphics support'
   'cups: Printing support'
