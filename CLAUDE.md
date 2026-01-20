@@ -14,6 +14,45 @@ This repository contains optimized **PKGBUILDs** (Arch Linux package build scrip
 - GitHub Actions CI/CD
 - Patch management (git patches)
 
+## Quick Reference
+
+**Essential Commands**:
+```bash
+./pkg.sh build <package>    # Build specific package
+./pkg.sh lint               # Lint all PKGBUILDs
+makepkg --printsrcinfo > .SRCINFO  # Update package metadata
+```
+
+**Must-Know Rules**:
+- Always use `set -euo pipefail` in shell scripts
+- Update .SRCINFO after every PKGBUILD change
+- Use 2-space indentation (no tabs except Makefiles)
+- Replace `-O2` with `-O3` for performance builds
+- Test locally before committing
+
+**Documentation Index**:
+- [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
+- [AGENTS.md](AGENTS.md) - Agent directives and coding standards
+- [DEPENDENCY_POLICY.md](DEPENDENCY_POLICY.md) - Dependency management rules
+- [SECURITY.md](.github/SECURITY.md) - Security policy
+- [TODO.md](TODO.md) - Planned features
+
+## Table of Contents
+
+- [Project Overview](#project-overview)
+- [Quick Reference](#quick-reference)
+- [Repository Structure](#repository-structure)
+- [Key Conventions & Standards](#key-conventions--standards)
+- [Development Workflows](#development-workflows)
+- [Build System Details](#build-system-details)
+- [Tools and Requirements](#tools-and-requirements)
+- [Common Patterns and Idioms](#common-patterns-and-idioms)
+- [Security Considerations](#security-considerations)
+- [Troubleshooting](#troubleshooting)
+- [AI Assistant Guidelines](#ai-assistant-guidelines)
+- [References and Resources](#references-and-resources)
+- [Project Goals and Philosophy](#project-goals-and-philosophy)
+
 ## Repository Structure
 
 ```
@@ -32,7 +71,11 @@ PKG/
 ├── vp                      # Package helper CLI (install packages from repo)
 ├── .editorconfig           # Editor configuration
 ├── .shellcheckrc           # ShellCheck linting rules
+├── AGENTS.md               # Agent directives and coding standards
 ├── CLAUDE.md               # AI assistant guide (Claude Code)
+├── CONTRIBUTING.md         # Contribution guidelines
+├── DEPENDENCY_POLICY.md    # Dependency management policy
+├── DEPENDENCY_AUDIT_REPORT.md  # Dependency audit results
 ├── GEMINI.md               # AI assistant guide (Google Gemini)
 ├── README.md               # Main repository documentation
 ├── TODO.md                 # Planned features
@@ -643,18 +686,23 @@ shfmt -ln bash -bn -s -i 2 -w PKGBUILD *.sh
 
 ## AI Assistant Guidelines
 
+### Important Note
+
+For detailed coding standards, communication style, and agent directives, see **[AGENTS.md](AGENTS.md)**. This section provides PKG-specific workflow guidance for AI assistants.
+
 ### When Working with This Repository
 
 1. **Always read PKGBUILD before modifying** - Understand current state
 2. **Run pkg.sh lint after changes** - Ensure quality standards
 3. **Update .SRCINFO after PKGBUILD edits** - Keep metadata in sync
 4. **Test builds locally** - Don't rely solely on CI
-5. **Follow shell script standards** - Use set -euo pipefail, proper quoting
+5. **Follow shell script standards** - Use set -euo pipefail, proper quoting (see AGENTS.md)
 6. **Respect EditorConfig** - 2-space indentation, LF line endings
 7. **Keep commits atomic** - One logical change per commit
 8. **Update checksums** - When changing sources
 9. **Document changes** - Update readme.md if behavior changes
 10. **Security first** - Review patches, verify sources, use HTTPS
+11. **Follow DEPENDENCY_POLICY.md** - Check before adding new dependencies
 
 ### DO
 
@@ -684,15 +732,19 @@ shfmt -ln bash -bn -s -i 2 -w PKGBUILD *.sh
 
 ### Suggested Workflow for Changes
 
+**Note**: For first-time contributors or complex changes, review [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guidelines.
+
 1. **Understand the request**
    - Read the relevant PKGBUILD
    - Check existing patches
    - Review package readme.md
+   - Check DEPENDENCY_POLICY.md if adding dependencies
 
 2. **Plan the changes**
    - Identify what needs to be modified
    - Consider impact on dependencies
    - Check for similar patterns in other packages
+   - Verify against AGENTS.md coding standards
 
 3. **Implement changes**
    - Edit PKGBUILD following conventions
@@ -749,12 +801,23 @@ shfmt -ln bash -bn -s -i 2 -w PKGBUILD *.sh
 
 ### Internal Documentation
 
-- `llms.txt` - Concise LLM context file
-- `README.md` - Main repository information
+**Primary Documentation**:
+- `README.md` - Main repository information and feature overview
+- `CLAUDE.md` - This file - AI assistant guide for Claude Code
 - `GEMINI.md` - AI assistant guide for Google Gemini
-- `TODO.MD` - Planned features
-- `SECURITY.md` - Security policy
-- `<package>/readme.md` - Package-specific docs
+- `CONTRIBUTING.md` - Contribution guidelines and workflow
+- `AGENTS.md` - Agent directives, coding standards, and communication style
+
+**Policy & Standards**:
+- `DEPENDENCY_POLICY.md` - Dependency management rules and guidelines
+- `DEPENDENCY_AUDIT_REPORT.md` - Recent dependency audit findings
+- `.github/SECURITY.md` - Security policy and vulnerability reporting
+
+**Planning & Reference**:
+- `TODO.md` - Planned features and improvements
+- `llms.txt` - Concise LLM context file
+- `<package>/readme.md` - Package-specific documentation
+- `.github/PACKAGE_README_TEMPLATE.md` - Template for new packages
 
 ## Project Goals and Philosophy
 
@@ -772,6 +835,6 @@ shfmt -ln bash -bn -s -i 2 -w PKGBUILD *.sh
 
 ---
 
-**Last Updated**: 2025-12-03
+**Last Updated**: 2026-01-20
 **Repository**: <https://github.com/Ven0m0/PKG>
 **Maintainer**: Ven0m0
