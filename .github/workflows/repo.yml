@@ -89,10 +89,10 @@ jobs:
       - name: Setup build environment
         run: |
           # Plug-in binary packages repository
-          cat << 'EOF' >> /etc/pacman.conf
-          [pure]
-          Server = https://github.com/Ven0m0/PKG/releases/download/$repo
-          EOF
+          # cat << 'EOF' >> /etc/pacman.conf
+          # [pure]
+          # Server = https://github.com/Ven0m0/PKG/releases/download/$repo
+          # EOF
 
           # Import keys
           pacman-key --init
