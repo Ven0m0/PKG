@@ -8,6 +8,7 @@ import subprocess
 import shutil
 import re
 from pathlib import Path
+import concurrent.futures
 
 VERSION="1.0.0"
 
@@ -120,20 +121,28 @@ makepkg -si
       else: err("Build failed"); return 1
     return 0
 
-  def update(self)->int:
+  def _process_package(self, d: Path) -> dict[str, str | list[str]] | None:
+    pb = d / "PKGBUILD"
+    pi = self._parse_pkg(pb)
+    if pi:
+      info(f"Found: {pi['name']} {pi['version']}")
+      r = subprocess.run(["makepkg", "--printsrcinfo"], cwd=d, capture_output=True, text=True, check=False)
+      if r.returncode == 0:
+        (d / ".SRCINFO").write_text(r.stdout)
+      else:
+        warn(f"Failed to generate .SRCINFO for {d.name}")
+      return pi
+    else:
+      warn(f"Failed to parse {d.name}/PKGBUILD")
+      return None
+
+  def update(self) -> int:
     info("Scanning for packages...")
-    pkgs=[]
-    for d in self._get_pkg_dirs():
-      pb=d/"PKGBUILD"
-      pi=self._parse_pkg(pb)
-      if pi:
-        pkgs.append(pi)
-        info(f"Found: {pi['name']} {pi['version']}")
-        r=subprocess.run(["makepkg","--printsrcinfo"],cwd=d,capture_output=True,text=True,check=False)
-        if r.returncode==0: (d/".SRCINFO").write_text(r.stdout)
-        else: warn(f"Failed to generate .SRCINFO for {d.name}")
-      else: warn(f"Failed to parse {d.name}/PKGBUILD")
-    
+    pkgs = []
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+      results = executor.map(self._process_package, self._get_pkg_dirs())
+      pkgs = [p for p in results if p]
+
     # Get vp version
     vv="unknown"
     vp=self.root/"vp"
