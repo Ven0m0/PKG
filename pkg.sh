@@ -97,14 +97,22 @@ show_cache_stats() {
 
 find_pkgs() {
   local -a pkgs=()
+  local -a files=()
   while IFS= read -r -d '' f; do
     local dir=${f%/PKGBUILD}
     dir=${dir#./}
     pkgs+=("$dir")
-    # Patch arch for x86_64_v3
-    sed -i -e "s/arch=(x86_64)/arch=(x86_64_v3)/" \
-      -e "s/arch=('x86_64')/arch=('x86_64_v3')/" "$f"
+    files+=("$f")
   done < <(find . -type f -name PKGBUILD -print0)
+
+  # Patch arch for x86_64_v3
+  if ((${#files[@]} > 0)); then
+    printf '%s\0' "${files[@]}" | \
+      { xargs -0 grep -Z -l -e "arch=(x86_64)" -e "arch=('x86_64')" || true; } | \
+      xargs -0 -r sed -i -e "s/arch=(x86_64)/arch=(x86_64_v3)/" \
+        -e "s/arch=('x86_64')/arch=('x86_64_v3')/"
+  fi
+
   printf '%s\n' "${pkgs[@]}"
 }
 
