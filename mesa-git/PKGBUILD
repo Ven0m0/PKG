@@ -502,10 +502,11 @@ build () {
        -D lmsensors=${_enabled_} \
        -D opengl=true \
        -D zstd=auto \
-       -D valgrind=${_enabled_} $_legacy_switches $_dri3 $_omx $_dri_inc $_microsoft_clc $_osmesa $_xvmc $_layers $_optional_codecs $_android_libbacktrace $_intel_rt $_galliumnine $_galliumxa $_sharedglapi $_galliumopencl $_gallium_vdpau $_mediafoundation $_rusticladditions $_lto $_additional_meson_flags $_additional_meson_flags_64 \
-       # TODO: validate experimental flags from https://github.com/ChimeraOS/mesa-chimeraos
-       -D vulkan-beta=true -D video-codecs=all -D android-libbacktrace=disabled -D html-docs=disabled --buildtype=release
-       
+       -D valgrind=${_enabled_} \
+       -D vulkan-beta=true \
+       -D html-docs=disabled \
+       $_legacy_switches $_dri3 $_omx $_dri_inc $_microsoft_clc $_osmesa $_xvmc $_layers $_optional_codecs $_android_libbacktrace $_intel_rt $_galliumnine $_galliumxa $_sharedglapi $_galliumopencl $_gallium_vdpau $_mediafoundation $_rusticladditions $_lto $_additional_meson_flags $_additional_meson_flags_64
+
     meson configure _build64 --no-pager
     # quoted from https://www.mesa3d.org/meson.html
     # Note: autotools automatically updated translation files (used by the DRI configuration tool) as part of the build process, Meson does not do this.
@@ -565,7 +566,10 @@ build () {
           -D llvm=${_enabled_} \
           -D lmsensors=${_enabled_} \
           -D zstd=auto \
-          -D valgrind=${_disabled_} $_legacy_switches $_dri3 $_omx_32 $_dri_inc $_microsoft_clc $_osmesa $_xvmc $_layers $_optional_codecs $_android_libbacktrace $_intel_rt_32 $_intel_clc_32 $_galliumnine $_galliumxa $_sharedglapi $_galliumopencl $_gallium_vdpau $_mediafoundation $_rusticladditions $_lto $_additional_meson_flags $_additional_meson_flags_32
+          -D valgrind=${_disabled_} \
+          -D vulkan-beta=true \
+          -D html-docs=disabled \
+          $_legacy_switches $_dri3 $_omx_32 $_dri_inc $_microsoft_clc $_osmesa $_xvmc $_layers $_optional_codecs $_android_libbacktrace $_intel_rt_32 $_intel_clc_32 $_galliumnine $_galliumxa $_sharedglapi $_galliumopencl $_gallium_vdpau $_mediafoundation $_rusticladditions $_lto $_additional_meson_flags $_additional_meson_flags_32
 
       meson configure _build32 --no-pager
       # quoted from https://www.mesa3d.org/meson.html
