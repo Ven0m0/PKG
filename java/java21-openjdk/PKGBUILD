@@ -112,13 +112,6 @@ build() {
   local _CXXFLAGS="${CXXFLAGS//-O2/-O3} ${CPPFLAGS} -fcommon"
   local _LDFLAGS=${LDFLAGS}
 
-  # TODO: Should be rechecked for the next releases
-  # compiling with -fexceptions leads to:
-  # /usr/bin/ld: /build/java-openjdk/src/jdk17u-jdk-17.0.3-2/build/linux-x86_64-server-release/hotspot/variant-server/libjvm/objs/zPhysicalMemory.o: in function `ZList<ZMemory>::~ZList()':
-  # /build/java-openjdk/src/jdk17u-jdk-17.0.3-2/src/hotspot/share/gc/z/zList.hpp:54: undefined reference to `ZListNode<ZMemory>::~ZListNode()'
-  # collect2: error: ld returned 1 exit status
-  _CFLAGS=${CFLAGS/-fexceptions/}
-  _CXXFLAGS=${CXXFLAGS/-fexceptions/}
 
   # CFLAGS, CXXFLAGS and LDFLAGS are ignored as shown by a warning
   # in the output of ./configure unless used like such:
