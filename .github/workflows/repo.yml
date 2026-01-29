@@ -92,6 +92,8 @@ jobs:
           pacman-key --init
           pacman-key --keyserver hkps://keyserver.ubuntu.com --recv-keys 7E8BBA85FD77B760
           pacman-key --lsign-key  7E8BBA85FD77B760
+          # Enable multilib
+          sed -i "/\[multilib\]/,/Include/"'s/^#//' /etc/pacman.conf
           pacman -Syu --noconfirm ccache
           # Setup builder user
           useradd builder -m
