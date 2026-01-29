@@ -65,7 +65,7 @@ jobs:
           packages: shellcheck
           version: 1.0
       - name: Build and lint ${{ matrix.pkg }}
-        uses: 2m/arch-pkgbuild-builder@v1.26
+        uses: 2m/arch-pkgbuild-builder@v1
         with:
           target: pkgbuild
           pkgname: ${{ matrix.pkg }}
@@ -180,3 +180,4 @@ jobs:
           VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'workflow_dispatch' }}
           GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
           FILTER_REGEX_EXCLUDE: "(.github|.git|.cache|go|node_modules|.var|.rustup|.wine|.vscode|.claude)/.*"
+          GITLEAKS_CONFIG_FILE: .gitleaks.toml
