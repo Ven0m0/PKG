@@ -1,0 +1,10 @@
+[allowlist]
+description = "Allow public keys and non-secret API keys in PKGBUILDs and .SRCINFO"
+regexes = [
+    '''validpgpkeys\s*=\s*''',
+    '''_google_api_key=''',
+    '''_mozilla_api_key=''',
+    '''_google_default_client_secret=''',
+    '''sitekey=''',
+    '''ariaKey''',
+]
