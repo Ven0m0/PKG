@@ -88,6 +88,12 @@ jobs:
         uses: actions/checkout@v6
       - name: Setup build environment
         run: |
+          # Plug-in binary packages repository
+          cat << 'EOF' >> /etc/pacman.conf
+          [pure]
+          Server = https://github.com/Ven0m0/PKG/releases/download/$repo
+          EOF
+
           # Import keys
           pacman-key --init
           pacman-key --keyserver hkps://keyserver.ubuntu.com --recv-keys 7E8BBA85FD77B760

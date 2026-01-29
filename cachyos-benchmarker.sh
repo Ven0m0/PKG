@@ -315,7 +315,7 @@ checkfiles() {
 
   if [[ ! -f $WORKDIR/bosphorus_hd.y4m ]] ; then
     wget --show-progress -N -qO $WORKDIR/bosphorus_hd.7z \
-      https://ultravideo.cs.tut.fi/video/Bosphorus_1920x1080_120fps_420_8bit_YUV_Y4M.7z
+      http://ultravideo.cs.tut.fi/video/Bosphorus_1920x1080_120fps_420_8bit_YUV_Y4M.7z
     echo "--> Unzipping video..."
     cd $WORKDIR
     7z e bosphorus_hd.7z -o./ &>/dev/null
@@ -332,7 +332,7 @@ checkfiles() {
 
   if [[ ! -d $WORKDIR/namd ]]; then
     wget --show-progress -N -qO $WORKDIR/namd.tar.gz \
-      https://www.ks.uiuc.edu/Research/namd/3.0b6/download/120834/NAMD_3.0b6_Linux-x86_64-multicore.tar.gz
+      http://www.ks.uiuc.edu/Research/namd/3.0b6/download/120834/NAMD_3.0b6_Linux-x86_64-multicore.tar.gz
     wget --show-progress -N -qO $WORKDIR/namd-example.tar.gz \
       https://www.ks.uiuc.edu/Research/namd/utilities/apoa1.tar.gz
     echo "--> Preparing NAMD..."
@@ -350,7 +350,7 @@ checkfiles() {
 
   if [[ ! -f $WORKDIR/firefox102.tar ]]; then
     wget --show-progress -N -qO $WORKDIR/firefox102.tar.xz \
-      https://ftp.mozilla.org/pub/firefox/releases/102.9.0esr/source/firefox-102.9.0esr.source.tar.xz
+      http://ftp.mozilla.org/pub/firefox/releases/102.9.0esr/source/firefox-102.9.0esr.source.tar.xz
     echo "--> Unzipping Firefox tarball..."
     xz -d -q $WORKDIR/firefox102.tar.xz
   fi
