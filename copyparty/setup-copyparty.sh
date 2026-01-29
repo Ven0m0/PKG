@@ -105,5 +105,5 @@ systemctl is-active --quiet ufw && {
 }
 IP=$(ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1)
 printf '\n\n==============================================\nCopyparty setup complete!\n==============================================\n'
-printf 'Access: http://%s:%s\n\nIMPORTANT: Change admin password in ~/.config/copyparty/config.py\nThen restart: systemctl --user restart copyparty.service\n\n' "$IP" "$COPYPARTY_PORT"
+printf 'Access: https://%s:%s\n\nIMPORTANT: Change admin password in ~/.config/copyparty/config.py\nThen restart: systemctl --user restart copyparty.service\n\n' "$IP" "$COPYPARTY_PORT"
 printf 'Status: systemctl --user status copyparty.service\n==============================================\n'

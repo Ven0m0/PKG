@@ -1,0 +1,79 @@
+[gitleaks]
+  [[gitleaks.ignore]]
+    fingerprint = "7fbc4c784949865f647ac654057c62039d10cf3d:glibc/.SRCINFO:generic-api-key:22"
+  [[gitleaks.ignore]]
+    fingerprint = "7fbc4c784949865f647ac654057c62039d10cf3d:glibc/.SRCINFO:generic-api-key:23"
+  [[gitleaks.ignore]]
+    fingerprint = "be5aa59f7bf905cf3cd8b5826bfd3387dd4ffb9e:llvm/.SRCINFO:generic-api-key:26"
+  [[gitleaks.ignore]]
+    fingerprint = "be5aa59f7bf905cf3cd8b5826bfd3387dd4ffb9e:llvm/.SRCINFO:generic-api-key:28"
+  [[gitleaks.ignore]]
+    fingerprint = "be5aa59f7bf905cf3cd8b5826bfd3387dd4ffb9e:llvm/.SRCINFO:generic-api-key:29"
+  [[gitleaks.ignore]]
+    fingerprint = "c275f5d63b477afe588e270f8158cfa5df2ff267:mesa/.SRCINFO:generic-api-key:88"
+  [[gitleaks.ignore]]
+    fingerprint = "c275f5d63b477afe588e270f8158cfa5df2ff267:mesa/.SRCINFO:generic-api-key:89"
+  [[gitleaks.ignore]]
+    fingerprint = "c275f5d63b477afe588e270f8158cfa5df2ff267:mesa/.SRCINFO:generic-api-key:91"
+  [[gitleaks.ignore]]
+    fingerprint = "c275f5d63b477afe588e270f8158cfa5df2ff267:mesa/.SRCINFO:generic-api-key:92"
+  [[gitleaks.ignore]]
+    fingerprint = "c275f5d63b477afe588e270f8158cfa5df2ff267:mesa/.SRCINFO:generic-api-key:93"
+  [[gitleaks.ignore]]
+    fingerprint = "cec00d348b0ddcf22458eb70427c3b49beae58e3:firefox/PKGBUILD:generic-api-key:100"
+  [[gitleaks.ignore]]
+    fingerprint = "cec00d348b0ddcf22458eb70427c3b49beae58e3:firefox/PKGBUILD:gcp-api-key:95"
+  [[gitleaks.ignore]]
+    fingerprint = "a65909c45750be512ee05874c42f9d21d6b7a423:chromium/PKGBUILD:generic-api-key:101"
+  [[gitleaks.ignore]]
+    fingerprint = "a65909c45750be512ee05874c42f9d21d6b7a423:chromium/PKGBUILD:gcp-api-key:99"
+  [[gitleaks.ignore]]
+    fingerprint = "a65909c45750be512ee05874c42f9d21d6b7a423:chromium/patches/helium/helium/core/ublock-setup-sources.patch:generic-api-key:160"
+  [[gitleaks.ignore]]
+    fingerprint = "152307e85bae5f7a5b6efdc0d06005afc46c4fb8:firefox/ffox/PKGBUILD-vaapi:gcp-api-key:112"
+  [[gitleaks.ignore]]
+    fingerprint = "152307e85bae5f7a5b6efdc0d06005afc46c4fb8:firefox/ffox/PKGBUILD-opensuse:gcp-api-key:152"
+  [[gitleaks.ignore]]
+    fingerprint = "152307e85bae5f7a5b6efdc0d06005afc46c4fb8:firefox/ffox/PKGBUILD-opensuse:generic-api-key:154"
+  [[gitleaks.ignore]]
+    fingerprint = "152307e85bae5f7a5b6efdc0d06005afc46c4fb8:firefox/ffox/PKGBUILD-opensuse:generic-api-key:161"
+  [[gitleaks.ignore]]
+    fingerprint = "9e3663e1bc959d759aa6a3c520cf68d416df0cae:chromium/PKGBUILD:gcp-api-key:100"
+  [[gitleaks.ignore]]
+    fingerprint = "9e3663e1bc959d759aa6a3c520cf68d416df0cae:zsh-pgo/.SRCINFO:generic-api-key:18"
+  [[gitleaks.ignore]]
+    fingerprint = "9e3663e1bc959d759aa6a3c520cf68d416df0cae:zsh-pgo/.SRCINFO:generic-api-key:19"
+  [[gitleaks.ignore]]
+    fingerprint = "9e3663e1bc959d759aa6a3c520cf68d416df0cae:zsh-pgo/.SRCINFO:generic-api-key:20"
+  [[gitleaks.ignore]]
+    fingerprint = "02d7beeaf1a86f950fcbcfe6b94ef0614908a270:curl/patches/boringssl.patch:generic-api-key:1192"
+  [[gitleaks.ignore]]
+    fingerprint = "1a11950d5a468a9333d9047f33765d5eaeb3bd7c:vscode/product.json:generic-api-key:1787"
+  [[gitleaks.ignore]]
+    fingerprint = "a65909c45750be512ee05874c42f9d21d6b7a423:chromium/patches/patches-official/eyeo-133.0.6943.49-extension_api.patch:generic-api-key:4251"
+  [[gitleaks.ignore]]
+    fingerprint = "a65909c45750be512ee05874c42f9d21d6b7a423:chromium/patches/patches-official/eyeo-133.0.6943.49-extension_api.patch:generic-api-key:5014"
+  [[gitleaks.ignore]]
+    fingerprint = "a65909c45750be512ee05874c42f9d21d6b7a423:chromium/patches/patches-official/eyeo-133.0.6943.49-base.patch:generic-api-key:43540"
+  [[gitleaks.ignore]]
+    fingerprint = "a65909c45750be512ee05874c42f9d21d6b7a423:chromium/patches/patches-official/eyeo-133.0.6943.49-base.patch:generic-api-key:50053"
+  [[gitleaks.ignore]]
+    fingerprint = "1d8f63982505e8dfb487dda57e8289564966ed35:repomix-output.xml:generic-api-key:51144"
+  [[gitleaks.ignore]]
+    fingerprint = "1d8f63982505e8dfb487dda57e8289564966ed35:repomix-output.xml:generic-api-key:52873"
+  [[gitleaks.ignore]]
+    fingerprint = "1d8f63982505e8dfb487dda57e8289564966ed35:repomix-output.xml:generic-api-key:79822"
+  [[gitleaks.ignore]]
+    fingerprint = "1d8f63982505e8dfb487dda57e8289564966ed35:repomix-output.xml:generic-api-key:82223"
+  [[gitleaks.ignore]]
+    fingerprint = "1d8f63982505e8dfb487dda57e8289564966ed35:repomix-output.xml:generic-api-key:82224"
+  [[gitleaks.ignore]]
+    fingerprint = "1d8f63982505e8dfb487dda57e8289564966ed35:repomix-output.xml:generic-api-key:86607"
+  [[gitleaks.ignore]]
+    fingerprint = "1d8f63982505e8dfb487dda57e8289564966ed35:repomix-output.xml:generic-api-key:86609"
+  [[gitleaks.ignore]]
+    fingerprint = "1d8f63982505e8dfb487dda57e8289564966ed35:repomix-output.xml:generic-api-key:86610"
+  [[gitleaks.ignore]]
+    fingerprint = "1d8f63982505e8dfb487dda57e8289564966ed35:repomix-output.xml:gcp-api-key:51142"
+  [[gitleaks.ignore]]
+    fingerprint = "1d8f63982505e8dfb487dda57e8289564966ed35:repomix-output.xml:gcp-api-key:79817"
