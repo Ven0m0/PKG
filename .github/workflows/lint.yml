@@ -115,7 +115,8 @@ jobs:
 
           # Install shellharden (pre-built binary)
           SHELLHARDEN_VERSION="4.3.1"
-          wget -q "https://github.com/anordal/shellharden/releases/download/v${SHELLHARDEN_VERSION}/shellharden-x86_64-unknown-linux-gnu" -O shellharden
+          wget -q "https://github.com/anordal/shellharden/releases/download/v${SHELLHARDEN_VERSION}/shellharden-x86_64-unknown-linux-gnu.tar.gz" -O shellharden.tar.gz
+          tar -xzvf shellharden.tar.gz
           chmod +x shellharden
           sudo mv shellharden /usr/local/bin/
       - name: Lint shell scripts
