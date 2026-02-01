@@ -122,18 +122,22 @@ makepkg -si
     return 0
 
   def _process_package(self, d: Path) -> dict[str, str | list[str]] | None:
-    pb = d / "PKGBUILD"
-    pi = self._parse_pkg(pb)
-    if pi:
-      info(f"Found: {pi['name']} {pi['version']}")
-      r = subprocess.run(["makepkg", "--printsrcinfo"], cwd=d, capture_output=True, text=True, check=False)
-      if r.returncode == 0:
-        (d / ".SRCINFO").write_text(r.stdout)
+    try:
+      pb = d / "PKGBUILD"
+      pi = self._parse_pkg(pb)
+      if pi:
+        info(f"Found: {pi['name']} {pi['version']}")
+        r = subprocess.run(["makepkg", "--printsrcinfo"], cwd=d, capture_output=True, text=True, check=False)
+        if r.returncode == 0:
+          (d / ".SRCINFO").write_text(r.stdout)
+        else:
+          warn(f"Failed to generate .SRCINFO for {d.name}")
+        return pi
       else:
-        warn(f"Failed to generate .SRCINFO for {d.name}")
-      return pi
-    else:
-      warn(f"Failed to parse {d.name}/PKGBUILD")
+        warn(f"Failed to parse {d.name}/PKGBUILD")
+        return None
+    except Exception as e:
+      err(f"Error processing package {d}: {e}")
       return None
 
   def update(self) -> int:
