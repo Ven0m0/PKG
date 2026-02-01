@@ -96,6 +96,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: "pip"
+          cache: "pip"
       - name: Install linters
         shell: bash
         run: |
