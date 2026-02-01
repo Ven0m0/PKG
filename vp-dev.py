@@ -122,6 +122,13 @@ makepkg -si
     return 0
 
   def _process_package(self, d: Path) -> dict[str, str | list[str]] | None:
+    """Process a single package directory.
+
+    This method is intended to be called from multiple threads (see ``update``).
+    It only performs read-only access to instance attributes such as ``self.root``
+    and ``self.git``; callers must not mutate these attributes after initialization
+    to preserve thread safety.
+    """
     try:
       pb = d / "PKGBUILD"
       pi = self._parse_pkg(pb)
