@@ -17,7 +17,7 @@ _winever=$_pkgbasever
 
 source=(
   "${pkgname}::git+https://github.com/CachyOS/wine-cachyos.git#tag=cachyos-${_srctag}-wine"
-  "wine-staging::git+https://github.com/wine-staging/wine-staging.git"
+  "wine-staging::git+https://github.com/wine-staging/wine-staging.git#tag=v10.0"
   "https://dl.winehq.org/wine/wine-gecko/${_geckover}/wine-gecko-${_geckover}-x86.tar.xz"
   "https://dl.winehq.org/wine/wine-gecko/${_geckover}/wine-gecko-${_geckover}-x86_64.tar.xz"
   "https://github.com/madewokherd/wine-mono/releases/download/wine-mono-${_monover}/wine-mono-${_monover}-x86.tar.xz"
