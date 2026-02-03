@@ -1,3 +1,2 @@
 [allowlist]
 description = "Allow PKGBUILD and .SRCINFO"
-paths = ['''PKGBUILD$''', '''.SRCINFO$''']
