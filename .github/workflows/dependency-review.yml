@@ -42,4 +42,5 @@ jobs:
           retry-on-snapshot-warnings: true
           # Additional security settings
           warn-only: false
-          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD
+          # Explicitly allow weak copyleft LGPL-2.1-or-later (e.g., wine-cachyos) while still denying LGPL-2.0-only
+          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD, LGPL-2.1-or-later
