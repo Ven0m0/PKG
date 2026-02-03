@@ -65,7 +65,7 @@ jobs:
           packages: shellcheck
           version: 1.0
       - name: Build and lint ${{ matrix.pkg }}
-        uses: 2m/arch-pkgbuild-builder@v1.25
+        uses: 2m/arch-pkgbuild-builder@v1.21
         with:
           target: pkgbuild
           pkgname: ${{ matrix.pkg }}
@@ -95,7 +95,6 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.11"
-          cache: "pip"
           cache: "pip"
       - name: Install linters
         shell: bash
