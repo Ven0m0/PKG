@@ -37,8 +37,9 @@ jobs:
           # Fail on moderate or higher severity vulnerabilities
           fail-on-severity: moderate
           # Deny problematic licenses (adjust based on project needs)
-          deny-licenses: GPL-1.0-only, GPL-1.0-or-later, LGPL-2.0-only
+          # deny-licenses: GPL-1.0-only, GPL-1.0-or-later, LGPL-2.0-only
           # Retry on snapshot warnings for better reliability
           retry-on-snapshot-warnings: true
           # Additional security settings
           warn-only: false
+          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD
