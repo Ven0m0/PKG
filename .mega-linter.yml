@@ -1,0 +1,4 @@
+DISABLE:
+  # Intentionally left empty so that security-focused linters (e.g., DevSkim, KICS,
+  # Checkov, Trivy, Kingfisher) remain enabled to preserve security coverage in CI.
+  # If you must disable a linter, add it here with a clear, documented rationale.
