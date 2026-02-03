@@ -1,2 +1,12 @@
 [allowlist]
-description = "Allow PKGBUILD and .SRCINFO"
+description = "Allow public keys and non-secret API keys in PKGBUILDs and .SRCINFO"
+regexes = [
+    '''validpgpkeys\s*=\s*''',
+    '''_google_api_key=''',
+    '''_mozilla_api_key=''',
+    # NOTE: This allowlist entry is only for the known public/default Google client secret used in PKGBUILDs/.SRCINFO.
+    # Do NOT rely on this to permit committing real private secrets under this name.
+    '''_google_default_client_secret=''',
+    '''sitekey=''',
+    '''ariaKey''',
+]
