@@ -10,13 +10,11 @@ FILE="$(basename "$0")"
 # Create a new user `builder`
 # `builder` needs to have a home directory because some PKGBUILDs will try to
 # write to it (e.g. for cache)
-useradd builder -m
 # When installing dependencies, makepkg will use sudo
 # Give user `builder` passwordless sudo access
-echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 # Give all users (particularly builder) full access to these files
-chmod -R a+rw .
+sudo chmod -R a+rw .
 
 BASEDIR="$PWD"
 cd "${INPUT_PKGDIR:-.}"
@@ -26,7 +24,7 @@ function download_database () {
 	# This is put here to fail early in case they weren't downloaded
 	REPOFILES=("${INPUT_REPORELEASETAG:-}".{db{,.tar.gz},files{,.tar.gz}})
 	for REPOFILE in "${REPOFILES[@]}"; do
-		sudo -u builder curl \
+		curl \
 			--retry 5 --retry-delay 30 --retry-all-errors \
 			--location --fail \
 			-o "$REPOFILE" "$GITHUB_SERVER_URL"/"$GITHUB_REPOSITORY"/releases/download/"${INPUT_REPORELEASETAG:-}"/"$REPOFILE"
@@ -44,7 +42,7 @@ fi
 
 # Assume that if .SRCINFO is missing then it is generated elsewhere.
 # AUR checks that .SRCINFO exists so a missing file can't go unnoticed.
-if [ -f .SRCINFO ] && ! sudo -u builder makepkg --printsrcinfo | diff - .SRCINFO; then
+if [ -f .SRCINFO ] && ! makepkg --printsrcinfo | diff - .SRCINFO; then
 	echo "::error file=$FILE,line=$LINENO::Mismatched .SRCINFO. Update with: makepkg --printsrcinfo > .SRCINFO"
 	exit 1
 fi
@@ -53,7 +51,7 @@ fi
 # Without this, (e.g. only having every user have read/write access to the files),
 # makepkg will try to change the permissions of the files itself which will fail since it does not own the files/have permission
 # we can't do this earlier as it will change files that are for github actions, which results in warnings in github actions logs.
-chown -R builder .
+sudo chown -R builder .
 
 # Get array of packages to be built
 # shellcheck disable=SC2086
@@ -63,7 +61,7 @@ mapfile -t PKGNAMES < <(bash -c 'source PKGBUILD && echo "${pkgname[@]}"' | sed 
 echo "Package name(s): ${PKGNAMES[*]}"
 
 # Install jq to create json arrays from bash arrays
-pacman -Syu --noconfirm jq
+sudo pacman -Syu --noconfirm jq
 
 
 if [ -n "${INPUT_REPORELEASETAG:-}" ]; then
@@ -76,7 +74,7 @@ fi
 
 for PKGNAME in "${PKGNAMES[@]}"; do
 	if [ -n "${INPUT_REPORELEASETAG:-}" ]; then
-		sudo -u builder repo-remove "${INPUT_REPORELEASETAG:-}".db.tar.gz "$PKGNAME"
+		repo-remove "${INPUT_REPORELEASETAG:-}".db.tar.gz "$PKGNAME"
 	fi
 done
 

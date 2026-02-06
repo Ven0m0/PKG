@@ -1,6 +1,10 @@
 
 name: _job_schedule_biweekly
 
+permissions:
+  actions: write
+  contents: write
+
 on:
   workflow_dispatch:
   schedule:

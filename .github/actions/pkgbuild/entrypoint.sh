@@ -50,37 +50,35 @@ if [ -n "${INPUT_MAKEPKGCONF:-}" ]; then
 fi
 
 # Update before continuing
-pacman -Syu --noconfirm
+sudo pacman -Syu --noconfirm
 
 # Update keyring
 pacman-key --init
 pacman-key --populate archlinux
 
-pacman -Syu --noconfirm --needed base base-devel
-pacman -Syu --noconfirm --needed ccache
+sudo pacman -Syu --noconfirm --needed base base-devel
+sudo pacman -Syu --noconfirm --needed ccache
 
 if [ "${INPUT_MULTILIB:-false}" == true ]; then
-	pacman -Syu --noconfirm --needed multilib-devel
+	sudo pacman -Syu --noconfirm --needed multilib-devel
 fi
 
 if [ "x${INPUT_USECCACHEEXT:-false}" == xtrue ]; then
-    pacman -Syu --noconfirm --needed ccache-ext
+    sudo pacman -Syu --noconfirm --needed ccache-ext
 fi
 
 # Update again before continuing
-pacman -Syu --noconfirm
+sudo pacman -Syu --noconfirm
 
 # Makepkg does not allow running as root
 # Create a new user `builder`
 # `builder` needs to have a home directory because some PKGBUILDs will try to
 # write to it (e.g. for cache)
-useradd builder -m
 # When installing dependencies, makepkg will use sudo
 # Give user `builder` passwordless sudo access
-echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 # Give all users (particularly builder) full access to these files
-chmod -R a+rw .
+sudo chmod -R a+rw .
 
 BASEDIR="$PWD"
 cd "${INPUT_PKGDIR:-.}"
@@ -90,7 +88,7 @@ function download_database () {
 	# This is put here to fail early in case they weren't downloaded
 	REPOFILES=("${INPUT_REPORELEASETAG:-}".{db{,.tar.gz},files{,.tar.gz}})
 	for REPOFILE in "${REPOFILES[@]}"; do
-		sudo -u builder curl \
+		curl \
 			--retry 5 --retry-delay 30 --retry-all-errors \
 			--location --fail \
 			-o "$REPOFILE" "$GITHUB_SERVER_URL"/"$GITHUB_REPOSITORY"/releases/download/"${INPUT_REPORELEASETAG:-}"/"$REPOFILE"
@@ -108,7 +106,7 @@ fi
 
 # Assume that if .SRCINFO is missing then it is generated elsewhere.
 # AUR checks that .SRCINFO exists so a missing file can't go unnoticed.
-if [ -f .SRCINFO ] && ! sudo -u builder makepkg --printsrcinfo | diff - .SRCINFO; then
+if [ -f .SRCINFO ] && ! makepkg --printsrcinfo | diff - .SRCINFO; then
 	echo "::error file=$FILE,line=$LINENO::Mismatched .SRCINFO. Update with: makepkg --printsrcinfo > .SRCINFO"
 	exit 1
 fi
@@ -116,32 +114,32 @@ fi
 # Optionally install dependencies from AUR
 if [ -n "${INPUT_AURDEPS:-}" ]; then
 	# First install paru
-	pacman -Syu --noconfirm paru
+	sudo pacman -Syu --noconfirm paru
 
 	# Extract dependencies from .SRCINFO (depends or depends_x86_64) and install
 	mapfile -t PKGDEPS < \
 		<(sed -n -e 's/^[[:space:]]*\(make\)\?depends\(_x86_64\)\? = \([[:alnum:][:punct:]]*\)[[:space:]]*$/\3/p' .SRCINFO)
-	sudo -H -u builder paru --sync --noconfirm "${PKGDEPS[@]}"
+	paru --sync --noconfirm "${PKGDEPS[@]}"
 fi
 
 # Make the builder user the owner of these files
 # Without this, (e.g. only having every user have read/write access to the files),
 # makepkg will try to change the permissions of the files itself which will fail since it does not own the files/have permission
 # we can't do this earlier as it will change files that are for github actions, which results in warnings in github actions logs.
-chown -R builder .
+sudo chown -R builder .
 
 # Build packages
 # INPUT_MAKEPKGARGS is intentionally unquoted to allow arg splitting
 # shellcheck disable=SC2086
-sudo -H -u builder CCACHE_DIR="$BASEDIR/.ccache" makepkg --syncdeps --noconfirm ${INPUT_MAKEPKGARGS:-}
+CCACHE_DIR="$BASEDIR/.ccache" makepkg --syncdeps --noconfirm ${INPUT_MAKEPKGARGS:-}
 
 # Get array of packages to be built
 # shellcheck disable=SC2086
-mapfile -t PKGFILES < <( sudo -u builder makepkg --packagelist ${INPUT_MAKEPKGARGS:-})
+mapfile -t PKGFILES < <( makepkg --packagelist ${INPUT_MAKEPKGARGS:-})
 echo "Package(s): ${PKGFILES[*]}"
 
 # Install jq to create json arrays from bash arrays
-pacman -Syu --noconfirm jq
+sudo pacman -Syu --noconfirm jq
 
 
 if [ -n "${INPUT_REPORELEASETAG:-}" ]; then
@@ -171,7 +169,7 @@ for PKGFILE in "${PKGFILES[@]}"; do
 		OUTPUT_PKGFILES+=("$RELPKGFILE")
 		# Optionally add the packages to a makeshift repository in GitHub releases
 		if [ -n "${INPUT_REPORELEASETAG:-}" ]; then
-			sudo -u builder repo-add "${INPUT_REPORELEASETAG:-}".db.tar.gz "$(basename "$PKGFILE")"
+			repo-add "${INPUT_REPORELEASETAG:-}".db.tar.gz "$(basename "$PKGFILE")"
 		else
 			echo "Skipping repository update for $RELPKGFILE"
 		fi
@@ -219,7 +217,7 @@ function namcap_check() {
 	# Run namcap checks
 	# Installing namcap after building so that makepkg happens on a minimal
 	# install where any missing dependencies can be caught.
-	pacman -S --noconfirm --needed namcap
+	sudo pacman -S --noconfirm --needed namcap
 
 	NAMCAP_ARGS=()
 	if [ -n "${INPUT_NAMCAPRULES:-}" ]; then

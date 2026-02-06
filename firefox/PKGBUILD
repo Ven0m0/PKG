@@ -377,7 +377,7 @@ build(){
   read WAYLAND_DISPLAY <&${VIRTWL[0]}
   if [[ ${ENABLE_PGO} == "true" ]]; then
     # Determine which profile to use
-    local _final_profile="merged. profdata"
+    local _final_profile="merged.profdata"
     if [[ ${ENABLE_PGO_3STAGE} == "true" ]]; then
       _final_profile="merged-cs.profdata"
       echo "3-stage context-sensitive PGO enabled"
@@ -387,7 +387,7 @@ build(){
       if [[ ${ENABLE_PGO_3STAGE} == "true" ]] && [[ -s $_pgo_profdata_cs ]]; then
         echo "Reusing existing 3-stage PGO profile data..."
         cp "$_pgo_profdata_cs" merged-cs.profdata
-        cp "$_pgo_profdata" merged. profdata 2>/dev/null || true
+        cp "$_pgo_profdata" merged.profdata 2>/dev/null || true
         [[ -s $_pgo_jarlog ]] && cp "$_pgo_jarlog" jarlog
       elif [[ ${ENABLE_PGO_3STAGE} == "false" ]] && [[ -s $_pgo_profdata ]]; then
         echo "Reusing existing 2-stage PGO profile data..."
@@ -407,7 +407,7 @@ END
       ./mach package
       LLVM_PROFDATA=llvm-profdata JARLOG_FILE="$PWD/jarlog" \
         LIBGL_ALWAYS_SOFTWARE=true ./mach python build/pgo/profileserver.py
-      if [[ -s merged. profdata ]]; then
+      if [[ -s merged.profdata ]]; then
         stat -c "Stage 1 profile generated (%s bytes)" merged.profdata
         cp merged.profdata "$_pgo_profdata"
         [[ -s jarlog ]] && cp jarlog "$_pgo_jarlog"
