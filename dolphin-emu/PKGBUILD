@@ -6,6 +6,9 @@
 : ${_branch=primehack-aur}
 _projectname='dolphin'
 _pkgname="$_projectname-emu"
+_mainpkgname="dolphin-emu"
+_noguipkgname="dolphin-emu-nogui"
+_toolpkgname="dolphin-emu-tool"
 pkgname="$_pkgname-git"
 pkgver='2509.r528.gaeac5f1a58'
 pkgrel=1

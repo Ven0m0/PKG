@@ -95,7 +95,7 @@ build() {
         -Dcplayer='true' \
         -Dlibmpv='true' \
         -Dbuild-date='false' \
-        -Dtests='disabled' \
+        -Dtests='false' \
         -Dfuzzers='false' \
         -Dcdda='disabled' \
         -Dcplugins='enabled' \
