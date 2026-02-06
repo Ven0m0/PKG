@@ -1,5 +1,8 @@
 name: _job_pkgrepo
 
+permissions:
+  contents: write
+
 on:
   workflow_call:
     inputs:

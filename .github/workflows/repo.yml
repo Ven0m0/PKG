@@ -1,4 +1,7 @@
 name: Rebuild repository
+permissions:
+  contents: write
+
 on:
   push:
     paths:
