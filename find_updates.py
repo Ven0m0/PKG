@@ -540,14 +540,15 @@ if __name__ == "__main__":
         local_packages = sorted(local_packages, key=lambda p: p.name)
         aur_info = info_multiple([lp.name for lp in local_packages])
         aur_packages = sorted(aur_info.results, key=lambda p: p.name)
-        local_aur_packages = [lp for lp in local_packages if lp.name in [ap.name for ap in aur_packages]]
+        aur_names_set = {ap.name for ap in aur_packages}
+        local_aur_packages = [lp for lp in local_packages if lp.name in aur_names_set]
         for lp, ap in zip(local_aur_packages, aur_packages):
             if ap.name == lp.name:
                 outdated = pyalpm.vercmp(lp.version, ap.version)
                 if outdated < 0:
                     print_package_update("aur", ldb.name, lp.name, ap.version, lp.version)
 
-        local_non_aur_packages = [lp for lp in local_packages if lp.name not in [ap.name for ap in aur_packages]]
+        local_non_aur_packages = [lp for lp in local_packages if lp.name not in aur_names_set]
         for lnap in local_non_aur_packages:
             print("{:20s} {}".format(f"non - {ldb.name}", lnap.name))
 
