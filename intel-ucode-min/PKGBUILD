@@ -1,3 +1,4 @@
+# Maintainer: pingplug < aur at pingplug dot me >
 # shellcheck enable=all shell=bash source-path=SCRIPTDIR external-sources=true
 pkgname=intel-ucode-scan
 pkgver=1.0.1
@@ -11,9 +12,8 @@ optdepends=('intel-ucode: intel microcode firmware'
   'iucode_tool: required to build per-CPU microcode images (runtime)')
 source=("99-intel-ucode-scan.hook"
   "intel-ucode-scan.sh")
-sha256sums=('0b212b3614c79ed55033e25ebf4c5a53668d31e957152b20b09e582a98674d08'
-  '40b567eb6f077286bf60982577f99e62b81a111e01364fdf49ce8c5da150b430'
-  '2f9bb079fbdacfe05f96042a8ee428936a42a847cd18dca256f2bc0b6273fc80')
+sha256sums=('8febf07b7a3e7c247e0efcde49677329f117784c1e879be4fe341bdfecbf70f4'
+  '4d61a83b24c0da467eaa55efaa78d2a677234d8fe11ba1e011de76de83fb9ed0')
 
 build() { return 0; }
 package() {
