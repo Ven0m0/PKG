@@ -25,6 +25,7 @@ RETRIES=${RETRIES:-3}
 FORCE_BUILD=${FORCE_BUILD:-0}
 ONE_PACKAGE=${ONE_PACKAGE:-}
 DIST_MODE=${DIST_MODE:-0}
+PATCH_ARCH=${PATCH_ARCH:-1}
 
 # ═══════════════════════════════════════════════════════════════════════════
 # HELP / USAGE
@@ -74,7 +75,7 @@ setup_env() {
   export ARCH EXT CC=gcc CXX=g++
   export PATH="$PWD:$PWD/bin:$PATH:/usr/bin/core_perl"
   chmod +x "$PWD"/bin/* "$PWD"/*.sh 2>/dev/null || true
-  ((FORCE_BUILD)) && warn "Force build enabled"
+  if ((FORCE_BUILD)); then warn "Force build enabled"; fi
 }
 
 setup_cache() {
@@ -97,24 +98,36 @@ show_cache_stats() {
 
 find_pkgs() {
   local -a pkgs=()
-  local -a files=()
   while IFS= read -r -d '' f; do
     local dir=${f%/PKGBUILD}
     dir=${dir#./}
     pkgs+=("$dir")
-    files+=("$f")
   done < <(find . -type f -name PKGBUILD -print0)
 
-  # Patch arch for x86_64_v3
-  if ((${#files[@]} > 0)); then
-    printf '%s\0' "${files[@]}" | \
-      { xargs -0 grep -Z -l -e "arch=(x86_64)" -e "arch=('x86_64')" || true; } | \
-      xargs -0 -r sed -i -e "s/arch=(x86_64)/arch=(x86_64_v3)/" \
-        -e "s/arch=('x86_64')/arch=('x86_64_v3')/"
-  fi
 
   printf '%s\n' "${pkgs[@]}"
 }
+
+patch_arch() {
+  local -a targets=("${@}")
+  # Optimization: only patch if enabled and targets exist
+  [[ ${PATCH_ARCH:-1} == 1 ]] || return 0
+  ((${#targets[@]})) || return 0
+
+  local -a files=()
+  for pkg in "${targets[@]}"; do
+    [[ -f "$pkg/PKGBUILD" ]] && files+=("$pkg/PKGBUILD")
+  done
+
+  ((${#files[@]})) || return 0
+
+  printf '%s\0' "${files[@]}" | \
+    { xargs -0 grep -Z -l -e "arch=(x86_64)" -e "arch=('x86_64')" || true; } | \
+    xargs -0 -r sed -i -e "s/arch=(x86_64)/arch=(x86_64_v3)/" \
+      -e "s/arch=('x86_64')/arch=('x86_64_v3')/"
+}
+
+
 
 build_docker() {
   local pkg=$1
@@ -236,6 +249,7 @@ cmd_build() {
     targets=("${filtered[@]}")
   fi
 
+  patch_arch "${targets[@]}"
   log "Building ${#targets[@]} package(s) [parallel=$PARALLEL, jobs=$MAX_JOBS, retries=$RETRIES]"
 
   local failed=0
@@ -271,8 +285,8 @@ cmd_build() {
     done
   fi
 
-  ((DIST_MODE)) && collect_dist
-  ((failed)) && die "$failed package(s) failed" 1
+  if ((DIST_MODE)); then collect_dist; fi
+  if ((failed)); then die "$failed package(s) failed" 1; fi
 
   sep
   log "Success: All packages built"
