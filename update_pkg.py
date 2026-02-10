@@ -1,5 +1,3 @@
-import sys
-
 with open('pkg.sh', 'r') as f:
     lines = f.readlines()
 
