@@ -5,8 +5,6 @@
      result = FindManifestInDir(chrome::DIR_USER_NATIVE_MESSAGING, host_name);
    }
 +
-+  // FIXME: this is not supported on windows,
-+  // because idrgaf about windows. make a patch
 +  if (result.empty() && allow_user_level_hosts) {
 +    result = FindManifestInDir(chrome::DIR_CHROME_USER_NATIVE_MESSAGING, host_name);
 +  }
@@ -23,6 +21,17 @@
      error_message = "Can't find native messaging host " + host_name;
    }
  
+--- a/chrome/browser/extensions/api/messaging/launch_context_win.cc
++++ b/chrome/browser/extensions/api/messaging/launch_context_win.cc
+@@ -45,7 +45,7 @@ bool GetManifestPathWithFlags(HKEY root_
+                               std::wstring* result) {
+ #if BUILDFLAG(CHROMIUM_BRANDING)
+   static constexpr wchar_t kChromiumNativeMessagingRegistryKey[] =
+-      L"SOFTWARE\\Chromium\\NativeMessagingHosts";
++      L"SOFTWARE\\Helium\\NativeMessagingHosts";
+
+   // Try to read the path using the Chromium-specific registry for Chromium.
+   // If that fails, fallback to Chrome-specific registry key below.
 --- a/chrome/common/chrome_paths.cc
 +++ b/chrome/common/chrome_paths.cc
 @@ -153,6 +153,11 @@ bool PathProvider(int key, base::FilePat
