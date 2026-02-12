@@ -525,31 +525,45 @@ if __name__ == "__main__":
 
     for ldb in local_dbs:
         local_packages: List[pyalpm.Package] = ldb.search("")
-        local_packages = sorted(local_packages, key=lambda p: p.db.name)
+        # Sort for consistent output/processing order
+        local_packages = sorted(local_packages, key=lambda p: p.name)
+
+        # Track which packages are found in Arch repos so we don't check them in AUR
+        found_in_arch = set()
+
         for lp in local_packages:
             for adb in arch_dbs:
                 ap = adb.get_pkg(lp.name)
                 if ap is not None:
+                    found_in_arch.add(lp.name)
                     # vercmp: left > right = 1
                     # vercmp: left < right = -1
                     outdated = pyalpm.vercmp(lp.version, ap.version)
                     if outdated < 0:
                         print_package_update(adb.name, ldb.name, lp.name, ap.version, lp.version)
-                    local_packages.remove(lp)
+                    break  # Found in one Arch DB, stop checking others
 
-        local_packages = sorted(local_packages, key=lambda p: p.name)
-        aur_info = info_multiple([lp.name for lp in local_packages])
-        aur_packages = sorted(aur_info.results, key=lambda p: p.name)
-        aur_names_set = {ap.name for ap in aur_packages}
-        local_aur_packages = [lp for lp in local_packages if lp.name in aur_names_set]
-        for lp, ap in zip(local_aur_packages, aur_packages):
-            if ap.name == lp.name:
+        # Filter for AUR check
+        aur_candidates = [lp for lp in local_packages if lp.name not in found_in_arch]
+
+        if not aur_candidates:
+            print("")
+            continue
+
+        # Check AUR
+        aur_info = info_multiple([lp.name for lp in aur_candidates])
+
+        # Create a map for O(1) lookup
+        aur_map = {ap.name: ap for ap in aur_info.results}
+
+        for lp in aur_candidates:
+            if lp.name in aur_map:
+                ap = aur_map[lp.name]
                 outdated = pyalpm.vercmp(lp.version, ap.version)
                 if outdated < 0:
                     print_package_update("aur", ldb.name, lp.name, ap.version, lp.version)
-
-        local_non_aur_packages = [lp for lp in local_packages if lp.name not in aur_names_set]
-        for lnap in local_non_aur_packages:
-            print("{:20s} {}".format(f"non - {ldb.name}", lnap.name))
+            else:
+                # Not found in AUR
+                print("{:20s} {}".format(f"non - {ldb.name}", lp.name))
 
         print("")
