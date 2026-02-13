@@ -25,15 +25,67 @@ def err(m: str)->None: print(f"{C.R}✗{C.N} {m}",file=sys.stderr)
 def warn(m: str)->None: print(f"{C.Y}⚠{C.N} {m}")
 
 class VpDev:
-  __slots__=('root','pkg_json','git','skip_dirs')
+  __slots__=('root','pkg_json','git','skip_dirs','files_cache')
   def __init__(self)->None:
     self.root=Path(__file__).parent
     self.pkg_json=self.root/"packages.json"
     self.git="/usr/bin/git"
     self.skip_dirs={'.git','.github','node_modules','__pycache__','.vscode','patches','docs'}
+    self.files_cache={}
+
+  def _populate_files_cache(self)->None:
+    try:
+      r=self._git(["ls-files"],capture_output=True,text=True,check=True)
+      for l in r.stdout.splitlines():
+        p=l.split('/',1)
+        if len(p)>1:
+          if p[0] not in self.files_cache: self.files_cache[p[0]]=[]
+          self.files_cache[p[0]].append(p[1])
+    except Exception as e: warn(f"Failed to populate file cache: {e}")
 
   def _git(self,args: list[str],cwd: Path|None=None,**kw)->subprocess.CompletedProcess:
     return subprocess.run([self.git]+args,cwd=cwd or self.root,**kw)
+
+  def _parse_srcinfo(self, pb: Path) -> dict[str, str | list[str]] | None:
+    srcinfo = pb.parent / ".SRCINFO"
+    if not srcinfo.exists(): return None
+    try:
+      content = srcinfo.read_text()
+      data = {}
+      for line in content.splitlines():
+        line = line.strip()
+        if not line or line.startswith('#'): continue
+        if '=' in line:
+          k, v = line.split('=', 1)
+          k = k.strip()
+          v = v.strip()
+          if k == 'pkgname' and 'name' not in data: data['name'] = v
+          elif k == 'pkgver': data['version'] = v
+          elif k == 'pkgrel': data['rel'] = v
+          elif k == 'pkgdesc': data['description'] = v
+          elif k == 'url': data['url'] = v
+
+      if 'version' in data and 'rel' in data:
+          data['version'] = f"{data['version']}-{data['rel']}"
+          del data['rel']
+
+      pkg_dir_name = pb.parent.name
+      fs = self.files_cache.get(pkg_dir_name, [])
+      if not fs: # Fallback if cache missed or empty
+          # This shouldn't happen if _populate_files_cache was called, unless new package
+          # We can try to fetch it if really needed, but let's assume cache is authority
+          pass
+
+      data['files'] = sorted([f for f in fs if f != "PKGBUILD"])
+
+      if 'name' in data and 'version' in data:
+           data.setdefault('description', '')
+           data.setdefault('url', '')
+           return data
+      return None
+    except Exception as e:
+      warn(f"Failed to parse .SRCINFO for {pb}: {e}")
+      return None
 
   def _parse_pkg(self,pb: Path)->dict[str,str|list[str]]|None:
     if not pb.exists(): return None
@@ -42,8 +94,11 @@ class VpDev:
       if r.returncode!=0: return None
       p=r.stdout.strip().split("|")
       if len(p)<4: return None
-      r2=self._git(["ls-files"],capture_output=True,text=True,cwd=pb.parent,check=True)
-      fs=[f for f in r2.stdout.strip().split("\n") if f and f!="PKGBUILD"]
+      fs=self.files_cache.get(pb.parent.name)
+      if fs is None:
+        r2=self._git(["ls-files"],capture_output=True,text=True,cwd=pb.parent,check=True)
+        fs=[f for f in r2.stdout.strip().split("\n") if f]
+      fs=[f for f in fs if f!="PKGBUILD"]
       return {"name":p[0],"version":f"{p[1]}-{p[2]}","description":p[3],"url":p[4] if len(p)>4 else "","files":sorted(fs)}
     except Exception as e:
       err(f"Failed to parse {pb}: {e}")
@@ -131,12 +186,23 @@ makepkg -si
     """
     try:
       pb = d / "PKGBUILD"
+      srcinfo = d / ".SRCINFO"
+
+      # Optimization: If .SRCINFO is newer than PKGBUILD, use it
+      if srcinfo.exists() and pb.exists() and srcinfo.stat().st_mtime >= pb.stat().st_mtime:
+        pi = self._parse_srcinfo(pb)
+        if pi:
+          # If we successfully parsed .SRCINFO, we assume it's up-to-date
+          # skipping makepkg --printsrcinfo which is very slow
+          return pi
+
+      # Fallback to full parse and regeneration
       pi = self._parse_pkg(pb)
       if pi:
         info(f"Found: {pi['name']} {pi['version']}")
         r = subprocess.run(["makepkg", "--printsrcinfo"], cwd=d, capture_output=True, text=True, check=False)
         if r.returncode == 0:
-          (d / ".SRCINFO").write_text(r.stdout)
+          srcinfo.write_text(r.stdout)
         else:
           warn(f"Failed to generate .SRCINFO for {d.name}")
         return pi
@@ -149,6 +215,7 @@ makepkg -si
 
   def update(self) -> int:
     info("Scanning for packages...")
+    self._populate_files_cache()
     pkgs = []
     with concurrent.futures.ThreadPoolExecutor() as executor:
       results = list(executor.map(self._process_package, self._get_pkg_dirs()))
@@ -188,6 +255,7 @@ makepkg -si
 
   def check(self)->int:
     info("Checking all packages...")
+    self._populate_files_cache()
     errs=0
     for d in self._get_pkg_dirs():
       pb=d/"PKGBUILD"
@@ -215,6 +283,7 @@ makepkg -si
     return 0
 
   def list(self)->int:
+    self._populate_files_cache()
     for d in self._get_pkg_dirs():
       pb=d/"PKGBUILD"
       pi=self._parse_pkg(pb)
