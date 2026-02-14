@@ -25,15 +25,64 @@ def err(m: str)->None: print(f"{C.R}✗{C.N} {m}",file=sys.stderr)
 def warn(m: str)->None: print(f"{C.Y}⚠{C.N} {m}")
 
 class VpDev:
-  __slots__=('root','pkg_json','git','skip_dirs')
+  __slots__=('root','pkg_json','git','skip_dirs','files_cache')
   def __init__(self)->None:
     self.root=Path(__file__).parent
     self.pkg_json=self.root/"packages.json"
     self.git="/usr/bin/git"
     self.skip_dirs={'.git','.github','node_modules','__pycache__','.vscode','patches','docs'}
+    self.files_cache={}
 
   def _git(self,args: list[str],cwd: Path|None=None,**kw)->subprocess.CompletedProcess:
     return subprocess.run([self.git]+args,cwd=cwd or self.root,**kw)
+
+  def _populate_files_cache(self)->None:
+    """Populate files_cache with git ls-files output to avoid N git calls"""
+    try:
+      r=self._git(["ls-files"],capture_output=True,text=True,check=True)
+      for f in r.stdout.splitlines():
+        parts=f.split('/',1)
+        if len(parts)==2:
+          pkg,file=parts
+          if pkg not in self.files_cache: self.files_cache[pkg]=[]
+          self.files_cache[pkg].append(file)
+    except Exception as e:
+      warn(f"Failed to populate files cache: {e}")
+
+  def _parse_srcinfo(self,srcinfo: Path,files: list[str])->dict[str,str|list[str]]|None:
+    """Parse .SRCINFO file instead of running makepkg"""
+    if not srcinfo.exists(): return None
+    try:
+      info={}
+      ver=None; rel=None; found_pkgname=False
+      with open(srcinfo,'r') as f:
+        for line in f:
+          line=line.strip()
+          if not line or line.startswith('#'): continue
+          if ' = ' in line: k,v=line.split(' = ',1)
+          elif '=' in line: k,v=line.split('=',1)
+          else: continue
+          k=k.strip(); v=v.strip()
+          if k=='pkgbase':
+            if 'name' not in info: info['name']=v
+          elif k=='pkgname':
+            if not found_pkgname: info['name']=v; found_pkgname=True
+          elif k=='pkgver':
+            if not ver: ver=v
+          elif k=='pkgrel':
+            if not rel: rel=v
+          elif k=='pkgdesc':
+            if 'description' not in info: info['description']=v
+          elif k=='url':
+            if 'url' not in info: info['url']=v
+
+      if ver and rel: info['version']=f"{ver}-{rel}"
+      if 'name' in info and 'version' in info:
+        info['files']=sorted(files)
+        return info
+    except Exception as e:
+      warn(f"Failed to parse {srcinfo}: {e}")
+    return None
 
   def _parse_pkg(self,pb: Path)->dict[str,str|list[str]]|None:
     if not pb.exists(): return None
@@ -42,8 +91,14 @@ class VpDev:
       if r.returncode!=0: return None
       p=r.stdout.strip().split("|")
       if len(p)<4: return None
-      r2=self._git(["ls-files"],capture_output=True,text=True,cwd=pb.parent,check=True)
-      fs=[f for f in r2.stdout.strip().split("\n") if f and f!="PKGBUILD"]
+
+      pkg_dir=pb.parent.name
+      if pkg_dir in self.files_cache:
+        fs=[f for f in self.files_cache[pkg_dir] if f!="PKGBUILD"]
+      else:
+        r2=self._git(["ls-files"],capture_output=True,text=True,cwd=pb.parent,check=True)
+        fs=[f for f in r2.stdout.strip().split("\n") if f and f!="PKGBUILD"]
+
       return {"name":p[0],"version":f"{p[1]}-{p[2]}","description":p[3],"url":p[4] if len(p)>4 else "","files":sorted(fs)}
     except Exception as e:
       err(f"Failed to parse {pb}: {e}")
@@ -131,6 +186,21 @@ makepkg -si
     """
     try:
       pb = d / "PKGBUILD"
+      srcinfo = d / ".SRCINFO"
+
+      # Optimization: Use cached .SRCINFO if up-to-date
+      if srcinfo.exists() and pb.exists() and srcinfo.stat().st_mtime >= pb.stat().st_mtime:
+        pkg_dir=d.name
+        fs=None
+        if pkg_dir in self.files_cache:
+          fs=[f for f in self.files_cache[pkg_dir] if f!="PKGBUILD"]
+
+        if fs:
+          pi=self._parse_srcinfo(srcinfo, fs)
+          if pi:
+            info(f"Found (cached): {pi['name']} {pi['version']}")
+            return pi
+
       pi = self._parse_pkg(pb)
       if pi:
         info(f"Found: {pi['name']} {pi['version']}")
@@ -149,6 +219,7 @@ makepkg -si
 
   def update(self) -> int:
     info("Scanning for packages...")
+    self._populate_files_cache()
     pkgs = []
     with concurrent.futures.ThreadPoolExecutor() as executor:
       results = list(executor.map(self._process_package, self._get_pkg_dirs()))
@@ -188,6 +259,7 @@ makepkg -si
 
   def check(self)->int:
     info("Checking all packages...")
+    self._populate_files_cache()
     errs=0
     for d in self._get_pkg_dirs():
       pb=d/"PKGBUILD"
@@ -215,6 +287,7 @@ makepkg -si
     return 0
 
   def list(self)->int:
+    self._populate_files_cache()
     for d in self._get_pkg_dirs():
       pb=d/"PKGBUILD"
       pi=self._parse_pkg(pb)

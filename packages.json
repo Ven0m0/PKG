@@ -1,0 +1,151 @@
+{
+  "packages": [
+    {
+      "name": "aria2-ven0m0",
+      "description": "Download utility that supports HTTP(S), FTP, BitTorrent, and Metalink",
+      "url": "https://aria2.github.io",
+      "version": "1.37.0-3",
+      "files": [
+        ".SRCINFO",
+        "0001-tweak-aria2-for-speed.patch",
+        "0002-retry-options.patch",
+        "readme.md"
+      ]
+    },
+    {
+      "name": "curl-rustls",
+      "url": "https://curl.se/",
+      "description": "URL transfer (rustls TLS + HTTP/3)",
+      "version": "8.17.0-1",
+      "files": [
+        ".SRCINFO",
+        "build.sh",
+        "patches/boringssl.patch",
+        "patches/curl.patch",
+        "readme.md"
+      ]
+    },
+    {
+      "name": "glfw-wayland-minecraft-cursorfix",
+      "description": "A free, open source, portable framework for graphical application development (wayland, patched for Minecraft)",
+      "url": "https://github.com/BoyOrigin/glfw-wayland",
+      "version": "3.4-6",
+      "files": [
+        ".SRCINFO",
+        "applyPatches.sh",
+        "patches/0001-Key-Modifiers-Fix.patch",
+        "patches/0002-Fix-duplicate-pointer-scroll-events.patch",
+        "patches/0003-Implement-glfwSetCursorPosWayland.patch",
+        "patches/0004-Fix-Window-size-on-unset-fullscreen.patch",
+        "patches/0005-Add-warning-about-being-an-unofficial-patch.patch",
+        "patches/0006-Avoid-error-on-startup.patch",
+        "patches/0007-Fix-fullscreen-location.patch",
+        "patches/0008-Fix-forge-crash.patch",
+        "patches/0009-Don-t-crash-on-calls-to-focus-or-icon.patch",
+        "patches/0010-wayland-fix-broken-opengl-screenshots-on-mutter.patch",
+        "patches/0011--Avoid-set-window-position-error-on-startup.patch",
+        "rebuildPatches.sh"
+      ]
+    },
+    {
+      "name": "glibc-eac-roco",
+      "url": "https://www.gnu.org/software/libc",
+      "description": "GNU C Library with DT_HASH patch for EAC and Rogue Company compatibility",
+      "version": "2.42+r33+gde1fe81f4714-1",
+      "files": [
+        ".SRCINFO",
+        "PGKBUILD-eac",
+        "PKGBUILD-pgo",
+        "glibc.install",
+        "glibc_eac.sh",
+        "lib32-glibc.conf",
+        "lib32-glibc.install",
+        "locale-gen",
+        "locale.gen.txt",
+        "readme.md",
+        "reenable_DT_HASH.patch",
+        "rogue_company_reverts.patch",
+        "sdt-config.h",
+        "sdt.h"
+      ]
+    },
+    {
+      "name": "intel-ucode-scan",
+      "description": "Pacman hook + helper: generate per-CPU intel microcode image and rebuild initramfs",
+      "url": "https://github.com/intel/Intel-Linux-Processor-Microcode-Data-Files",
+      "version": "1.0.0-1",
+      "files": [
+        ".SRCINFO",
+        "99-intel-ucode-scan.hook",
+        "intel-ucode-scan.install",
+        "intel-ucode-scan.sh",
+        "readme.md"
+      ]
+    },
+    {
+      "name": "linux-catgirl-edition",
+      "description": "Linux kernel with performance optimizations from CachyOS, Clear Linux, and XanMod",
+      "url": "https://github.com/Ven0m0/Linux-Kernel-Patches",
+      "version": "6.17.0-1",
+      "files": [
+        ".SRCINFO",
+        "config-chimera",
+        "readme.md"
+      ]
+    },
+    {
+      "name": "llvm-minimal",
+      "url": "https://llvm.org/",
+      "description": "Collection of modular and reusable compiler and toolchain technologies with lld, lldb, polly, bolt (optimized)",
+      "version": "21.0.0_r537041.f2e62cfca5e5-2",
+      "files": [
+        ".SRCINFO",
+        "llvm-config.h",
+        "readme.md"
+      ]
+    },
+    {
+      "name": "mesa-git",
+      "url": "https://www.mesa3d.org",
+      "description": "an open-source implementation of the OpenGL specification, git version",
+      "version": "0-1",
+      "files": [
+        ".SRCINFO",
+        ".gitignore",
+        "LICENSE",
+        "customization.cfg",
+        "llvm32.native",
+        "mesa-userpatches/0001-STEAMOS-Dynamic-swapchain-override-for-gamescope-lim.patch",
+        "mesa-userpatches/0002-Nouveau-load-zink-as-the-GL-driver.patch",
+        "mesa-userpatches/README.md",
+        "mesa-userpatches/gamescope-fps-limiter.patch",
+        "patches.txt",
+        "readme.md"
+      ]
+    },
+    {
+      "name": "rare",
+      "description": "Open source alternative for Epic Games Launcher, using Legendary",
+      "url": "https://github.com/RareDevs/Rare",
+      "version": "1.12.0-1",
+      "files": [
+        ".SRCINFO",
+        "rare.sh"
+      ]
+    },
+    {
+      "name": "watchman",
+      "description": "Watches files and records, or triggers actions, when they change",
+      "url": "https://github.com/facebook/watchman",
+      "version": "2025.12.01.00-1",
+      "files": [
+        ".SRCINFO",
+        "fix-link-pathutils.patch"
+      ]
+    }
+  ],
+  "tools": {
+    "vp": "1.0.0",
+    "vp-dev": "1.0.0"
+  }
+}
