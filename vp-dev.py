@@ -90,7 +90,7 @@ class VpDev:
   def _parse_pkg(self,pb: Path)->dict[str,str|list[str]]|None:
     if not pb.exists(): return None
     try:
-      r=subprocess.run(["bash","-c",f'source "{pb}" 2>/dev/null;echo "${{pkgname}}|${{pkgver}}|${{pkgrel}}|${{pkgdesc}}|${{url}}"'],capture_output=True,text=True,cwd=pb.parent,check=False)
+      import shlex; r=subprocess.run(["bash","-c",f'source {shlex.quote(str(pb))} 2>/dev/null;echo "${{pkgname}}|${{pkgver}}|${{pkgrel}}|${{pkgdesc}}|${{url}}"'],capture_output=True,text=True,cwd=pb.parent,check=False)
       if r.returncode!=0: return None
       p=r.stdout.strip().split("|")
       if len(p)<4: return None
