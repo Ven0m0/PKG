@@ -31,17 +31,24 @@ class VpDev:
     self.pkg_json=self.root/"packages.json"
     self.git="/usr/bin/git"
     self.skip_dirs={'.git','.github','node_modules','__pycache__','.vscode','patches','docs'}
-    self.files_cache={}
+    self.files_cache=None
 
   def _populate_files_cache(self)->None:
+    if self.files_cache is not None: return
+    info("Populating file cache...")
+    self.files_cache={}
     try:
-      self.files_cache.clear()
       r=self._git(["ls-files"],capture_output=True,text=True,check=True)
-      for l in r.stdout.splitlines():
-        p=l.split('/',1)
-        if len(p)>1:
-          self.files_cache.setdefault(p[0], []).append(p[1])
-    except Exception as e: warn(f"Failed to populate file cache: {e}")
+      for f in r.stdout.splitlines():
+        parts=f.split("/",1)
+        if len(parts)==2:
+          pkg,rel=parts
+          d=self.root/pkg
+          if d not in self.files_cache: self.files_cache[d]=[]
+          self.files_cache[d].append(rel)
+    except Exception as e:
+      warn(f"Failed to populate file cache: {e}")
+      self.files_cache=None
 
   def _git(self,args: list[str],cwd: Path|None=None,**kw)->subprocess.CompletedProcess:
     return subprocess.run([self.git]+args,cwd=cwd or self.root,**kw)
@@ -94,11 +101,11 @@ class VpDev:
       if r.returncode!=0: return None
       p=r.stdout.strip().split("|")
       if len(p)<4: return None
-      fs=self.files_cache.get(pb.parent.name)
-      if fs is None:
+      if self.files_cache and pb.parent in self.files_cache:
+        fs=[f for f in self.files_cache[pb.parent] if f!="PKGBUILD"]
+      else:
         r2=self._git(["ls-files"],capture_output=True,text=True,cwd=pb.parent,check=True)
-        fs=[f for f in r2.stdout.strip().split("\n") if f]
-      fs=[f for f in fs if f!="PKGBUILD"]
+        fs=[f for f in r2.stdout.strip().split("\n") if f and f!="PKGBUILD"]
       return {"name":p[0],"version":f"{p[1]}-{p[2]}","description":p[3],"url":p[4] if len(p)>4 else "","files":sorted(fs)}
     except Exception as e:
       err(f"Failed to parse {pb}: {e}")
@@ -176,6 +183,31 @@ makepkg -si
       else: err("Build failed"); return 1
     return 0
 
+  def _parse_srcinfo(self, d: Path) -> dict[str, str | list[str]] | None:
+    si = d / ".SRCINFO"
+    pb = d / "PKGBUILD"
+    if not si.exists() or not pb.exists() or si.stat().st_mtime < pb.stat().st_mtime: return None
+    try:
+      data, files = {}, []
+      for line in si.read_text().splitlines():
+        if "=" not in line: continue
+        k, v = [x.strip() for x in line.split("=", 1)]
+        if k == "pkgname":
+          if "name" in data: break # Stop at first package
+          data["name"] = v
+        elif k in ("pkgver", "pkgrel", "pkgdesc", "url"):
+          data[k] = v
+      if "name" in data and "pkgver" in data and "pkgrel" in data:
+        if self.files_cache and d in self.files_cache:
+          files = sorted([f for f in self.files_cache[d] if f != "PKGBUILD"])
+        else:
+          r = self._git(["ls-files"], capture_output=True, text=True, cwd=d, check=False)
+          if r.returncode == 0: files = sorted([f for f in r.stdout.splitlines() if f and f != "PKGBUILD"])
+        return {"name": data["name"], "version": f"{data['pkgver']}-{data['pkgrel']}",
+                "description": data.get("pkgdesc", ""), "url": data.get("url", ""), "files": files}
+    except Exception: pass
+    return None
+
   def _process_package(self, d: Path) -> dict[str, str | list[str]] | None:
     """Process a single package directory.
 
@@ -185,6 +217,10 @@ makepkg -si
     to preserve thread safety.
     """
     try:
+      pi = self._parse_srcinfo(d)
+      if pi:
+        info(f"Found (fast): {pi['name']} {pi['version']}")
+        return pi
       pb = d / "PKGBUILD"
       srcinfo = d / ".SRCINFO"
 
@@ -214,6 +250,7 @@ makepkg -si
       return None
 
   def update(self) -> int:
+    self._populate_files_cache()
     info("Scanning for packages...")
     self._populate_files_cache()
     pkgs = []
@@ -254,6 +291,7 @@ makepkg -si
     return 0
 
   def check(self)->int:
+    self._populate_files_cache()
     info("Checking all packages...")
     self._populate_files_cache()
     errs=0
