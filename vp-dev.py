@@ -35,6 +35,7 @@ class VpDev:
 
   def _populate_files_cache(self)->None:
     try:
+      self.files_cache.clear()
       r=self._git(["ls-files"],capture_output=True,text=True,check=True)
       for l in r.stdout.splitlines():
         p=l.split('/',1)
