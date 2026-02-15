@@ -40,8 +40,7 @@ class VpDev:
       for l in r.stdout.splitlines():
         p=l.split('/',1)
         if len(p)>1:
-          if p[0] not in self.files_cache: self.files_cache[p[0]]=[]
-          self.files_cache[p[0]].append(p[1])
+          self.files_cache.setdefault(p[0], []).append(p[1])
     except Exception as e: warn(f"Failed to populate file cache: {e}")
 
   def _git(self,args: list[str],cwd: Path|None=None,**kw)->subprocess.CompletedProcess:
