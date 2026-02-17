@@ -97,15 +97,18 @@ show_cache_stats() {
 }
 
 find_pkgs() {
-  local -a pkgs=()
-  while IFS= read -r -d '' f; do
-    local dir=${f%/PKGBUILD}
-    dir=${dir#./}
-    pkgs+=("$dir")
-  done < <(find . -type f -name PKGBUILD -print0)
-
-
-  printf '%s\n' "${pkgs[@]}"
+  if [[ -d .git ]] && command -v git >/dev/null; then
+    # O(1) using git index
+    git ls-files ':(glob)**/PKGBUILD' | sed -e 's|/PKGBUILD$||' -e 's|^PKGBUILD$|.|'
+  else
+    local -a pkgs=()
+    while IFS= read -r -d '' f; do
+      local dir=${f%/PKGBUILD}
+      dir=${dir#./}
+      pkgs+=("$dir")
+    done < <(find . -type f -name PKGBUILD -print0)
+    printf '%s\n' "${pkgs[@]}"
+  fi
 }
 
 patch_arch() {
@@ -255,6 +258,7 @@ cmd_build() {
   local failed=0
   local -a pids=()
   local -A pid_pkg=()
+  local -A job_status=()
 
   for pkg in "${targets[@]}"; do
     [[ -f $pkg/PKGBUILD ]] || {
@@ -263,7 +267,19 @@ cmd_build() {
       continue
     }
     if [[ $PARALLEL == true ]]; then
-      while (($(jobs -rp | wc -l) >= MAX_JOBS)); do sleep 0.1; done
+      while (($(jobs -rp | wc -l) >= MAX_JOBS)); do
+        local finish_pid="" rc=0
+        set +e
+        wait -n -p finish_pid
+        rc=$?
+        set -e
+        if [[ -n $finish_pid ]]; then
+          job_status[$finish_pid]=$rc
+        elif (( rc != 0 )); then
+          # Fallback if wait -n fails or is unsupported
+          sleep 0.1
+        fi
+      done
       build_with_retry "$pkg" &
       pids+=($!)
       pid_pkg[$!]=$pkg
@@ -275,7 +291,14 @@ cmd_build() {
 
   if [[ $PARALLEL == true ]]; then
     for pid in "${pids[@]}"; do
-      if wait "$pid"; then
+      local rc=0
+      if [[ -n ${job_status[$pid]:-} ]]; then
+        rc=${job_status[$pid]}
+      else
+        wait "$pid" || rc=$?
+      fi
+
+      if (( rc == 0 )); then
         log "✓ ${pid_pkg[$pid]}"
         show_cache_stats "${pid_pkg[$pid]}"
       else
@@ -387,9 +410,7 @@ cmd_lint() {
     for pkg in "${pkgs[@]}"; do
       [[ -d $pkg ]] || continue
 
-      while [[ $(jobs -r | wc -l) -ge $max_jobs ]]; do
-        sleep 0.1
-      done
+      wait_for_jobs "$max_jobs"
 
       printf '==> %s\n' "$pkg"
       (lint_pkg "$pkg" "$root" "$sc" "$sh" "$sf" "$nc" >"$tmpdir/$pkg.log" 2>&1) &
@@ -490,9 +511,7 @@ cmd_srcinfo() {
     for pkg in "${pkgs[@]}"; do
       [[ ! -d $pkg ]] && continue
 
-      while [[ $(jobs -r | wc -l) -ge $max_jobs ]]; do
-        sleep 0.1
-      done
+      wait_for_jobs "$max_jobs"
 
       (process_srcinfo_pkg "$pkg" "$root" >"$tmpdir/$pkg.log" 2>&1) &
       pids+=($!)
