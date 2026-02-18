@@ -10,121 +10,111 @@ import re
 from pathlib import Path
 import concurrent.futures
 
-VERSION="1.0.0"
+VERSION = "1.0.0"
 
-class C:
-  R="\033[0;31m"
-  G="\033[0;32m"
-  B="\033[0;34m"
-  Y="\033[1;33m"
-  N="\033[0m"
 
-def info(m: str)->None: print(f"{C.B}→{C.N} {m}")
-def ok(m: str)->None: print(f"{C.G}✓{C.N} {m}")
-def err(m: str)->None: print(f"{C.R}✗{C.N} {m}",file=sys.stderr)
-def warn(m: str)->None: print(f"{C.Y}⚠{C.N} {m}")
+class Colors:
+    R = "\033[0;31m"
+    G = "\033[0;32m"
+    B = "\033[0;34m"
+    Y = "\033[1;33m"
+    N = "\033[0m"
+
+
+def info(m: str) -> None:
+    print(f"{Colors.B}→{Colors.N} {m}")
+
+
+def ok(m: str) -> None:
+    print(f"{Colors.G}✓{Colors.N} {m}")
+
+
+def err(m: str) -> None:
+    print(f"{Colors.R}✗{Colors.N} {m}", file=sys.stderr)
+
+
+def warn(m: str) -> None:
+    print(f"{Colors.Y}⚠{Colors.N} {m}")
+
 
 class VpDev:
-  __slots__=('root','pkg_json','git','skip_dirs','files_cache')
-  def __init__(self)->None:
-    self.root=Path(__file__).parent
-    self.pkg_json=self.root/"packages.json"
-    self.git="/usr/bin/git"
-    self.skip_dirs={'.git','.github','node_modules','__pycache__','.vscode','patches','docs'}
-    self.files_cache=None
+    __slots__ = ('root', 'pkg_json', 'git', 'skip_dirs', 'files_cache')
 
-  def _populate_files_cache(self)->None:
-    if self.files_cache is not None: return
-    info("Populating file cache...")
-    self.files_cache={}
-    try:
-      r=self._git(["ls-files"],capture_output=True,text=True,check=True)
-      for f in r.stdout.splitlines():
-        parts=f.split("/",1)
-        if len(parts)==2:
-          pkg,rel=parts
-          d=self.root/pkg
-          if d not in self.files_cache: self.files_cache[d]=[]
-          self.files_cache[d].append(rel)
-    except Exception as e:
-      warn(f"Failed to populate file cache: {e}")
-      self.files_cache=None
+    def __init__(self) -> None:
+        self.root = Path(__file__).parent
+        self.pkg_json = self.root / "packages.json"
+        self.git = "/usr/bin/git"
+        self.skip_dirs = {'.git', '.github', 'node_modules', '__pycache__', '.vscode', 'patches', 'docs'}
+        self.files_cache = None
 
-  def _git(self,args: list[str],cwd: Path|None=None,**kw)->subprocess.CompletedProcess:
-    return subprocess.run([self.git]+args,cwd=cwd or self.root,**kw)
+    def _populate_files_cache(self) -> None:
+        if self.files_cache is not None:
+            return
+        info("Populating file cache...")
+        self.files_cache = {}
+        try:
+            r = self._git(["ls-files"], capture_output=True, text=True, check=True)
+            for f in r.stdout.splitlines():
+                parts = f.split("/", 1)
+                if len(parts) == 2:
+                    pkg, rel = parts
+                    d = self.root / pkg
+                    if d not in self.files_cache:
+                        self.files_cache[d] = []
+                    self.files_cache[d].append(rel)
+        except Exception as e:
+            warn(f"Failed to populate file cache: {e}")
+            self.files_cache = None
 
-  def _parse_srcinfo(self, pb: Path) -> dict[str, str | list[str]] | None:
-    srcinfo = pb.parent / ".SRCINFO"
-    if not srcinfo.exists(): return None
-    try:
-      content = srcinfo.read_text()
-      data = {}
-      for line in content.splitlines():
-        line = line.strip()
-        if not line or line.startswith('#'): continue
-        if '=' in line:
-          k, v = line.split('=', 1)
-          k = k.strip()
-          v = v.strip()
-          if k == 'pkgname' and 'name' not in data: data['name'] = v
-          elif k == 'pkgver': data['version'] = v
-          elif k == 'pkgrel': data['rel'] = v
-          elif k == 'pkgdesc': data['description'] = v
-          elif k == 'url': data['url'] = v
+    def _git(self, args: list[str], cwd: Path | None = None, **kw) -> subprocess.CompletedProcess:
+        return subprocess.run([self.git] + args, cwd=cwd or self.root, **kw)
 
-      if 'version' in data and 'rel' in data:
-          data['version'] = f"{data['version']}-{data['rel']}"
-          del data['rel']
+    def _parse_pkg(self, pb: Path) -> dict[str, str | list[str]] | None:
+        if not pb.exists():
+            return None
+        try:
+            import shlex
+            cmd = f'source {shlex.quote(str(pb))} 2>/dev/null;echo "${{pkgname}}|${{pkgver}}|${{pkgrel}}|${{pkgdesc}}|${{url}}"'
+            r = subprocess.run(["bash", "-c", cmd], capture_output=True, text=True, cwd=pb.parent, check=False)
+            if r.returncode != 0:
+                return None
+            p = r.stdout.strip().split("|")
+            if len(p) < 4:
+                return None
 
-      pkg_dir_name = pb.parent.name
-      fs = self.files_cache.get(pkg_dir_name, [])
-      if not fs: # Fallback if cache missed or empty
-          # This shouldn't happen if _populate_files_cache was called, unless new package
-          # We can try to fetch it if really needed, but let's assume cache is authority
-          pass
+            if self.files_cache and pb.parent in self.files_cache:
+                fs = [f for f in self.files_cache[pb.parent] if f != "PKGBUILD"]
+            else:
+                r2 = self._git(["ls-files"], capture_output=True, text=True, cwd=pb.parent, check=True)
+                fs = [f for f in r2.stdout.strip().split("\n") if f and f != "PKGBUILD"]
 
-      data['files'] = sorted([f for f in fs if f != "PKGBUILD"])
+            return {
+                "name": p[0],
+                "version": f"{p[1]}-{p[2]}",
+                "description": p[3],
+                "url": p[4] if len(p) > 4 else "",
+                "files": sorted(fs)
+            }
+        except Exception as e:
+            err(f"Failed to parse {pb}: {e}")
+            return None
 
-      if 'name' in data and 'version' in data:
-           data.setdefault('description', '')
-           data.setdefault('url', '')
-           return data
-      return None
-    except Exception as e:
-      warn(f"Failed to parse .SRCINFO for {pb}: {e}")
-      return None
+    def _get_pkg_dirs(self) -> list[Path]:
+        """Get all package directories (dirs with PKGBUILD, excluding skip_dirs)"""
+        dirs = []
+        for d in sorted(self.root.iterdir()):
+            if d.is_dir() and d.name not in self.skip_dirs and (d / "PKGBUILD").exists():
+                dirs.append(d)
+        return dirs
 
-  def _parse_pkg(self,pb: Path)->dict[str,str|list[str]]|None:
-    if not pb.exists(): return None
-    try:
-      import shlex; r=subprocess.run(["bash","-c",f'source {shlex.quote(str(pb))} 2>/dev/null;echo "${{pkgname}}|${{pkgver}}|${{pkgrel}}|${{pkgdesc}}|${{url}}"'],capture_output=True,text=True,cwd=pb.parent,check=False)
-      if r.returncode!=0: return None
-      p=r.stdout.strip().split("|")
-      if len(p)<4: return None
-      if self.files_cache and pb.parent in self.files_cache:
-        fs=[f for f in self.files_cache[pb.parent] if f!="PKGBUILD"]
-      else:
-        r2=self._git(["ls-files"],capture_output=True,text=True,cwd=pb.parent,check=True)
-        fs=[f for f in r2.stdout.strip().split("\n") if f and f!="PKGBUILD"]
-      return {"name":p[0],"version":f"{p[1]}-{p[2]}","description":p[3],"url":p[4] if len(p)>4 else "","files":sorted(fs)}
-    except Exception as e:
-      err(f"Failed to parse {pb}: {e}")
-      return None
-
-  def _get_pkg_dirs(self)->list[Path]:
-    """Get all package directories (dirs with PKGBUILD, excluding skip_dirs)"""
-    dirs=[]
-    for d in sorted(self.root.iterdir()):
-      if d.is_dir() and d.name not in self.skip_dirs and (d/"PKGBUILD").exists():
-        dirs.append(d)
-    return dirs
-
-  def new(self,nm: str)->int:
-    d=self.root/nm
-    if d.exists(): err(f"Package '{nm}' already exists!"); return 1
-    info(f"Creating new package: {nm}")
-    d.mkdir(parents=True)
-    (d/"PKGBUILD").write_text(f"""# Maintainer: Ven0m0 <https://github.com/Ven0m0>
+    def new(self, nm: str) -> int:
+        d = self.root / nm
+        if d.exists():
+            err(f"Package '{nm}' already exists!")
+            return 1
+        info(f"Creating new package: {nm}")
+        d.mkdir(parents=True)
+        (d / "PKGBUILD").write_text(f"""# Maintainer: Ven0m0 <https://github.com/Ven0m0>
 
 pkgname={nm}
 pkgver=1.0.0
@@ -142,7 +132,7 @@ package(){{
   :
 }}
 """)
-    (d/"readme.md").write_text(f"""# {nm}
+        (d / "readme.md").write_text(f"""# {nm}
 
 ## Description
 
@@ -167,197 +157,247 @@ makepkg -si
 
 [Add any additional notes]
 """)
-    ok(f"Created package template at {d}")
-    info("Edit the PKGBUILD and run 'vp-dev test' to build locally")
-    return 0
-
-  def test(self,nm: str|None)->int:
-    dirs=[self.root/nm] if nm else ([Path.cwd()] if (Path.cwd()/"PKGBUILD").exists() else [])
-    if not dirs: err("No PKGBUILD found in current directory"); return 1
-    for d in dirs:
-      if not d.exists(): err(f"Package directory not found: {d}"); continue
-      info(f"Building package in {d}")
-      if subprocess.run(["makepkg","-sf"],cwd=d,check=False).returncode==0:
-        ok("Package built successfully")
-        for pf in d.glob("*.pkg.tar.zst"): info(f"Built: {pf.name}")
-      else: err("Build failed"); return 1
-    return 0
-
-  def _parse_srcinfo(self, d: Path) -> dict[str, str | list[str]] | None:
-    si = d / ".SRCINFO"
-    pb = d / "PKGBUILD"
-    if not si.exists() or not pb.exists() or si.stat().st_mtime < pb.stat().st_mtime: return None
-    try:
-      data, files = {}, []
-      for line in si.read_text().splitlines():
-        if "=" not in line: continue
-        k, v = [x.strip() for x in line.split("=", 1)]
-        if k == "pkgname":
-          if "name" in data: break # Stop at first package
-          data["name"] = v
-        elif k in ("pkgver", "pkgrel", "pkgdesc", "url"):
-          data[k] = v
-      if "name" in data and "pkgver" in data and "pkgrel" in data:
-        if self.files_cache and d in self.files_cache:
-          files = sorted([f for f in self.files_cache[d] if f != "PKGBUILD"])
-        else:
-          r = self._git(["ls-files"], capture_output=True, text=True, cwd=d, check=False)
-          if r.returncode == 0: files = sorted([f for f in r.stdout.splitlines() if f and f != "PKGBUILD"])
-        return {"name": data["name"], "version": f"{data['pkgver']}-{data['pkgrel']}",
-                "description": data.get("pkgdesc", ""), "url": data.get("url", ""), "files": files}
-    except Exception: pass
-    return None
-
-  def _process_package(self, d: Path) -> dict[str, str | list[str]] | None:
-    """Process a single package directory.
-
-    This method is intended to be called from multiple threads (see ``update``).
-    It only performs read-only access to instance attributes such as ``self.root``
-    and ``self.git``; callers must not mutate these attributes after initialization
-    to preserve thread safety.
-    """
-    try:
-      pi = self._parse_srcinfo(d)
-      if pi:
-        info(f"Found (fast): {pi['name']} {pi['version']}")
-        return pi
-      pb = d / "PKGBUILD"
-      srcinfo = d / ".SRCINFO"
-
-      # Optimization: If .SRCINFO is newer than PKGBUILD, use it
-      if srcinfo.exists() and pb.exists() and srcinfo.stat().st_mtime >= pb.stat().st_mtime:
-        pi = self._parse_srcinfo(pb)
-        if pi:
-          # If we successfully parsed .SRCINFO, we assume it's up-to-date
-          # skipping makepkg --printsrcinfo which is very slow
-          return pi
-
-      # Fallback to full parse and regeneration
-      pi = self._parse_pkg(pb)
-      if pi:
-        info(f"Found: {pi['name']} {pi['version']}")
-        r = subprocess.run(["makepkg", "--printsrcinfo"], cwd=d, capture_output=True, text=True, check=False)
-        if r.returncode == 0:
-          srcinfo.write_text(r.stdout)
-        else:
-          warn(f"Failed to generate .SRCINFO for {d.name}")
-        return pi
-      else:
-        warn(f"Failed to parse {d.name}/PKGBUILD")
-        return None
-    except Exception as e:
-      err(f"Error processing package {d}: {e}")
-      return None
-
-  def update(self) -> int:
-    self._populate_files_cache()
-    info("Scanning for packages...")
-    self._populate_files_cache()
-    pkgs = []
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-      results = list(executor.map(self._process_package, self._get_pkg_dirs()))
-      pkgs = [p for p in results if p]
-
-    # Get vp version
-    vv="unknown"
-    vp=self.root/"vp"
-    if vp.exists():
-      try:
-        m=re.search(r'^VERSION="([^"]+)"',vp.read_text(),re.MULTILINE)
-        if m: vv=m.group(1)
-      except: pass
-    
-    if self.pkg_json.exists(): shutil.copy(self.pkg_json,self.pkg_json.with_suffix(".json.bak"))
-    self.pkg_json.write_text(json.dumps({"packages":pkgs,"tools":{"vp":vv,"vp-dev":VERSION}},indent=2))
-    ok(f"Updated packages.json with {len(pkgs)} packages")
-    info(f"Tool versions: vp v{vv}, vp-dev v{VERSION}")
-    return 0
-
-  def publish(self)->int:
-    info("Publishing repository...")
-    if self.update()!=0: return 1
-    try:
-      self._git(["add","-A"],check=True)
-      if self._git(["diff","--cached","--exit-code"],capture_output=True,check=False).returncode==0:
-        info("No changes to publish")
+        ok(f"Created package template at {d}")
+        info("Edit the PKGBUILD and run 'vp-dev test' to build locally")
         return 0
-      self._git(["commit","-m","Update packages"],check=True)
-      self._git(["push"],check=True)
-      ok("Published successfully!")
-      info("Changes will be live at https://ven0m0.github.io/PKG/ in a few minutes")
-    except subprocess.CalledProcessError as e:
-      err(f"Git operation failed: {e}")
-      return 1
-    return 0
 
-  def check(self)->int:
-    self._populate_files_cache()
-    info("Checking all packages...")
-    self._populate_files_cache()
-    errs=0
-    for d in self._get_pkg_dirs():
-      pb=d/"PKGBUILD"
-      pi=self._parse_pkg(pb)
-      if not pi: err(f"{d.name}: Failed to parse PKGBUILD"); errs+=1; continue
-      if not pi.get("name"): err(f"{d.name}: Missing pkgname"); errs+=1
-      if not pi.get("version"): err(f"{d.name}: Missing version"); errs+=1
-      if not pi.get("description"): warn(f"{d.name}: Missing description")
-      if errs==0: ok(f"{d.name}: OK")
-    if errs>0: err(f"Found {errs} errors"); return 1
-    ok("All packages OK")
-    return 0
+    def test(self, nm: str | None) -> int:
+        dirs = [self.root / nm] if nm else ([Path.cwd()] if (Path.cwd() / "PKGBUILD").exists() else [])
+        if not dirs:
+            err("No PKGBUILD found in current directory")
+            return 1
+        for d in dirs:
+            if not d.exists():
+                err(f"Package directory not found: {d}")
+                continue
+            info(f"Building package in {d}")
+            if subprocess.run(["makepkg", "-sf"], cwd=d, check=False).returncode == 0:
+                ok("Package built successfully")
+                for pf in d.glob("*.pkg.tar.zst"):
+                    info(f"Built: {pf.name}")
+            else:
+                err("Build failed")
+                return 1
+        return 0
 
-  def clean(self)->int:
-    info("Cleaning build artifacts...")
-    pats=["*.pkg.tar.zst","*.pkg.tar.xz","*.log","pkg","src","*.bak"]
-    c=0
-    for d in self._get_pkg_dirs():
-      for pat in pats:
-        for it in d.glob(pat):
-          (shutil.rmtree if it.is_dir() else it.unlink)(it)
-          info(f"Removed {'directory' if it.is_dir() else 'file'}: {it}")
-          c+=1
-    ok(f"Cleaned {c} items")
-    return 0
+    def _parse_srcinfo(self, d: Path) -> dict[str, str | list[str]] | None:
+        si = d / ".SRCINFO"
+        pb = d / "PKGBUILD"
+        if not si.exists() or not pb.exists() or si.stat().st_mtime < pb.stat().st_mtime:
+            return None
+        try:
+            data, files = {}, []
+            for line in si.read_text().splitlines():
+                if "=" not in line:
+                    continue
+                k, v = [x.strip() for x in line.split("=", 1)]
+                if k == "pkgname":
+                    if "name" in data:
+                        break  # Stop at first package
+                    data["name"] = v
+                elif k in ("pkgver", "pkgrel", "pkgdesc", "url"):
+                    data[k] = v
+            if "name" in data and "pkgver" in data and "pkgrel" in data:
+                if self.files_cache and d in self.files_cache:
+                    files = sorted([f for f in self.files_cache[d] if f != "PKGBUILD"])
+                else:
+                    r = self._git(["ls-files"], capture_output=True, text=True, cwd=d, check=False)
+                    if r.returncode == 0:
+                        files = sorted([f for f in r.stdout.splitlines() if f and f != "PKGBUILD"])
+                return {
+                    "name": data["name"],
+                    "version": f"{data['pkgver']}-{data['pkgrel']}",
+                    "description": data.get("pkgdesc", ""),
+                    "url": data.get("url", ""),
+                    "files": files
+                }
+        except Exception:
+            pass
+        return None
 
-  def list(self)->int:
-    self._populate_files_cache()
-    for d in self._get_pkg_dirs():
-      pb=d/"PKGBUILD"
-      pi=self._parse_pkg(pb)
-      print(f"{pi['name']:<30} {pi['version']:<20} {pi['description'][:60]}" if pi else f"{d.name:<30} {'PARSE ERROR':<20}")
-    return 0
+    def _process_package(self, d: Path) -> dict[str, str | list[str]] | None:
+        """Process a single package directory.
 
-  def updpkgsums(self,nm: str)->int:
-    d=self.root/nm
-    if not d.exists(): err(f"Package '{nm}' not found!"); return 1
-    pb=d/"PKGBUILD"
-    if not pb.exists(): err(f"No PKGBUILD found in {nm}"); return 1
-    info(f"Updating checksums for {nm}...")
-    r=subprocess.run(["updpkgsums"],cwd=d,capture_output=True,text=True,check=False)
-    if r.returncode==0:
-      ok(f"Updated checksums for {nm}")
-      info("Generating .SRCINFO...")
-      r2=subprocess.run(["makepkg","--printsrcinfo"],cwd=d,capture_output=True,text=True,check=False)
-      if r2.returncode==0: (d/".SRCINFO").write_text(r2.stdout); ok("Generated .SRCINFO")
-      else: warn("Failed to generate .SRCINFO")
-    else: err(f"Failed to update checksums: {r.stderr}"); return 1
-    return 0
+        This method is intended to be called from multiple threads (see ``update``).
+        It only performs read-only access to instance attributes such as ``self.root``
+        and ``self.git``; callers must not mutate these attributes after initialization
+        to preserve thread safety.
+        """
+        try:
+            # Fast path: try to parse .SRCINFO if valid
+            pi = self._parse_srcinfo(d)
+            if pi:
+                info(f"Found (fast): {pi['name']} {pi['version']}")
+                return pi
 
-def main()->int:
-  p=argparse.ArgumentParser(description="vp-dev - PKG repository development tool")
-  sp=p.add_subparsers(dest="cmd",help="Commands")
-  sp.add_parser("new",help="Create new package from template").add_argument("pkg",help="Package name")
-  sp.add_parser("test",help="Build package locally").add_argument("pkg",nargs="?",help="Package name (optional)")
-  sp.add_parser("update",help="Update packages.json from PKGBUILDs")
-  sp.add_parser("publish",help="Update, commit and push changes")
-  sp.add_parser("check",help="Validate all PKGBUILDs")
-  sp.add_parser("clean",help="Remove all build artifacts")
-  sp.add_parser("list",help="List all packages")
-  sp.add_parser("updpkgsums",help="Update checksums in PKGBUILD").add_argument("pkg",help="Package name")
-  a=p.parse_args()
-  if not a.cmd: p.print_help(); return 1
-  vd=VpDev()
-  return {"new":lambda:vd.new(a.pkg),"test":lambda:vd.test(a.pkg if hasattr(a,'pkg') else None),"update":vd.update,"publish":vd.publish,"check":vd.check,"clean":vd.clean,"list":vd.list,"updpkgsums":lambda:vd.updpkgsums(a.pkg)}.get(a.cmd,lambda:1)()
+            # Slow path: source PKGBUILD
+            pb = d / "PKGBUILD"
+            srcinfo = d / ".SRCINFO"
 
-if __name__=="__main__": sys.exit(main())
+            # Fallback to full parse and regeneration
+            pi = self._parse_pkg(pb)
+            if pi:
+                info(f"Found: {pi['name']} {pi['version']}")
+                r = subprocess.run(["makepkg", "--printsrcinfo"], cwd=d, capture_output=True, text=True, check=False)
+                if r.returncode == 0:
+                    srcinfo.write_text(r.stdout)
+                else:
+                    warn(f"Failed to generate .SRCINFO for {d.name}")
+                return pi
+            else:
+                warn(f"Failed to parse {d.name}/PKGBUILD")
+                return None
+        except Exception as e:
+            err(f"Error processing package {d}: {e}")
+            return None
+
+    def update(self) -> int:
+        self._populate_files_cache()
+        info("Scanning for packages...")
+        self._populate_files_cache()
+        pkgs = []
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            results = list(executor.map(self._process_package, self._get_pkg_dirs()))
+            pkgs = [p for p in results if p]
+
+        # Get vp version
+        vv = "unknown"
+        vp = self.root / "vp"
+        if vp.exists():
+            try:
+                m = re.search(r'^VERSION="([^"]+)"', vp.read_text(), re.MULTILINE)
+                if m:
+                    vv = m.group(1)
+            except:
+                pass
+
+        if self.pkg_json.exists():
+            shutil.copy(self.pkg_json, self.pkg_json.with_suffix(".json.bak"))
+        self.pkg_json.write_text(json.dumps({"packages": pkgs, "tools": {"vp": vv, "vp-dev": VERSION}}, indent=2))
+        ok(f"Updated packages.json with {len(pkgs)} packages")
+        info(f"Tool versions: vp v{vv}, vp-dev v{VERSION}")
+        return 0
+
+    def publish(self) -> int:
+        info("Publishing repository...")
+        if self.update() != 0:
+            return 1
+        try:
+            self._git(["add", "-A"], check=True)
+            if self._git(["diff", "--cached", "--exit-code"], capture_output=True, check=False).returncode == 0:
+                info("No changes to publish")
+                return 0
+            self._git(["commit", "-m", "Update packages"], check=True)
+            self._git(["push"], check=True)
+            ok("Published successfully!")
+            info("Changes will be live at https://ven0m0.github.io/PKG/ in a few minutes")
+        except subprocess.CalledProcessError as e:
+            err(f"Git operation failed: {e}")
+            return 1
+        return 0
+
+    def check(self) -> int:
+        self._populate_files_cache()
+        info("Checking all packages...")
+        self._populate_files_cache()
+        errs = 0
+        for d in self._get_pkg_dirs():
+            pb = d / "PKGBUILD"
+            pi = self._parse_pkg(pb)
+            if not pi:
+                err(f"{d.name}: Failed to parse PKGBUILD")
+                errs += 1
+                continue
+            if not pi.get("name"):
+                err(f"{d.name}: Missing pkgname")
+                errs += 1
+            if not pi.get("version"):
+                err(f"{d.name}: Missing version")
+                errs += 1
+            if not pi.get("description"):
+                warn(f"{d.name}: Missing description")
+            if errs == 0:
+                ok(f"{d.name}: OK")
+        if errs > 0:
+            err(f"Found {errs} errors")
+            return 1
+        ok("All packages OK")
+        return 0
+
+    def clean(self) -> int:
+        info("Cleaning build artifacts...")
+        pats = ["*.pkg.tar.zst", "*.pkg.tar.xz", "*.log", "pkg", "src", "*.bak"]
+        c = 0
+        for d in self._get_pkg_dirs():
+            for pat in pats:
+                for it in d.glob(pat):
+                    (shutil.rmtree if it.is_dir() else it.unlink)(it)
+                    info(f"Removed {'directory' if it.is_dir() else 'file'}: {it}")
+                    c += 1
+        ok(f"Cleaned {c} items")
+        return 0
+
+    def list(self) -> int:
+        self._populate_files_cache()
+        for d in self._get_pkg_dirs():
+            pb = d / "PKGBUILD"
+            pi = self._parse_pkg(pb)
+            print(f"{pi['name']:<30} {pi['version']:<20} {pi['description'][:60]}" if pi else f"{d.name:<30} {'PARSE ERROR':<20}")
+        return 0
+
+    def updpkgsums(self, nm: str) -> int:
+        d = self.root / nm
+        if not d.exists():
+            err(f"Package '{nm}' not found!")
+            return 1
+        pb = d / "PKGBUILD"
+        if not pb.exists():
+            err(f"No PKGBUILD found in {nm}")
+            return 1
+        info(f"Updating checksums for {nm}...")
+        r = subprocess.run(["updpkgsums"], cwd=d, capture_output=True, text=True, check=False)
+        if r.returncode == 0:
+            ok(f"Updated checksums for {nm}")
+            info("Generating .SRCINFO...")
+            r2 = subprocess.run(["makepkg", "--printsrcinfo"], cwd=d, capture_output=True, text=True, check=False)
+            if r2.returncode == 0:
+                (d / ".SRCINFO").write_text(r2.stdout)
+                ok("Generated .SRCINFO")
+            else:
+                warn("Failed to generate .SRCINFO")
+        else:
+            err(f"Failed to update checksums: {r.stderr}")
+            return 1
+        return 0
+
+
+def main() -> int:
+    p = argparse.ArgumentParser(description="vp-dev - PKG repository development tool")
+    sp = p.add_subparsers(dest="cmd", help="Commands")
+    sp.add_parser("new", help="Create new package from template").add_argument("pkg", help="Package name")
+    sp.add_parser("test", help="Build package locally").add_argument("pkg", nargs="?", help="Package name (optional)")
+    sp.add_parser("update", help="Update packages.json from PKGBUILDs")
+    sp.add_parser("publish", help="Update, commit and push changes")
+    sp.add_parser("check", help="Validate all PKGBUILDs")
+    sp.add_parser("clean", help="Remove all build artifacts")
+    sp.add_parser("list", help="List all packages")
+    sp.add_parser("updpkgsums", help="Update checksums in PKGBUILD").add_argument("pkg", help="Package name")
+    a = p.parse_args()
+    if not a.cmd:
+        p.print_help()
+        return 1
+    vd = VpDev()
+    return {
+        "new": lambda: vd.new(a.pkg),
+        "test": lambda: vd.test(a.pkg if hasattr(a, 'pkg') else None),
+        "update": vd.update,
+        "publish": vd.publish,
+        "check": vd.check,
+        "clean": vd.clean,
+        "list": vd.list,
+        "updpkgsums": lambda: vd.updpkgsums(a.pkg)
+    }.get(a.cmd, lambda: 1)()
+
+
+if __name__ == "__main__":
+    sys.exit(main())
