@@ -275,9 +275,9 @@ cmd_build() {
         set -e
         if [[ -n $finish_pid ]]; then
           job_status[$finish_pid]=$rc
-        elif (( rc != 0 )); then
-          # Fallback if wait -n fails or is unsupported
-          sleep 0.1
+        else
+          # Fallback if wait -n -p is unsupported. Wait for any job to free a slot.
+          wait -n 2>/dev/null || sleep 0.1
         fi
       done
       build_with_retry "$pkg" &
