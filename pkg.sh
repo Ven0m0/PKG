@@ -263,7 +263,7 @@ cmd_build() {
       continue
     }
     if [[ $PARALLEL == true ]]; then
-      while (($(jobs -rp | wc -l) >= MAX_JOBS)); do sleep 0.1; done
+      while [[ $MAX_JOBS =~ ^[0-9]+$ ]] && (( $(jobs -rp | wc -l) >= MAX_JOBS )); do wait -n || true; done
       build_with_retry "$pkg" &
       pids+=($!)
       pid_pkg[$!]=$pkg
@@ -388,7 +388,7 @@ cmd_lint() {
       [[ -d $pkg ]] || continue
 
       while [[ $(jobs -r | wc -l) -ge $max_jobs ]]; do
-        sleep 0.1
+        wait -n || true
       done
 
       printf '==> %s\n' "$pkg"
@@ -491,7 +491,7 @@ cmd_srcinfo() {
       [[ ! -d $pkg ]] && continue
 
       while [[ $(jobs -r | wc -l) -ge $max_jobs ]]; do
-        sleep 0.1
+        wait -n || true
       done
 
       (process_srcinfo_pkg "$pkg" "$root" >"$tmpdir/$pkg.log" 2>&1) &
