@@ -263,7 +263,7 @@ cmd_build() {
       continue
     }
     if [[ $PARALLEL == true ]]; then
-      while (($(jobs -rp | wc -l) >= MAX_JOBS)); do wait -n || true; done
+      while [[ $MAX_JOBS =~ ^[0-9]+$ ]] && (( $(jobs -rp | wc -l) >= MAX_JOBS )); do wait -n || true; done
       build_with_retry "$pkg" &
       pids+=($!)
       pid_pkg[$!]=$pkg
