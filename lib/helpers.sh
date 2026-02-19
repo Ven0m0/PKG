@@ -48,8 +48,8 @@ find_pkgbuilds() {
 wait_for_jobs() {
   local max_jobs=${1:-$(nproc)}
   while [[ $(jobs -rp | wc -l) -ge $max_jobs ]]; do
-    # Use wait -n if available to avoid busy polling, fallback to sleep
-    wait -n 2>/dev/null || sleep 0.1
+    # Use wait -n if available to avoid busy polling; ignore exit status here
+    wait -n 2>/dev/null || true
   done
 }
 
