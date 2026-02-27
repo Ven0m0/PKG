@@ -138,7 +138,7 @@ jobs:
           echo -n "$GPG_SIGNING_KEY" | base64 --decode | gpg --batch --import
           echo -n "$GPG_SIGNING_PASSWORD" | gpg --pinentry-mode loopback --batch --yes --passphrase-fd 0 --detach-sign --no-armor *.pkg.tar.zst
       - name: Upload package to artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.package }}
           path: ${{ matrix.package }}/*.pkg.tar.zst*
