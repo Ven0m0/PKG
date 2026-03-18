@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
 jobs:
   optimize:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       actions: read
