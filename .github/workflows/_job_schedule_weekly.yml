@@ -1,4 +1,3 @@
-
 name: _job_schedule_weekly
 
 permissions:
@@ -12,33 +11,41 @@ on:
 
 jobs:
 
-  dxvk-mingw-git:
-    uses: ./.github/workflows/dxvk-mingw-git.yml
+  mesa-git:
+    uses: ./.github/workflows/mesa-git.yml
 
-  dxvk-msvc-git:
-    needs: dxvk-mingw-git
-    uses: ./.github/workflows/dxvk-msvc-git.yml
+  wine-cachyos:
+    needs: mesa-git
+    uses: ./.github/workflows/wine-cachyos.yml
 
-  dxvk-nvapi-mingw-git:
-    needs: dxvk-msvc-git
-    uses: ./.github/workflows/dxvk-nvapi-mingw-git.yml
+  proton-cachyos:
+    needs: wine-cachyos
+    uses: ./.github/workflows/proton-cachyos.yml
 
-  dxvk-nvapi-vkreflex-layer-git:
-    needs: dxvk-nvapi-mingw-git
-    uses: ./.github/workflows/dxvk-nvapi-vkreflex-layer-git.yml
+  proton-cachyos-slr:
+    needs: proton-cachyos
+    uses: ./.github/workflows/proton-cachyos-slr.yml
 
-  vkd3d-proton-mingw-git:
-    needs: dxvk-nvapi-vkreflex-layer-git
-    uses: ./.github/workflows/vkd3d-proton-mingw-git.yml
+  linux-kernel-catgirl:
+    needs: proton-cachyos-slr
+    uses: ./.github/workflows/linux-kernel-catgirl.yml
 
-  dxvk-sarek-async-mingw-git:
-    needs: vkd3d-proton-mingw-git
-    uses: ./.github/workflows/dxvk-sarek-async-mingw-git.yml
+  glibc:
+    needs: linux-kernel-catgirl
+    uses: ./.github/workflows/glibc.yml
 
-  dolphin-emu-git:
-    needs: dxvk-sarek-async-mingw-git
-    uses: ./.github/workflows/dolphin-emu-git.yml
+  llvm:
+    needs: glibc
+    uses: ./.github/workflows/llvm.yml
 
-  rare-git:
-    needs: dolphin-emu-git
-    uses: ./.github/workflows/rare-git.yml
+  firefox:
+    needs: llvm
+    uses: ./.github/workflows/firefox.yml
+
+  chromium:
+    needs: firefox
+    uses: ./.github/workflows/chromium.yml
+
+  obs-studio:
+    needs: chromium
+    uses: ./.github/workflows/obs-studio.yml
