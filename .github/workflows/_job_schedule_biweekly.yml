@@ -1,4 +1,3 @@
-
 name: _job_schedule_biweekly
 
 permissions:
@@ -12,37 +11,61 @@ on:
 
 jobs:
 
-  auracle-git:
-    uses: ./.github/workflows/auracle-git.yml
+  pkg_7zip:
+    uses: ./.github/workflows/7zip.yml
 
-  awesome:
-    needs: auracle-git
-    uses: ./.github/workflows/awesome.yml
+  aria2:
+    needs: pkg_7zip
+    uses: ./.github/workflows/aria2.yml
 
-  vicious:
-    needs: awesome
-    uses: ./.github/workflows/vicious.yml
+  ccache-ext:
+    needs: aria2
+    uses: ./.github/workflows/ccache-ext.yml
 
-  lgogdownloader-git:
-    needs: vicious
-    uses: ./.github/workflows/lgogdownloader-git.yml
+  curl:
+    needs: ccache-ext
+    uses: ./.github/workflows/curl.yml
 
-  mangohud-git:
-    needs: lgogdownloader-git
-    uses: ./.github/workflows/mangohud-git.yml
+  dolphin-emu:
+    needs: curl
+    uses: ./.github/workflows/dolphin-emu.yml
 
-  lib32-mangohud-git:
-    needs: mangohud-git
-    uses: ./.github/workflows/lib32-mangohud-git.yml
+  ffmpeg:
+    needs: dolphin-emu
+    uses: ./.github/workflows/ffmpeg.yml
 
-  ppsspp-git:
-    needs: lib32-mangohud-git
-    uses: ./.github/workflows/ppsspp-git.yml
+  gamescope:
+    needs: ffmpeg
+    uses: ./.github/workflows/gamescope.yml
 
-  rbdoom-3-bfg:
-    needs: ppsspp-git
-    uses: ./.github/workflows/rbdoom-3-bfg.yml
+  handbrake:
+    needs: gamescope
+    uses: ./.github/workflows/handbrake.yml
 
-  dhewm3:
-    needs: rbdoom-3-bfg
-    uses: ./.github/workflows/dhewm3.yml
+  heroic-games-launcher:
+    needs: handbrake
+    uses: ./.github/workflows/heroic-games-launcher.yml
+
+  mpv:
+    needs: heroic-games-launcher
+    uses: ./.github/workflows/mpv.yml
+
+  prismlauncher:
+    needs: mpv
+    uses: ./.github/workflows/prismlauncher.yml
+
+  ryujinx:
+    needs: prismlauncher
+    uses: ./.github/workflows/ryujinx.yml
+
+  svt-av1:
+    needs: ryujinx
+    uses: ./.github/workflows/svt-av1.yml
+
+  vscode:
+    needs: svt-av1
+    uses: ./.github/workflows/vscode.yml
+
+  wine-tkg-git:
+    needs: vscode
+    uses: ./.github/workflows/wine-tkg-git.yml
