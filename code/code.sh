@@ -3,9 +3,9 @@
 set -euo pipefail
 
 flags_file="${XDG_CONFIG_HOME:-$HOME/.config}/code-flags.conf"
-
+CODEMAPFILE=()
 if [[ -f "${flags_file}" ]]; then
-    mapfile -t < "${flags_file}" CODEMAPFILE
+    mapfile -t CODEMAPFILE < "${flags_file}"
 fi
 
 codeflags=()
