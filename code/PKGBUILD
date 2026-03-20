@@ -115,7 +115,7 @@ prepare() {
   sed -e "s/@COMMIT@/$_commit/" -e "s/@DATE@/$_date/" -i product.json
 
   # Build native modules for system electron
-  sed -i "s/^target .*/target \"${_electronver//v/}\"/" .npmrc
+  sed -i "s/^target=.*/target=\"${_electronver//v/}\"/" .npmrc
 
   # Patch appdata and desktop file
   sed -i 's|/usr/share/@@NAME@@/@@NAME@@|@@NAME@@|g
