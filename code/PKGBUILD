@@ -16,7 +16,7 @@ url='https://github.com/microsoft/vscode'
 license=('MIT')
 depends=($_electron 'libsecret' 'libx11' 'libxkbfile' 'ripgrep')
 optdepends=('bash-completion: Bash completions'
-            'zsh-completions: ZSH completitons'
+            'zsh-completions: ZSH completions'
             'x11-ssh-askpass: SSH authentication')
 makedepends=('git' 'nodejs-lts-jod' 'npm' 'python' 'desktop-file-utils' 'zip' 'jq')
 provides=('vscode' 'vscodium' 'codium' 'vscodium-electron')
