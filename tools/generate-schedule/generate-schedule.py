@@ -6,7 +6,7 @@ from pathlib import Path
 import logging
 
 format = "%(levelname)s: %(message)s"
-logging.basicConfig(stream=sys.stderr, format=format, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stderr, format=format, level=logging.INFO)
 logger = logging.getLogger(os.path.basename(__file__))
 script_name = os.path.basename(__file__)
 
