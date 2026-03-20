@@ -28,7 +28,7 @@ env:
   DOCKER_BUILD_PACKAGES: obs-studio,firefox,egl-wayland2,onlyoffice
 jobs:
   matrix:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     outputs:
       pkgs: ${{ steps.set.outputs.pkgs }}
     steps:
@@ -162,7 +162,7 @@ jobs:
       - name: Build package (standard)
         if: steps.build_method.outputs.method == 'standard'
         id: makepkg_standard
-        uses: 2m/arch-pkgbuild-builder@v1.25
+        uses: 2m/arch-pkgbuild-builder@v1.21
         with:
           target: pkgbuild
           pkgname: ${{ matrix.pkg }}
