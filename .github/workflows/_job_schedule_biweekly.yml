@@ -11,11 +11,11 @@ on:
 
 jobs:
 
-  7zip:
+  pkg_7zip:
     uses: ./.github/workflows/7zip.yml
 
   aria2:
-    needs: 7zip
+    needs: pkg_7zip
     uses: ./.github/workflows/aria2.yml
 
   ccache-ext:
