@@ -20,7 +20,7 @@ index 4912966c79c..5b75bcd5973 100644
 			if (!this.relaunchHandler?.handleRelaunch(options)) {
 				this.trace('Lifecycle#relaunch() - calling app.relaunch()');
 -				electron.app.relaunch({ args });
-+				electron.app.relaunch({ args, execPath: '/usr/lib/code/code.mjs' });
++				electron.app.relaunch({ args, execPath: '/usr/bin/code' });
 			}
 		};
 		electron.app.once('quit', quitListener);
