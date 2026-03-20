@@ -80,7 +80,7 @@ prepare() {
 
   local _electronver=$(awk -F= '{if ($1 == "target") {gsub(/"|\..*"/, "", $2); print $2}}' .npmrc)
   if [[ "electron$_electronver" != "$_electron" ]]; then
-    echo "Wrong electron dependency. Change _electron to $_electronver"
+    echo "Wrong electron dependency. Change _electron to electron$_electronver"
     exit 1
   fi
   _electronver=$(jq -r '.packages[""].devDependencies.electron' package-lock.json)
