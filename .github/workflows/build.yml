@@ -227,6 +227,10 @@ jobs:
             -e MAKEFLAGS="-j$(nproc)" -w "/workspace/$pkg" \
             archlinux-buildenv:latest bash -c '
             set -euo pipefail
+            ulimit -n 4096
+            export PYTHONOPTIMIZE=2
+            export CFLAGS="${CFLAGS:-} -fPIC"
+            export CXXFLAGS="${CXXFLAGS:-} -fPIC"
             # Extract dependencies efficiently (single pass)
             deps=$(makepkg --printsrcinfo | awk "/^\s*(make)?depends\s*=/ {sub(/^[[:space:]]+/, \"\", \$2); print \$2}" | tr "\n" " ")
             echo "Dependencies: $deps"
@@ -243,6 +247,9 @@ jobs:
               export CC=clang CXX=clang++ RUSTC_WRAPPER=sccache
               export CCACHE_DIR=/cache/ccache SCCACHE_DIR=/cache/sccache
               export MAKEFLAGS=\"-j\$(nproc)\" CARGO_BUILD_JOBS=\$(nproc)
+              export PYTHONOPTIMIZE=2
+              export CFLAGS=\"\${CFLAGS:-} -fPIC\"
+              export CXXFLAGS=\"\${CXXFLAGS:-} -fPIC\"
               makepkg --noconfirm --needed
             "
           '

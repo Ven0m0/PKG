@@ -1,6 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
+ulimit -n 4096
+export PYTHONOPTIMIZE=2
+export CFLAGS="${CFLAGS:-} -fPIC"
+export CXXFLAGS="${CXXFLAGS:-} -fPIC"
+
 echo "pkgdir:         ${INPUT_PKGDIR:-.}"
 echo "aurdeps:        ${INPUT_AURDEPS:-}"
 echo "multilib:       ${INPUT_MULTILIB:-false}"

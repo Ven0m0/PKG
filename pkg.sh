@@ -67,12 +67,15 @@ EOF
 # ═══════════════════════════════════════════════════════════════════════════
 
 setup_env() {
+  ulimit -n 4096
   case $ARCH in
     x86_64) EXT=zst ;;
     aarch64) EXT=xz ;;
     *) die "Unsupported arch: $ARCH" ;;
   esac
-  export ARCH EXT CC=gcc CXX=g++
+  export ARCH EXT CC=gcc CXX=g++ PYTHONOPTIMIZE=2
+  export CFLAGS="${CFLAGS:-} -fPIC"
+  export CXXFLAGS="${CXXFLAGS:-} -fPIC"
   export PATH="$PWD:$PWD/bin:$PATH:/usr/bin/core_perl"
   chmod +x "$PWD"/bin/* "$PWD"/*.sh 2>/dev/null || true
   if ((FORCE_BUILD)); then warn "Force build enabled"; fi
