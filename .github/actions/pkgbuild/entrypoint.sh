@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
-
+IFS=$'\n\t'
 ulimit -n 4096
 export PYTHONOPTIMIZE=2
 export CFLAGS="${CFLAGS:-} -fPIC"
