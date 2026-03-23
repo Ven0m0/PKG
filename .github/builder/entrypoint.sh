@@ -2,9 +2,10 @@
 set -e
 
 if [ -n "$AUR_SSH_PRIVATE_KEY" ]; then
-	mkdir -p ~/.ssh
-	echo "$AUR_SSH_PRIVATE_KEY" >~/.ssh/aur_key
-	chmod 600 ~/.ssh/aur_key
+	mkdir -p /home/builder/.ssh
+	echo "$AUR_SSH_PRIVATE_KEY" > /home/builder/.ssh/aur_key
+	chmod 600 /home/builder/.ssh/aur_key
+	chown builder:builder /home/builder/.ssh/aur_key
 fi
 
 if [ -n "$GIT_USER_NAME" ]; then
