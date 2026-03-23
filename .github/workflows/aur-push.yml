@@ -1,0 +1,158 @@
+name: Push to AUR
+on:
+  push:
+    branches: [main]
+    paths:
+      - "aur/**/PKGBUILD"
+      - "aur/**/.SRCINFO"
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: "Space-separated list of packages to push"
+        required: false
+        type: string
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  push-to-aur:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Setup SSH for AUR
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$AUR_SSH_PRIVATE_KEY" > ~/.ssh/aur_key
+          chmod 600 ~/.ssh/aur_key
+          cat > ~/.ssh/config <<'EOF'
+          Host aur.archlinux.org
+            IdentityFile ~/.ssh/aur_key
+            User aur
+            StrictHostKeyChecking accept-new
+          EOF
+          chmod 600 ~/.ssh/config
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts 2>/dev/null || true
+      - name: Determine changed packages
+        id: packages
+        run: |
+          set -euo pipefail
+          manual_pkgs="${{ inputs.packages }}"
+          pkgs=()
+          if [[ -n "$manual_pkgs" ]]; then
+            for pkg in $manual_pkgs; do
+              pkg_dir="aur/$pkg"
+              if [[ ! -d "$pkg_dir" ]]; then
+                echo "Error: Package directory '$pkg_dir' not found" >&2
+                exit 1
+              fi
+              pkgs+=("$pkg")
+            done
+          else
+            base="HEAD~1"
+            while IFS= read -r file; do
+              pkg=$(dirname "$file" | sed 's|^aur/||')
+              [[ -n "$pkg" ]] && [[ ! " ${pkgs[*]} " =~ " ${pkg} " ]] && pkgs+=("$pkg")
+            done < <(git diff --name-only "$base" HEAD -- 'aur/**/PKGBUILD' 'aur/**/.SRCINFO' 2>/dev/null)
+          fi
+          json_out=$(printf '%s\n' "${pkgs[@]}" | jq -Rsc 'split("\n")[:-1]')
+          echo "packages=$json_out" >> "$GITHUB_OUTPUT"
+          echo "Found packages: $json_out"
+      - name: Push packages to AUR
+        if: steps.packages.outputs.packages != '[]' && steps.packages.outputs.packages != ''
+        env:
+          PACKAGES: ${{ steps.packages.outputs.packages }}
+        run: |
+          set -euo pipefail
+          summary=""
+          failed=()
+          pushed=()
+          skipped=()
+          for pkg in $(echo "$PACKAGES" | jq -r '.[]'); do
+            pkg_dir="aur/$pkg"
+            aur_files="$pkg_dir/.aur-files"
+            echo "Processing package: $pkg"
+            if [[ ! -f "$aur_files" ]]; then
+              echo "Error: .aur-files not found for package '$pkg'" >&2
+              failed+=("$pkg (missing .aur-files)")
+              continue
+            fi
+            files_to_copy=()
+            while IFS= read -r line || [[ -n "$line" ]]; do
+              line="${line%%#*}"
+              line="${line// /}"
+              [[ -z "$line" ]] && continue
+              src_file="$pkg_dir/$line"
+              if [[ ! -f "$src_file" ]]; then
+                echo "Error: File '$line' listed in .aur-files does not exist in '$pkg_dir'" >&2
+                failed+=("$pkg (missing file: $line)")
+                continue 2
+              fi
+              files_to_copy+=("$line")
+            done < "$aur_files"
+            work_dir=$(mktemp -d)
+            trap "rm -rf '$work_dir'" EXIT
+            cd "$work_dir"
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            if git clone "ssh://aur@aur.archlinux.org/$pkg.git" "$pkg" 2>/dev/null; then
+              echo "Cloned existing AUR repository for $pkg"
+              cd "$pkg"
+              rm -f .SRCINFO PKGBUILD
+              for f in "${files_to_copy[@]}"; do
+                cp "${GITHUB_WORKSPACE}/${pkg_dir}/${f}" .
+              done
+            else
+              echo "Initializing new AUR repository for $pkg"
+              mkdir -p "$pkg"
+              cd "$pkg"
+              git init
+              for f in "${files_to_copy[@]}"; do
+                cp "${GITHUB_WORKSPACE}/${pkg_dir}/${f}" .
+              done
+              git remote add origin "ssh://aur@aur.archlinux.org/$pkg.git"
+            fi
+            if ! git diff --quiet 2>/dev/null && git diff --cached --quiet 2>/dev/null; then
+              git add -A
+              git commit -m "Update $pkg"
+              if git push origin master 2>/dev/null; then
+                echo "Successfully pushed $pkg to AUR"
+                pushed+=("$pkg")
+              else
+                echo "Error: Failed to push $pkg to AUR" >&2
+                failed+=("$pkg (push failed)")
+              fi
+            else
+              echo "No changes to push for $pkg"
+              skipped+=("$pkg")
+            fi
+            cd "$GITHUB_WORKSPACE"
+          done
+          {
+            echo "## AUR Push Summary"
+            echo ""
+            if [[ ${#pushed[@]} -gt 0 ]]; then
+              echo "### Pushed"
+              for p in "${pushed[@]}"; do echo "- $p"; done
+              echo ""
+            fi
+            if [[ ${#skipped[@]} -gt 0 ]]; then
+              echo "### Skipped (no changes)"
+              for p in "${skipped[@]}"; do echo "- $p"; done
+              echo ""
+            fi
+            if [[ ${#failed[@]} -gt 0 ]]; then
+              echo "### Failed"
+              for p in "${failed[@]}"; do echo "- $p"; done
+              echo ""
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [[ ${#failed[@]} -gt 0 ]]; then
+            exit 1
+          fi

@@ -76,3 +76,40 @@
 - [ ] N+1 queries removed?
 - [ ] Blocking I/O removed?
 - [ ] Secrets/Credentials excluded?
+
+---
+
+## 7. AUR Package Automation
+
+**Overview:** nvchecker version detection → Kilo GitHub Action for PKGBUILD updates → automated PR/AUR publishing.
+
+**Directory Structure:**
+- `aur/` — AUR packages (PKGBUILD, .SRCINFO, .aur-files per package)
+- `.github/nvchecker/` — Version tracking (old_ver.json, new_ver.json)
+- `.github/builder/` — Docker build container
+- `.github/scripts/` — Automation scripts
+- `.github/workflows/` — GitHub Actions
+- `.mise/tasks/` — Mise task definitions
+- `nvchecker.toml` — Package version sources
+
+**Workflows:**
+- `check-updates.yml` — Daily: version check → build → LLM review → PR → AUR push
+- `aur-push.yml` — Push to AUR on merge to main
+- `build-container.yml` — Build/push Docker builder image
+
+**Adding New Package:**
+1. Create `aur/<package-name>/`
+2. Add PKGBUILD, .SRCINFO
+3. Create `.aur-files` listing files for AUR push
+4. Add entry to `nvchecker.toml`
+5. Run `nvchecker -c nvchecker.toml` to populate versions
+
+**Mise Tasks:**
+- `mise r build` — Build package in container
+- `mise r srcinfo` — Generate .SRCINFO
+- `mise r export` — Export to workspace
+- `mise r checksums` — Update checksums
+
+**Required Secrets:**
+- `AUR_SSH_PRIVATE_KEY` — SSH key for AUR access
+- (Optional) `KILO_API_KEY` for direct Kilo GitHub Action authentication

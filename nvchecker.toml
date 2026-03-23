@@ -1,0 +1,92 @@
+# nvchecker configuration file
+# https://github.com/lilydjwg/nvchecker
+#
+# Package naming convention: ["aur/package-name"] maps to aur/package-name/ directory
+# The prefix in the key (e.g., "aur/") should match your repository structure.
+
+[__config__]
+oldver = ".github/nvchecker/old_ver.json"
+newver = ".github/nvchecker/new_ver.json"
+
+# ═══════════════════════════════════════════════════════════════════
+# NPM Packages
+# ═══════════════════════════════════════════════════════════════════
+
+# Example: Regular NPM package
+# ["aur/example-npm-package"]
+# source = "npm"
+# npm = "package-name"
+
+# Example: Scoped NPM package
+# ["aur/example-scoped-package"]
+# source = "npm"
+# npm = "@scope/package-name"
+
+# ═══════════════════════════════════════════════════════════════════
+# PyPI Packages
+# ═══════════════════════════════════════════════════════════════════
+
+# Example: PyPI package
+# ["aur/example-pypi-package"]
+# source = "pypi"
+# pypi = "package-name"
+
+# ═══════════════════════════════════════════════════════════════════
+# GitHub Releases
+# ═══════════════════════════════════════════════════════════════════
+
+# Example: GitHub release with 'v' prefix (e.g., v1.0.0 -> 1.0.0)
+# ["aur/example-github-package"]
+# source = "github"
+# github = "owner/repo"
+# use_latest_release = true
+# prefix = "v"
+
+# Example: GitHub using max tag (for repos without formal releases)
+# ["aur/example-github-tag"]
+# source = "github"
+# github = "owner/repo"
+# use_max_tag = true
+# prefix = "v"
+
+# ═══════════════════════════════════════════════════════════════════
+# Git HEAD Packages (-git packages)
+# ═══════════════════════════════════════════════════════════════════
+
+# Example: Git package tracking commit hash
+# ["aur/example-git-package-git"]
+# source = "git"
+# git = "https://github.com/owner/repo.git"
+# use_commit = true
+
+# Example: Git package with branch specified
+# ["aur/example-git-package-branch-git"]
+# source = "git"
+# git = "https://github.com/owner/repo.git"
+# branch = "develop"
+# use_commit = true
+
+# ═══════════════════════════════════════════════════════════════════
+# Other Sources
+# ═══════════════════════════════════════════════════════════════════
+
+# Example: crates.io (Rust)
+# ["aur/example-rust-package"]
+# source = "cratesio"
+# cratesio = "package-name"
+
+# Example: RubyGems
+# ["aur/example-ruby-package"]
+# source = "gems"
+# gems = "package-name"
+
+# Example: Go packages
+# ["aur/example-go-package"]
+# source = "go"
+# go = "github.com/owner/repo"
+
+# Example: HTTP (regex-based version extraction)
+# ["aur/example-http-package"]
+# source = "regex"
+# url = "https://example.com/download"
+# regex = 'version-([\d.]+)\.tar\.gz'
