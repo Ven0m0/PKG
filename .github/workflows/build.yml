@@ -227,7 +227,10 @@ jobs:
             -e MAKEFLAGS="-j$(nproc)" -w "/workspace/$pkg" \
             archlinux-buildenv:latest bash -c '
             set -euo pipefail
-            ulimit -n 4096
+            if ! ulimit -n 4096 2>/dev/null; then
+              echo "Warning: unable to raise open file limit to 4096; continuing with existing limit."
+            fi
+            echo "Effective open file limit: $(ulimit -n 2>/dev/null || echo "unknown")"
             export PYTHONOPTIMIZE=2
             export CFLAGS="${CFLAGS:-} -fPIC"
             export CXXFLAGS="${CXXFLAGS:-} -fPIC"
