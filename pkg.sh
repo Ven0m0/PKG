@@ -67,7 +67,14 @@ EOF
 # ═══════════════════════════════════════════════════════════════════════════
 
 setup_env() {
-  ulimit -n 4096
+  local cur_nofile
+  if cur_nofile=$(ulimit -n 2>/dev/null); then
+    if (( cur_nofile < 4096 )); then
+      if ! ulimit -n 4096 2>/dev/null; then
+        warn "Unable to raise open file limit to 4096 (current: ${cur_nofile})"
+      fi
+    fi
+  fi
   case $ARCH in
     x86_64) EXT=zst ;;
     aarch64) EXT=xz ;;
