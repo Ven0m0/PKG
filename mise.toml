@@ -18,8 +18,20 @@ description = "List all packages"
 run = '''
 #!/usr/bin/env bash
 echo "=== Docker packages ==="
-for d in docker/*/; do echo "  ${d%/}"; done 2>/dev/null || echo "  (none)"
+if compgen -G 'docker/*/' > /dev/null; then
+  for d in docker/*/; do
+    echo "  ${d%/}"
+  done
+else
+  echo "  (none)"
+fi
 echo ""
 echo "=== AUR packages ==="
-for d in aur/*/; do echo "  ${d%/}"; done 2>/dev/null || echo "  (none)"
+if compgen -G 'aur/*/' > /dev/null; then
+  for d in aur/*/; do
+    echo "  ${d%/}"
+  done
+else
+  echo "  (none)"
+fi
 '''
