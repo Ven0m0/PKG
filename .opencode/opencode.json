@@ -3,24 +3,5 @@
   "permission": {
     "*": "allow",
     "doom_loop": "deny"
-  },
-  "provider": {
-    "kilo": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Kilo Gateway",
-      "options": {
-        "baseURL": "https://gateway.kilocode.ai/v1",
-        "apiKey": "{env:KILO_API_KEY}"
-      },
-      "models": {
-        "kilo/z-ai/glm-5": {
-          "name": "GLM-5",
-          "limit": {
-            "context": 128000,
-            "output": 4096
-          }
-        }
-      }
-    }
   }
 }
