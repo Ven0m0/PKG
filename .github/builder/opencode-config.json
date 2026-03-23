@@ -7,19 +7,19 @@
     "bash": "allow"
   },
   "provider": {
-    "llmproxy": {
+    "kilo": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "LLM Proxy",
+      "name": "Kilo Gateway",
       "options": {
-        "baseURL": "{env:LLM_PROXY_URL}",
-        "apiKey": "{env:LLM_PROXY_API_KEY}"
+        "baseURL": "https://gateway.kilocode.ai/v1",
+        "apiKey": "{env:KILO_API_KEY}"
       },
       "models": {
-        "{env:LLM_MODEL}": {
-          "name": "LLM Model",
+        "kilo/z-ai/glm-5": {
+          "name": "GLM-5",
           "limit": {
-            "context": 200000,
-            "output": 64000
+            "context": 128000,
+            "output": 4096
           }
         }
       }
