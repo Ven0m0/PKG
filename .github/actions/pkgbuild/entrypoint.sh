@@ -1,5 +1,18 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
+IFS=$'\n\t'
+# Try to raise the file descriptor limit, but don't fail if the environment forbids it.
+desired_nofile=4096
+hard_nofile="$(ulimit -H -n || echo)"
+if [ -n "${hard_nofile}" ] && [ "${hard_nofile}" != "unlimited" ]; then
+	if [ "${hard_nofile}" -lt "${desired_nofile}" ]; then
+		desired_nofile="${hard_nofile}"
+	fi
+fi
+ulimit -n "${desired_nofile}" 2>/dev/null || echo "Warning: unable to raise open file limit; continuing with current limit." >&2
+export PYTHONOPTIMIZE=2
+export CFLAGS="${CFLAGS:-} -fPIC"
+export CXXFLAGS="${CXXFLAGS:-} -fPIC"
 
 echo "pkgdir:         ${INPUT_PKGDIR:-.}"
 echo "aurdeps:        ${INPUT_AURDEPS:-}"

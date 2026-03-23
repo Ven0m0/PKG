@@ -67,12 +67,22 @@ EOF
 # ═══════════════════════════════════════════════════════════════════════════
 
 setup_env() {
+  local cur_nofile
+  if cur_nofile=$(ulimit -n 2>/dev/null); then
+    if (( cur_nofile < 4096 )); then
+      if ! ulimit -n 4096 2>/dev/null; then
+        warn "Unable to raise open file limit to 4096 (current: ${cur_nofile})"
+      fi
+    fi
+  fi
   case $ARCH in
     x86_64) EXT=zst ;;
     aarch64) EXT=xz ;;
     *) die "Unsupported arch: $ARCH" ;;
   esac
-  export ARCH EXT CC=gcc CXX=g++
+  export ARCH EXT CC=gcc CXX=g++ PYTHONOPTIMIZE=2
+  export CFLAGS="${CFLAGS:-} -fPIC"
+  export CXXFLAGS="${CXXFLAGS:-} -fPIC"
   export PATH="$PWD:$PWD/bin:$PATH:/usr/bin/core_perl"
   chmod +x "$PWD"/bin/* "$PWD"/*.sh 2>/dev/null || true
   if ((FORCE_BUILD)); then warn "Force build enabled"; fi
