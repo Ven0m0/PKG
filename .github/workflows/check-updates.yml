@@ -24,14 +24,14 @@ jobs:
       has-updates: ${{ steps.detect.outputs.has-updates }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Setup Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.14'
 
       - name: Install nvchecker
         run: pip install nvchecker
@@ -45,7 +45,7 @@ jobs:
           fi
 
       - name: Download previous version cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             old_ver.json
@@ -114,7 +114,7 @@ jobs:
           EOF
 
       - name: Upload nvchecker state artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nvchecker-state
           path: |
@@ -152,7 +152,7 @@ jobs:
       AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           token: ${{ github.token }}
@@ -164,7 +164,7 @@ jobs:
           git config --global init.defaultBranch main
 
       - name: Restore workspace cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cache
@@ -184,7 +184,7 @@ jobs:
           fi
 
       - name: Download nvchecker state
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: nvchecker-state
           path: .
@@ -271,7 +271,7 @@ jobs:
 
       - name: Create issue on failure
         if: failure()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const package = process.env.PACKAGE;
