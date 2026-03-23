@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -eo pipefail
+set -euo pipefail
 
 # Fetch real upstream changelog for a package update.
 # Tries multiple sources: GitHub releases, npm, git log.
