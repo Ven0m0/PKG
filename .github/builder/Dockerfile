@@ -77,8 +77,11 @@ RUN useradd -m -u 1001 builder && \
     echo 'builder ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 
 # Install OpenCode (not in Arch repos)
-RUN curl -fsSL https://opencode.ai/install | bash && \
-    mv /root/.opencode/bin/opencode /usr/local/bin/opencode
+RUN curl -fsSL https://opencode.ai/install@v1.0.0 -o /tmp/opencode-install.sh && \
+    echo "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa  /tmp/opencode-install.sh" | sha256sum -c - && \
+    bash /tmp/opencode-install.sh && \
+    mv /root/.opencode/bin/opencode /usr/local/bin/opencode && \
+    rm -f /tmp/opencode-install.sh
 
 # Install yay (AUR helper) as builder user
 USER builder
