@@ -15,6 +15,11 @@ set -euo pipefail
 #   /tmp/namcap-output.txt  - namcap warnings
 #   /tmp/update-status.txt  - "success" or "build-failed"
 
+PKG_DIR="${PKG_DIR:-${1:-}}"
+if [[ -z "${PKG_DIR}" ]]; then
+  echo "Usage: ${0##*/} PKG_DIR (or set PKG_DIR in the environment)" >&2
+  exit 1
+fi
 PKG_NAME=$(basename "$PKG_DIR")
 WORKSPACE="${PWD}/.cache/${PKG_DIR}"
 
