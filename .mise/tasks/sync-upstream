@@ -8,7 +8,17 @@ if [[ "$PKG_TYPE" == "docker" ]]; then
     jj git fetch --remote upstream
     
     echo "Rebasing patches onto upstream..."
-    jj rebase -d main@upstream 2>&1 || true
+    if ! jj rebase -d main@upstream 2>&1; then
+        # Rebase failed; determine if it's due to conflicts or another error
+        if jj log -r @ --no-graph 2>&1 | grep -q "conflict"; then
+            echo "STATUS: CONFLICTS"
+            jj status
+            exit 1
+        else
+            echo "ERROR: jj rebase failed"
+            exit 1
+        fi
+    fi
     
     # Check for conflicts
     if jj log -r @ --no-graph 2>&1 | grep -q "conflict"; then
