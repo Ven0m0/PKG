@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 if [ -n "$AUR_SSH_PRIVATE_KEY" ]; then
 	mkdir -p /home/builder/.ssh
