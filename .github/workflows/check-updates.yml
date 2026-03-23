@@ -190,7 +190,8 @@ jobs:
         id: changelog
         run: |
           chmod +x .github/scripts/fetch-changelog.sh
-          .github/scripts/fetch-changelog.sh "$PACKAGE" || echo "No changelog available"
+          export PKG_DIR="${{ matrix.package }}"
+          .github/scripts/fetch-changelog.sh || echo "No changelog available"
         continue-on-error: true
 
       - name: Try update and build
