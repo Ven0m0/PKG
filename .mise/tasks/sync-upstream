@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$WORKSPACE"
+
+if [[ "$PKG_TYPE" == "docker" ]]; then
+    echo "Fetching upstream..."
+    jj git fetch --remote upstream
+    
+    echo "Rebasing patches onto upstream..."
+    jj rebase -d main@upstream 2>&1 || true
+    
+    # Check for conflicts
+    if jj log -r @ --no-graph 2>&1 | grep -q "conflict"; then
+        echo "STATUS: CONFLICTS"
+        jj status
+        exit 1
+    else
+        echo "STATUS: CLEAN"
+    fi
+
+elif [[ "$PKG_TYPE" == "aur" ]]; then
+    echo "Fetching from AUR..."
+    jj git fetch --remote origin 2>/dev/null || echo "No remote or new package"
+    
+    # Sync files listed in .aur-files
+    if [[ ! -f "$PKG_DIR/.aur-files" ]]; then
+        echo "ERROR: .aur-files not found in $PKG_DIR"
+        exit 1
+    fi
+    
+    while IFS= read -r file || [[ -n "$file" ]]; do
+        # Skip empty lines and comments
+        [[ -z "$file" || "$file" == \#* ]] && continue
+        
+        if [[ -e "$PKG_DIR/$file" ]]; then
+            cp -r "$PKG_DIR/$file" "$WORKSPACE/"
+            echo "Synced: $file"
+        else
+            echo "Note: $file not yet present (will be created)"
+        fi
+    done < "$PKG_DIR/.aur-files"
+    
+    echo "STATUS: SYNCED"
+fi
