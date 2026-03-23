@@ -16,10 +16,6 @@ permissions:
   issues: write
   packages: read
 
-env:
-  LLM_PROXY_URL: ${{ vars.LLM_PROXY_URL }}
-  LLM_MODEL: ${{ vars.LLM_MODEL }}
-
 jobs:
   detect-updates:
     runs-on: ubuntu-latest
@@ -135,6 +131,12 @@ jobs:
     needs: detect-updates
     if: needs.detect-updates.outputs.has-updates == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
+      issues: write
+      packages: read
     container:
       image: ghcr.io/${{ github.repository }}/builder:latest
       credentials:
@@ -147,7 +149,6 @@ jobs:
         package: ${{ fromJson(needs.detect-updates.outputs.packages) }}
     env:
       PACKAGE: ${{ matrix.package }}
-      LLM_PROXY_API_KEY: ${{ secrets.LLM_PROXY_API_KEY }}
       AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
     steps:
       - name: Checkout repository
@@ -202,37 +203,28 @@ jobs:
           exit $exit_code
         continue-on-error: true
 
-      - name: Setup OpenCode configuration
-        if: steps.try-update.outputs.build_exit_code != '0' || steps.try-update.outputs.build_exit_code == '0'
-        env:
-          LLM_PROXY_URL: ${{ vars.LLM_PROXY_URL }}
-          LLM_MODEL: ${{ vars.LLM_MODEL }}
-          LLM_PROXY_API_KEY: ${{ secrets.LLM_PROXY_API_KEY }}
-        run: |
-          mkdir -p ~/.config/opencode
-          cat > ~/.config/opencode/config.toml << EOF
-          [llm]
-          provider = "openai"
-          model = "${LLM_MODEL}"
-          base_url = "${LLM_PROXY_URL}"
-          api_key = "${LLM_PROXY_API_KEY}"
-          
-          [llm.parameters]
-          temperature = 0.7
-          max_tokens = 4096
-          EOF
-
       - name: LLM review build output
         if: steps.try-update.outputs.build_exit_code == '0'
-        run: |
-          opencode -p "Review the build output for $PACKAGE. Check for warnings, potential issues, and suggest improvements. The build succeeded but we want quality assurance." < build.log || true
+        uses: kilocode/opencode/github@latest
+        with:
+          model: kilo/z-ai/glm-5
+          prompt: |
+            Review the build output for ${{ matrix.package }}.
+            Check the build.log file for warnings, potential issues, and suggest improvements.
+            The build succeeded but we want quality assurance.
+            If you find issues that need fixing, fix them in the PKGBUILD and rebuild.
 
       - name: LLM diagnose and fix issues
         if: steps.try-update.outputs.build_exit_code != '0'
-        run: |
-          opencode -p "The build for $PACKAGE failed. Analyze the error log and suggest fixes. Apply fixes to the PKGBUILD if possible." < build.log || true
-          # Try building again after LLM fixes
-          .github/scripts/try-update.sh "$PACKAGE" 2>&1 | tee build_retry.log || true
+        uses: kilocode/opencode/github@latest
+        with:
+          model: kilo/z-ai/glm-5
+          prompt: |
+            The build for ${{ matrix.package }} failed.
+            Analyze the build.log file for errors.
+            Fix the PKGBUILD in the ${{ matrix.package }}/ directory.
+            After fixing, rebuild the package using: cd ${{ matrix.package }} && makepkg -sf
+            Ensure the build succeeds before finishing.
 
       - name: Create pull request
         if: steps.try-update.outputs.build_exit_code == '0'

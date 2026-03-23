@@ -81,7 +81,7 @@
 
 ## 7. AUR Package Automation
 
-**Overview:** nvchecker version detection → OpenCode AI PKGBUILD updates → automated PR/AUR publishing.
+**Overview:** nvchecker version detection → kilocode/opencode GitHub Action for PKGBUILD updates → automated PR/AUR publishing.
 
 **Directory Structure:**
 - `aur/` — AUR packages (PKGBUILD, .SRCINFO, .aur-files per package)
@@ -112,6 +112,4 @@
 
 **Required Secrets:**
 - `AUR_SSH_PRIVATE_KEY` — SSH key for AUR access
-- `LLM_PROXY_API_KEY` — API key for LLM proxy
-- `vars.LLM_PROXY_URL` — LLM proxy URL
-- `vars.LLM_MODEL` — Model name
+- (Optional) Kilo Gateway authentication via `opencode auth login` if using kilo models
