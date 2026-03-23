@@ -206,6 +206,8 @@ jobs:
       - name: LLM review build output
         if: steps.try-update.outputs.build_exit_code == '0'
         uses: kilocode/opencode/github@latest
+        env:
+          KILO_API_KEY: ${{ secrets.KILO_API_KEY }}
         with:
           model: kilo/z-ai/glm-5
           prompt: |
@@ -217,6 +219,8 @@ jobs:
       - name: LLM diagnose and fix issues
         if: steps.try-update.outputs.build_exit_code != '0'
         uses: kilocode/opencode/github@latest
+        env:
+          KILO_API_KEY: ${{ secrets.KILO_API_KEY }}
         with:
           model: kilo/z-ai/glm-5
           prompt: |
