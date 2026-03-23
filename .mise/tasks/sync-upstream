@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Ensure WORKSPACE is defined before use
+if [[ -z "${WORKSPACE:-}" ]]; then
+  if [[ -n "${PKG_DIR:-}" ]]; then
+    WORKSPACE="${PKG_DIR}"
+  elif [[ -n "${CACHE_DIR:-}" && -n "${PKG_NAME:-}" ]]; then
+    WORKSPACE="${CACHE_DIR}/${PKG_NAME}"
+  else
+    echo "ERROR: WORKSPACE is not set and could not be inferred (need WORKSPACE, PKG_DIR, or CACHE_DIR+PKG_NAME)" >&2
+    exit 1
+  fi
+fi
 cd "$WORKSPACE"
 
 if [[ "$PKG_TYPE" == "docker" ]]; then
