@@ -99,7 +99,9 @@ USER root
 # Setup SSH for AUR
 RUN mkdir -p /home/builder/.ssh && \
     chmod 700 /home/builder/.ssh && \
-    echo -e "Host aur.archlinux.org\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile /dev/null\n\tIdentityFile ~/.ssh/aur_key\n\tUser aur" > /home/builder/.ssh/config && \
+    ssh-keyscan -t rsa,ecdsa,ed25519 aur.archlinux.org > /home/builder/.ssh/known_hosts && \
+    chmod 600 /home/builder/.ssh/known_hosts && \
+    echo -e "Host aur.archlinux.org\n\tStrictHostKeyChecking accept-new\n\tIdentityFile ~/.ssh/aur_key\n\tUser aur" > /home/builder/.ssh/config && \
     chmod 600 /home/builder/.ssh/config && \
     chown -R builder:builder /home/builder/.ssh
 
