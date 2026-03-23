@@ -1,7 +1,7 @@
 # AUR Builder Container with OpenCode
 # Pre-configured for autonomous AUR package updates
 
-FROM archlinux:latest
+FROM archlinux:base
 
 # Install all packages from Arch repos
 # Includes tools + all depends/makedepends for managed AUR packages
