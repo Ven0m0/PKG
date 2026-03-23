@@ -131,7 +131,7 @@ else
 fi
 
 echo "--- Merging PR ---"
-gh pr merge --squash "$PR_URL" || echo "Warning: failed to merge PR"
+gh pr merge --squash "$PR_URL" || { echo "Error: failed to merge PR $PR_URL"; exit 1; }
 
 echo "=== PR ready: $PR_URL ==="
 echo "$PR_URL" >/tmp/pr-url.txt
