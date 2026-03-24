@@ -16,10 +16,10 @@ index 588e1cb..751230d 100644
  		]);
  
  		const allowedPermissionsInCore = new Set([
-@@ -186,6 +188,7 @@ export class CodeApplication extends Disposable {
- 			// TODO(deepak1556): Should be removed once migration is complete
- 			// https://github.com/microsoft/vscode/issues/239228
- 			'deprecated-sync-clipboard-read',
+@@ -186,6 +188,4 @@ export class CodeApplication extends Disposable {
+-			// TODO(deepak1556): Should be removed once migration is complete
+-			// https://github.com/microsoft/vscode/issues/239228
+-			'deprecated-sync-clipboard-read',
 +			'microphone'
  		]);
  
