@@ -31,7 +31,7 @@ lint: lint-shell lint-packages
 format-python:
 	@echo "→ Formatting Python..."
 	@if command -v ruff >/dev/null 2>&1; then \
-		ruff format vp-dev --quiet; \
+        ruff format vp-dev.py --quiet; \
 	else \
 		echo "  ⚠ ruff not found, skipping Python formatting"; \
 	fi
