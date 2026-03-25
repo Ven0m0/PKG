@@ -395,7 +395,7 @@ makepkg -si
         ok(f"Cleaned {c} items")
         return 0
 
-    def _list_worker(self, d: Path) -> tuple:
+    def _list_worker(self, d: Path) -> tuple[Path, dict[str, str | list[str]] | None]:
         pi = self._parse_srcinfo(d)
         if pi:
             return d, pi
