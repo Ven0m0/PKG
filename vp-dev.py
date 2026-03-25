@@ -313,7 +313,7 @@ makepkg -si
                 m = re.search(r'^VERSION="([^"]+)"', vp.read_text(), re.MULTILINE)
                 if m:
                     vv = m.group(1)
-            except:
+            except Exception:
                 pass
 
         if self.pkg_json.exists():
@@ -407,16 +407,22 @@ makepkg -si
         ok(f"Cleaned {c} items")
         return 0
 
+    def _list_worker(self, d: Path) -> tuple[Path, dict[str, str | list[str]] | None]:
+        pi = self._parse_srcinfo(d)
+        if pi:
+            return d, pi
+        return d, self._parse_pkg(d / "PKGBUILD")
+
     def list(self) -> int:
         self._populate_files_cache()
-        for d in self._get_pkg_dirs():
-            pb = d / "PKGBUILD"
-            pi = self._parse_pkg(pb)
-            print(
-                f"{pi['name']:<30} {pi['version']:<20} {pi['description'][:60]}"
-                if pi
-                else f"{d.name:<30} {'PARSE ERROR':<20}"
-            )
+        dirs = self._get_pkg_dirs()
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            for d, pi in executor.map(self._list_worker, dirs):
+                print(
+                    f"{pi['name']:<30} {pi['version']:<20} {pi['description'][:60]}"
+                    if pi
+                    else f"{d.name:<30} {'PARSE ERROR':<20}"
+                )
         return 0
 
     def updpkgsums(self, nm: str) -> int:
