@@ -354,28 +354,40 @@ makepkg -si
             return 1
         return 0
 
+    def _check_pkg_parallel(self, d: Path) -> tuple[int, list]:
+        errs = 0
+        msgs = []
+        pb = d / "PKGBUILD"
+        pi = self._parse_pkg(pb)
+        if not pi:
+            msgs.append((err, f"{d.name}: Failed to parse PKGBUILD"))
+            errs += 1
+            return errs, msgs
+        if not pi.get("name"):
+            msgs.append((err, f"{d.name}: Missing pkgname"))
+            errs += 1
+        if not pi.get("version"):
+            msgs.append((err, f"{d.name}: Missing version"))
+            errs += 1
+        if not pi.get("description"):
+            msgs.append((warn, f"{d.name}: Missing description"))
+        if errs == 0:
+            msgs.append((ok, f"{d.name}: OK"))
+        return errs, msgs
+
     def check(self) -> int:
         self._populate_files_cache()
         info("Checking all packages...")
-        self._populate_files_cache()
         errs = 0
-        for d in self._get_pkg_dirs():
-            pb = d / "PKGBUILD"
-            pi = self._parse_pkg(pb)
-            if not pi:
-                err(f"{d.name}: Failed to parse PKGBUILD")
-                errs += 1
-                continue
-            if not pi.get("name"):
-                err(f"{d.name}: Missing pkgname")
-                errs += 1
-            if not pi.get("version"):
-                err(f"{d.name}: Missing version")
-                errs += 1
-            if not pi.get("description"):
-                warn(f"{d.name}: Missing description")
-            if errs == 0:
-                ok(f"{d.name}: OK")
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            results = list(executor.map(self._check_pkg_parallel, self._get_pkg_dirs()))
+
+        for pkg_errs, msgs in results:
+            errs += pkg_errs
+            for func, msg in msgs:
+                func(msg)
+
         if errs > 0:
             err(f"Found {errs} errors")
             return 1
