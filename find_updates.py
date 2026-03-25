@@ -9,8 +9,7 @@ import pyalpm
 import requests
 from pycman import config
 
-from colorama import init as colorama_init
-from colorama import Fore
+from colorama import init as colorama_init, Fore
 
 
 @attr.s(auto_attribs=True)
