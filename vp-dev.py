@@ -405,14 +405,12 @@ makepkg -si
         self._populate_files_cache()
         dirs = self._get_pkg_dirs()
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            results = list(executor.map(self._list_worker, dirs))
-
-        for d, pi in results:
-            print(
-                f"{pi['name']:<30} {pi['version']:<20} {pi['description'][:60]}"
-                if pi
-                else f"{d.name:<30} {'PARSE ERROR':<20}"
-            )
+            for d, pi in executor.map(self._list_worker, dirs):
+                print(
+                    f"{pi['name']:<30} {pi['version']:<20} {pi['description'][:60]}"
+                    if pi
+                    else f"{d.name:<30} {'PARSE ERROR':<20}"
+                )
         return 0
 
     def updpkgsums(self, nm: str) -> int:
