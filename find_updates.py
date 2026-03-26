@@ -483,8 +483,8 @@ class InfoResult:
 handle = None
 aur_url = "https://aur.archlinux.org/rpc/v5"
 
-local_repos = ["custom", "loathk-public", "loathk-personal"]
-arch_repos = ["core", "extra", "community", "multilib"]
+local_repos = {"custom", "loathk-public", "loathk-personal"}
+arch_repos = {"core", "extra", "community", "multilib"}
 
 
 def search_single(name: str):
