@@ -79,6 +79,9 @@ jobs:
         uses: actions/checkout@v6
         with:
           persist-credentials: false
+      - run: |
+          git config --global user.email Ven0m0@users.noreply.github.com
+          git config --global user.name Ven0m0
 
       - name: Warn about unsupported Jules model override
         if: inputs.provider == 'jules' && inputs.model != ''
