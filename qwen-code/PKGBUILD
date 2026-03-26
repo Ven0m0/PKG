@@ -18,18 +18,18 @@ noextract=("$pkgname-$_pkgver.tgz")
 sha256sums=('3b2b10c6312e87d91c37d1e59d427bb7cf1cf2d898a44e60567f0f30718f83f9')
 
 prepare() {
-  cd "$pkgname" || exit
+  cd $pkgname
   npm clean-install --ignore-scripts
 }
 build() {
-  cd "$pkgname" || exit
+  cd $pkgname
   npm run bundle
   local bundled=$(jq '.dependencies + .optionalDependencies | keys' package.json)
   npm pkg set --json bundledDependencies="$bundled"
   npm pack
 }
 check() {
-  cd "$pkgname" || exit
+  cd $pkgname
   npm run build
   # Deselect failing tests
   npm test -- \

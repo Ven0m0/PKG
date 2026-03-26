@@ -120,7 +120,7 @@ conflicts=('wine' 'wine-mono' 'wine-gecko')
 prepare(){
   rm -rf "${pkgname}"-{32,64}-build
   mkdir "${pkgname}"-{32,64}-build
-  cd "${pkgname}" || exit
+  cd "${pkgname}"
   git config user.email "wine@cachyos.org"
   git config user.name "wine cachyos"
   git tag "wine-${_srctag}" --annotate -m "$pkgver" --force
@@ -163,7 +163,7 @@ build(){
   export CROSSCXXFLAGS="$COMMON_FLAGS -mcmodel=small -std=c++17"
   export PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/share/pkgconfig"
   export CC="clang" CXX="clang++"
-  cd "$srcdir/${pkgname}-64-build" || exit
+  cd "$srcdir/${pkgname}-64-build"
   "../${pkgname}/configure" \
     --prefix=/usr \
     --libdir=/usr/lib \
@@ -186,7 +186,7 @@ build(){
   export CROSSCFLAGS="$COMMON_FLAGS -mstackrealign"
   export CROSSCXXFLAGS="$COMMON_FLAGS -mstackrealign -std=c++17"
   export PKG_CONFIG_PATH="/usr/lib32/pkgconfig:/usr/share/pkgconfig"
-  cd "$srcdir/${pkgname}-32-build" || exit
+  cd "$srcdir/${pkgname}-32-build"
   "../${pkgname}/configure" \
     --prefix=/usr \
     --libdir=/usr/lib \
@@ -205,12 +205,12 @@ build(){
 }
 
 package(){
-  cd "$srcdir/${pkgname}-32-build" || exit
+  cd "$srcdir/${pkgname}-32-build"
   make prefix="$pkgdir/usr" \
     libdir="$pkgdir/usr/lib" \
     dlldir="$pkgdir/usr/lib/wine" install
 
-  cd "$srcdir/${pkgname}-64-build" || exit
+  cd "$srcdir/${pkgname}-64-build"
   make prefix="$pkgdir/usr" \
     libdir="$pkgdir/usr/lib" \
     dlldir="$pkgdir/usr/lib/wine" install
@@ -234,11 +234,11 @@ package(){
 
   # Install wine-gecko
   install -d -m755 "$pkgdir/usr/share/wine/gecko/"
-  cp -dr --no-preserve='ownership' wine-gecko-"${_geckover}"-x86{,_64} "$pkgdir/usr/share/wine/gecko/"
+  cp -dr --no-preserve='ownership' wine-gecko-${_geckover}-x86{,_64} "$pkgdir/usr/share/wine/gecko/"
 
   # Install wine-mono
   install -d -m755 "$pkgdir/usr/share/wine/mono"
-  cp -r -a --no-preserve='ownership' wine-mono-"${_monover}" "$pkgdir/usr/share/wine/mono"
+  cp -r -a --no-preserve='ownership' wine-mono-${_monover} "$pkgdir/usr/share/wine/mono"
 
   # Install xalia
   install -d -m755 "$pkgdir/usr/share/xalia"

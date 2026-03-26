@@ -45,7 +45,7 @@ b2sums=('57bb4391e8b84265e42b08545bb0cf64046915fca2a80a7f40923f6abf605d9bdd7efef
         'b35c447cd9223e096a2bb75e0741a7d0a3a1606af54c957e4f276f4e6861a9b3f06ae1d646137e8d2f24ba2238c9967c76eff8cc631a68d7e48e376056982cc6')
 
 prepare() {
-    cd PrismLauncher-"$pkgver" || exit
+    cd PrismLauncher-$pkgver
     # Copy git submodules into place
     cp -r "${srcdir}/libnbtplusplus/"* libraries/libnbtplusplus/
     cp -r "${srcdir}/filesystem/"* libraries/filesystem/
@@ -55,7 +55,7 @@ prepare() {
     patch -p1 -i "${srcdir}/qfile-open-checks.patch"
 }
 build() {
-  cd PrismLauncher-"$pkgver" || exit
+  cd PrismLauncher-$pkgver
   export PATH="/usr/lib/jvm/java-17-openjdk/bin/:$PATH"
   # Optimized compiler flags
   export CFLAGS="${CFLAGS/-O2/-O3} -pipe -fno-plt"
@@ -73,10 +73,10 @@ build() {
 }
 package() {
   # licenses
-  install -Dm644 lionshead.license -t "$pkgdir"/usr/share/licenses/"$pkgname"/
-  install -Dm644 batch.license -t "$pkgdir"/usr/share/licenses/"$pkgname"/
-  install -Dm644 mdi.license -t "$pkgdir"/usr/share/licenses/"$pkgname"/
-  cd PrismLauncher-"$pkgver"/build || exit
+  install -Dm644 lionshead.license -t "$pkgdir"/usr/share/licenses/$pkgname/
+  install -Dm644 batch.license -t "$pkgdir"/usr/share/licenses/$pkgname/
+  install -Dm644 mdi.license -t "$pkgdir"/usr/share/licenses/$pkgname/
+  cd PrismLauncher-$pkgver/build
   DESTDIR="$pkgdir" cmake --install .
 }
 # vim:set ts=2 sw=2 et:

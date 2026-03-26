@@ -26,7 +26,7 @@ sha256sums=('f2b7d62ffc677203681cbe5e58d9d069d7671c57cd138f3048e8b3c28f0724a6'
             'SKIP')
 
 prepare() {
-  cd Rare || exit
+  cd Rare
   python -m venv venv
   source venv/bin/activate
   pip install nuitka ruff
@@ -35,7 +35,7 @@ prepare() {
 }
 
 build() {
-  cd Rare || exit
+  cd Rare
   source venv/bin/activate
   ./tools/ui2py.sh --force
   ./tools/qrc2py.sh --force
@@ -81,11 +81,11 @@ build() {
 }
 
 package() {
-  cd Rare || exit
+  cd Rare
   install -Dm755 "$srcdir/rare.sh" "$pkgdir/usr/bin/rare"
   install -Dm644 "misc/${pkgname%-git}.desktop" "$pkgdir/usr/share/applications/${pkgname%-git}.desktop"
   install -Dm644 "rare/resources/images/Rare.png" "$pkgdir/usr/share/pixmaps/${pkgname%-git}.png"
-  cd build/rare.dist || exit
+  cd build/rare.dist
   find . -type f -exec install -Dm 644 "{}" "$pkgdir/opt/rare/{}" \;
   chmod 755 "$pkgdir/opt/rare/Rare.bin"
 }

@@ -110,7 +110,7 @@ sha256sums=('b904d07ab9ee863adcc5d0bf9225885cea374bba8a0022dba0790562e2b8b1f5'
             '25322c692cf5cc88fc7d17cbb40a61b7e32d5ea675da647dd1a1996474ec2c8e')
 sha256sums_x86_64=('fab66dfc9cfd2e26fb87798f855aef30c2004edc8e19570d37af555644ae1655')
 prepare() {
-  cd "$srcdir/obs-studio" || exit
+  cd "$srcdir/obs-studio"
   git config submodule.plugins/obs-browser.url $srcdir/obs-browser
   git config submodule.plugins/obs-websocket.url $srcdir/obs-websocket
   git -c protocol.file.allow=always submodule update

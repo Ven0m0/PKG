@@ -223,10 +223,10 @@ _make_wrappers () {
     declare -n _opt
     for _opt in "${_opts[@]}"; do
         for l in ar ranlib nm; do
-            ln -s /usr/bin/gcc-"$l" wrappers/${_opt[0]}-pc-linux-gnu-"$l"
+            ln -s /usr/bin/gcc-$l wrappers/${_opt[0]}-pc-linux-gnu-$l
         done
         for t in gcc g++; do
-            install -Dm755 /dev/stdin wrappers/${_opt[0]}-pc-linux-gnu-"$t" <<EOF
+            install -Dm755 /dev/stdin wrappers/${_opt[0]}-pc-linux-gnu-$t <<EOF
 #!/usr/bin/bash
 $(which ccache 2> /dev/null) /usr/bin/$t ${_opt[1]} "\$@"
 EOF
@@ -252,14 +252,14 @@ prepare() {
     rm -rf wrappers && mkdir wrappers
     _make_wrappers
 
-    [[ ! -d build ]] && mkdir build
+    [ ! -d build ] && mkdir build
 
-    cd proton-cachyos || exit
+    cd proton-cachyos
 
-    [[ ! -d contrib ]] && mkdir -p contrib
-    mv "$srcdir"/wine-gecko-"${_geckover}"-x86{,_64}.tar.xz contrib/
-    mv "$srcdir"/wine-mono-"${_monover}"-x86.tar.xz contrib/
-    mv "$srcdir"/xalia-"${_xaliaver}"-net48-mono.zip contrib/
+    [ ! -d contrib ] && mkdir -p contrib
+    mv "$srcdir"/wine-gecko-${_geckover}-x86{,_64}.tar.xz contrib/
+    mv "$srcdir"/wine-mono-${_monover}-x86.tar.xz contrib/
+    mv "$srcdir"/xalia-${_xaliaver}-net48-mono.zip contrib/
 
     _submodules=(
         dav1d
@@ -297,14 +297,14 @@ prepare() {
     git submodule update --init --filter=tree:0 --recursive ${_submodules[@]}
 
     for rustlib in gst-plugins-rs; do
-    pushd "$rustlib" || exit
+    pushd $rustlib
         export RUSTUP_TOOLCHAIN=stable
         export CARGO_HOME="${SRCDEST}"/proton-cargo
         export CARGO_NET_GIT_FETCH_WITH_CLI=true
         cargo update
         cargo fetch --locked --target i686-unknown-linux-gnu
         cargo fetch --locked --target x86_64-unknown-linux-gnu
-    popd || exit
+    popd
     done
 }
 
@@ -327,7 +327,7 @@ build() {
     export RUSTUP_TOOLCHAIN=stable
     export CARGO_HOME="${SRCDEST}"/proton-cargo
 
-    cd build || exit
+    cd build
     ROOTLESS_CONTAINER="" \
     ../proton-cachyos/configure.sh \
         --container-engine="none" \
@@ -340,7 +340,7 @@ build() {
 }
 
 package() {
-    cd build || exit
+    cd build
 
     # Delete the intermediate build directories to free space (mostly for my github actions)
     rm -rf dst-* obj-* src-* pfx-*
@@ -361,7 +361,7 @@ package() {
     mv "${_installdir}/${pkgname}"/{PATENTS.AV1,LICENSE{,.OFL}} \
         "${pkgdir}/usr/share/licenses/${pkgname}"
 
-    cd "${_installdir}/${pkgname}/files" || exit
+    cd "${_installdir}/${pkgname}/files"
 
     local _geckodir="share/wine/gecko/wine-gecko-${_geckover}"
     i686-w64-mingw32-strip --strip-debug \
