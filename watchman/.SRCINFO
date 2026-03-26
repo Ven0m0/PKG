@@ -25,11 +25,6 @@ pkgbase = watchman
 	makedepends = mvfst=2026.03.23.00
 	makedepends = python-setuptools
 	makedepends = rust
-	optdepends = ionice: reduce I/O priority
-	optdepends = schedtool: adjust process scheduling
-	provides = mpv
-	provides = libmpv.so
-	conflicts = universal-android-debloater-opengl
 	source = watchman-2026.03.23.00.tar.gz::https://github.com/facebook/watchman/archive/v2026.03.23.00.tar.gz
 	source = watchman-destdir.patch::https://src.fedoraproject.org/rpms/watchman/raw/a446ccc61c73d74053792656c3832f93bf0fe262/f/watchman-destdir.patch
 	source = watchman.conf
