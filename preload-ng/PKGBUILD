@@ -1,7 +1,7 @@
 # Maintainer: Ven0m0
 pkgname=preload-ng
-pkgver=0.6.6
-pkgrel=2
+pkgver=0.6.7
+pkgrel=1
 pkgdesc='Adaptive readahead daemon that prefetches files to reduce application startup times'
 arch=('x86_64')
 url='https://github.com/miguel-b-p/preload-ng'
@@ -12,7 +12,7 @@ optdepends=('ionice: reduce I/O priority' 'schedtool: adjust process scheduling'
 backup=('etc/preload.conf')
 install="$pkgname.install"
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/$pkgver.tar.gz")
-sha256sums=('SKIP')
+sha256sums=('40831ee59ce18a883308d5c77ef7121e1c993db71d7505d0260f7cf534c7f4f8')
 
 build(){
   cd "$pkgname-$pkgver/preload-src"

@@ -4,7 +4,7 @@
 : ${_electron_builder_version:=<26}
 _pkgname="legcord"
 pkgname="$_pkgname"
-pkgver=1.1.6
+pkgver=1.2.2
 pkgrel=1
 pkgdesc="Discord client with builtin client mod and theme support"
 url="https://github.com/Legcord/Legcord"

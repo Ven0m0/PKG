@@ -1,0 +1,94 @@
+pkgbase = obs-studio
+	pkgdesc = Free and open source software for video recording and live streaming (optimized)
+	pkgver = 32.1.0
+	pkgrel = 1
+	url = https://github.com/obsproject/obs-studio
+	arch = x86_64
+	depends = alsa-lib
+	depends = curl
+	depends = ffmpeg>=8
+	depends = fontconfig
+	depends = freetype2
+	depends = gcc-libs
+	depends = glib2
+	depends = glibc
+	depends = jack
+	depends = jansson
+	depends = libdatachannel>=0.24
+	depends = libfdk-aac
+	depends = libgl
+	depends = libpipewire
+	depends = libpulse
+	depends = librist
+	depends = libva
+	depends = libvpl
+	depends = libx11
+	depends = libxcb
+	depends = libxcomposite
+	depends = libxkbcommon
+	depends = mbedtls>=3.6.1
+	depends = pciutils
+	depends = qrcodegencpp-cmake
+	depends = qt6-base>=6.10
+	depends = qt6-svg>=6.10
+	depends = rnnoise
+	depends = simde
+	depends = speexdsp
+	depends = srt
+	depends = systemd-libs
+	depends = util-linux-libs
+	depends = v4l-utils
+	depends = wayland
+	depends = x264
+	depends = zlib
+	depends = at-spi2-core
+	depends = cairo
+	depends = dbus
+	depends = expat
+	depends = libcups
+	depends = libdrm
+	depends = libxdamage
+	depends = libxext
+	depends = libxfixes
+	depends = libxrandr
+	depends = mesa
+	depends = nspr
+	depends = nss
+	depends = pango
+	makedepends = asio
+	makedepends = cmake
+	makedepends = extra-cmake-modules
+	makedepends = ffnvcodec-headers
+	makedepends = git
+	makedepends = uthash
+	makedepends = nlohmann-json
+	makedepends = swig
+	makedepends = websocketpp
+	optdepends = intel-media-sdk: QSV encoder support(<= Rocket Lake & >= Broadwell)
+	optdepends = vpl-gpu-rt: QSV encoder support (>= Alder Lake)
+	optdepends = intel-media-driver: VAAPI encoder support (>= Broadwell)
+	optdepends = libva-intel-driver: VAAPI encoder support (<= Haswell)
+	optdepends = libva-mesa-driver: VAAPI encoder support
+	optdepends = v4l2loopback-dkms: V4L2 virtual camera output
+	optdepends = decklink: Blackmagic Design DeckLink support
+	provides = obs-studio=32.1.0
+	provides = obs-vst
+	provides = obs-websocket
+	provides = obs-browser
+	conflicts = obs-studio
+	conflicts = obs-vst
+	conflicts = obs-websocket
+	conflicts = obs-browser
+	conflicts = obs-linuxbrowser
+	conflicts = libva-vdpau-driver
+	replaces = armcord
+	source = obs-studio::git+https://github.com/obsproject/obs-studio.git#tag=32.1.0
+	source = obs-browser::git+https://github.com/obsproject/obs-browser.git
+	source = obs-websocket::git+https://github.com/obsproject/obs-websocket.git
+	source = 12328-Cleanup_Qt_Gui_Private_linkage.patch
+	sha256sums = b904d07ab9ee863adcc5d0bf9225885cea374bba8a0022dba0790562e2b8b1f5
+	sha256sums = SKIP
+	sha256sums = SKIP
+	sha256sums = 25322c692cf5cc88fc7d17cbb40a61b7e32d5ea675da647dd1a1996474ec2c8e
+
+pkgname = obs-studio

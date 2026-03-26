@@ -1,0 +1,20 @@
+pkgbase = lib32-zlib-ng
+	pkgdesc = zlib replacement with optimizations for next generation systems - 32-bit
+	pkgver = 2.3.3
+	pkgrel = 1
+	url = https://github.com/zlib-ng/zlib-ng
+	arch = x86_64
+	depends = lib32-glibc
+	makedepends = git
+	makedepends = cmake
+	makedepends = ninja
+	makedepends = lib32-gcc-libs
+	optdepends = wine: run Windows games
+	optdepends = proton: run Windows games
+	provides = proton
+	conflicts = onlyoffice
+	source = git+https://github.com/zlib-ng/zlib-ng#tag=2.3.3
+	sha256sums = 92fed158513bb54d0843fffdb161105f8e360bf45d80a2a53a87e911b29fd076
+
+pkgname = lib32-zlib-ng
+pkgname = lib32-zlib-ng-compat

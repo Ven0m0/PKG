@@ -1,0 +1,24 @@
+pkgbase = nvidia_oc
+	pkgdesc = A simple command line tool to overclock Nvidia GPUs using the NVML library on Linux. This supports both X11 and Wayland.
+	pkgver = 0.1.24
+	pkgrel = 1
+	url = https://github.com/Dreaming-Codes/nvidia_oc
+	arch = x86_64
+	arch = aarch64
+	depends = nvidia-utils
+	depends = gcc-libs
+	makedepends = rust
+	makedepends = cargo
+	optdepends = nvidia-utils: for hardware accelerated video decoding with CUDA
+	optdepends = python: for stats-conv and umpv scripts
+	optdepends = python-pyqt6: for stats-conv script
+	optdepends = python-pyqtgraph: for stats-conv script
+	optdepends = youtube-dl: for video-sharing websites playback
+	optdepends = yt-dlp: for video-sharing websites playback
+	provides = mpv
+	provides = libmpv.so
+	conflicts = mpv
+	source = nvidia_oc-0.1.24.tar.gz::https://github.com/Dreaming-Codes/nvidia_oc/archive/refs/tags/0.1.24.tar.gz
+	sha256sums = 0afaf2c5277bd60de7b700cf26c95ea9aa41bdae5050ccec25c3e22a45beb2b0
+
+pkgname = nvidia_oc

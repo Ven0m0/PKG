@@ -3,7 +3,7 @@
 # Features: Aggressive optimization, PGO, VA-API, system libraries, hardware acceleration
 pkgname=firefox-custom
 _pkgname=firefox
-pkgver=148.0
+pkgver=149.0
 pkgrel=1
 pkgdesc='Firefox with aggressive optimizations, VA-API, PGO, and all performance tweaks'
 arch=(x86_64)
@@ -44,7 +44,7 @@ source=(
   patches/ghostery/*.patch
   patches/firedragon/*.patch
 )
-sha256sums=('08d4cae010abc31603ef74091a5d1f81da8e62d3b66c806690e70f03c422df16' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
+sha256sums=('b861fdee999d9b6404e1e865d6f707c41b4bded1b5ea62affc176288c1484b8a' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
 # Tunables - set these in your environment to control build behavior
 :  "${NATIVE_ARCH:=native}"      # CPU architecture to optimize for
 : "${ENABLE_PGO:=true}"         # Profile-Guided Optimization (recommended)
