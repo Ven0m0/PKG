@@ -37,8 +37,6 @@ on:
         required: false
       KILO_ORG_ID:
         required: false
-      GITHUB_TOKEN:
-        required: false
 
   workflow_dispatch:
     inputs:
@@ -128,7 +126,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN || github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
           OPENCODE_ENABLE_EXA: "true"
           OPENCODE_EXPERIMENTAL: "true"
           OPENCODE_EXPERIMENTAL_EXA: "true"
@@ -172,7 +170,7 @@ jobs:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN || github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
           OPENCODE_ENABLE_EXA: "true"
           OPENCODE_EXPERIMENTAL: "true"
           OPENCODE_EXPERIMENTAL_EXA: "true"
