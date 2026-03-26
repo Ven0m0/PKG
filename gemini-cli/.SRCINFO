@@ -7,17 +7,6 @@ pkgbase = gemini-cli-autoup
 	depends = nodejs
 	makedepends = bun
 	makedepends = npm
-	optdepends = hunspell-en_US:  Spell checking, American English
-	optdepends = libnotify: Notification integration
-	optdepends = networkmanager: Location detection via available WiFi networks
-	optdepends = onnxruntime:  Local machine learning features
-	optdepends = speech-dispatcher: Text-to-Speech
-	optdepends = xdg-desktop-portal: Screensharing with Wayland
-	optdepends = libdbusmenu-gtk3: Global menu support
-	optdepends = profile-sync-daemon: Load browser profile into RAM
-	optdepends = kmozillahelper: KDE integration
-	provides = firefox=149.0
-	conflicts = gemini-cli
 	source = https://registry.npmjs.org/@google/gemini-cli/-/gemini-cli-0.35.1.tgz
 	sha256sums = 30fde80127c6af4a08c81b7107968cd0675bba2861c6972d980bb2194a767386
 
