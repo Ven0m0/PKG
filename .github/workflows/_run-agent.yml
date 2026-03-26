@@ -82,7 +82,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          persist-credentials: false
+          depth: 1
       - name: Configure git identity
         shell: bash
         run: |
