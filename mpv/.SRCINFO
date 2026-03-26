@@ -4,6 +4,7 @@ pkgbase = mpv-full
 	pkgrel = 1
 	url = https://mpv.io/
 	arch = x86_64
+	license = GPL
 	depends = alsa-lib
 	depends = ffmpeg
 	depends = gcc-libs
