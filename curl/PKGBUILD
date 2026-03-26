@@ -12,15 +12,15 @@ source=("https://curl.se/download/curl-${pkgver}.tar.xz")
 sha256sums=('955f6e729ad6b3566260e8fef68620e76ba3c31acf0a18524416a185acf77992')
 
 prepare() {
-  cd "curl-$pkgver"
+  cd "curl-$pkgver" || exit
   autoreconf -fi
 }
 build() {
-  cd "curl-$pkgver"
+  cd "curl-$pkgver" || exit
   local -A tls=([rustls]="--with-rustls" [openssl]="--with-openssl --with-openssl-quic" [wolfssl]="--with-wolfssl")
   for b in rustls openssl wolfssl; do
     mkdir -p "build-$b"
-    cd "build-$b"
+    cd "build-$b" || exit
     ../configure --prefix=/usr --mandir='/usr/share/man' --disable-manual --enable-ipv6 --enable-ares --with-gssapi --with-libssh2 --enable-threaded-resolver --enable-http2 \
     --enable-quic --with-quiche --with-zlib --with-brotli --with-zstd --with-ngtcp2 --with-nghttp2 --enable-earlydata \
     --with-fish-functions-dir=/usr/share/fish/vendor_completions.d/ --with-zsh-functions-dir=/usr/share/zsh/site-functions/ \ 
@@ -31,7 +31,7 @@ build() {
   done
 }
 check() {
-  cd build-curl
+  cd build-curl || exit
   # disable test 433, since it requires the glibc debug info
   make TFLAGS="-v -a -k -p -j$(nproc) !433" test-nonflaky
 }
@@ -41,7 +41,7 @@ package_curl-rustls() {
   depends=('ca-certificates' 'brotli' 'librustls' 'zlib' 'zstd' 'quiche')
   provides=('curl')
   conflicts=('curl' 'curl-openssl' 'curl-wolfssl')
-  cd "curl-$pkgver/build-rustls"
+  cd "curl-$pkgver/build-rustls" || exit
   make DESTDIR="${pkgdir}" install
   make DESTDIR="${pkgdir}" install -C scripts
   # license
@@ -52,7 +52,7 @@ package_curl-openssl() {
   depends=('ca-certificates' 'brotli' 'openssl' 'zlib' 'zstd' 'quiche')
   provides=('curl')
   conflicts=('curl' 'curl-rustls' 'curl-wolfssl')
-  cd "curl-$pkgver/build-openssl"
+  cd "curl-$pkgver/build-openssl" || exit
   make DESTDIR="${pkgdir}" install
   make DESTDIR="${pkgdir}" install -C scripts
   # license
@@ -63,7 +63,7 @@ package_curl-wolfssl() {
   depends=('ca-certificates' 'brotli' 'libwolfssl' 'zlib' 'zstd' 'quiche')
   provides=('curl')
   conflicts=('curl' 'curl-rustls' 'curl-openssl')
-  cd "curl-$pkgver/build-wolfssl"
+  cd "curl-$pkgver/build-wolfssl" || exit
   make DESTDIR="${pkgdir}" install
   make DESTDIR="${pkgdir}" install -C scripts
   # license

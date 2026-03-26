@@ -23,13 +23,13 @@ sha256sums=('24e2759e011bfee1130142a8a58ef3ac6e4c26e475e561552462c6171b26b5b2'
             '8d5d790fffd35101af340792d081f8f75b61b1579bc8f89acab818f03f1071ea')
 
 prepare() {
-  cd "$pkgname-next-generation-$pkgver"
+  cd "$pkgname-next-generation-$pkgver" || exit
   export RUSTUP_TOOLCHAIN=stable
   cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
 }
 
 build() {
-  cd "$pkgname-next-generation-$pkgver"
+  cd "$pkgname-next-generation-$pkgver" || exit
   CFLAGS+=" -ffat-lto-objects"
   export RUSTUP_TOOLCHAIN=stable
   export CARGO_TARGET_DIR=target
@@ -38,7 +38,7 @@ build() {
 }
 
 package() {
-  cd "$pkgname-next-generation-$pkgver"
+  cd "$pkgname-next-generation-$pkgver" || exit
   install -Dm755 target/release/uad-ng -t "$pkgdir/usr/bin/"
   install -Dm644 resources/assets/logo-dark.png "$pkgdir/usr/share/pixmaps/uad-ng.png"
   install -Dm644 "$srcdir/uad-ng.desktop" -t "$pkgdir/usr/share/applications/"

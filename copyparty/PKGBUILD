@@ -25,15 +25,15 @@ backup=("etc/${pkgname}/copyparty.conf")
 sha256sums=('050ccc34554e59210aca7a67d87a186e69b3f4dbe013d5ee2f11a22c259a82a6')
 
 build() {
-  cd "${srcdir}/${pkgname}-${pkgver}/copyparty/web"
+  cd "${srcdir}/${pkgname}-${pkgver}/copyparty/web" || exit
   export MAKEFLAGS="-j$(nproc)"
   make
-  cd "${srcdir}/${pkgname}-${pkgver}"
+  cd "${srcdir}/${pkgname}-${pkgver}" || exit
   python -m build --wheel --no-isolation
 }
 
 package() {
-  cd "${srcdir}/${pkgname}-${pkgver}"
+  cd "${srcdir}/${pkgname}-${pkgver}" || exit
   python -m installer --destdir="$pkgdir" dist/*.whl
   sed -i s/python3/python/g bin/prisonparty.sh contrib/systemd/*.service
   install -dm755 "${pkgdir}/etc/${pkgname}"

@@ -25,17 +25,17 @@ sha256sums=('b2fa9db70232661ff962bab631ff88e56a894caf0c15fae5070135f18408d5b9'
   '4db7e3a938675b97a9a3440b9c7127d8a990390df2dfe0da7dcabe654abb3579')
 
 prepare() {
-  cd "$_pkgname-$pkgver.$_upstream_pkgrel"
+  cd "$_pkgname-$pkgver.$_upstream_pkgrel" || exit
   mkdir -p bin
 }
 
 build() {
-  cd "$_pkgname-$pkgver.$_upstream_pkgrel"
+  cd "$_pkgname-$pkgver.$_upstream_pkgrel" || exit
   cp -a "$srcdir/p7zip" bin/
 }
 
 package() {
-  cd "$_pkgname-$pkgver.$_upstream_pkgrel"
+  cd "$_pkgname-$pkgver.$_upstream_pkgrel" || exit
   make install DEST_DIR="$pkgdir" DEST_HOME=/usr DEST_MAN=/usr/share/man
   rm -rf "$pkgdir/usr/share/doc/p7zip/DOC/MANUAL/fm"
   install -Dm644 "$pkgdir/usr/share/doc/p7zip/DOC/License.txt" "$pkgdir/usr/share/licenses/$pkgname/License.txt"

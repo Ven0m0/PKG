@@ -106,7 +106,7 @@ package_handbrake-svt-av1-essential-llvm-optimized() {
   depends=("${_commondeps[@]}" "${_guideps[@]}" "${_implicitdeps[@]}")
   provides=(handbrake)
   conflicts=(handbrake)
-  cd "HandBrake"
+  cd "HandBrake" || exit
   make --directory="${srcdir}/HandBrake/build" DESTDIR="${pkgdir}" install
   install -D LICENSE -t "${pkgdir}/usr/share/licenses/${pkgname}"
   rm "${pkgdir}/usr/bin/HandBrakeCLI"
@@ -117,7 +117,7 @@ package_handbrake-svt-av1-essential-llvm-optimized-cli() {
   depends=("${_commondeps[@]}" "${_implicitdeps[@]}")
   provides=(handbrake-cli)
   conflicts=(handbrake-cli)
-  cd "HandBrake"
+  cd "HandBrake" || exit
   install -D "${srcdir}/HandBrake/build/HandBrakeCLI" "${pkgdir}/usr/bin/HandBrakeCLI"
   install -D LICENSE -t "${pkgdir}/usr/share/licenses/${pkgname}"
 }

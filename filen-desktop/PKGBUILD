@@ -15,7 +15,7 @@ source=("git+${_ghurl}.git#commit=81950031c41831b7048669cc9cfba0c75070b478")
 sha256sums=('SKIP')
 
 prepare(){
-  cd "${srcdir}/${pkgname}"
+  cd "${srcdir}/${pkgname}" || exit
   export ELECTRON_SKIP_BINARY_DOWNLOAD=1
   export SYSTEM_ELECTRON_VERSION="$(electron34 -v | sed 's/v//g')"
   export electronDist=/usr/lib/electron34
@@ -31,7 +31,7 @@ EOF
 }
 
 build(){
-  cd "${srcdir}/${pkgname}"
+  cd "${srcdir}/${pkgname}" || exit
   export NODE_ENV=production
   export BUN_INSTALL_CACHE_DIR="${srcdir}/.bun-cache"
   export electronDist=/usr/lib/electron34
@@ -47,7 +47,7 @@ build(){
 }
 
 package(){
-  cd "${srcdir}/${pkgname}"
+  cd "${srcdir}/${pkgname}" || exit
   install -dm755 "${pkgdir}/usr/lib/${pkgname}"
   install -Dm644 prod/linux-*/resources/app. asar "${pkgdir}/usr/lib/${pkgname}/app.asar"
   cp -Pr --no-preserve=ownership prod/linux-*/resources/{app. asar.unpacked,public} "${pkgdir}/usr/lib/${pkgname}/"

@@ -75,7 +75,7 @@ b2sums=('26d3f61a98f28cd00c415694591bdfb80ec9c2fc429998d9fc82978e48d856eb4d0340c
         '2a07482fa88186d5152599754a73e082f8bbfe0dd7fabc0ec7aac64be75c4579ebc184c88f99bd70301af3a6e6b748ef39b9756e823894f4d750915e81c93591')
 
 prepare() {
-  cd gamescope
+  cd gamescope || exit
 
   patch -Np1 -i "${srcdir}"/gamescope-vk-1_2-comp-target.patch
   patch -Np1 -i "${srcdir}"/gamescope-xrgb-overlay-formats.patch
@@ -86,12 +86,12 @@ prepare() {
   git remote set-url origin https://github.com/ValveSoftware/gamescope.git
   git submodule update --init --filter=tree:0 --recursive
 
-  cd subprojects/openvr
+  cd subprojects/openvr || exit
   patch -Np1 -i ${srcdir}/1890.patch
 }
 
 pkgver() {
-  cd gamescope
+  cd gamescope || exit
   git describe --tags | sed 's/-//'
 }
 

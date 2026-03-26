@@ -14,27 +14,27 @@ source=("$pkgname-$pkgver.tar.gz::https://github.com/GitoxideLabs/$pkgname/archi
 sha256sums=('68a60cae90e0882cb3e1e699bc1c7e64902b632cc30209f60444c8ca8b2d820e' 'SKIP')
 
 prepare() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname-$pkgver" || exit
   patch -p1 -i ../optimize.patch
   export RUSTUP_TOOLCHAIN=stable
   cargo fetch --locked --target "$(rustc --print host-tuple)"
 }
 
 build() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname-$pkgver" || exit
   CFLAGS+=' -ffat-lto-objects'
   # define PGO_PROFILE_DIR to use a custom directory for the profile data
   export MALLOC_CONF="thp:always,metadata_thp:always" RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target \
     RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C link-arg=-fuse-ld=lld" PGO_PROFILE_DIR=/tmp/pgo-data
   # clean up the profile data
-  mkdir -p ${PGO_PROFILE_DIR}
-  rm -f ${PGO_PROFILE_DIR}/*
+  mkdir -p "${PGO_PROFILE_DIR}"
+  rm -f "${PGO_PROFILE_DIR}"/*
   # append -Cprofile-generate=${PGO_PROFILE_DIR} to the rustflags
   export RUSTFLAGS+=" -Cprofile-generate=${PGO_PROFILE_DIR}"
   # First build
   cargo build -r --frozen --no-default-features --bins --lib --features max-pure
   # clean up the profile data
-  rm -f ${PGO_PROFILE_DIR}/*
+  rm -f "${PGO_PROFILE_DIR}"/*
   # run the benchmark
   hyperfine --warmup 5 --min-runs 10 'target/release/gix -n "PM_RESUME" ../linux-6.10.9'
   hyperfine --warmup 5 --min-runs 10 'target/release/ein -n "PM_RESUME" ../linux-6.10.9'
@@ -43,7 +43,7 @@ build() {
   # remove -Cprofile-generate=${PGO_PROFILE_DIR} from the rustflags
   export RUSTFLAGS="${RUSTFLAGS//-Cprofile-generate=${PGO_PROFILE_DIR}/}"
   # merge the profile data
-  llvm-profdata merge -o ${PGO_PROFILE_DIR}/merged.profdata ${PGO_PROFILE_DIR}
+  llvm-profdata merge -o "${PGO_PROFILE_DIR}"/merged.profdata "${PGO_PROFILE_DIR}"
   # append -Cprofile-use=${PGO_PROFILE_DIR} to the rustflags
   export RUSTFLAGS+=" -Cprofile-use=${PGO_PROFILE_DIR}/merged.profdata"
   # Second build with PGO
@@ -51,13 +51,13 @@ build() {
 }
 
 check() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname-$pkgver" || exit
   export RUSTUP_TOOLCHAIN=stable
   cargo test --locked --all-features -r
 }
 
 package() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname-$pkgver" || exit
   install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/gix"
   install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/ein"
 }
