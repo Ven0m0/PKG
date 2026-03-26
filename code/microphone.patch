@@ -2,21 +2,21 @@ diff --git a/src/vs/code/electron-main/app.ts b/src/vs/code/electron-main/app.ts
 index 588e1cb..751230d 100644
 --- a/src/vs/code/electron-main/app.ts
 +++ b/src/vs/code/electron-main/app.ts
-@@ -172,11 +172,13 @@ export class CodeApplication extends Disposable {
+@@ -172,11 +172,10 @@ export class CodeApplication extends Disposable {
  
  		const allowedPermissionsInWebview = new Set([
  			...alwaysAllowedPermissions,
 +			'media',
  			'clipboard-read',
  			'clipboard-sanitized-write',
- 			// TODO(deepak1556): Should be removed once migration is complete
- 			// https://github.com/microsoft/vscode/issues/239228
- 			'deprecated-sync-clipboard-read',
+-			// TODO(deepak1556): Should be removed once migration is complete
+-			// https://github.com/microsoft/vscode/issues/239228
+-			'deprecated-sync-clipboard-read',
 +			'microphone'
  		]);
  
  		const allowedPermissionsInCore = new Set([
-@@ -186,6 +188,4 @@ export class CodeApplication extends Disposable {
+@@ -186,6 +185,4 @@ export class CodeApplication extends Disposable {
 -			// TODO(deepak1556): Should be removed once migration is complete
 -			// https://github.com/microsoft/vscode/issues/239228
 -			'deprecated-sync-clipboard-read',
