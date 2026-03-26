@@ -1,4 +1,4 @@
-implement features/patches/optipns from:
+implement features/patches from:
 
 - https://github.com/compiledkernel-idk/DarkFox
 
