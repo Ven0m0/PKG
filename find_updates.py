@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import json
-from types import NoneType
 from typing import List, Any, Union, Dict, Type, cast
 
 import attr
@@ -144,7 +143,7 @@ class SearchResult:
         type = self.type
         version = self.version
         results: Union[None, List[Dict[str, Any]]] = None
-        if not isinstance(self.results, NoneType):
+        if not isinstance(self.results, type(None)):
             results = []
             for results_item_data in self.results:
                 results_item = results_item_data.to_dict()
@@ -246,37 +245,37 @@ class PackageDetailed:
         url = self.url
         submitter = self.submitter
         license_: Union[None, List[str]] = None
-        if not isinstance(self.license_, NoneType):
+        if not isinstance(self.license_, type(None)):
             license_ = self.license_
         depends: Union[None, List[str]] = None
-        if not isinstance(self.depends, NoneType):
+        if not isinstance(self.depends, type(None)):
             depends = self.depends
         make_depends: Union[None, List[str]] = None
-        if not isinstance(self.make_depends, NoneType):
+        if not isinstance(self.make_depends, type(None)):
             make_depends = self.make_depends
         opt_depends: Union[None, List[str]] = None
-        if not isinstance(self.opt_depends, NoneType):
+        if not isinstance(self.opt_depends, type(None)):
             opt_depends = self.opt_depends
         check_depends: Union[None, List[str]] = None
-        if not isinstance(self.check_depends, NoneType):
+        if not isinstance(self.check_depends, type(None)):
             check_depends = self.check_depends
         provides: Union[None, List[str]] = None
-        if not isinstance(self.provides, NoneType):
+        if not isinstance(self.provides, type(None)):
             provides = self.provides
         conflicts: Union[None, List[str]] = None
-        if not isinstance(self.conflicts, NoneType):
+        if not isinstance(self.conflicts, type(None)):
             conflicts = self.conflicts
         replaces: Union[None, List[str]] = None
-        if not isinstance(self.replaces, NoneType):
+        if not isinstance(self.replaces, type(None)):
             replaces = self.replaces
         groups: Union[None, List[str]] = None
-        if not isinstance(self.groups, NoneType):
+        if not isinstance(self.groups, type(None)):
             groups = self.groups
         keywords: Union[None, List[str]] = None
-        if not isinstance(self.keywords, NoneType):
+        if not isinstance(self.keywords, type(None)):
             keywords = self.keywords
         co_maintainers: Union[None, List[str]] = None
-        if not isinstance(self.co_maintainers, NoneType):
+        if not isinstance(self.co_maintainers, type(None)):
             co_maintainers = self.co_maintainers
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -425,7 +424,7 @@ class InfoResult:
         type = self.type
         version = self.version
         results: Union[None, List[Dict[str, Any]]] = None
-        if not isinstance(self.results, NoneType):
+        if not isinstance(self.results, type(None)):
             results = []
             for results_item_data in self.results:
                 results_item = results_item_data.to_dict()
