@@ -4,6 +4,9 @@ pkgbase = onlyoffice
 	pkgrel = 1
 	url = https://www.onlyoffice.com/
 	arch = x86_64
+	license = AGPL-3.0-only
+	options = !strip
+	options = !emptydirs
 	depends = curl
 	depends = gtk3
 	depends = gstreamer
@@ -22,6 +25,7 @@ pkgbase = onlyoffice
 	optdepends = libreoffice: for OpenSymbol fonts
 	provides = onlyoffice=9.3.1
 	conflicts = onlyoffice
+	noextract = onlyoffice-desktopeditors-x86_64-9.3.1.deb
 	source = onlyoffice-desktopeditors-x86_64-9.3.1.deb::https://github.com/ONLYOFFICE/DesktopEditors/releases/download/v9.3.1/onlyoffice-desktopeditors_amd64.deb
 	source = onlyoffice.svg
 	sha256sums = 2fdda24d2efe65528d0aabad0633d868f22f67cf1567f8df39e72cba24f6af24

@@ -3,7 +3,9 @@ pkgbase = obs-studio
 	pkgver = 32.1.0
 	pkgrel = 1
 	url = https://github.com/obsproject/obs-studio
+	license = GPL-2.0-or-later
 	arch = x86_64
+	options = strip
 	depends = alsa-lib
 	depends = curl
 	depends = ffmpeg>=8
@@ -81,7 +83,6 @@ pkgbase = obs-studio
 	conflicts = obs-browser
 	conflicts = obs-linuxbrowser
 	conflicts = libva-vdpau-driver
-	replaces = armcord
 	source = obs-studio::git+https://github.com/obsproject/obs-studio.git#tag=32.1.0
 	source = obs-browser::git+https://github.com/obsproject/obs-browser.git
 	source = obs-websocket::git+https://github.com/obsproject/obs-websocket.git
@@ -90,5 +91,7 @@ pkgbase = obs-studio
 	sha256sums = SKIP
 	sha256sums = SKIP
 	sha256sums = 25322c692cf5cc88fc7d17cbb40a61b7e32d5ea675da647dd1a1996474ec2c8e
+	source_x86_64 = https://cdn-fastly.obsproject.com/downloads/cef_binary_6533_linux_x86_64.tar.xz
+	sha256sums_x86_64 = fab66dfc9cfd2e26fb87798f855aef30c2004edc8e19570d37af555644ae1655
 
 pkgname = obs-studio
