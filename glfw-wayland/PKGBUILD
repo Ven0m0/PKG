@@ -50,7 +50,7 @@ sha512sums=('39ad7a4521267fbebc35d2ff0c389a56236ead5fa4bdff33db113bd302f70f5f286
   'f19a596110c712f7a7298dae5e6300869c865b52bd7412a7b3465ce210bf69c5a494beb9077f4760bf63381941bffdbf8aca771e263bc42cc8718b7813df42c7')
 
 prepare() {
-  cd "$srcdir/glfw-$pkgver" || exit
+  cd "$srcdir/glfw-$pkgver"
   rm -rf build-wayland || true
   mkdir build-wayland
   for patch in "$srcdir"/*.patch; do
@@ -60,14 +60,14 @@ prepare() {
 }
 
 build() {
-  cd "$srcdir/glfw-$pkgver/build-wayland" || exit
+  cd "$srcdir/glfw-$pkgver/build-wayland"
   cmake .. -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_SKIP_INSTALL_RPATH=YES -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=ON -DGLFW_USE_WAYLAND=ON \
     -DGLFW_BUILD_EXAMPLES=NO -DGLFW_BUILD_X11=NO -DBUILD_SHARED_LIBS=ON -Wno-dev
   cmake --build . -j"$(nproc)"
 }
 
 package() {
-  cd "$srcdir/glfw-$pkgver"/build-wayland || exit
+  cd "$srcdir/glfw-$pkgver"/build-wayland
   DESTDIR=$pkgdir cmake --install .
   cd ..
   install -Dm644 LICENSE.md "$pkgdir/usr/share/licenses/$pkgname/LICENSE.md"
