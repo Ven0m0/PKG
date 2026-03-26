@@ -15,10 +15,9 @@
     "openslimedit@latest",
     "opencode-ignore@latest",
     "@gotgenes/opencode-agent-identity@latest",
-    "@old-mikser/occontext-thinking-trim@latest",
-    "opencode-websearch@latest",
     "@spoons-and-mirrors/subtask2@latest",
-    "opencode-codebase-index@latest"
+    "opencode-pty@latest",
+    "openfundus@latest",
   ],
   "watcher": {
     "ignore": ["node_modules/**", "dist/**", ".git/**"]
