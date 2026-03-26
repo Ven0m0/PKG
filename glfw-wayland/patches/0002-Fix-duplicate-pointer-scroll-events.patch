@@ -5,7 +5,7 @@ Subject: [PATCH] Fix duplicate pointer scroll events
 
 
 diff --git a/src/wl_platform.h b/src/wl_platform.h
-index 149cd241..b17fa722 100644
+index 149cd241..511252bc 100644
 --- a/src/wl_platform.h
 +++ b/src/wl_platform.h
 @@ -413,6 +413,8 @@ typedef struct _GLFWwindowWayland
@@ -13,26 +13,26 @@ index 149cd241..b17fa722 100644
          struct wl_surface*          focus;
      } fallback;
 +
-+    uint32_t                    pointerAxisTime;
++    uint32_t                    pointerAxisTime, lastPointerAxis;
  } _GLFWwindowWayland;
  
  // Wayland-specific global data
 diff --git a/src/wl_window.c b/src/wl_window.c
-index 31fe9c14..aab79d01 100644
+index 31fe9c14..78913988 100644
 --- a/src/wl_window.c
 +++ b/src/wl_window.c
-@@ -1617,6 +1617,11 @@ static void pointerHandleAxis(void* userData,
+@@ -1617,6 +1617,12 @@ static void pointerHandleAxis(void* userData,
      if (!window)
          return;
  
 +    // On newer GNOME, there is a bug where scroll events are invoked twice. This code will fix that issue.
-+    if (window->wl.pointerAxisTime == time)
++    if (window->wl.pointerAxisTime == time && window->wl.lastPointerAxis == axis)
 +        return;
 +    window->wl.pointerAxisTime = time;
++    window->wl.lastPointerAxis = axis;
 +
      // NOTE: 10 units of motion per mouse wheel step seems to be a common ratio
      if (axis == WL_POINTER_AXIS_HORIZONTAL_SCROLL)
          _glfwInputScroll(window, -wl_fixed_to_double(value) / 10.0, 0.0);
 -- 
 2.43.0
-

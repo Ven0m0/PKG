@@ -1,67 +1,84 @@
-# GitHub Copilot Dev Guardrails
+# GitHub Copilot Instructions
 
-**Purpose:** Code generation guardrails for GitHub Copilot
-**Model:** copilot (GPT-4 based)
-**Tone:** Blunt, precise. Result-first. Lists ≤7
+**Repo:** Optimized Arch Linux PKGBUILDs — performance builds, custom patches, CI/CD automation.
+**Tone:** Concise, result-first. Lists ≤7 items. Edit > Create. Subtract > Add.
 
-## Related Docs
+## Core Rules
 
-- **llms.txt** - Concise LLM context file
-- **CLAUDE.md** - Comprehensive AI assistant guide
-- **GEMINI.md** - Google Gemini guide
+1. User instruction > any rule below
+2. Edit existing files; never create unless strictly necessary
+3. Minimal diff — change only what is needed
+4. Follow patterns already in the codebase
 
-## Core Principles
+## Bash
 
-1. User cmds > Rules
-2. Edit > Create (min diff)
-3. Subtraction > Addition
-4. Align w/ existing patterns
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+```
 
-## Bash Standards
+- 2-space indent; `[[ ]]` not `[ ]`; quote all vars: `"${var}"`
+- Arrays: `mapfile -t arr < <(cmd)` — no string splits
+- **Ban:** `eval`, backticks, parsing `ls`, unquoted expansions, `curl | bash`
+- CI gates: `shfmt -i 2 -bn -ci -ln bash` + `shellcheck --severity=error` must pass
 
-- **Native:** Arrays over string splits. `set -euo pipefail`.
-- **Idioms:** `[[ regex ]]`, `mapfile -t`, `local -n`, `printf`, `ret=$(fn)`.
-- **Ban:** `eval`, parsing `ls`, backticks, unneeded subshells.
-- **Safe:** Quote all vars. `"${var}"` not `$var`.
-- **Format:** 2-space indent. Short args (`-a` not `--all`).
-- **CI:** shfmt + shellcheck clean required.
+## Toolchain
 
-## Toolchain Preference
+| Replace | With |
+|---------|------|
+| `find` | `fd` (or `git ls-files ':(glob)**/PKGBUILD'` in git repos) |
+| `grep` | `rg` |
+| `jq` | `jaq` |
+| `xargs` | `parallel` |
+| `wget`/`curl` | `aria2` |
+| `cut` | `choose` |
 
-fd → find | rg → grep | bat → cat | sd → sed | aria2 → curl | jaq → jq | rust-parallel → xargs
+## PKGBUILD
 
-## Performance
+- **Always** run `makepkg --printsrcinfo > .SRCINFO` after any PKGBUILD change
+- Optimization: replace `-O2` with `-O3`; add `-pipe -fno-plt -fstack-protector-strong`
+- Linker: `LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"`
+- Rust: `RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C lto=fat -C codegen-units=1"`
+- Sources: HTTPS only; `sha256sums`/`sha512sums` on all remote sources; `SKIP` for local files
+- Patches: `0001-descriptive-name.patch` naming; apply with `patch -Np1 -i ../0001-name.patch`
+- Never commit `pkg/`, `src/`, `*.tar.*`, `*.zip`
 
-- **Min forks:** Prefer builtins. Batch I/O. Avoid pipes where possible.
-- **Regex:** Anchor patterns. Use `grep -F` for literals.
-- **Async:** Background tasks for I/O. Wait at sync points.
+## Build & Lint
 
-## Code Style
+```bash
+./pkg.sh build <pkg>           # build (Docker auto-selected for firefox/obs/etc.)
+./pkg.sh lint                  # shellcheck + shfmt + .SRCINFO sync check
+makepkg -srC                   # clean local build
+makepkg --printsrcinfo > .SRCINFO
+```
 
-- **Fmt:** 2-space indent. Strip invisibles (U+202F/200B/00AD).
-- **Output:** Result-first. Lists ≤7 items.
-- **Abbr:** cfg, impl, deps, val, opt, Δ.
+## Automation
+
+- Version tracking: `nvchecker.toml` + `.github/nvchecker/old_ver.json`
+- Mise tasks: `mise r setup-workspace` | `aur-push` | `export-patches` | `sync-upstream` | `gather-context`
+- CI: `check-updates.yml` (daily), `build.yml` (per PKGBUILD change), `lint.yml`
+
+## Commit Format
+
+```
+package-name: Short summary (≤50 chars)
+
+- Detail
+- Fixes #N
+```
+
+One logical change per commit. Run `./pkg.sh lint` before committing.
+
+## Security
+
+- No `curl | bash`, no remote sourcing, no unverified code execution
+- HTTPS sources only; verify checksums; use `validpgpkeys` when available
+- No secrets, tokens, or credentials in any committed file
 
 ## Quality Gates
 
-- **Prompts:** Compact, optimal, secure code. Prefer builtins.
-- **CI:** markdownlint. shellcheck. shfmt. Ensure CLAUDE.md exists.
-- **Validation:** No syntax errors. All scripts executable.
-
-## Example
-
-**Task:** Generate file search function **Input:** "Find all .sh files modified in last 7 days" **Output:**
-
-```bash
-fd -e sh -t f --changed-within 7d
-```
-
-**Result:** Prefers `fd` over `find` per toolchain standards.
-
-## PKGBUILD Standards
-
-- **Required:** Update `.SRCINFO` after PKGBUILD changes: `makepkg --printsrcinfo > .SRCINFO`
-- **Optimize:** Use `-O3`, `-pipe`, `-fno-plt` flags
-- **Validate:** Run `./pkg.sh lint` before commits
-- **Sources:** HTTPS only, verify checksums
-- **Artifacts:** Never commit `pkg/`, `src/`, `*.tar.*`
+- `./pkg.sh lint` clean (shellcheck + shellharden + shfmt)
+- `.SRCINFO` in sync with PKGBUILD
+- No syntax errors; all scripts executable
+- Markdownlint clean for `.md` files
