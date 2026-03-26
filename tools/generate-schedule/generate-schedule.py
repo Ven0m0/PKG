@@ -86,8 +86,8 @@ if __name__ == "__main__":
         "--schedule",
         action="store",
         choices={"weekly", "biweekly"},
-        choices={"weekly", "biweekly"},
         default="weekly",
+    )
     args = parser.parse_args()
 
     if not os.path.isdir(workflows_folder):
