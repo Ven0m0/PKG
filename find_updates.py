@@ -538,6 +538,8 @@ if __name__ == "__main__":
         found_in_arch = set()
 
         for lp in local_packages:
+            if lp.name in found_in_arch:
+                continue
             for adb in arch_dbs:
                 ap = adb.get_pkg(lp.name)
                 if ap is not None:
