@@ -153,12 +153,52 @@ jobs:
           prompt: ${{ inputs.prompt }}
           use_github_token: true
 
-      - name: Install Kilo CLI
+      - name: Get Kilo version
         if: inputs.provider == 'kilo'
+        id: kilo-version
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(
+            curl -fsSL \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              https://api.github.com/repos/Kilo-Org/kilocode/releases/latest |
+              python - <<'PY'
+                import json
+                import sys
+
+                data = json.load(sys.stdin)
+                version = data.get("tag_name")
+                if not version:
+                    sys.stderr.write("Missing tag_name in Kilo release response\n")
+                    sys.exit(1)
+
+                print(version)
+              PY
+          )"
+          [[ -n "${VERSION}" ]] || { echo "Failed to fetch Kilo version" >&2; exit 1; }
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Kilo
+        if: inputs.provider == 'kilo'
+        id: kilo-cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.kilo/bin
+          key: kilo-${{ runner.os }}-${{ runner.arch }}-${{ steps.kilo-version.outputs.version }}
+
+      - name: Install Kilo CLI
+        if: inputs.provider == 'kilo' && steps.kilo-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
           curl -fsSL https://kilo.ai/cli/install | bash
-          echo "$HOME/.kilo/bin" >> "$GITHUB_PATH"
+
+      - name: Add Kilo to PATH
+        if: inputs.provider == 'kilo'
+        shell: bash
+        run: echo "$HOME/.kilo/bin" >> "$GITHUB_PATH"
 
       - name: Run Kilo
         if: inputs.provider == 'kilo'
