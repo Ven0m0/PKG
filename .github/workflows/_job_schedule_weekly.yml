@@ -26,8 +26,12 @@ jobs:
     needs: proton-cachyos
     uses: ./.github/workflows/proton-cachyos-slr.yml
 
-  glibc:
+  linux-kernel-catgirl:
     needs: proton-cachyos-slr
+    uses: ./.github/workflows/linux-kernel-catgirl.yml
+
+  glibc:
+    needs: linux-kernel-catgirl
     uses: ./.github/workflows/glibc.yml
 
   llvm:
