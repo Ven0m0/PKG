@@ -7,6 +7,7 @@
   },
   "plugin": [
     "opencode-fastedit",
+    "openslimedit@latest",
     "opencode-ignore",
     "@gotgenes/opencode-agent-identity",
     "@old-mikser/occontext-thinking-trim",
