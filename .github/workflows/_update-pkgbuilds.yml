@@ -21,7 +21,7 @@ jobs:
     uses: ./.github/workflows/_run-agent.yml
     with:
       provider: opencode
-      model: "openrouter/z-ai/glm-5"
+      model: "opencode/minimax-m2.5-free"
       prompt: |
         You are an Arch Linux packaging expert working in the PKG repository.
         Your task: update every PKGBUILD to its latest upstream version, then open a single pull request with all changes.
