@@ -3,6 +3,7 @@ pkgbase = legcord
 	pkgver = 1.2.2
 	pkgrel = 1
 	url = https://github.com/Legcord/Legcord
+	license = OSL-3.0
 	arch = x86_64
 	arch = aarch64
 	depends = electron
@@ -18,6 +19,7 @@ pkgbase = legcord
 	conflicts = armcord
 	conflicts = legcord
 	replaces = armcord
+	install = notes.install
 	source = legcord::git+https://github.com/Legcord/Legcord.git#tag=v1.2.2
 	sha256sums = 28b45a17d144968b9c7297c3273c92e8886c6afd49c5ca5997c1e0efb057f5be
 

@@ -3,7 +3,10 @@ pkgbase = watchman
 	pkgver = 2026.03.23.00
 	pkgrel = 1
 	url = https://github.com/facebook/watchman
+	license = MIT
 	arch = x86_64
+	options = !strip
+	backup = etc/watchman.json
 	depends = boost-libs
 	depends = edencommon=2026.03.23.00
 	depends = fb303=2026.03.23.00
