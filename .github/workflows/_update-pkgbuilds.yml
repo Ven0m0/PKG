@@ -1,0 +1,79 @@
+name: _update-pkgbuilds
+
+on:
+  #schedule:
+    #- cron: "0 4 * * *"  # daily at 04:00 UTC
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: "Space-separated package dirs to update (blank = all)"
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  update-pkgbuilds:
+    uses: ./.github/workflows/_run-agent.yml
+    with:
+      provider: opencode
+      model: "openrouter/z-ai/glm-5"
+      prompt: |
+        You are an Arch Linux packaging expert working in the PKG repository.
+        Your task: update every PKGBUILD to its latest upstream version, then open a single pull request with all changes.
+
+        ${{ inputs.packages != '' && format('Only update these packages (space-separated dir names): {0}', inputs.packages) || 'Update ALL packages in the repository.' }}
+
+        ## Step-by-step instructions
+
+        ### 1. Discover packages
+        Run: fd -t f -g 'PKGBUILD' --exclude '.git'
+        This returns paths like `firefox/PKGBUILD`, `java/java21-openjdk/PKGBUILD`, `zlib-ng/zlib-ng/PKGBUILD`.
+
+        ### 2. For each PKGBUILD, determine the upstream version source
+        Source the PKGBUILD to extract: pkgname, pkgver, pkgrel, url, source array.
+        Determine version check strategy from the source array:
+        - GitHub releases (github.com/.*/releases): use GitHub API `GET /repos/{owner}/{repo}/releases/latest` -> `.tag_name`
+        - GitHub tags (github.com/.*/archive or /tags): use `GET /repos/{owner}/{repo}/tags` -> first `.name`
+        - PyPI: `GET https://pypi.org/pypi/{name}/json` -> `.info.version`
+        - npm: `GET https://registry.npmjs.org/{name}/latest` -> `.version`
+        - AUR: `GET https://aur.archlinux.org/rpc/v5/info?arg={pkgname}` -> `.results[0].Version`
+        - crates.io: `GET https://crates.io/api/v1/crates/{name}` -> `.crate.max_stable_version`
+        - Generic URL with version in path: fetch the URL and parse the latest semver tag
+        Strip leading `v` from tag names when comparing.
+
+        ### 3. Compare and update
+        If upstream_version != current pkgver:
+          a. Update `pkgver=<new_version>` in the PKGBUILD
+          b. Reset `pkgrel=1`
+          c. cd into the package dir and run: `updpkgsums`
+          d. Run: `makepkg --printsrcinfo > .SRCINFO`
+          e. Record this package as updated.
+        If versions match, skip entirely.
+
+        ### 4. Handle errors gracefully
+        If updpkgsums fails (source requires a full build env), mark skipped with reason — do not abort the run.
+        If upstream version cannot be determined, skip with a warning.
+
+        ### 5. Commit
+        Configure git:
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+        Single commit for all changes:
+          git add -A
+          git commit -m "chore: update PKGBUILDs to latest upstream versions
+
+        Updated: {pkgname}: {old} -> {new} (one per line)
+        Skipped: {pkgname}: {reason} (one per line)"
+
+        ### 6. Push and open PR
+        Branch: `update/pkgbuilds-$(date +%Y%m%d)`
+        PR title: "chore: update PKGBUILDs — $(date +%Y-%m-%d)"
+        PR body: table of pkgname | old version | new version, then skipped section.
+        Base: main. Labels: automated, update (create if missing).
+        Use `gh pr create` with GH_TOKEN set.
+
+        If no packages were updated, skip PR creation and log a summary.
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
