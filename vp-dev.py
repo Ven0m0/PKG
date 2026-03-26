@@ -299,7 +299,6 @@ makepkg -si
     def update(self) -> int:
         self._populate_files_cache()
         info("Scanning for packages...")
-        self._populate_files_cache()
         pkgs = []
         with concurrent.futures.ThreadPoolExecutor() as executor:
             results = list(executor.map(self._process_package, self._get_pkg_dirs()))
