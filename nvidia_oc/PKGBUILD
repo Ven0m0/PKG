@@ -1,5 +1,5 @@
 pkgname=nvidia_oc
-pkgver=0.1.21
+pkgver=0.1.24
 pkgrel=1
 makedepends=('rust' 'cargo')
 depends=('nvidia-utils' 'gcc-libs')
@@ -9,7 +9,7 @@ url='https://github.com/Dreaming-Codes/nvidia_oc'
 license=('MIT')
 options=('strip' '!emptydirs' '!debug')
 source=("$pkgname-$pkgver.tar.gz::https://github.com/Dreaming-Codes/$pkgname/archive/refs/tags/$pkgver.tar.gz")
-sha256sums=('704bc12b0854c0558803290c6e9fa391a31dd62fcd642c1bbf7dd5cb8face555')
+sha256sums=('0afaf2c5277bd60de7b700cf26c95ea9aa41bdae5050ccec25c3e22a45beb2b0')
 # Generated in accordance to https://wiki.archlinux.org/title/Rust_package_guidelines.
 # Might require further modification depending on the package involved.
 prepare() {
