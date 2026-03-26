@@ -254,7 +254,6 @@ makepkg -si
     def update(self) -> int:
         self._populate_files_cache()
         info("Scanning for packages...")
-        self._populate_files_cache()
         pkgs = []
         with concurrent.futures.ThreadPoolExecutor() as executor:
             results = list(executor.map(self._process_package, self._get_pkg_dirs()))
@@ -299,7 +298,6 @@ makepkg -si
     def check(self) -> int:
         self._populate_files_cache()
         info("Checking all packages...")
-        self._populate_files_cache()
         errs = 0
         for d in self._get_pkg_dirs():
             pb = d / "PKGBUILD"
