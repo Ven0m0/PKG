@@ -1492,37 +1492,25 @@ index 36dca426d..7207e1d7b 100644
    nghttp2_priority_spec_init(pri_spec, depstream_id,
                               sweight_wanted(data),
                               data->set.priority.exclusive);
-@@ -1957,20 +2141,25 @@ static CURLcode h2_progress_egress(struct Curl_cfilter *cf,
+@@ -1957,20 +2141,4 @@ static CURLcode h2_progress_egress(struct Curl_cfilter *cf,
    struct h2_stream_ctx *stream = H2_STREAM_CTX(ctx, data);
    int rv = 0;
  
-+  /* curl-impersonate: Check if stream exclusive flag is true. */
-   if(stream && stream->id > 0 &&
-      ((sweight_wanted(data) != sweight_in_effect(data)) ||
+-  if(stream && stream->id > 0 &&
+-     ((sweight_wanted(data) != sweight_in_effect(data)) ||
 -      (data->set.priority.exclusive != data->state.priority.exclusive) ||
-+     (data->set.priority.exclusive != 1) ||
-       (data->set.priority.parent != data->state.priority.parent)) ) {
-     /* send new weight and/or dependency */
-     nghttp2_priority_spec pri_spec;
- 
-+    // XXX: http2 priority has been deprecated, and not browser sends this frame.
-     h2_pri_spec(ctx, data, &pri_spec);
+-      (data->set.priority.parent != data->state.priority.parent)) ) {
+-    /* send new weight and/or dependency */
+-    nghttp2_priority_spec pri_spec;
+-
+-    h2_pri_spec(ctx, data, &pri_spec);
 -    CURL_TRC_CF(data, cf, "[%d] Queuing PRIORITY", stream->id);
 -    DEBUGASSERT(stream->id != -1);
 -    rv = nghttp2_submit_priority(ctx->h2, NGHTTP2_FLAG_NONE,
 -                                 stream->id, &pri_spec);
 -    if(rv)
 -      goto out;
-+    /* curl-impersonate: Don't send PRIORITY frames for main stream. */
-+    if(stream->id != 1) {
-+      CURL_TRC_CF(data, cf, "[%d] Queuing PRIORITY", stream->id);
-+      DEBUGASSERT(stream->id != -1);
-+      rv = nghttp2_submit_priority(ctx->h2, NGHTTP2_FLAG_NONE,
-+                                   stream->id, &pri_spec);
-+      if(rv)
-+        goto out;
-+    }
-   }
+-  }
  
    ctx->nw_out_blocked = 0;
 @@ -2267,11 +2456,15 @@ static CURLcode h2_submit(struct h2_stream_ctx **pstream,
