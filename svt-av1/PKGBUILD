@@ -21,7 +21,7 @@ pkgver() {
 prepare() {
    # to build with PGO we need to remove that
 #  sed '/CMAKE_BUILD_TYPE Release/d' -i SVT-AV1/CMakeLists.txt
-  cd "$srcdir"
+  cd "$srcdir" || exit
 }
 
 build() {

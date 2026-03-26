@@ -92,7 +92,7 @@ _mozilla_api_key=16674381-f021-49de-8622-3021c5942aff
 
 prepare(){
   mkdir -p mozbuild
-  cd "$_pkgname-$pkgver"
+  cd "$_pkgname-$pkgver" || exit
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h. cmake
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
   echo -n "$_google_api_key" >google-api-key
@@ -110,7 +110,7 @@ prepare(){
   sed -E -e 's&^\s*pref\("startup\.homepage.*$&&' -i browser/branding/*/pref/firefox-branding.js
 }
 _write_mozconfig(){
-  cd "$srcdir/$_pkgname-$pkgver"
+  cd "$srcdir/$_pkgname-$pkgver" || exit
   # Calculate optimal core count based on available RAM
   local _cores _mem _nproc
   _mem=$(grep -Pom1 '^MemAvailable.*\b\K[0-9]+' /proc/meminfo)
@@ -321,7 +321,7 @@ build(){
     XDG_CACHE_HOME \
     XDG_SESSION_COOKIE
   local VIRTWL VIRTWL_PID
-  cd "$_pkgname-$pkgver"
+  cd "$_pkgname-$pkgver" || exit
   # Check for required commands
   local _missing_cmds=()
   for cmd in clang clang++ lld llvm-ar llvm-nm llvm-ranlib xvfb-run dbus-run-session; do
@@ -506,7 +506,7 @@ END
   rm -rf "${XDG_RUNTIME_DIR}"
 }
 package(){
-  cd "$_pkgname-$pkgver"
+  cd "$_pkgname-$pkgver" || exit
   DESTDIR="$pkgdir" ./mach install
   # Vendor preferences (privacy, performance, hardware acceleration)
   install -Dm644 /dev/stdin "$pkgdir/usr/lib/$_pkgname/browser/defaults/preferences/vendor.js" <<END
@@ -579,14 +579,14 @@ Version=2
 END
   # Icons
   for i in 16 22 24 32 48 64 128 256; do
-    install -Dm644 browser/branding/official/default$i.png \
+    install -Dm644 browser/branding/official/default"$i".png \
       "$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/$_pkgname.png"
   done
   install -Dm644 browser/branding/official/content/about-logo.png \
     "$pkgdir/usr/share/icons/hicolor/192x192/apps/$_pkgname.png"
   install -Dm644 browser/branding/official/content/about-logo@2x.png \
     "$pkgdir/usr/share/icons/hicolor/384x384/apps/$_pkgname.png"
-  install -Dm644 .. /$_pkgname-symbolic.svg \
+  install -Dm644 .. /"$_pkgname"-symbolic.svg \
     "$pkgdir/usr/share/icons/hicolor/symbolic/apps/$_pkgname-symbolic.svg"
   # Desktop file
   install -Dm644 .. /"$_pkgname". desktop \

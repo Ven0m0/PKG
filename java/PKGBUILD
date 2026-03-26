@@ -54,7 +54,7 @@ _commondeps=('java-runtime-common>=3' 'ca-certificates-utils' 'nss' 'libjpeg-tur
   'glibc' 'gcc-libs')
 
 build() {
-  cd "${_jdkdir}"
+  cd "${_jdkdir}" || exit
   NUM_PROC_OPT=''
   # Use parameter expansion instead of echo | sed for better efficiency
   if [[ ${MAKEFLAGS} =~ -j([0-9]+) ]]; then
@@ -62,7 +62,7 @@ build() {
   else
     MAKEFLAG_J=""
   fi
-  if [ -n "${MAKEFLAG_J}" ]; then
+  if [[ -n "${MAKEFLAG_J}" ]]; then
     # http://hg.openjdk.java.net/jdk10/jdk10/file/85e6cb013b98/make/InitSupport.gmk#l105
     echo "Removing '-j${MAKEFLAG_J}' from MAKEFLAGS to prevent build fail. Passing it directly to ./configure."
     export MAKEFLAGS=${MAKEFLAGS/-j${MAKEFLAG_J}/}
@@ -126,7 +126,7 @@ build() {
   find "${srcdir}/${_imgdir}" -iname '*.so' -exec chmod +x {} +
 }
 check() {
-  cd ${_jdkdir}
+  cd ${_jdkdir} || exit
 }
 package_jre-openjdk-headless() {
   pkgdesc="OpenJDK Java ${_majorver} headless runtime environment"
@@ -149,7 +149,7 @@ package_jre-openjdk-headless() {
     etc/${pkgbase}/security/policy/unlimited/default_local.policy
     etc/${pkgbase}/sound.properties)
   install=install_jre-openjdk-headless.sh
-  cd ${_imgdir}/jre
+  cd ${_imgdir}/jre || exit
   install -dm 755 "${pkgdir}${_jvmdir}"
   cp -a bin lib "${pkgdir}${_jvmdir}"
   for f in "${_nonheadless[@]}"; do
@@ -158,12 +158,12 @@ package_jre-openjdk-headless() {
   # Conf
   install -dm 755 "${pkgdir}/etc"
   cp -r conf "${pkgdir}/etc/${pkgbase}"
-  ln -s /etc/${pkgbase} "${pkgdir}/${_jvmdir}/conf"
+  ln -s /etc/"${pkgbase}" "${pkgdir}/${_jvmdir}/conf"
   # Legal
   install -dm 755 "${pkgdir}/usr/share/licenses"
   cp -r legal "${pkgdir}/usr/share/licenses/${pkgbase}"
-  ln -s ${pkgbase} "${pkgdir}/usr/share/licenses/${pkgname}"
-  ln -s /usr/share/licenses/${pkgbase} "${pkgdir}/${_jvmdir}/legal"
+  ln -s "${pkgbase}" "${pkgdir}/usr/share/licenses/${pkgname}"
+  ln -s /usr/share/licenses/"${pkgbase}" "${pkgdir}/${_jvmdir}/legal"
   # Man pages
   for f in bin/*; do
     f=$(basename "${f}")
@@ -198,7 +198,7 @@ package_jre-openjdk() {
     etc/${pkgbase}/security/policy/unlimited/default_local.policy
     etc/${pkgbase}/sound.properties)
   install=install_jre-openjdk.sh
-  cd ${_imgdir}/jre
+  cd ${_imgdir}/jre || exit
   install -dm 755 "${pkgdir}${_jvmdir}"
   cp -a bin lib "${pkgdir}${_jvmdir}"
   for f in "${_nonheadless[@]}"; do
@@ -207,12 +207,12 @@ package_jre-openjdk() {
   # Conf
   install -dm 755 "${pkgdir}/etc"
   cp -r conf "${pkgdir}/etc/${pkgbase}"
-  ln -s /etc/${pkgbase} "${pkgdir}/${_jvmdir}/conf"
+  ln -s /etc/"${pkgbase}" "${pkgdir}/${_jvmdir}/conf"
   # Legal
   install -dm 755 "${pkgdir}/usr/share/licenses"
   cp -r legal "${pkgdir}/usr/share/licenses/${pkgbase}"
-  ln -s ${pkgbase} "${pkgdir}/usr/share/licenses/${pkgname}"
-  ln -s /usr/share/licenses/${pkgbase} "${pkgdir}/${_jvmdir}/legal"
+  ln -s "${pkgbase}" "${pkgdir}/usr/share/licenses/${pkgname}"
+  ln -s /usr/share/licenses/"${pkgbase}" "${pkgdir}/${_jvmdir}/legal"
   # Man pages
   for f in bin/*; do
     f=$(basename "${f}")
@@ -259,19 +259,19 @@ package_jdk-openjdk() {
     etc/${pkgbase}/security/policy/unlimited/default_local.policy
     etc/${pkgbase}/sound.properties)
   install=install_jdk-openjdk.sh
-  cd ${_imgdir}/jdk
+  cd ${_imgdir}/jdk || exit
   install -dm 755 "${pkgdir}${_jvmdir}"
   cp -a bin demo include jmods lib release "${pkgdir}${_jvmdir}"
   rm "${pkgdir}${_jvmdir}/lib/src.zip"
   # Conf
   install -dm 755 "${pkgdir}/etc"
   cp -r conf "${pkgdir}/etc/${pkgbase}"
-  ln -s /etc/${pkgbase} "${pkgdir}/${_jvmdir}/conf"
+  ln -s /etc/"${pkgbase}" "${pkgdir}/${_jvmdir}/conf"
   # Legal
   install -dm 755 "${pkgdir}/usr/share/licenses"
   cp -r legal "${pkgdir}/usr/share/licenses/${pkgbase}"
-  ln -s ${pkgbase} "${pkgdir}/usr/share/licenses/${pkgname}"
-  ln -s /usr/share/licenses/${pkgbase} "${pkgdir}/${_jvmdir}/legal"
+  ln -s "${pkgbase}" "${pkgdir}/usr/share/licenses/${pkgname}"
+  ln -s /usr/share/licenses/"${pkgbase}" "${pkgdir}/${_jvmdir}/legal"
   # Man pages
   for f in bin/*; do
     f=$(basename "${f}")
@@ -302,7 +302,7 @@ package_openjdk-src() {
   provides=("openjdk${_majorver}-src=${pkgver}-${pkgrel}")
   install -Dm 644 -t "${pkgdir}${_jvmdir}/lib" ${_imgdir}/jdk/lib/src.zip
   install -dm 755 "${pkgdir}/usr/share/licenses"
-  ln -s ${pkgbase} "${pkgdir}/usr/share/licenses/${pkgname}"
+  ln -s "${pkgbase}" "${pkgdir}/usr/share/licenses/${pkgname}"
 }
 package_openjdk-doc() {
   pkgdesc="OpenJDK Java ${_majorver} documentation"
@@ -312,6 +312,6 @@ package_openjdk-doc() {
   install -dm 755 "${pkgdir}/usr/share/doc"
   cp -r ${_imgdir}/docs "${pkgdir}/usr/share/doc/${pkgbase}"
   install -dm 755 "${pkgdir}/usr/share/licenses"
-  ln -s ${pkgbase} "${pkgdir}/usr/share/licenses/${pkgname}"
+  ln -s "${pkgbase}" "${pkgdir}/usr/share/licenses/${pkgname}"
 }
 # vim: ts=2 sw=2 et:

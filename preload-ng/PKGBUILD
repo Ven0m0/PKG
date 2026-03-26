@@ -15,19 +15,19 @@ source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/$pkgver.tar.gz")
 sha256sums=('SKIP')
 
 build(){
-  cd "$pkgname-$pkgver/preload-src"
+  cd "$pkgname-$pkgver/preload-src" || exit
   make -j"$(nproc)" \
     CFLAGS="$CFLAGS -O3 -march=native -mtune=native -flto=auto -fuse-linker-plugin" \
     LDFLAGS="$LDFLAGS -Wl,-O3,--sort-common,--as-needed,--gc-sections,-z,relro,-z,now -flto=auto"
 }
 
 check(){
-  cd "$pkgname-$pkgver/preload-src"
+  cd "$pkgname-$pkgver/preload-src" || exit
   [[ -x preload ]] || return 1
 }
 
 package(){
-  cd "$pkgname-$pkgver/preload-src"
+  cd "$pkgname-$pkgver/preload-src" || exit
   install -Dm755 preload "$pkgdir/usr/bin/preload"
   install -Dm644 preload.conf "$pkgdir/etc/preload.conf"
   install -Dm644 /dev/stdin "$pkgdir/usr/lib/systemd/system/$pkgname.service" <<'EOF'
