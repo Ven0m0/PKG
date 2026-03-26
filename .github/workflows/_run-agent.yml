@@ -3,8 +3,6 @@
 # Secrets expected (this repo or org):
 #   ANTHROPIC_API_KEY, GEMINI_API_KEY, JULES_API_KEY,
 #   OPENCODE_API_KEY, OPENROUTER_API_KEY, KILO_API_KEY, KILO_ORG_ID
-#
-# Action lives in: Ven0m0/.github/actions/run-agent-prompt
 
 name: Run Agent
 
@@ -81,9 +79,111 @@ jobs:
         uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - name: Run agent
-        uses: Ven0m0/.github/actions/run-agent-prompt@main
+
+      - name: Warn about unsupported Jules model override
+        if: inputs.provider == 'jules' && inputs.model != ''
+        shell: bash
+        run: echo "::warning::Jules does not expose a model override; the provided model input will be ignored."
+
+      - name: Run Claude
+        if: inputs.provider == 'claude'
+        uses: anthropics/claude-code-action@v1
         with:
-          provider: ${{ inputs.provider }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: ${{ inputs.prompt }}
-          model: ${{ inputs.model }}
+          claude_args: ${{ inputs.model != '' && format('--model {0}', inputs.model) || '' }}
+        env:
+          CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"
+          CLAUDE_CODE_ENABLE_TELEMETRY: "0"
+          CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
+          DISABLE_NON_ESSENTIAL_MODEL_CALLS: "1"
+          CLAUDE_CODE_ATTRIBUTION_HEADER: "0"
+          ENABLE_TOOL_SEARCH: "1"
+          ENABLE_LSP_TOOL: "1"
+          USE_BUILTIN_RIPGREP: "1"
+          CLAUDE_CODE_ENABLE_TASKS: "true"
+
+      - name: Run Gemini
+        if: inputs.provider == 'gemini'
+        uses: google-github-actions/run-gemini-cli@642deeb7a3882dd77c38a4722127700890330067
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          gemini_model: ${{ inputs.model }}
+          prompt: ${{ inputs.prompt }}
+
+      - name: Run Jules
+        if: inputs.provider == 'jules'
+        uses: BeksOmega/jules-action@v1.0.0
+        with:
+          prompt: ${{ inputs.prompt }}
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          include_commit_log: true
+
+      - name: Run OpenCode
+        if: inputs.provider == 'opencode'
+        uses: anomalyco/opencode/github@latest
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENCODE_ENABLE_EXA: "true"
+          OPENCODE_EXPERIMENTAL: "true"
+          OPENCODE_EXPERIMENTAL_EXA: "true"
+          OPENCODE_EXPERIMENTAL_LSP_TOOL: "true"
+          OPENCODE_EXPERIMENTAL_LSP_TY: "true"
+          OPENCODE_EXPERIMENTAL_MARKDOWN: "true"
+          OPENCODE_EXPERIMENTAL_PLAN_MODE: "true"
+          OPENCODE_ENABLE_EXPERIMENTAL_MODELS: "true"
+          OPENCODE_EXPERIMENTAL_FILEWATCHER: "true"
+          OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "20000"
+          OPENCODE_EXPERIMENTAL_LAZY_TOOLS: "true"
+          OPENCODE_PRUNE_SCALE_WITH_CONTEXT: "true"
+          OPENCODE_DISABLE_FILETIME_CHECK: "true"
+          OPENCODE_DISABLE_CLAUDE_CODE_PROMPT: "true"
+          OPENCODE_DISABLE_AUTOUPDATE: "true"
+          OPENCODE_EXPERIMENTAL_OXFMT: "true"
+          MORPH_TIMEOUT: "60000"
+          MORPH_MODEL: morph-v3-fast
+        with:
+          model: ${{ inputs.model != '' && inputs.model || 'openrouter/auto:exacto:online' }}
+          prompt: ${{ inputs.prompt }}
+          use_github_token: true
+
+      - name: Install Kilo CLI
+        if: inputs.provider == 'kilo'
+        shell: bash
+        run: |
+          curl -fsSL https://kilo.ai/cli/install | bash
+          echo "$HOME/.kilo/bin" >> "$GITHUB_PATH"
+
+      - name: Run Kilo
+        if: inputs.provider == 'kilo'
+        shell: bash
+        run: kilo github run
+        env:
+          MODEL: ${{ inputs.model != '' && inputs.model || 'kilo/kilo-auto/frontier' }}
+          PROMPT: ${{ inputs.prompt }}
+          USE_GITHUB_TOKEN: "true"
+          KILO_API_KEY: ${{ secrets.KILO_API_KEY }}
+          KILO_ORG_ID: ${{ secrets.KILO_ORG_ID }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENCODE_ENABLE_EXA: "true"
+          OPENCODE_EXPERIMENTAL: "true"
+          OPENCODE_EXPERIMENTAL_EXA: "true"
+          OPENCODE_EXPERIMENTAL_LSP_TOOL: "true"
+          OPENCODE_EXPERIMENTAL_LSP_TY: "true"
+          OPENCODE_EXPERIMENTAL_MARKDOWN: "true"
+          OPENCODE_EXPERIMENTAL_PLAN_MODE: "true"
+          OPENCODE_ENABLE_EXPERIMENTAL_MODELS: "true"
+          OPENCODE_EXPERIMENTAL_FILEWATCHER: "true"
+          OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "20000"
+          OPENCODE_EXPERIMENTAL_LAZY_TOOLS: "true"
+          OPENCODE_PRUNE_SCALE_WITH_CONTEXT: "true"
+          OPENCODE_DISABLE_FILETIME_CHECK: "true"
+          OPENCODE_DISABLE_CLAUDE_CODE_PROMPT: "true"
+          OPENCODE_DISABLE_AUTOUPDATE: "true"
+          OPENCODE_EXPERIMENTAL_OXFMT: "true"
+          MORPH_TIMEOUT: "60000"
+          MORPH_MODEL: morph-v3-fast
