@@ -3,15 +3,22 @@
   "instructions": ["AGENTS.md"],
   "permission": {
     "*": "allow",
+    "sudo *": "deny",
+    "rm -rf /": "deny",
+    "rm -rf /*": "deny",
+    "rm -rf ~": "deny",
+    "rm -rf ~/*": "deny",
+    ":(){:|:&};:": "deny",
     "doom_loop": "deny"
   },
   "plugin": [
-    "opencode-fastedit",
     "openslimedit@latest",
-    "opencode-ignore",
-    "@gotgenes/opencode-agent-identity",
-    "@old-mikser/occontext-thinking-trim",
-    "@bastiangx/opencode-unmoji",
+    "opencode-ignore@latest",
+    "@gotgenes/opencode-agent-identity@latest",
+    "@old-mikser/occontext-thinking-trim@latest",
+    "opencode-websearch@latest",
+    "@spoons-and-mirrors/subtask2@latest",
+    "opencode-codebase-index@latest"
   ],
   "watcher": {
     "ignore": ["node_modules/**", "dist/**", ".git/**"]
@@ -28,6 +35,10 @@
     "gh_grep": {
       "type": "remote",
       "url": "https://mcp.grep.app"
+    },
+    "fetch": {
+      "type": "local",
+      "command": ["uvx", "mcp-server-fetch"]
     }
   }
 }
