@@ -79,7 +79,9 @@ class PackageBasic:
         return field_dict
 
     @classmethod
-    def from_dict(cls: Type["PackageBasic"], src_dict: Dict[str, Any]) -> "PackageBasic":
+    def from_dict(
+        cls: Type["PackageBasic"], src_dict: Dict[str, Any]
+    ) -> "PackageBasic":
         d = src_dict.copy()
         id = d.pop("ID", None)
         name = d.pop("Name", None)
@@ -163,7 +165,9 @@ class SearchResult:
         return field_dict
 
     @classmethod
-    def from_dict(cls: Type["SearchResult"], src_dict: Dict[str, Any]) -> "SearchResult":
+    def from_dict(
+        cls: Type["SearchResult"], src_dict: Dict[str, Any]
+    ) -> "SearchResult":
         d = src_dict.copy()
         resultcount = d.pop("resultcount", None)
         type = d.pop("type", None)
@@ -336,7 +340,9 @@ class PackageDetailed:
         return field_dict
 
     @classmethod
-    def from_dict(cls: Type["PackageDetailed"], src_dict: Dict[str, Any]) -> "PackageDetailed":
+    def from_dict(
+        cls: Type["PackageDetailed"], src_dict: Dict[str, Any]
+    ) -> "PackageDetailed":
         d = src_dict.copy()
         id = d.pop("ID", None)
         name = d.pop("Name", None)
@@ -498,28 +504,30 @@ def info_multiple(names: List[str]):
     return InfoResult.from_dict(json.loads(response.content))
 
 
-def print_package_update(remote_db, local_db, package_name, remote_version, local_version):
-    print("{:20s} {:28s} {} -> {}".format(
-        f"{remote_db} - {local_db}",
-        package_name,
-        Fore.RED+local_version+Fore.RESET,
-        Fore.GREEN+remote_version+Fore.RESET,
-    ))
+def print_package_update(
+    remote_db, local_db, package_name, remote_version, local_version
+):
+    print(
+        "{:20s} {:28s} {} -> {}".format(
+            f"{remote_db} - {local_db}",
+            package_name,
+            Fore.RED + local_version + Fore.RESET,
+            Fore.GREEN + remote_version + Fore.RESET,
+        )
+    )
 
 
 if __name__ == "__main__":
     colorama_init()
 
     handle = config.init_with_config("/etc/pacman.conf")
-    arch_dbs = list(filter(
-        lambda r: r.name in arch_repos,
-        [db for db in handle.get_syncdbs()]
-    ))
+    arch_dbs = list(
+        filter(lambda r: r.name in arch_repos, [db for db in handle.get_syncdbs()])
+    )
 
-    local_dbs = list(filter(
-        lambda r: r.name in local_repos,
-        [db for db in handle.get_syncdbs()]
-    ))
+    local_dbs = list(
+        filter(lambda r: r.name in local_repos, [db for db in handle.get_syncdbs()])
+    )
 
     for ldb in local_dbs:
         local_packages: List[pyalpm.Package] = ldb.search("")
@@ -530,6 +538,8 @@ if __name__ == "__main__":
         found_in_arch = set()
 
         for lp in local_packages:
+            if lp.name in found_in_arch:
+                continue
             for adb in arch_dbs:
                 ap = adb.get_pkg(lp.name)
                 if ap is not None:
@@ -538,7 +548,9 @@ if __name__ == "__main__":
                     # vercmp: left < right = -1
                     outdated = pyalpm.vercmp(lp.version, ap.version)
                     if outdated < 0:
-                        print_package_update(adb.name, ldb.name, lp.name, ap.version, lp.version)
+                        print_package_update(
+                            adb.name, ldb.name, lp.name, ap.version, lp.version
+                        )
                     break  # Found in one Arch DB, stop checking others
 
         # Filter for AUR check
@@ -559,7 +571,9 @@ if __name__ == "__main__":
                 ap = aur_map[lp.name]
                 outdated = pyalpm.vercmp(lp.version, ap.version)
                 if outdated < 0:
-                    print_package_update("aur", ldb.name, lp.name, ap.version, lp.version)
+                    print_package_update(
+                        "aur", ldb.name, lp.name, ap.version, lp.version
+                    )
             else:
                 # Not found in AUR
                 print("{:20s} {}".format(f"non - {ldb.name}", lp.name))
