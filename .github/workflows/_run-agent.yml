@@ -1,12 +1,59 @@
-name: run-agent
+# Reusable / manually-triggered agent dispatcher.
+#
+# Secrets expected (this repo or org):
+#   ANTHROPIC_API_KEY, GEMINI_API_KEY, JULES_API_KEY,
+#   OPENCODE_API_KEY, OPENROUTER_API_KEY, KILO_API_KEY, KILO_ORG_ID
+#
+# Action lives in: Ven0m0/.github/actions/run-agent-prompt
+
+name: Run Agent
 
 on:
-  #schedule:
-    #- cron: "0 4 * * *"  # daily at 04:00 UTC
+  workflow_call:
+    inputs:
+      provider:
+        description: "Agent provider: claude | gemini | jules | opencode | kilo"
+        required: true
+        type: string
+      prompt:
+        description: "Prompt to send"
+        required: true
+        type: string
+      model:
+        description: "Model override (blank = provider default)"
+        required: false
+        type: string
+        default: ""
+    secrets:
+      ANTHROPIC_API_KEY:
+        required: false
+      GEMINI_API_KEY:
+        required: false
+      JULES_API_KEY:
+        required: false
+      OPENCODE_API_KEY:
+        required: false
+      OPENROUTER_API_KEY:
+        required: false
+      KILO_API_KEY:
+        required: false
+      KILO_ORG_ID:
+        required: false
+
   workflow_dispatch:
     inputs:
-      packages:
-        description: "Space-separated package dirs to update (blank = all)"
+      provider:
+        description: "Agent provider"
+        required: true
+        type: choice
+        options: [claude, gemini, jules, opencode, kilo]
+        default: claude
+      prompt:
+        description: "Prompt to send"
+        required: true
+        type: string
+      model:
+        description: "Model override (leave blank for provider default)"
         required: false
         type: string
         default: ""
@@ -17,89 +64,24 @@ permissions:
   issues: write
 
 jobs:
-  update-pkgbuilds:
+  run-agent:
     runs-on: ubuntu-latest
     env:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
       OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      KILO_API_KEY: ${{ secrets.KILO_API_KEY }}
+      KILO_ORG_ID: ${{ secrets.KILO_ORG_ID }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Run agent
+        uses: Ven0m0/.github/actions/run-agent-prompt@main
         with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Run opencode PKGBUILD updater
-        uses: ./actions/run-agent-prompt
-        with:
-          provider: opencode
-          # GLM-5 via OpenRouter — update model slug if the ID differs on your plan:
-          # zhipuai/glm-4-plus is the current public alias; swap for glm-z1 or glm-5 when available
-          model: "openrouter/z-ai/glm-5"
-          prompt: |
-            You are an Arch Linux packaging expert working in the PKG repository.
-            Your task: update every PKGBUILD to its latest upstream version, then open a single pull request with all changes.
-
-            ${{ inputs.packages != '' && format('Only update these packages (space-separated dir names): {0}', inputs.packages) || 'Update ALL packages in the repository.' }}
-
-            ## Step-by-step instructions
-
-            ### 1. Discover packages
-            Run: fd -t f -g 'PKGBUILD' --exclude '.git'
-            This returns paths like `firefox/PKGBUILD`, `java/java21-openjdk/PKGBUILD`, `zlib-ng/zlib-ng/PKGBUILD`.
-
-            ### 2. For each PKGBUILD, determine the upstream version source
-            Source the PKGBUILD to extract: pkgname, pkgver, pkgrel, url, source array.
-            Determine version check strategy from the source array:
-            - GitHub releases (github.com/.*/releases): use GitHub API `GET /repos/{owner}/{repo}/releases/latest` → `.tag_name`
-            - GitHub tags (github.com/.*/archive or /tags): use `GET /repos/{owner}/{repo}/tags` → first `.name`
-            - PyPI: `GET https://pypi.org/pypi/{name}/json` → `.info.version`
-            - npm: `GET https://registry.npmjs.org/{name}/latest` → `.version`
-            - AUR: `GET https://aur.archlinux.org/rpc/v5/info?arg={pkgname}` → `.results[0].Version`
-            - crates.io: `GET https://crates.io/api/v1/crates/{name}` → `.crate.max_stable_version`
-            - Generic URL with version in path: fetch the URL and parse the latest semver tag
-            Strip leading `v` from tag names when comparing.
-
-            ### 3. Compare and update
-            If upstream_version != current pkgver:
-              a. In the PKGBUILD, update `pkgver=<new_version>`
-              b. Reset `pkgrel=1`
-              c. cd into the package dir and run: `updpkgsums`
-              d. Run: `makepkg --printsrcinfo > .SRCINFO`
-              e. Record this package as updated.
-            If versions match, skip — do not touch pkgrel or checksums.
-
-            ### 4. Handle errors gracefully
-            If updpkgsums fails (e.g. source requires a build env), mark that package as skipped with a warning comment — do not abort the whole run.
-            If upstream version cannot be determined, skip with a warning.
-
-            ### 5. Commit
-            Configure git:
-              git config user.name  "github-actions[bot]"
-              git config user.email "github-actions[bot]@users.noreply.github.com"
-            Stage and commit all changed files in a single commit:
-              git add -A
-              git commit -m "chore: update PKGBUILDs to latest upstream versions
-
-            Updated packages:
-            $(for each updated package: "- {pkgname}: {old_ver} → {new_ver}")
-
-            Skipped packages (with reason):
-            $(for each skipped package: "- {pkgname}: {reason}")"
-
-            ### 6. Push and open PR
-            Push to a new branch: `update/pkgbuilds-$(date +%Y%m%d)`
-            Open a pull request with:
-              title:  "chore: update PKGBUILDs — $(date +%Y-%m-%d)"
-              body:   Table of updated packages (pkgname | old version | new version), followed by skipped packages section.
-              base:   main
-              labels: automated,update (create them if they don't exist)
-
-            Use `gh pr create` with `--fill` or explicit `--title`/`--body` flags.
-            Set `GH_TOKEN` or `GITHUB_TOKEN` for gh cli auth.
-
-            If no packages were updated, do not create a PR — just exit cleanly with a summary log.
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          provider: ${{ inputs.provider }}
+          prompt: ${{ inputs.prompt }}
+          model: ${{ inputs.model }}
