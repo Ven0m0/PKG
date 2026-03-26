@@ -157,9 +157,29 @@ jobs:
         if: inputs.provider == 'kilo'
         id: kilo-version
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          VERSION=$(curl -sf https://api.github.com/repos/Kilo-Org/kilocode/releases/latest | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)
-          echo "version=${VERSION:-latest}" >> "$GITHUB_OUTPUT"
+          VERSION="$(
+            curl -fsSL \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              https://api.github.com/repos/Kilo-Org/kilocode/releases/latest |
+              python - <<'PY'
+                import json
+                import sys
+
+                data = json.load(sys.stdin)
+                version = data.get("tag_name")
+                if not version:
+                    sys.stderr.write("Missing tag_name in Kilo release response\n")
+                    sys.exit(1)
+
+                print(version)
+              PY
+          )"
+          [[ -n "${VERSION}" ]] || { echo "Failed to fetch Kilo version" >&2; exit 1; }
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Cache Kilo
         if: inputs.provider == 'kilo'
