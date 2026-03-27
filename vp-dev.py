@@ -99,8 +99,8 @@ class VpDev:
             if len(p) < 4:
                 return None
 
-            if self.files_cache and pb.parent in self.files_cache:
-                fs = [f for f in self.files_cache[pb.parent] if f != "PKGBUILD"]
+            if self.files_cache is not None:
+                fs = [f for f in self.files_cache.get(pb.parent, []) if f != "PKGBUILD"]
             else:
                 r2 = self._git(
                     ["ls-files"],
@@ -233,8 +233,10 @@ makepkg -si
                 elif k in ("pkgver", "pkgrel", "pkgdesc", "url"):
                     data[k] = v
             if "name" in data and "pkgver" in data and "pkgrel" in data:
-                if self.files_cache and d in self.files_cache:
-                    files = sorted([f for f in self.files_cache[d] if f != "PKGBUILD"])
+                if self.files_cache is not None:
+                    files = sorted(
+                        [f for f in self.files_cache.get(d, []) if f != "PKGBUILD"]
+                    )
                 else:
                     r = self._git(
                         ["ls-files"], capture_output=True, text=True, cwd=d, check=False
