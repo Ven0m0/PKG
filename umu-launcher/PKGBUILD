@@ -73,12 +73,12 @@ sha256sums=('0e825bb8b0809a954177f0a493b992de3893dc26859f8b11deea4a37da33198b'
             '5ee37d468064803bd754f01c2686654d41f9594f5dd3fea0606f705984acea27')
 
 pkgver() {
-  cd "$srcdir"/umu-launcher || exit
+  cd "$srcdir"/umu-launcher
   printf "%s" "$(git describe --long --tags | sed 's/\([^-]*-\)g/r\1/;s/-/./g')"
 }
 
 prepare() {
-  cd "$srcdir"/umu-launcher || exit
+  cd "$srcdir"/umu-launcher
 
   git config --global user.email "builder@builder.org"
   git config --global user.name "Bob the Builder"
@@ -91,7 +91,7 @@ prepare() {
 }
 
 build() {
-  cd "$srcdir"/umu-launcher || exit
+  cd "$srcdir"/umu-launcher
   export RUSTUP_TOOLCHAIN=stable
   export CARGO_HOME="${srcdir}"/umu-cargo
   ./configure.sh --prefix=/usr --use-system-pyzstd --use-system-urllib
@@ -99,6 +99,6 @@ build() {
 }
 
 package() {
-  cd "$srcdir"/umu-launcher || exit
+  cd "$srcdir"/umu-launcher
   make DESTDIR="$pkgdir" install
 }

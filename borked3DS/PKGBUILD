@@ -73,7 +73,7 @@ sha256sums=('b93a8e7f5c409028fb3ec8a28392e67472489a4d740a1c5c80e1dcb8c102d916'
             'SKIP' 'SKIP' 'SKIP')
 
 prepare() {
-  cd "Borked3DS-${_commit}" || exit
+  cd "Borked3DS-${_commit}"
 
   # Initialize git for submodule management
   git init
@@ -119,45 +119,45 @@ prepare() {
   git -c protocol.file.allow=always submodule update --init --recursive
 
   # Configure nested submodules
-  pushd externals/cubeb || exit
+  pushd externals/cubeb
     git config submodule.googletest.url "${srcdir}/googletest"
     git config submodule.cmake/sanitizers-cmake.url "${srcdir}/sanitizers-cmake"
     git config submodule.src/cubeb-coreaudio-rs.url "${srcdir}/cubeb-coreaudio-rs"
     git config submodule.src/cubeb-pulse-rs.url "${srcdir}/cubeb-pulse-rs"
     git -c protocol.file.allow=always submodule update --init
-  popd || exit
+  popd
 
-  pushd externals/discord-rpc || exit
+  pushd externals/discord-rpc
     git config submodule.thirdparty/rapidjson.url "${srcdir}/rapidjson"
     git -c protocol.file.allow=always submodule update --init
-  popd || exit
+  popd
 
-  pushd externals/dynarmic/externals || exit
+  pushd externals/dynarmic/externals
     git config submodule.biscuit.url "${srcdir}/biscuit"
     git config submodule.mcl.url "${srcdir}/mcl"
     git config submodule.robin-map.url "${srcdir}/robin-map"
     git config submodule.vixl.url "${srcdir}/vixl"
     git -c protocol.file.allow=always submodule update --init
-  popd || exit
+  popd
 
-  pushd externals/vulkan-headers || exit
+  pushd externals/vulkan-headers
     git config submodule.Vulkan-Hpp.url "${srcdir}/vulkan-hpp"
     git -c protocol.file.allow=always submodule update --init
-  popd || exit
+  popd
 
-  pushd externals/libadrenotools || exit
+  pushd externals/libadrenotools
     git config submodule.lib/linkernsbypass.url "${srcdir}/linkernsbypass"
     git -c protocol.file.allow=always submodule update --init
-  popd || exit
+  popd
 
-  pushd externals/sirit || exit
+  pushd externals/sirit
     git config submodule.externals/SPIRV-Headers.url "${srcdir}/spirv-headers"
     git -c protocol.file.allow=always submodule update --init
-  popd || exit
+  popd
 }
 
 build() {
-  cd "Borked3DS-${_commit}" || exit
+  cd "Borked3DS-${_commit}"
   # Optimized compiler flags
   export CFLAGS="${CFLAGS/-O2/-O3} -pipe -fno-plt"
   export CXXFLAGS="${CXXFLAGS/-O2/-O3} -pipe -fno-plt"
@@ -176,7 +176,7 @@ build() {
 }
 
 package() {
-  cd "Borked3DS-${_commit}" || exit
+  cd "Borked3DS-${_commit}"
   DESTDIR="${pkgdir}" cmake --install build
 }
 

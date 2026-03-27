@@ -48,7 +48,7 @@ source=(
 sha256sums=('b072aed6871998cce9b36e7774033105ca29e33632be5b6347f3206898e0756a')
 
 prepare() {
-  cd "$_pkgname-$pkgver" || exit
+  cd "$_pkgname-$pkgver"
   # Apply patches if any
   local src
   for src in "${source[@]}"; do
@@ -61,7 +61,7 @@ prepare() {
 }
 
 build() {
-  cd "$_pkgname-$pkgver" || exit
+  cd "$_pkgname-$pkgver"
   # Use clang/lld for better optimization and faster linking
   export CC=clang CXX=clang++ LD=lld
   # Use -O3 for performance optimization
@@ -82,7 +82,7 @@ build() {
 }
 
 package() {
-  cd "$_pkgname-$pkgver" || exit
+  cd "$_pkgname-$pkgver"
   make DESTDIR="$pkgdir" install
   install -Dm755 tools/qt-faststart "$pkgdir/usr/bin/qt-faststart"
 }
