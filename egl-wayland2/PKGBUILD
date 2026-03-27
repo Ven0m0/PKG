@@ -24,11 +24,11 @@ source=("git+$url#commit=3e5b643542708cbb9c67d18fe19b5fa4151d7d8f")
 b2sums=('5ce301220b520a93880a3cb7e5c185840de49b9f47ae951dac464c43a9195810c3e5c6297e6f80b3ac797c15acca03a1fa8b596e151eea7eebc1192e73c1dfd4')
 
 prepare() {
-  cd $pkgname
+  cd "$pkgname" || exit
 }
 
 build() {
-  arch-meson $pkgname build
+  arch-meson "$pkgname" build
   meson compile -C build
 }
 

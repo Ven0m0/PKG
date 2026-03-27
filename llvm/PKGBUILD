@@ -73,7 +73,7 @@ _get_distribution_components() {
 }
 
 pkgver() {
-  cd llvm-project/cmake/Modules
+  cd llvm-project/cmake/Modules || exit
 
   # This will almost match the output of `llvm-config --version` when the
   # LLVM_APPEND_VC_REV cmake flag is turned on. The only difference is
@@ -140,9 +140,9 @@ build() {
 
   cmake -B _build -S "$srcdir"/llvm-project/llvm "${cmake_args[@]}" -Wno-dev
 
-  pushd "$srcdir"/_build
+  pushd "$srcdir"/_build || exit
   local distribution_components=$(_get_distribution_components | paste -sd\;)
-  popd
+  popd || exit
   test -n "$distribution_components"
   cmake_args+=(-D LLVM_DISTRIBUTION_COMPONENTS="$distribution_components")
 
@@ -151,9 +151,9 @@ build() {
   ninja $NINJAFLAGS -C _build
 
   # Include lit for running lit-based tests in other projects
-  pushd llvm-project/llvm/utils/lit
+  pushd llvm-project/llvm/utils/lit || exit
   python -m build --wheel --no-isolation
-  popd
+  popd || exit
 }
 
 check() {
@@ -174,9 +174,9 @@ package_llvm-minimal() {
   DESTDIR="$pkgdir" ninja $NINJAFLAGS -C _build install-distribution
 
   # Include lit for running lit-based tests in other projects
-  pushd "$srcdir"/llvm-project/llvm/utils/lit
+  pushd "$srcdir"/llvm-project/llvm/utils/lit || exit
   python3 setup.py install --root="$pkgdir" -O1
-  popd
+  popd || exit
 
   # Remove some symlinks to prevent a conflict with repo llvm-libs
   rm "$pkgdir"/usr/lib/lib{LLVM,LTO}.so
@@ -188,7 +188,7 @@ package_llvm-minimal() {
 
   # clang uses clang/LLVM_Major_version in its folder structure
   # extract this from pkgver
-  local _major_ver=$(echo $pkgver | cut -d. -f1)
+  local _major_ver=$(echo "$pkgver" | cut -d. -f1)
 
   # prepare folders in srcdir to store files that are placed in other package_*() functions
   mkdir -p "$srcdir"/llvm-libs/usr/lib
