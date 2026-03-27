@@ -5,8 +5,8 @@
 # Contributor: Daniel J Griffiths <ghost1227@archlinux.us>
 
 pkgname=cromite
-pkgver=143.0.7499.110
-_pkgver=143.0.7499.110
+pkgver=145.0.7632.46
+_pkgver=145.0.7632.46
 _chrome_ver=${_pkgver}
 _commit=8e844cf64f8159a72f158eb33e2f09b19f7d115a
 pkgrel=1
@@ -42,10 +42,10 @@ source=(https://commondatastorage.googleapis.com/chromium-browser-official/chrom
   increase-fortify-level.patch
   use-oauth2-client-switches-as-default.patch
   chromium-141-cssstylesheet-iwyu.patch)
-sha256sums=('e1a15924aeeee3cbd76cf15fd2dce755acea2a7cb034ea2993fd02dd63738764'
+sha256sums=('0de5e31f74dc3584e77375b1c13fb27912ad52e8afd70dba85cc89a72b5ca21c'
   '213e50f48b67feb4441078d50b0fd431df34323be15be97c55302d3fdac4483a'
-  '4aaea452fb7c2ee15fcfc7343661f61faf24e2599e145cc6ea65c0c9d521fdb9'
-  'bc93077f020f7fe68cdee8f7525606a3f6314deacd2eb568b8a34d140a46978f'
+  'd5558cd419c8d46bdc958064cb97f963d1ea793866414c025906ec15033512ed'
+  'ab9dbab873fff677deb2cfd95ea60b9295ebd53b58ec8533e9e1110b2451e540'
   'e9f6c962dcc5bbef3120004de8f4b29b09f0f74d16a272c0a704ef485c52441a'
   '11a96ffa21448ec4c63dd5c8d6795a1998d8e5cd5a689d91aea4d2bdd13fb06e'
   '5abc8611463b3097fc5ce58017ef918af8b70d616ad093b8b486d017d021bbdf'
