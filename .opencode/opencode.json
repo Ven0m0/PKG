@@ -34,6 +34,10 @@
     "gh_grep": {
       "type": "remote",
       "url": "https://mcp.grep.app"
+    },
+    "github-mcp-server": {
+      "type": "remote",
+      "url": "https://api.githubcopilot.com/mcp/"
     }
   }
 }
