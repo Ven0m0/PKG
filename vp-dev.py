@@ -303,7 +303,7 @@ makepkg -si
         info("Scanning for packages...")
         pkgs = []
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            results = list(executor.map(self._process_package, self._get_pkg_dirs()))
+            results = executor.map(self._process_package, self._get_pkg_dirs())
             pkgs = [p for p in results if p]
 
         # Get vp version
