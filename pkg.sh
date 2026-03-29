@@ -106,21 +106,6 @@ show_cache_stats() {
   fi
 }
 
-find_pkgs() {
-  if [[ -d .git ]] && command -v git >/dev/null; then
-    # O(1) using git index
-    git ls-files ':(glob)**/PKGBUILD' | sed -e 's|/PKGBUILD$||' -e 's|^PKGBUILD$|.|'
-  else
-    local -a pkgs=()
-    while IFS= read -r -d '' f; do
-      local dir=${f%/PKGBUILD}
-      dir=${dir#./}
-      pkgs+=("$dir")
-    done < <(find . -type f -name PKGBUILD -print0)
-    printf '%s\n' "${pkgs[@]}"
-  fi
-}
-
 patch_arch() {
   local -a targets=("${@}")
   # Optimization: only patch if enabled and targets exist
@@ -139,8 +124,6 @@ patch_arch() {
     xargs -0 -r sed -i -e "s/arch=(x86_64)/arch=(x86_64_v3)/" \
       -e "s/arch=('x86_64')/arch=('x86_64_v3')/"
 }
-
-
 
 build_docker() {
   local pkg=$1
@@ -243,7 +226,7 @@ cmd_build() {
     targets=("${args[@]}")
   else
     log "Discovering packages..."
-    mapfile -t targets < <(find_pkgs)
+    mapfile -t targets < <(find_pkgbuilds)
   fi
 
   ((${#targets[@]})) || die "No packages found"

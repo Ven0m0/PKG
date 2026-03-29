@@ -204,7 +204,6 @@ exitproc() {
 
 # vars
 export LANG=C
-CURRDIR=$(pwd)
 TMP="/tmp"
 VER="v2.2"
 CDATE=$(date +%F-%H%M)
@@ -220,19 +219,13 @@ if [ -f /sys/kernel/sched_ext/root/ops ]; then
     SCX_VERSION=$(scx_$SCX --version)
 else
     SCX="none"
+    SCX_VERSION=""
 fi
 VERSION=$(pacman -Qi cachyos-benchmarker | grep "Version         :")
 # allow more open files, needed by perf bench msg
 ulimit -n 4096
 # check system memory
 [[ $RAMSIZE -lt 3500 ]] && echo "Your computer must have at least 4 GB of RAM! Aborting." && exit 2
-
-# I leave this for reference
-#CPUFREQ=$(cpupower frequency-info -l | grep -v "analyzing" | awk '{print $2 / 1000000}')
-#CPUGOV=$(cpupower frequency-info -o | grep -m1 "^CPU" | awk -F' -  ' '{ print $3 }')
-#CPUMHZ=$(lscpu -e=maxmhz | tail -n1)
-#CPUGHZ=$(echo "scale=1; ${CPUMHZ%%,*} / 1000" | bc)
-#CPUL3C=$(lscpu -C=name,all-size | awk '/L3/{print $2}')
 
 # terminal effects
 TB=$(tput bold)
@@ -459,7 +452,7 @@ echo -e "\nName: ${NCHOICE}" >> $LOGFILE
 echo -e "Date: ${CDATE}" >> $LOGFILE
 echo -e "\n$SYSINFO" >> $LOGFILE
 echo -e "\nSCX Scheduler: ${SCX}" >> $LOGFILE
-echo -e "\nSCX Version: ${SCX}" >> $LOGFILE
+echo -e "\nSCX Version: ${SCX_VERSION}" >> $LOGFILE
 echo -e "\n ${VERSION}" >> $LOGFILE
 
 cd "$WORKDIR"
