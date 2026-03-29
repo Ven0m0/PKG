@@ -78,6 +78,3 @@ class TestUpdateScripts(unittest.TestCase):
             result = get_git_default_branch('https://github.com/example/repo.git')
             self.assertIsNone(result)
             mock_print.assert_called()
-
-if __name__ == '__main__':
-    unittest.main()
