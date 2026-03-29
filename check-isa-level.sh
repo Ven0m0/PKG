@@ -37,7 +37,6 @@ find_dynamic_linker(){
 DYNAMIC_LINKER=""
 # shellcheck disable=SC2310
 if ! DYNAMIC_LINKER=$(find_dynamic_linker); then
-  # Only error if we're trying to use it
   :
 fi
 

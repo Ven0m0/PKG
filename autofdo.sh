@@ -5,8 +5,6 @@ shopt -s nullglob globstar
 export LC_ALL=C
 IFS=$'\n\t'
 s=${BASH_SOURCE[0]}; [[ $s != /* ]] && s=$PWD/$s; cd -P -- "${s%/*}"
-has(){ command -v -- "$1" &>/dev/null; }
-date(){ local x="${1:-%d/%m/%y-%R}"; printf "%($x)T\n" '-1'; }
 
 # =============================================================================
 # AutoFDO-Optimized Kernel Build Script
