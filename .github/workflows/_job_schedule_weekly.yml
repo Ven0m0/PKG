@@ -10,42 +10,71 @@ on:
     - cron: '0 0 */7 * *'
 
 jobs:
-
   mesa-git:
-    uses: ./.github/workflows/mesa-git.yml
+    uses: ./.github/workflows/package-build.yml
+    with:
+      packages: "mesa-git"
+      action: "build"
 
   wine-cachyos:
     needs: mesa-git
-    uses: ./.github/workflows/wine-cachyos.yml
+    uses: ./.github/workflows/package-build.yml
+    with:
+      packages: "wine-cachyos"
+      action: "build"
 
   proton-cachyos:
     needs: wine-cachyos
-    uses: ./.github/workflows/proton-cachyos.yml
+    uses: ./.github/workflows/package-build.yml
+    with:
+      packages: "proton-cachyos"
+      action: "build"
 
   proton-cachyos-slr:
     needs: proton-cachyos
-    uses: ./.github/workflows/proton-cachyos-slr.yml
+    uses: ./.github/workflows/package-build.yml
+    with:
+      packages: "proton-cachyos-slr"
+      action: "build"
 
   linux-kernel-catgirl:
     needs: proton-cachyos-slr
-    uses: ./.github/workflows/linux-kernel-catgirl.yml
+    uses: ./.github/workflows/package-build.yml
+    with:
+      packages: "linux-kernel-catgirl"
+      action: "build"
 
   glibc:
     needs: linux-kernel-catgirl
-    uses: ./.github/workflows/glibc.yml
+    uses: ./.github/workflows/package-build.yml
+    with:
+      packages: "glibc"
+      action: "build"
 
   llvm:
     needs: glibc
-    uses: ./.github/workflows/llvm.yml
+    uses: ./.github/workflows/package-build.yml
+    with:
+      packages: "llvm"
+      action: "build"
 
   firefox:
     needs: llvm
-    uses: ./.github/workflows/firefox.yml
+    uses: ./.github/workflows/package-build.yml
+    with:
+      packages: "firefox"
+      action: "build"
 
   chromium:
     needs: firefox
-    uses: ./.github/workflows/chromium.yml
+    uses: ./.github/workflows/package-build.yml
+    with:
+      packages: "chromium"
+      action: "build"
 
   obs-studio:
     needs: chromium
-    uses: ./.github/workflows/obs-studio.yml
+    uses: ./.github/workflows/package-build.yml
+    with:
+      packages: "obs-studio"
+      action: "build"
