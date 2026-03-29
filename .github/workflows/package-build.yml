@@ -42,7 +42,6 @@ concurrency:
 
 permissions:
   contents: write
-  packages: write
 
 jobs:
   detect-packages:
@@ -80,14 +79,27 @@ jobs:
             done
           else
             # Auto-detect from changed .SRCINFO files
-            base="HEAD~1"
-            [[ "${{ github.event_name }}" == "pull_request" ]] && base="origin/${{ github.base_ref }}"
+            if [[ "${{ github.event_name }}" == "push" ]]; then
+              base="${{ github.event.before }}"
+              head="${{ github.sha }}"
+              # Fallback for new branches where before is all zeros
+              if [[ -z "$base" || "$base" == "0000000000000000000000000000000000000000" ]]; then
+                base="HEAD~1"
+                head="HEAD"
+              fi
+            elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+              base="origin/${{ github.base_ref }}"
+              head="HEAD"
+            else
+              base="HEAD~1"
+              head="HEAD"
+            fi
 
             while IFS= read -r dir; do
               if [[ -f "$dir/PKGBUILD" ]]; then
                 pkgs+=("$dir")
               fi
-            done < <(git diff --name-only "$base" HEAD -- '**/.SRCINFO' 2>/dev/null | xargs -r dirname | sort -u)
+            done < <(git diff --name-only "$base" "$head" -- '**/.SRCINFO' 2>/dev/null | xargs -r dirname | sort -u)
           fi
 
           # Output results
@@ -104,7 +116,7 @@ jobs:
 
   build:
     needs: detect-packages
-    if: ${{ needs.detect-packages.outputs.has-packages == 'true' && inputs.action != 'remove' }}
+    if: ${{ needs.detect-packages.outputs.has-packages == 'true' && (inputs.action == 'build' || inputs.action == '') }}
     strategy:
       fail-fast: false
       matrix:
