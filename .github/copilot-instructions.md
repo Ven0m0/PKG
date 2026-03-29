@@ -3,12 +3,48 @@
 **Repo:** Optimized Arch Linux PKGBUILDs — performance builds, custom patches, CI/CD automation.
 **Tone:** Concise, result-first. Lists ≤7 items. Edit > Create. Subtract > Add.
 
+## Repository Layout
+
+```
+<package>/          # one directory per package
+  PKGBUILD          # build recipe
+  .SRCINFO          # auto-generated; must stay in sync with PKGBUILD
+  *.patch           # patches applied in prepare()
+  readme.md         # optional package notes
+pkg.sh              # unified build/lint/srcinfo tool
+lib/helpers.sh      # shared shell library
+nvchecker.toml      # upstream version tracking
+mise.toml           # task runner (aur-push, export-patches, …)
+.github/workflows/  # CI: build.yml, lint.yml, check-updates.yml
+```
+
 ## Core Rules
 
 1. User instruction > any rule below
 2. Edit existing files; never create unless strictly necessary
 3. Minimal diff — change only what is needed
 4. Follow patterns already in the codebase
+
+## File Discovery
+
+Always use `rg` for content search and `fd` for file/directory discovery.
+
+```bash
+# Find PKGBUILDs (fastest in git repo)
+git ls-files ':(glob)**/PKGBUILD'
+
+# Search content
+rg 'pattern'                       # all files
+rg 'pattern' --glob 'PKGBUILD'    # PKGBUILDs only
+rg 'pattern' --glob '*.sh'        # shell scripts only
+rg -l 'depends='                   # list files containing depends=
+
+# Find files by name
+fd -t f -g 'PKGBUILD'             # all PKGBUILDs
+fd -t f -e patch                  # all patches
+```
+
+**Never use:** `grep`, `find`, `ls | grep`, parsing `ls` output.
 
 ## Bash
 
@@ -25,9 +61,9 @@ IFS=$'\n\t'
 
 ## Toolchain
 
-| Replace | With |
-|---------|------|
-| `find` | `fd` (or `git ls-files ':(glob)**/PKGBUILD'` in git repos) |
+| Avoid | Prefer |
+|-------|--------|
+| `find` | `fd` (or `git ls-files ':(glob)**/PKGBUILD'`) |
 | `grep` | `rg` |
 | `jq` | `jaq` |
 | `xargs` | `parallel` |
@@ -47,8 +83,8 @@ IFS=$'\n\t'
 ## Build & Lint
 
 ```bash
-./pkg.sh build <pkg>           # build (Docker auto-selected for firefox/obs/etc.)
-./pkg.sh lint                  # shellcheck + shfmt + .SRCINFO sync check
+./pkg.sh build <pkg>           # build (Docker auto-selected for firefox/obs-studio/etc.)
+./pkg.sh lint                  # shellcheck + shfmt + shellharden + .SRCINFO sync check
 makepkg -srC                   # clean local build
 makepkg --printsrcinfo > .SRCINFO
 ```
@@ -57,7 +93,7 @@ makepkg --printsrcinfo > .SRCINFO
 
 - Version tracking: `nvchecker.toml` + `.github/nvchecker/old_ver.json`
 - Mise tasks: `mise r setup-workspace` | `aur-push` | `export-patches` | `sync-upstream` | `gather-context`
-- CI: `check-updates.yml` (daily), `build.yml` (per PKGBUILD change), `lint.yml`
+- CI: `check-updates.yml` (daily), `build.yml` (per PKGBUILD change), `lint.yml` (push/PR)
 
 ## Commit Format
 
