@@ -1,0 +1,28 @@
+name: _update-pkgbuilds
+on:
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: "Space-separated package dirs to update (blank = all)"
+        required: false
+        type: string
+        default: ""
+jobs:
+  update-pkgbuilds:
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
+      issues: write
+    uses: ./.github/workflows/_run-agent.yml
+    with:
+      provider: opencode
+      model: "opencode/minimax-m2.5-free"
+      prompt: |
+        Arch PKG repo expert. Task: update all PKGBUILDs→latest upstream; open 1 PR. ${inputs.packages!=''?'Only dirs: '+inputs.packages:'All pkgs.'} Steps: 1.Discover: fd -t f -g 'PKGBUILD' --exclude '.git'. 2.For each: source→pkgname,pkgver,pkgrel,url,source[]. Detect upstream via: GH releases→/releases/latest.tag_name; GH tags→/tags[0].name; PyPI→.info.version; npm→.version; AUR→.results[0].Version; crates→.crate.max_stable_version; else parse URL. strip 'v'. 3.If upstream≠pkgver: set pkgver,new; pkgrel=1; cd dir; updpkgsums; makepkg --printsrcinfo>.SRCINFO; mark updated. else skip. 4.Errors: updpkgsums fail→skip; no upstream→skip. 5.Commit: git config bot; git add -A; git commit -m "chore: update PKGBUILDs: Updated {pkg}:{old}->{new}; Skipped {pkg}:{reason}". 6.PR: branch update/pkgbuilds-$(date +%Y%m%d); title "chore: update PKGBUILDs — $(date +%Y-%m-%d)"; body table pkg|old|new + skipped; base main; labels automated,update; gh pr create; if none updated→no PR.
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      KILO_API_KEY: ${{ secrets.KILO_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}

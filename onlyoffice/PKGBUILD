@@ -1,7 +1,7 @@
 # Maintainer: VolRen <VolRencs@proton.me>
 
 pkgname=onlyoffice
-pkgver=9.1.0
+pkgver=9.3.1
 pkgrel=1
 pkgdesc='An office suite that combines text, spreadsheet and presentation editors'
 arch=('x86_64')
@@ -36,7 +36,7 @@ options=('!strip' '!emptydirs')
 source=("onlyoffice-desktopeditors-${CARCH}-${pkgver}.deb"::"https://github.com/ONLYOFFICE/DesktopEditors/releases/download/v${pkgver}/onlyoffice-desktopeditors_amd64.deb"
   "onlyoffice.svg")
 noextract=("onlyoffice-desktopeditors-${CARCH}-${pkgver}.deb")
-sha256sums=('0f7e84ee16024c9f4bc3d5e707c9f13063090c946133e2be6ef8ae33dbaece19'
+sha256sums=('2fdda24d2efe65528d0aabad0633d868f22f67cf1567f8df39e72cba24f6af24'
   '0efe15ee5ae7c01fd5cb3198bc849371ebc12ce48e0e595118724b182c765ec6')
 
 prepare() {

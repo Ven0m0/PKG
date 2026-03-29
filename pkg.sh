@@ -67,12 +67,22 @@ EOF
 # ═══════════════════════════════════════════════════════════════════════════
 
 setup_env() {
+  local cur_nofile
+  if cur_nofile=$(ulimit -n 2>/dev/null); then
+    if (( cur_nofile < 4096 )); then
+      if ! ulimit -n 4096 2>/dev/null; then
+        warn "Unable to raise open file limit to 4096 (current: ${cur_nofile})"
+      fi
+    fi
+  fi
   case $ARCH in
     x86_64) EXT=zst ;;
     aarch64) EXT=xz ;;
     *) die "Unsupported arch: $ARCH" ;;
   esac
-  export ARCH EXT CC=gcc CXX=g++
+  export ARCH EXT CC=gcc CXX=g++ PYTHONOPTIMIZE=2
+  export CFLAGS="${CFLAGS:-} -fPIC"
+  export CXXFLAGS="${CXXFLAGS:-} -fPIC"
   export PATH="$PWD:$PWD/bin:$PATH:/usr/bin/core_perl"
   chmod +x "$PWD"/bin/* "$PWD"/*.sh 2>/dev/null || true
   if ((FORCE_BUILD)); then warn "Force build enabled"; fi
@@ -96,21 +106,6 @@ show_cache_stats() {
   fi
 }
 
-find_pkgs() {
-  if [[ -d .git ]] && command -v git >/dev/null; then
-    # O(1) using git index
-    git ls-files ':(glob)**/PKGBUILD' | sed -e 's|/PKGBUILD$||' -e 's|^PKGBUILD$|.|'
-  else
-    local -a pkgs=()
-    while IFS= read -r -d '' f; do
-      local dir=${f%/PKGBUILD}
-      dir=${dir#./}
-      pkgs+=("$dir")
-    done < <(find . -type f -name PKGBUILD -print0)
-    printf '%s\n' "${pkgs[@]}"
-  fi
-}
-
 patch_arch() {
   local -a targets=("${@}")
   # Optimization: only patch if enabled and targets exist
@@ -129,8 +124,6 @@ patch_arch() {
     xargs -0 -r sed -i -e "s/arch=(x86_64)/arch=(x86_64_v3)/" \
       -e "s/arch=('x86_64')/arch=('x86_64_v3')/"
 }
-
-
 
 build_docker() {
   local pkg=$1
@@ -233,7 +226,7 @@ cmd_build() {
     targets=("${args[@]}")
   else
     log "Discovering packages..."
-    mapfile -t targets < <(find_pkgs)
+    mapfile -t targets < <(find_pkgbuilds)
   fi
 
   ((${#targets[@]})) || die "No packages found"

@@ -1,4 +1,3 @@
-
 name: _job_schedule_weekly
 
 permissions:
@@ -11,34 +10,71 @@ on:
     - cron: '0 0 */7 * *'
 
 jobs:
+  mesa-git:
+    uses: ./.github/workflows/package-build.yml
+    with:
+      packages: "mesa-git"
+      action: "build"
 
-  dxvk-mingw-git:
-    uses: ./.github/workflows/dxvk-mingw-git.yml
+  wine-cachyos:
+    needs: mesa-git
+    uses: ./.github/workflows/package-build.yml
+    with:
+      packages: "wine-cachyos"
+      action: "build"
 
-  dxvk-msvc-git:
-    needs: dxvk-mingw-git
-    uses: ./.github/workflows/dxvk-msvc-git.yml
+  proton-cachyos:
+    needs: wine-cachyos
+    uses: ./.github/workflows/package-build.yml
+    with:
+      packages: "proton-cachyos"
+      action: "build"
 
-  dxvk-nvapi-mingw-git:
-    needs: dxvk-msvc-git
-    uses: ./.github/workflows/dxvk-nvapi-mingw-git.yml
+  proton-cachyos-slr:
+    needs: proton-cachyos
+    uses: ./.github/workflows/package-build.yml
+    with:
+      packages: "proton-cachyos-slr"
+      action: "build"
 
-  dxvk-nvapi-vkreflex-layer-git:
-    needs: dxvk-nvapi-mingw-git
-    uses: ./.github/workflows/dxvk-nvapi-vkreflex-layer-git.yml
+  linux-kernel-catgirl:
+    needs: proton-cachyos-slr
+    uses: ./.github/workflows/package-build.yml
+    with:
+      packages: "linux-kernel-catgirl"
+      action: "build"
 
-  vkd3d-proton-mingw-git:
-    needs: dxvk-nvapi-vkreflex-layer-git
-    uses: ./.github/workflows/vkd3d-proton-mingw-git.yml
+  glibc:
+    needs: linux-kernel-catgirl
+    uses: ./.github/workflows/package-build.yml
+    with:
+      packages: "glibc"
+      action: "build"
 
-  dxvk-sarek-async-mingw-git:
-    needs: vkd3d-proton-mingw-git
-    uses: ./.github/workflows/dxvk-sarek-async-mingw-git.yml
+  llvm:
+    needs: glibc
+    uses: ./.github/workflows/package-build.yml
+    with:
+      packages: "llvm"
+      action: "build"
 
-  dolphin-emu-git:
-    needs: dxvk-sarek-async-mingw-git
-    uses: ./.github/workflows/dolphin-emu-git.yml
+  firefox:
+    needs: llvm
+    uses: ./.github/workflows/package-build.yml
+    with:
+      packages: "firefox"
+      action: "build"
 
-  rare-git:
-    needs: dolphin-emu-git
-    uses: ./.github/workflows/rare-git.yml
+  chromium:
+    needs: firefox
+    uses: ./.github/workflows/package-build.yml
+    with:
+      packages: "chromium"
+      action: "build"
+
+  obs-studio:
+    needs: chromium
+    uses: ./.github/workflows/package-build.yml
+    with:
+      packages: "obs-studio"
+      action: "build"

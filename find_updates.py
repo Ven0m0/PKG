@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import json
-from types import NoneType
 from typing import List, Any, Union, Dict, Type, cast
 
 import attr
@@ -11,7 +10,6 @@ from pycman import config
 
 from colorama import init as colorama_init
 from colorama import Fore
-from colorama import Style
 
 
 @attr.s(auto_attribs=True)
@@ -81,7 +79,9 @@ class PackageBasic:
         return field_dict
 
     @classmethod
-    def from_dict(cls: Type["PackageBasic"], src_dict: Dict[str, Any]) -> "PackageBasic":
+    def from_dict(
+        cls: Type["PackageBasic"], src_dict: Dict[str, Any]
+    ) -> "PackageBasic":
         d = src_dict.copy()
         id = d.pop("ID", None)
         name = d.pop("Name", None)
@@ -146,7 +146,7 @@ class SearchResult:
         type = self.type
         version = self.version
         results: Union[None, List[Dict[str, Any]]] = None
-        if not isinstance(self.results, NoneType):
+        if not isinstance(self.results, type(None)):
             results = []
             for results_item_data in self.results:
                 results_item = results_item_data.to_dict()
@@ -165,7 +165,9 @@ class SearchResult:
         return field_dict
 
     @classmethod
-    def from_dict(cls: Type["SearchResult"], src_dict: Dict[str, Any]) -> "SearchResult":
+    def from_dict(
+        cls: Type["SearchResult"], src_dict: Dict[str, Any]
+    ) -> "SearchResult":
         d = src_dict.copy()
         resultcount = d.pop("resultcount", None)
         type = d.pop("type", None)
@@ -248,37 +250,37 @@ class PackageDetailed:
         url = self.url
         submitter = self.submitter
         license_: Union[None, List[str]] = None
-        if not isinstance(self.license_, NoneType):
+        if not isinstance(self.license_, type(None)):
             license_ = self.license_
         depends: Union[None, List[str]] = None
-        if not isinstance(self.depends, NoneType):
+        if not isinstance(self.depends, type(None)):
             depends = self.depends
         make_depends: Union[None, List[str]] = None
-        if not isinstance(self.make_depends, NoneType):
+        if not isinstance(self.make_depends, type(None)):
             make_depends = self.make_depends
         opt_depends: Union[None, List[str]] = None
-        if not isinstance(self.opt_depends, NoneType):
+        if not isinstance(self.opt_depends, type(None)):
             opt_depends = self.opt_depends
         check_depends: Union[None, List[str]] = None
-        if not isinstance(self.check_depends, NoneType):
+        if not isinstance(self.check_depends, type(None)):
             check_depends = self.check_depends
         provides: Union[None, List[str]] = None
-        if not isinstance(self.provides, NoneType):
+        if not isinstance(self.provides, type(None)):
             provides = self.provides
         conflicts: Union[None, List[str]] = None
-        if not isinstance(self.conflicts, NoneType):
+        if not isinstance(self.conflicts, type(None)):
             conflicts = self.conflicts
         replaces: Union[None, List[str]] = None
-        if not isinstance(self.replaces, NoneType):
+        if not isinstance(self.replaces, type(None)):
             replaces = self.replaces
         groups: Union[None, List[str]] = None
-        if not isinstance(self.groups, NoneType):
+        if not isinstance(self.groups, type(None)):
             groups = self.groups
         keywords: Union[None, List[str]] = None
-        if not isinstance(self.keywords, NoneType):
+        if not isinstance(self.keywords, type(None)):
             keywords = self.keywords
         co_maintainers: Union[None, List[str]] = None
-        if not isinstance(self.co_maintainers, NoneType):
+        if not isinstance(self.co_maintainers, type(None)):
             co_maintainers = self.co_maintainers
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -338,7 +340,9 @@ class PackageDetailed:
         return field_dict
 
     @classmethod
-    def from_dict(cls: Type["PackageDetailed"], src_dict: Dict[str, Any]) -> "PackageDetailed":
+    def from_dict(
+        cls: Type["PackageDetailed"], src_dict: Dict[str, Any]
+    ) -> "PackageDetailed":
         d = src_dict.copy()
         id = d.pop("ID", None)
         name = d.pop("Name", None)
@@ -427,7 +431,7 @@ class InfoResult:
         type = self.type
         version = self.version
         results: Union[None, List[Dict[str, Any]]] = None
-        if not isinstance(self.results, NoneType):
+        if not isinstance(self.results, type(None)):
             results = []
             for results_item_data in self.results:
                 results_item = results_item_data.to_dict()
@@ -485,8 +489,8 @@ class InfoResult:
 handle = None
 aur_url = "https://aur.archlinux.org/rpc/v5"
 
-local_repos = ["custom", "loathk-public", "loathk-personal"]
-arch_repos = ["core", "extra", "community", "multilib"]
+local_repos = {"custom", "loathk-public", "loathk-personal"}
+arch_repos = {"core", "extra", "community", "multilib"}
 
 
 def search_single(name: str):
@@ -500,28 +504,30 @@ def info_multiple(names: List[str]):
     return InfoResult.from_dict(json.loads(response.content))
 
 
-def print_package_update(remote_db, local_db, package_name, remote_version, local_version):
-    print("{:20s} {:28s} {} -> {}".format(
-        f"{remote_db} - {local_db}",
-        package_name,
-        Fore.RED+local_version+Fore.RESET,
-        Fore.GREEN+remote_version+Fore.RESET,
-    ))
+def print_package_update(
+    remote_db, local_db, package_name, remote_version, local_version
+):
+    print(
+        "{:20s} {:28s} {} -> {}".format(
+            f"{remote_db} - {local_db}",
+            package_name,
+            Fore.RED + local_version + Fore.RESET,
+            Fore.GREEN + remote_version + Fore.RESET,
+        )
+    )
 
 
 if __name__ == "__main__":
     colorama_init()
 
     handle = config.init_with_config("/etc/pacman.conf")
-    arch_dbs = list(filter(
-        lambda r: r.name in arch_repos,
-        [db for db in handle.get_syncdbs()]
-    ))
+    arch_dbs = list(
+        filter(lambda r: r.name in arch_repos, [db for db in handle.get_syncdbs()])
+    )
 
-    local_dbs = list(filter(
-        lambda r: r.name in local_repos,
-        [db for db in handle.get_syncdbs()]
-    ))
+    local_dbs = list(
+        filter(lambda r: r.name in local_repos, [db for db in handle.get_syncdbs()])
+    )
 
     for ldb in local_dbs:
         local_packages: List[pyalpm.Package] = ldb.search("")
@@ -532,6 +538,8 @@ if __name__ == "__main__":
         found_in_arch = set()
 
         for lp in local_packages:
+            if lp.name in found_in_arch:
+                continue
             for adb in arch_dbs:
                 ap = adb.get_pkg(lp.name)
                 if ap is not None:
@@ -540,7 +548,9 @@ if __name__ == "__main__":
                     # vercmp: left < right = -1
                     outdated = pyalpm.vercmp(lp.version, ap.version)
                     if outdated < 0:
-                        print_package_update(adb.name, ldb.name, lp.name, ap.version, lp.version)
+                        print_package_update(
+                            adb.name, ldb.name, lp.name, ap.version, lp.version
+                        )
                     break  # Found in one Arch DB, stop checking others
 
         # Filter for AUR check
@@ -561,7 +571,9 @@ if __name__ == "__main__":
                 ap = aur_map[lp.name]
                 outdated = pyalpm.vercmp(lp.version, ap.version)
                 if outdated < 0:
-                    print_package_update("aur", ldb.name, lp.name, ap.version, lp.version)
+                    print_package_update(
+                        "aur", ldb.name, lp.name, ap.version, lp.version
+                    )
             else:
                 # Not found in AUR
                 print("{:20s} {}".format(f"non - {ldb.name}", lp.name))

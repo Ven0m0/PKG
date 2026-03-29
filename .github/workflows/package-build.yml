@@ -1,0 +1,143 @@
+name: Package Build
+
+on:
+  workflow_call:
+    inputs:
+      packages:
+        description: "Space-separated packages to build"
+        required: false
+        type: string
+        default: ""
+      action:
+        description: "Repository action"
+        required: false
+        type: string
+        default: "build"
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: "Space-separated packages to build (blank = auto-detect)"
+        required: false
+        type: string
+        default: ""
+      action:
+        description: "Repository action"
+        required: true
+        type: choice
+        default: "build"
+        options:
+          - "build"
+          - "remove"
+          - "skip"
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - "**/.SRCINFO"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  detect-packages:
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.detect.outputs.packages }}
+      has-packages: ${{ steps.detect.outputs.has-packages }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Detect packages to build
+        id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          pkgs=()
+          manual_pkgs="${{ inputs.packages }}"
+
+          if [[ -n "$manual_pkgs" ]]; then
+            # Parse space-separated package list
+            for pkg in $manual_pkgs; do
+              # Validate package name (alphanumeric, dash, underscore, dot only)
+              if [[ "$pkg" =~ ^[a-zA-Z0-9._-]+$ ]]; then
+                if [[ -d "$pkg" ]] && [[ -f "$pkg/PKGBUILD" ]]; then
+                  pkgs+=("$pkg")
+                else
+                  echo "Warning: Package '$pkg' not found or missing PKGBUILD" >&2
+                fi
+              else
+                echo "Warning: Invalid package name '$pkg'" >&2
+              fi
+            done
+          else
+            # Auto-detect from changed .SRCINFO files
+            if [[ "${{ github.event_name }}" == "push" ]]; then
+              base="${{ github.event.before }}"
+              head="${{ github.sha }}"
+              # Fallback for new branches where before is all zeros
+              if [[ -z "$base" || "$base" == "0000000000000000000000000000000000000000" ]]; then
+                base="HEAD~1"
+                head="HEAD"
+              fi
+            elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+              base="origin/${{ github.base_ref }}"
+              head="HEAD"
+            else
+              base="HEAD~1"
+              head="HEAD"
+            fi
+
+            while IFS= read -r dir; do
+              if [[ -f "$dir/PKGBUILD" ]]; then
+                pkgs+=("$dir")
+              fi
+            done < <(git diff --name-only "$base" "$head" -- '**/.SRCINFO' 2>/dev/null | xargs -r dirname | sort -u)
+          fi
+
+          # Output results
+          if [[ ${#pkgs[@]} -gt 0 ]]; then
+            json_out=$(printf '%s\n' "${pkgs[@]}" | jq -Rsc 'split("\n")[:-1]')
+            echo "packages=$json_out" >> "$GITHUB_OUTPUT"
+            echo "has-packages=true" >> "$GITHUB_OUTPUT"
+            echo "Found packages: $json_out"
+          else
+            echo "packages=[]" >> "$GITHUB_OUTPUT"
+            echo "has-packages=false" >> "$GITHUB_OUTPUT"
+            echo "No packages to build"
+          fi
+
+  build:
+    needs: detect-packages
+    if: ${{ needs.detect-packages.outputs.has-packages == 'true' && (inputs.action == 'build' || inputs.action == '') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.detect-packages.outputs.packages) }}
+        repository: [public]
+    uses: ./.github/workflows/_job_pkgrepo.yml
+    with:
+      pkgdir: ${{ matrix.package }}
+      repository: ${{ matrix.repository }}
+      action: ${{ inputs.action || 'build' }}
+
+  remove:
+    needs: detect-packages
+    if: ${{ needs.detect-packages.outputs.has-packages == 'true' && inputs.action == 'remove' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.detect-packages.outputs.packages) }}
+        repository: [public]
+    uses: ./.github/workflows/_job_pkgrepo.yml
+    with:
+      pkgdir: ${{ matrix.package }}
+      repository: ${{ matrix.repository }}
+      action: remove

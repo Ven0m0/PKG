@@ -28,7 +28,7 @@ env:
   DOCKER_BUILD_PACKAGES: obs-studio,firefox,egl-wayland2,onlyoffice
 jobs:
   matrix:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     outputs:
       pkgs: ${{ steps.set.outputs.pkgs }}
     steps:
@@ -162,7 +162,7 @@ jobs:
       - name: Build package (standard)
         if: steps.build_method.outputs.method == 'standard'
         id: makepkg_standard
-        uses: 2m/arch-pkgbuild-builder@v1.25
+        uses: 2m/arch-pkgbuild-builder@v1.21
         with:
           target: pkgbuild
           pkgname: ${{ matrix.pkg }}
@@ -227,6 +227,25 @@ jobs:
             -e MAKEFLAGS="-j$(nproc)" -w "/workspace/$pkg" \
             archlinux-buildenv:latest bash -c '
             set -euo pipefail
+            # Best-effort raise of open file limit, clamped to hard limit
+            set +e
+            hard_limit=$(ulimit -Hn 2>/dev/null)
+            rc=$?
+            if [ "${rc}" -eq 0 ] && [ -n "${hard_limit}" ]; then
+              target=4096
+              if [ "${hard_limit}" -lt "${target}" ]; then
+                target="${hard_limit}"
+              fi
+              ulimit -n "${target}" 2>/dev/null || echo "Warning: unable to raise open file limit; continuing with existing limit."
+            else
+              echo "Warning: unable to determine hard open file limit; continuing with existing limit."
+            fi
+            set -e
+            current_limit=$(ulimit -n 2>/dev/null || echo unknown)
+            echo "Effective open file limit: ${current_limit}"
+            export PYTHONOPTIMIZE=2
+            export CFLAGS="${CFLAGS:-} -fPIC"
+            export CXXFLAGS="${CXXFLAGS:-} -fPIC"
             # Extract dependencies efficiently (single pass)
             deps=$(makepkg --printsrcinfo | awk "/^\s*(make)?depends\s*=/ {sub(/^[[:space:]]+/, \"\", \$2); print \$2}" | tr "\n" " ")
             echo "Dependencies: $deps"
@@ -243,6 +262,9 @@ jobs:
               export CC=clang CXX=clang++ RUSTC_WRAPPER=sccache
               export CCACHE_DIR=/cache/ccache SCCACHE_DIR=/cache/sccache
               export MAKEFLAGS=\"-j\$(nproc)\" CARGO_BUILD_JOBS=\$(nproc)
+              export PYTHONOPTIMIZE=2
+              export CFLAGS=\"\${CFLAGS:-} -fPIC\"
+              export CXXFLAGS=\"\${CXXFLAGS:-} -fPIC\"
               makepkg --noconfirm --needed
             "
           '

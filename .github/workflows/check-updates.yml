@@ -1,0 +1,292 @@
+name: Check Updates
+
+on:
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Specific package to update (optional)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  packages: read
+
+jobs:
+  detect-updates:
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.detect.outputs.packages }}
+      has-updates: ${{ steps.detect.outputs.has-updates }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
+      - name: Install nvchecker
+        run: pip install nvchecker
+
+      - name: Create nvchecker config if missing
+        run: |
+          if [[ ! -f nvchecker.toml ]]; then
+            echo "[__config__]" > nvchecker.toml
+            echo "source = 'aur'" >> nvchecker.toml
+            echo "strip-branch = true" >> nvchecker.toml
+          fi
+
+      - name: Download previous version cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            old_ver.json
+            nvchecker_cache
+          key: nvchecker-state-${{ github.sha }}
+          restore-keys: |
+            nvchecker-state-
+
+      - name: Initialize old_ver.json if missing
+        run: |
+          if [[ ! -f old_ver.json ]]; then
+            echo '{}' > old_ver.json
+          fi
+
+      - name: Run nvchecker to detect new versions
+        run: |
+          nvchecker -c nvchecker.toml -k nvchecker_cache -j new_ver.json || true
+          if [[ ! -f new_ver.json ]]; then
+            echo '{}' > new_ver.json
+          fi
+
+      - name: Detect packages needing updates
+        id: detect
+        run: |
+          # Compare old_ver.json vs new_ver.json to find changed packages
+          python3 << 'EOF'
+          import json
+          import os
+
+          with open('old_ver.json', 'r') as f:
+            old_ver = json.load(f)
+
+          with open('new_ver.json', 'r') as f:
+            new_ver = json.load(f)
+
+          # Get packages from directory structure or config
+          packages = []
+          input_package = '${{ github.event.inputs.package }}'
+
+          # Check for packages in PKGBUILD directories
+          import os
+          for item in os.listdir('.'):
+            if os.path.isdir(item) and os.path.isfile(f'{item}/PKGBUILD'):
+              packages.append(item)
+
+          # If specific package requested, filter to that
+          if input_package:
+            packages = [p for p in packages if p == input_package]
+
+          # Find packages with version changes
+          packages_to_update = []
+          for pkg in packages:
+            old = old_ver.get(pkg, '')
+            new = new_ver.get(pkg, '')
+            if new and new != old:
+              packages_to_update.append(pkg)
+              print(f"Update needed: {pkg} ({old} -> {new})")
+
+          # Output results
+          has_updates = 'true' if packages_to_update else 'false'
+          packages_json = json.dumps(packages_to_update)
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+            f.write(f"packages={packages_json}\n")
+            f.write(f"has-updates={has_updates}\n")
+          EOF
+
+      - name: Upload nvchecker state artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: nvchecker-state
+          path: |
+            old_ver.json
+            new_ver.json
+            nvchecker_cache
+          retention-days: 7
+
+      - name: Update version cache for next run
+        run: |
+          cp new_ver.json old_ver.json
+
+  update-package:
+    needs: detect-updates
+    if: needs.detect-updates.outputs.has-updates == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
+      issues: write
+      packages: read
+    container:
+      image: ghcr.io/${{ github.repository }}/builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        package: ${{ fromJson(needs.detect-updates.outputs.packages) }}
+    env:
+      PACKAGE: ${{ matrix.package }}
+      AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ github.token }}
+
+      - name: Setup git configuration
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global init.defaultBranch main
+
+      - name: Restore workspace cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cache
+            ~/.pkgcache
+            ${{ matrix.package }}/src
+            ${{ matrix.package }}/pkg
+          key: workspace-${{ matrix.package }}-${{ github.sha }}
+          restore-keys: |
+            workspace-${{ matrix.package }}-
+
+      - name: Sync with remote main
+        run: |
+          git fetch origin main
+          if ! git rebase origin/main; then
+            git rebase --abort
+            exit 1
+          fi
+
+      - name: Download nvchecker state
+        uses: actions/download-artifact@v8
+        with:
+          name: nvchecker-state
+          path: .
+
+      - name: Fetch changelog for package
+        id: changelog
+        run: |
+          chmod +x .github/scripts/fetch-changelog.sh
+          export PKG_DIR="${{ matrix.package }}"
+          .github/scripts/fetch-changelog.sh || echo "No changelog available"
+        continue-on-error: true
+
+      - name: Try update and build
+        id: try-update
+        run: |
+          chmod +x .github/scripts/try-update.sh
+          .github/scripts/try-update.sh "$PACKAGE" 2>&1 | tee build.log
+          exit_code=${PIPESTATUS[0]}
+          echo "build_exit_code=$exit_code" >> $GITHUB_OUTPUT
+          exit $exit_code
+        continue-on-error: true
+
+      - name: Install Kilo CLI
+        shell: bash
+        run: |
+          curl -fsSL https://kilo.ai/cli/install | bash
+          echo "$HOME/.kilo/bin" >> "$GITHUB_PATH"
+
+      - name: LLM review build output
+        if: steps.try-update.outputs.build_exit_code == '0'
+        shell: bash
+        run: kilo github run
+        env:
+          MODEL: kilo/z-ai/glm-5
+          KILO_API_KEY: ${{ secrets.KILO_API_KEY }}
+          PROMPT: |
+            Review the build output for ${{ matrix.package }}.
+            Check the build.log file for warnings, potential issues, and suggest improvements.
+            The build succeeded but we want quality assurance.
+            If you find issues that need fixing, fix them in the PKGBUILD and rebuild.
+
+      - name: LLM diagnose and fix issues
+        if: steps.try-update.outputs.build_exit_code != '0'
+        shell: bash
+        run: kilo github run
+        env:
+          MODEL: kilo/z-ai/glm-5
+          KILO_API_KEY: ${{ secrets.KILO_API_KEY }}
+          PROMPT: |
+            The build for ${{ matrix.package }} failed.
+            Analyze the build.log file for errors.
+            Fix the PKGBUILD in the ${{ matrix.package }}/ directory.
+            After fixing, rebuild the package using: cd ${{ matrix.package }} && makepkg -sf
+            Ensure the build succeeds before finishing.
+
+      - name: Create pull request
+        if: steps.try-update.outputs.build_exit_code == '0'
+        id: create-pr
+        run: |
+          chmod +x .github/scripts/create-pr.sh
+          .github/scripts/create-pr.sh "$PACKAGE"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Setup AUR SSH key
+        if: steps.try-update.outputs.build_exit_code == '0'
+        run: |
+          mkdir -p ~/.ssh
+          echo "$AUR_SSH_PRIVATE_KEY" > ~/.ssh/aur
+          chmod 600 ~/.ssh/aur
+          echo "Host aur.archlinux.org" >> ~/.ssh/config
+          echo "  IdentityFile ~/.ssh/aur" >> ~/.ssh/config
+          echo "  User aur" >> ~/.ssh/config
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Push to AUR
+        if: steps.try-update.outputs.build_exit_code == '0'
+        run: |
+          cd "$PACKAGE"
+          # Clone AUR repo if exists, otherwise create
+          if git clone "aur@aur.archlinux.org:$PACKAGE.git" aur_repo 2>/dev/null; then
+            cp -r PKGBUILD *.install aur_repo/ 2>/dev/null || true
+            cp -r .SRCINFO aur_repo/ 2>/dev/null || true
+            cd aur_repo
+            git add -A
+            git commit -m "Update $PACKAGE to latest version" || true
+            git push origin master
+          else
+            echo "AUR package not found or new package - skipping AUR push"
+          fi
+        continue-on-error: true
+
+      - name: Create issue on failure
+        if: failure()
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const package = process.env.PACKAGE;
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Update failed for ${package}`,
+              body: `## Update Failure Report\n\n**Package:** ${package}\n**Run:** ${context.runId}\n**Workflow:** ${context.workflow}\n\nPlease investigate the failure and fix manually if needed.\n\n[View Run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+              labels: ['update-failed', 'needs-attention']
+            });

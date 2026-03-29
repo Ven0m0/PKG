@@ -38,13 +38,21 @@ def warn(m: str) -> None:
 
 
 class VpDev:
-    __slots__ = ('root', 'pkg_json', 'git', 'skip_dirs', 'files_cache')
+    __slots__ = ("root", "pkg_json", "git", "skip_dirs", "files_cache")
 
     def __init__(self) -> None:
         self.root = Path(__file__).parent
         self.pkg_json = self.root / "packages.json"
         self.git = "/usr/bin/git"
-        self.skip_dirs = {'.git', '.github', 'node_modules', '__pycache__', '.vscode', 'patches', 'docs'}
+        self.skip_dirs = {
+            ".git",
+            ".github",
+            "node_modules",
+            "__pycache__",
+            ".vscode",
+            "patches",
+            "docs",
+        }
         self.files_cache = None
 
     def _populate_files_cache(self) -> None:
@@ -66,7 +74,9 @@ class VpDev:
             warn(f"Failed to populate file cache: {e}")
             self.files_cache = None
 
-    def _git(self, args: list[str], cwd: Path | None = None, **kw) -> subprocess.CompletedProcess:
+    def _git(
+        self, args: list[str], cwd: Path | None = None, **kw
+    ) -> subprocess.CompletedProcess:
         return subprocess.run([self.git] + args, cwd=cwd or self.root, **kw)
 
     def _parse_pkg(self, pb: Path) -> dict[str, str | list[str]] | None:
@@ -74,18 +84,31 @@ class VpDev:
             return None
         try:
             import shlex
+
             cmd = f'source {shlex.quote(str(pb))} 2>/dev/null;echo "${{pkgname}}|${{pkgver}}|${{pkgrel}}|${{pkgdesc}}|${{url}}"'
-            r = subprocess.run(["bash", "-c", cmd], capture_output=True, text=True, cwd=pb.parent, check=False)
+            r = subprocess.run(
+                ["bash", "-c", cmd],
+                capture_output=True,
+                text=True,
+                cwd=pb.parent,
+                check=False,
+            )
             if r.returncode != 0:
                 return None
             p = r.stdout.strip().split("|")
             if len(p) < 4:
                 return None
 
-            if self.files_cache and pb.parent in self.files_cache:
-                fs = [f for f in self.files_cache[pb.parent] if f != "PKGBUILD"]
+            if self.files_cache is not None:
+                fs = [f for f in self.files_cache.get(pb.parent, []) if f != "PKGBUILD"]
             else:
-                r2 = self._git(["ls-files"], capture_output=True, text=True, cwd=pb.parent, check=True)
+                r2 = self._git(
+                    ["ls-files"],
+                    capture_output=True,
+                    text=True,
+                    cwd=pb.parent,
+                    check=True,
+                )
                 fs = [f for f in r2.stdout.strip().split("\n") if f and f != "PKGBUILD"]
 
             return {
@@ -93,7 +116,7 @@ class VpDev:
                 "version": f"{p[1]}-{p[2]}",
                 "description": p[3],
                 "url": p[4] if len(p) > 4 else "",
-                "files": sorted(fs)
+                "files": sorted(fs),
             }
         except Exception as e:
             err(f"Failed to parse {pb}: {e}")
@@ -103,7 +126,11 @@ class VpDev:
         """Get all package directories (dirs with PKGBUILD, excluding skip_dirs)"""
         dirs = []
         for d in sorted(self.root.iterdir()):
-            if d.is_dir() and d.name not in self.skip_dirs and (d / "PKGBUILD").exists():
+            if (
+                d.is_dir()
+                and d.name not in self.skip_dirs
+                and (d / "PKGBUILD").exists()
+            ):
                 dirs.append(d)
         return dirs
 
@@ -162,7 +189,11 @@ makepkg -si
         return 0
 
     def test(self, nm: str | None) -> int:
-        dirs = [self.root / nm] if nm else ([Path.cwd()] if (Path.cwd() / "PKGBUILD").exists() else [])
+        dirs = (
+            [self.root / nm]
+            if nm
+            else ([Path.cwd()] if (Path.cwd() / "PKGBUILD").exists() else [])
+        )
         if not dirs:
             err("No PKGBUILD found in current directory")
             return 1
@@ -183,7 +214,11 @@ makepkg -si
     def _parse_srcinfo(self, d: Path) -> dict[str, str | list[str]] | None:
         si = d / ".SRCINFO"
         pb = d / "PKGBUILD"
-        if not si.exists() or not pb.exists() or si.stat().st_mtime < pb.stat().st_mtime:
+        if (
+            not si.exists()
+            or not pb.exists()
+            or si.stat().st_mtime < pb.stat().st_mtime
+        ):
             return None
         try:
             data, files = {}, []
@@ -198,18 +233,24 @@ makepkg -si
                 elif k in ("pkgver", "pkgrel", "pkgdesc", "url"):
                     data[k] = v
             if "name" in data and "pkgver" in data and "pkgrel" in data:
-                if self.files_cache and d in self.files_cache:
-                    files = sorted([f for f in self.files_cache[d] if f != "PKGBUILD"])
+                if self.files_cache is not None:
+                    files = sorted(
+                        [f for f in self.files_cache.get(d, []) if f != "PKGBUILD"]
+                    )
                 else:
-                    r = self._git(["ls-files"], capture_output=True, text=True, cwd=d, check=False)
+                    r = self._git(
+                        ["ls-files"], capture_output=True, text=True, cwd=d, check=False
+                    )
                     if r.returncode == 0:
-                        files = sorted([f for f in r.stdout.splitlines() if f and f != "PKGBUILD"])
+                        files = sorted(
+                            [f for f in r.stdout.splitlines() if f and f != "PKGBUILD"]
+                        )
                 return {
                     "name": data["name"],
                     "version": f"{data['pkgver']}-{data['pkgrel']}",
                     "description": data.get("pkgdesc", ""),
                     "url": data.get("url", ""),
-                    "files": files
+                    "files": files,
                 }
         except Exception:
             pass
@@ -238,7 +279,13 @@ makepkg -si
             pi = self._parse_pkg(pb)
             if pi:
                 info(f"Found: {pi['name']} {pi['version']}")
-                r = subprocess.run(["makepkg", "--printsrcinfo"], cwd=d, capture_output=True, text=True, check=False)
+                r = subprocess.run(
+                    ["makepkg", "--printsrcinfo"],
+                    cwd=d,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
                 if r.returncode == 0:
                     srcinfo.write_text(r.stdout)
                 else:
@@ -254,7 +301,6 @@ makepkg -si
     def update(self) -> int:
         self._populate_files_cache()
         info("Scanning for packages...")
-        self._populate_files_cache()
         pkgs = []
         with concurrent.futures.ThreadPoolExecutor() as executor:
             results = list(executor.map(self._process_package, self._get_pkg_dirs()))
@@ -268,12 +314,16 @@ makepkg -si
                 m = re.search(r'^VERSION="([^"]+)"', vp.read_text(), re.MULTILINE)
                 if m:
                     vv = m.group(1)
-            except:
+            except Exception:
                 pass
 
         if self.pkg_json.exists():
             shutil.copy(self.pkg_json, self.pkg_json.with_suffix(".json.bak"))
-        self.pkg_json.write_text(json.dumps({"packages": pkgs, "tools": {"vp": vv, "vp-dev": VERSION}}, indent=2))
+        self.pkg_json.write_text(
+            json.dumps(
+                {"packages": pkgs, "tools": {"vp": vv, "vp-dev": VERSION}}, indent=2
+            )
+        )
         ok(f"Updated packages.json with {len(pkgs)} packages")
         info(f"Tool versions: vp v{vv}, vp-dev v{VERSION}")
         return 0
@@ -284,40 +334,61 @@ makepkg -si
             return 1
         try:
             self._git(["add", "-A"], check=True)
-            if self._git(["diff", "--cached", "--exit-code"], capture_output=True, check=False).returncode == 0:
+            if (
+                self._git(
+                    ["diff", "--cached", "--exit-code"],
+                    capture_output=True,
+                    check=False,
+                ).returncode
+                == 0
+            ):
                 info("No changes to publish")
                 return 0
             self._git(["commit", "-m", "Update packages"], check=True)
             self._git(["push"], check=True)
             ok("Published successfully!")
-            info("Changes will be live at https://ven0m0.github.io/PKG/ in a few minutes")
+            info(
+                "Changes will be live at https://ven0m0.github.io/PKG/ in a few minutes"
+            )
         except subprocess.CalledProcessError as e:
             err(f"Git operation failed: {e}")
             return 1
         return 0
 
+    def _check_pkg_parallel(self, d: Path) -> tuple[int, list]:
+        errs = 0
+        msgs = []
+        pb = d / "PKGBUILD"
+        pi = self._parse_pkg(pb)
+        if not pi:
+            msgs.append((err, f"{d.name}: Failed to parse PKGBUILD"))
+            errs += 1
+            return errs, msgs
+        if not pi.get("name"):
+            msgs.append((err, f"{d.name}: Missing pkgname"))
+            errs += 1
+        if not pi.get("version"):
+            msgs.append((err, f"{d.name}: Missing version"))
+            errs += 1
+        if not pi.get("description"):
+            msgs.append((warn, f"{d.name}: Missing description"))
+        if errs == 0:
+            msgs.append((ok, f"{d.name}: OK"))
+        return errs, msgs
+
     def check(self) -> int:
         self._populate_files_cache()
         info("Checking all packages...")
-        self._populate_files_cache()
         errs = 0
-        for d in self._get_pkg_dirs():
-            pb = d / "PKGBUILD"
-            pi = self._parse_pkg(pb)
-            if not pi:
-                err(f"{d.name}: Failed to parse PKGBUILD")
-                errs += 1
-                continue
-            if not pi.get("name"):
-                err(f"{d.name}: Missing pkgname")
-                errs += 1
-            if not pi.get("version"):
-                err(f"{d.name}: Missing version")
-                errs += 1
-            if not pi.get("description"):
-                warn(f"{d.name}: Missing description")
-            if errs == 0:
-                ok(f"{d.name}: OK")
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            results = list(executor.map(self._check_pkg_parallel, self._get_pkg_dirs()))
+
+        for pkg_errs, msgs in results:
+            errs += pkg_errs
+            for func, msg in msgs:
+                func(msg)
+
         if errs > 0:
             err(f"Found {errs} errors")
             return 1
@@ -337,12 +408,22 @@ makepkg -si
         ok(f"Cleaned {c} items")
         return 0
 
+    def _list_worker(self, d: Path) -> tuple[Path, dict[str, str | list[str]] | None]:
+        pi = self._parse_srcinfo(d)
+        if pi:
+            return d, pi
+        return d, self._parse_pkg(d / "PKGBUILD")
+
     def list(self) -> int:
         self._populate_files_cache()
-        for d in self._get_pkg_dirs():
-            pb = d / "PKGBUILD"
-            pi = self._parse_pkg(pb)
-            print(f"{pi['name']:<30} {pi['version']:<20} {pi['description'][:60]}" if pi else f"{d.name:<30} {'PARSE ERROR':<20}")
+        dirs = self._get_pkg_dirs()
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            for d, pi in executor.map(self._list_worker, dirs):
+                print(
+                    f"{pi['name']:<30} {pi['version']:<20} {pi['description'][:60]}"
+                    if pi
+                    else f"{d.name:<30} {'PARSE ERROR':<20}"
+                )
         return 0
 
     def updpkgsums(self, nm: str) -> int:
@@ -355,11 +436,19 @@ makepkg -si
             err(f"No PKGBUILD found in {nm}")
             return 1
         info(f"Updating checksums for {nm}...")
-        r = subprocess.run(["updpkgsums"], cwd=d, capture_output=True, text=True, check=False)
+        r = subprocess.run(
+            ["updpkgsums"], cwd=d, capture_output=True, text=True, check=False
+        )
         if r.returncode == 0:
             ok(f"Updated checksums for {nm}")
             info("Generating .SRCINFO...")
-            r2 = subprocess.run(["makepkg", "--printsrcinfo"], cwd=d, capture_output=True, text=True, check=False)
+            r2 = subprocess.run(
+                ["makepkg", "--printsrcinfo"],
+                cwd=d,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
             if r2.returncode == 0:
                 (d / ".SRCINFO").write_text(r2.stdout)
                 ok("Generated .SRCINFO")
@@ -374,14 +463,20 @@ makepkg -si
 def main() -> int:
     p = argparse.ArgumentParser(description="vp-dev - PKG repository development tool")
     sp = p.add_subparsers(dest="cmd", help="Commands")
-    sp.add_parser("new", help="Create new package from template").add_argument("pkg", help="Package name")
-    sp.add_parser("test", help="Build package locally").add_argument("pkg", nargs="?", help="Package name (optional)")
+    sp.add_parser("new", help="Create new package from template").add_argument(
+        "pkg", help="Package name"
+    )
+    sp.add_parser("test", help="Build package locally").add_argument(
+        "pkg", nargs="?", help="Package name (optional)"
+    )
     sp.add_parser("update", help="Update packages.json from PKGBUILDs")
     sp.add_parser("publish", help="Update, commit and push changes")
     sp.add_parser("check", help="Validate all PKGBUILDs")
     sp.add_parser("clean", help="Remove all build artifacts")
     sp.add_parser("list", help="List all packages")
-    sp.add_parser("updpkgsums", help="Update checksums in PKGBUILD").add_argument("pkg", help="Package name")
+    sp.add_parser("updpkgsums", help="Update checksums in PKGBUILD").add_argument(
+        "pkg", help="Package name"
+    )
     a = p.parse_args()
     if not a.cmd:
         p.print_help()
@@ -389,13 +484,13 @@ def main() -> int:
     vd = VpDev()
     return {
         "new": lambda: vd.new(a.pkg),
-        "test": lambda: vd.test(a.pkg if hasattr(a, 'pkg') else None),
+        "test": lambda: vd.test(a.pkg if hasattr(a, "pkg") else None),
         "update": vd.update,
         "publish": vd.publish,
         "check": vd.check,
         "clean": vd.clean,
         "list": vd.list,
-        "updpkgsums": lambda: vd.updpkgsums(a.pkg)
+        "updpkgsums": lambda: vd.updpkgsums(a.pkg),
     }.get(a.cmd, lambda: 1)()
 
 
