@@ -1,6 +1,6 @@
 # PKG - Optimized Arch Linux Package Builds
 
-[![Build Status](https://github.com/Ven0m0/PKG/workflows/build/badge.svg)](https://github.com/Ven0m0/PKG/actions)
+[![Maintainability](https://qlty.sh/gh/Ven0m0/projects/PKG/maintainability.svg)](https://qlty.sh/gh/Ven0m0/projects/PKG)
 [![License](https://img.shields.io/badge/license-Various-blue.svg)](LICENSE)
 
 A curated collection of **performance-optimized PKGBUILDs** for Arch Linux packages with custom patches, aggressive compiler optimizations, and enhanced configurations.
