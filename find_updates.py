@@ -529,6 +529,14 @@ if __name__ == "__main__":
         filter(lambda r: r.name in local_repos, [db for db in handle.get_syncdbs()])
     )
 
+    # Pre-calculate Arch package map to avoid N+1 queries in the loop
+    # Maps package name to (package_object, db_name)
+    arch_pkg_map = {}
+    for adb in arch_dbs:
+        for ap in adb.pkgcache:
+            if ap.name not in arch_pkg_map:
+                arch_pkg_map[ap.name] = (ap, adb.name)
+
     for ldb in local_dbs:
         local_packages: List[pyalpm.Package] = ldb.search("")
         # Sort for consistent output/processing order
@@ -540,18 +548,18 @@ if __name__ == "__main__":
         for lp in local_packages:
             if lp.name in found_in_arch:
                 continue
-            for adb in arch_dbs:
-                ap = adb.get_pkg(lp.name)
-                if ap is not None:
-                    found_in_arch.add(lp.name)
-                    # vercmp: left > right = 1
-                    # vercmp: left < right = -1
-                    outdated = pyalpm.vercmp(lp.version, ap.version)
-                    if outdated < 0:
-                        print_package_update(
-                            adb.name, ldb.name, lp.name, ap.version, lp.version
-                        )
-                    break  # Found in one Arch DB, stop checking others
+
+            res = arch_pkg_map.get(lp.name)
+            if res:
+                ap, adb_name = res
+                found_in_arch.add(lp.name)
+                # vercmp: left > right = 1
+                # vercmp: left < right = -1
+                outdated = pyalpm.vercmp(lp.version, ap.version)
+                if outdated < 0:
+                    print_package_update(
+                        adb_name, ldb.name, lp.name, ap.version, lp.version
+                    )
 
         # Filter for AUR check
         aur_candidates = [lp for lp in local_packages if lp.name not in found_in_arch]
