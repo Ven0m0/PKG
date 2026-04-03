@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import json
-from typing import List, Any, Union, Dict, Type, cast
+from typing import List, Any, Dict, Type, Optional
 
 import attr
 import pyalpm
@@ -14,20 +14,20 @@ from colorama import Fore
 
 @attr.s(auto_attribs=True)
 class PackageBasic:
-    id: Union[None, int] = None
-    name: Union[None, str] = None
-    description: Union[None, None, str] = None
-    package_base_id: Union[None, int] = None
-    package_base: Union[None, str] = None
-    maintainer: Union[None, None, str] = None
-    num_votes: Union[None, int] = None
-    popularity: Union[None, float] = None
-    first_submitted: Union[None, int] = None
-    last_modified: Union[None, int] = None
-    out_of_date: Union[None, None, str] = None
-    version: Union[None, str] = None
-    url_path: Union[None, None, str] = None
-    url: Union[None, None, str] = None
+    id: Optional[int] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    package_base_id: Optional[int] = None
+    package_base: Optional[str] = None
+    maintainer: Optional[str] = None
+    num_votes: Optional[int] = None
+    popularity: Optional[float] = None
+    first_submitted: Optional[int] = None
+    last_modified: Optional[int] = None
+    out_of_date: Optional[str] = None
+    version: Optional[str] = None
+    url_path: Optional[str] = None
+    url: Optional[str] = None
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -135,17 +135,17 @@ class PackageBasic:
 
 @attr.s(auto_attribs=True)
 class SearchResult:
-    resultcount: Union[None, int] = None
-    type: Union[None, str] = None
-    version: Union[None, int] = None
-    results: Union[None, List["PackageBasic"]] = None
+    resultcount: Optional[int] = None
+    type: Optional[str] = None
+    version: Optional[int] = None
+    results: Optional[List["PackageBasic"]] = None
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         resultcount = self.resultcount
         type = self.type
         version = self.version
-        results: Union[None, List[Dict[str, Any]]] = None
+        results: Optional[List[Dict[str, Any]]] = None
         if not isinstance(self.results, type(None)):
             results = []
             for results_item_data in self.results:
@@ -205,32 +205,32 @@ class SearchResult:
 
 @attr.s(auto_attribs=True)
 class PackageDetailed:
-    id: Union[None, int] = None
-    name: Union[None, str] = None
-    description: Union[None, None, str] = None
-    package_base_id: Union[None, int] = None
-    package_base: Union[None, str] = None
-    maintainer: Union[None, None, str] = None
-    num_votes: Union[None, int] = None
-    popularity: Union[None, float] = None
-    first_submitted: Union[None, int] = None
-    last_modified: Union[None, int] = None
-    out_of_date: Union[None, None, str] = None
-    version: Union[None, str] = None
-    url_path: Union[None, None, str] = None
-    url: Union[None, None, str] = None
-    submitter: Union[None, str] = None
-    license_: Union[None, List[str]] = None
-    depends: Union[None, List[str]] = None
-    make_depends: Union[None, List[str]] = None
-    opt_depends: Union[None, List[str]] = None
-    check_depends: Union[None, List[str]] = None
-    provides: Union[None, List[str]] = None
-    conflicts: Union[None, List[str]] = None
-    replaces: Union[None, List[str]] = None
-    groups: Union[None, List[str]] = None
-    keywords: Union[None, List[str]] = None
-    co_maintainers: Union[None, List[str]] = None
+    id: Optional[int] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    package_base_id: Optional[int] = None
+    package_base: Optional[str] = None
+    maintainer: Optional[str] = None
+    num_votes: Optional[int] = None
+    popularity: Optional[float] = None
+    first_submitted: Optional[int] = None
+    last_modified: Optional[int] = None
+    out_of_date: Optional[str] = None
+    version: Optional[str] = None
+    url_path: Optional[str] = None
+    url: Optional[str] = None
+    submitter: Optional[str] = None
+    license_: Optional[List[str]] = None
+    depends: Optional[List[str]] = None
+    make_depends: Optional[List[str]] = None
+    opt_depends: Optional[List[str]] = None
+    check_depends: Optional[List[str]] = None
+    provides: Optional[List[str]] = None
+    conflicts: Optional[List[str]] = None
+    replaces: Optional[List[str]] = None
+    groups: Optional[List[str]] = None
+    keywords: Optional[List[str]] = None
+    co_maintainers: Optional[List[str]] = None
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -249,37 +249,37 @@ class PackageDetailed:
         url_path = self.url_path
         url = self.url
         submitter = self.submitter
-        license_: Union[None, List[str]] = None
+        license_: Optional[List[str]] = None
         if not isinstance(self.license_, type(None)):
             license_ = self.license_
-        depends: Union[None, List[str]] = None
+        depends: Optional[List[str]] = None
         if not isinstance(self.depends, type(None)):
             depends = self.depends
-        make_depends: Union[None, List[str]] = None
+        make_depends: Optional[List[str]] = None
         if not isinstance(self.make_depends, type(None)):
             make_depends = self.make_depends
-        opt_depends: Union[None, List[str]] = None
+        opt_depends: Optional[List[str]] = None
         if not isinstance(self.opt_depends, type(None)):
             opt_depends = self.opt_depends
-        check_depends: Union[None, List[str]] = None
+        check_depends: Optional[List[str]] = None
         if not isinstance(self.check_depends, type(None)):
             check_depends = self.check_depends
-        provides: Union[None, List[str]] = None
+        provides: Optional[List[str]] = None
         if not isinstance(self.provides, type(None)):
             provides = self.provides
-        conflicts: Union[None, List[str]] = None
+        conflicts: Optional[List[str]] = None
         if not isinstance(self.conflicts, type(None)):
             conflicts = self.conflicts
-        replaces: Union[None, List[str]] = None
+        replaces: Optional[List[str]] = None
         if not isinstance(self.replaces, type(None)):
             replaces = self.replaces
-        groups: Union[None, List[str]] = None
+        groups: Optional[List[str]] = None
         if not isinstance(self.groups, type(None)):
             groups = self.groups
-        keywords: Union[None, List[str]] = None
+        keywords: Optional[List[str]] = None
         if not isinstance(self.keywords, type(None)):
             keywords = self.keywords
-        co_maintainers: Union[None, List[str]] = None
+        co_maintainers: Optional[List[str]] = None
         if not isinstance(self.co_maintainers, type(None)):
             co_maintainers = self.co_maintainers
         field_dict: Dict[str, Any] = {}
@@ -359,17 +359,17 @@ class PackageDetailed:
         url_path = d.pop("URLPath", None)
         url = d.pop("URL", None)
         submitter = d.pop("Submitter", None)
-        license_ = cast(List[str], d.pop("License", None))
-        depends = cast(List[str], d.pop("Depends", None))
-        make_depends = cast(List[str], d.pop("MakeDepends", None))
-        opt_depends = cast(List[str], d.pop("OptDepends", None))
-        check_depends = cast(List[str], d.pop("CheckDepends", None))
-        provides = cast(List[str], d.pop("Provides", None))
-        conflicts = cast(List[str], d.pop("Conflicts", None))
-        replaces = cast(List[str], d.pop("Replaces", None))
-        groups = cast(List[str], d.pop("Groups", None))
-        keywords = cast(List[str], d.pop("Keywords", None))
-        co_maintainers = cast(List[str], d.pop("CoMaintainers", None))
+        license_: Optional[List[str]] = d.pop("License", None)
+        depends: Optional[List[str]] = d.pop("Depends", None)
+        make_depends: Optional[List[str]] = d.pop("MakeDepends", None)
+        opt_depends: Optional[List[str]] = d.pop("OptDepends", None)
+        check_depends: Optional[List[str]] = d.pop("CheckDepends", None)
+        provides: Optional[List[str]] = d.pop("Provides", None)
+        conflicts: Optional[List[str]] = d.pop("Conflicts", None)
+        replaces: Optional[List[str]] = d.pop("Replaces", None)
+        groups: Optional[List[str]] = d.pop("Groups", None)
+        keywords: Optional[List[str]] = d.pop("Keywords", None)
+        co_maintainers: Optional[List[str]] = d.pop("CoMaintainers", None)
         package_detailed = cls(
             id=id,
             name=name,
@@ -420,17 +420,17 @@ class PackageDetailed:
 
 @attr.s(auto_attribs=True)
 class InfoResult:
-    resultcount: Union[None, int] = None
-    type: Union[None, str] = None
-    version: Union[None, int] = None
-    results: Union[None, List["PackageDetailed"]] = None
+    resultcount: Optional[int] = None
+    type: Optional[str] = None
+    version: Optional[int] = None
+    results: Optional[List["PackageDetailed"]] = None
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         resultcount = self.resultcount
         type = self.type
         version = self.version
-        results: Union[None, List[Dict[str, Any]]] = None
+        results: Optional[List[Dict[str, Any]]] = None
         if not isinstance(self.results, type(None)):
             results = []
             for results_item_data in self.results:
