@@ -28,12 +28,12 @@ source=("git+https://github.com/ghostty-org/${_pkgbasename}")
 sha256sums=('SKIP')
 
 pkgver() {
-	cd "${srcdir}/${_pkgbasename}"
+	cd "${srcdir}/${_pkgbasename}" || exit
 	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
 }
 
 build() {
-	cd "${srcdir}/${_pkgbasename}"
+	cd "${srcdir}/${_pkgbasename}" || exit
 	ZIG_GLOBAL_CACHE_DIR="${srcdir}/tmp" ./nix/build-support/fetch-zig-cache.sh
 	zig build \
 		--system "${srcdir}/tmp/p" \
@@ -44,7 +44,7 @@ build() {
 }
 
 package() {
-	cd "${srcdir}/${_pkgbasename}"
+	cd "${srcdir}/${_pkgbasename}" || exit
 	ZIG_GLOBAL_CACHE_DIR="${srcdir}/tmp" ./nix/build-support/fetch-zig-cache.sh
 	DESTDIR="${pkgdir}" zig build install \
 		--system "${srcdir}/tmp/p" \

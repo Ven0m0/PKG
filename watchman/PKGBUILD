@@ -54,7 +54,7 @@ sha256sums=('6204532fb98121536af65d7aba951fb6b919699e8a6fe42233c3437a84ba1c0a'
   '5b4b032b68d87d648e268c5c08b4d56993d5c1a661e3925b39f54bdef2dfbc42'
   '853457ad70492fec9d7d020b9e067e2aec2ca419c0a5cddd5d93c5fab354c87a')
 prepare() {
-  cd "${pkgname}-${pkgver}"
+  cd "${pkgname}-${pkgver}" || exit
   patch -Np1 --ignore-whitespace --fuzz=3 -i ../watchman-destdir.patch
   sed -i 's/find_package(Glog REQUIRED)/find_package(Glog CONFIG REQUIRED)/' CMakeLists.txt
   python <<END
@@ -75,19 +75,19 @@ END
 }
 
 build() {
-  cd "${pkgname}-${pkgver}"
+  cd "${pkgname}-${pkgver}" || exit
   export RUSTUP_TOOLCHAIN=stable
   # Optimization flags
   export CFLAGS="${CFLAGS/-O2/-O3} -pipe -fno-plt"
   export CXXFLAGS="${CXXFLAGS/-O2/-O3} -pipe -fno-plt"
   export LDFLAGS="${LDFLAGS} -Wl,-O1,--sort-common,--as-needed"
 
-  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_SKIP_INSTALL_RPATH=YES -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_CXX_STANDARD=20 -Wno-dev -DBUILD_SHARED_LIBS=ON -DUSE_SYS_PYTHON=ON -DENABLE_EDEN_SUPPORT=ON -DWATCHMAN_STATE_DIR=/var/run/watchman -DWATCHMAN_VERSION_OVERRIDE=$pkgver -DCMAKE_CXX_FLAGS="-include variant -include cstdint" -DBUILD_TESTING=OFF
+  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_SKIP_INSTALL_RPATH=YES -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_CXX_STANDARD=20 -Wno-dev -DBUILD_SHARED_LIBS=ON -DUSE_SYS_PYTHON=ON -DENABLE_EDEN_SUPPORT=ON -DWATCHMAN_STATE_DIR=/var/run/watchman -DWATCHMAN_VERSION_OVERRIDE="$pkgver" -DCMAKE_CXX_FLAGS="-include variant -include cstdint" -DBUILD_TESTING=OFF
   cmake --build build -j"$(nproc)"
 }
 
 package() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname-$pkgver" || exit
   DESTDIR="$pkgdir" cmake --install build
   install -Dm644 /dev/stdin "$pkgdir/usr/lib/tmpfiles.d/watchman.conf" <<END
 d /run/watchman 1777 root root

@@ -13,25 +13,25 @@ sha256sums=('0afaf2c5277bd60de7b700cf26c95ea9aa41bdae5050ccec25c3e22a45beb2b0')
 # Generated in accordance to https://wiki.archlinux.org/title/Rust_package_guidelines.
 # Might require further modification depending on the package involved.
 prepare() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname-$pkgver" || exit
   RUSTUP_TOOLCHAIN=stable cargo fetch --config git-fetch-with-cli=false --config multiplexing=true --locked --target "$(rustc --print host-tuple)"
 }
 
 build() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname-$pkgver" || exit
   CFLAGS+=' -ffat-lto-objects'
   export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C link-arg=-fuse-ld=lld"
   cargo build --frozen -r
 }
 
 check() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname-$pkgver" || exit
   export RUSTUP_TOOLCHAIN=stable
   cargo test --frozen
 }
 
 package() {
-  cd "$pkgname-$pkgver"
+  cd "$pkgname-$pkgver" || exit
   install -Dm0755 -t "$pkgdir/usr/bin/" "target/release/$pkgname"
   install -Dm0644 /dev/stdin "$pkgdir/usr/lib/systemd/system/nvidia_oc.service" <<'EOF'
 [Unit]

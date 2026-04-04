@@ -55,10 +55,10 @@ sha256sums=('0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5'
             'SKIP' 'SKIP' 'SKIP')
 
 prepare() {
-  cd "${srcdir}"
+  cd "${srcdir}" || exit
   [[ -d ${pkgname}-${pkgver} ]] && rm -rf "${pkgname}-${pkgver}"
   bsdunzip -d "${pkgname}-${pkgver}" "${pkgname}-${pkgver}.zip"
-  cd "${srcdir}/${pkgname}-${pkgver}"
+  cd "${srcdir}/${pkgname}-${pkgver}" || exit
   git init
   # Initialize git submodules with local sources
   for _submodule in enet dynarmic discord-rpc vulkan-headers sirit mbedtls xbyak opus \
@@ -75,36 +75,36 @@ prepare() {
   rm -rf externals/nx_tzdb/tzdb_to_nx
   git -c protocol.file.allow=always submodule add "${srcdir}/tzdb_to_nx" externals/nx_tzdb/tzdb_to_nx
   # Nested submodules
-  pushd externals/cubeb
+  pushd externals/cubeb || exit
     git config submodule.googletest.url "${srcdir}/googletest"
     git config submodule.cmake/sanitizers-cmake.url "${srcdir}/sanitizers-cmake"
     git config submodule.src/cubeb-coreaudio-rs.url "${srcdir}/cubeb-coreaudio-rs"
     git config submodule.src/cubeb-pulse-rs.url "${srcdir}/cubeb-pulse-rs"
     git -c protocol.file.allow=always submodule update
-  popd
-  pushd externals/libadrenotools
+  popd || exit
+  pushd externals/libadrenotools || exit
     git config submodule.lib/linkernsbypass.url "${srcdir}/linkernsbypass"
     git -c protocol.file.allow=always submodule update
-  popd
-  pushd externals/sirit
+  popd || exit
+  pushd externals/sirit || exit
     git config submodule.externals/SPIRV-Headers.url "${srcdir}/SPIRV-Headers"
     git -c protocol.file.allow=always submodule update
-  popd
-  pushd externals/nx_tzdb/tzdb_to_nx
+  popd || exit
+  pushd externals/nx_tzdb/tzdb_to_nx || exit
     git config submodule.externals/tz/tz.url "${srcdir}/tz"
     git -c protocol.file.allow=always submodule update
-  popd
-  pushd externals/dynarmic/externals/zydis
+  popd || exit
+  pushd externals/dynarmic/externals/zydis || exit
     git config submodule.dependencies/zycore.url "${srcdir}/zycore"
     git -c protocol.file.allow=always submodule update
-  popd
+  popd || exit
   # Compatibility patches
   sed -i 's/\bwindow\b/render_window/g' src/sudachi_cmd/emu_window/emu_window_sdl3_vk.cpp
   sed -i '/namespace {/d' src/core/guest_memory.h
 }
 
 build() {
-  cd "${srcdir}/${pkgname}-${pkgver}"
+  cd "${srcdir}/${pkgname}-${pkgver}" || exit
   # Use sccache if available
   command -v sccache &>/dev/null && export RUSTC_WRAPPER=sccache
   cmake -GNinja -B build -S . \
@@ -123,7 +123,7 @@ build() {
 }
 
 package() {
-  cd "${srcdir}/${pkgname}-${pkgver}"
+  cd "${srcdir}/${pkgname}-${pkgver}" || exit
   DESTDIR="${pkgdir}" cmake --install build
 }
 # vim: ts=2 sw=2 et:
