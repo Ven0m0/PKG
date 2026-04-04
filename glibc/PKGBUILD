@@ -37,15 +37,15 @@ b2sums=('cc62922a4587b6913c34600a3783c1771b29bdc2ea341900f63c4cd577e95f0a86a06a1
         'SKIP')
 
 pkgver() {
-  cd glibc
+  cd glibc || exit
   git describe --abbrev=12 --tags | sed 's/[^-]*-//;s/[^-]*-/&r/;s/-/+/g'
 }
 
 prepare() {
   mkdir -p glibc-build lib32-glibc-build
 
-  [[ -d glibc-$pkgver ]] && ln -s glibc-$pkgver glibc
-  cd glibc
+  [[ -d glibc-$pkgver ]] && ln -s glibc-"$pkgver" glibc
+  cd glibc || exit
 
   # Re-enable `--hash-style=both` for building shared objects due to issues with Epic's EAC
   # which relies on DT_HASH to be present in these libs.
@@ -81,7 +81,7 @@ build() {
   CFLAGS=${CFLAGS/-Wp,-D_FORTIFY_SOURCE=3/}
 
   (
-    cd glibc-build
+    cd glibc-build || exit
 
     echo "slibdir=/usr/lib" >> configparms
     echo "rtlddir=/usr/lib" >> configparms
@@ -102,7 +102,7 @@ build() {
   )
 
   (
-    cd lib32-glibc-build
+    cd lib32-glibc-build || exit
     export CC="gcc -m32 -mstackrealign"
     export CXX="g++ -m32 -mstackrealign"
 
@@ -139,7 +139,7 @@ _skip_test() {
 }
 
 check() (
-  cd glibc-build
+  cd glibc-build || exit
 
   # adjust/remove buildflags that cause false-positive testsuite failures
   sed -i 's/-Werror=format-security/-Wformat-security/' config.make   # failure to build testsuite
@@ -179,7 +179,7 @@ package_glibc-eac-roco() {
   # Shipped in tzdata
   rm -f "${pkgdir}"/usr/bin/{tzselect,zdump,zic}
 
-  cd glibc
+  cd glibc || exit
 
   install -dm755 "${pkgdir}"/usr/lib/locale
 
@@ -218,7 +218,7 @@ package_lib32-glibc-eac-roco() {
   options+=('!emptydirs')
   install=lib32-glibc.install
 
-  cd lib32-glibc-build
+  cd lib32-glibc-build || exit
 
   make DESTDIR="${pkgdir}" install
   rm -rf "${pkgdir}"/{etc,sbin,usr/{bin,sbin,share},var}
