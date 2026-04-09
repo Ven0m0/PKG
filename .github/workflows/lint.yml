@@ -59,25 +59,12 @@ jobs:
         pkg: ${{ fromJSON(needs.matrix.outputs.pkgs) }}
     steps:
       - uses: actions/checkout@v6
-      - name: Cache APT packages
-        uses: awalsh128/cache-apt-pkgs-action@v1
+      - name: Build and validate ${{ matrix.pkg }}
+        uses: ./.github/actions/pkgbuild
         with:
-          packages: shellcheck
-          version: 1.0
-      - name: Build and lint ${{ matrix.pkg }}
-        uses: 2m/arch-pkgbuild-builder@v1.21
-        with:
-          target: pkgbuild
-          pkgname: ${{ matrix.pkg }}
-      - name: Validate package
-        uses: MotorTruck1221/arch-linux-pkgbuild-package@v2.2.1
-        with:
-          pkgrel: true
-          pkgver: true
-          namcap: true
-          updpkgsums: true
-          aur: true
-          flags: "-cfsi --noconfirm"
+          pkgdir: ${{ matrix.pkg }}
+          requireSrcinfo: true
+          validateChecksums: true
   fast-lint:
     needs: matrix
     if: ${{ needs.matrix.outputs.files != '[]' && needs.matrix.outputs.files != '' }}

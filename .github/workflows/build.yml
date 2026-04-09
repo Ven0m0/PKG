@@ -136,45 +136,13 @@ jobs:
         with:
           packages: build-essential pkg-config
           version: 1.0
-      - name: Install LLVM and Clang
-        if: steps.build_method.outputs.method == 'standard'
-        uses: KyleMayes/install-llvm-action@v2
-        with:
-          version: "21"
-          cached: true
-      - name: Setup sccache
-        if: steps.build_method.outputs.method == 'standard'
-        uses: mozilla-actions/sccache-action@v0.0.9
-        with:
-          version: "v0.9.0"
-      - name: Cache Rust artifacts
-        if: steps.build_method.outputs.method == 'standard'
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
       - name: Build package (standard)
         if: steps.build_method.outputs.method == 'standard'
         id: makepkg_standard
-        uses: 2m/arch-pkgbuild-builder@v1.21
+        uses: ./.github/actions/pkgbuild
         with:
-          target: pkgbuild
-          pkgname: ${{ matrix.pkg }}
-        env:
-          CC: clang
-          CXX: clang++
-          AR: llvm-ar
-          NM: llvm-nm
-          RANLIB: llvm-ranlib
-          RUSTC_WRAPPER: sccache
-          SCCACHE_GHA_ENABLED: "true"
-          LC_ALL: C
+          pkgdir: ${{ matrix.pkg }}
+          namcapDisable: true
       - name: Set up Docker Buildx
         if: steps.build_method.outputs.method == 'docker'
         uses: docker/setup-buildx-action@v4
@@ -268,24 +236,31 @@ jobs:
               makepkg --noconfirm --needed
             "
           '
-      - name: Display sccache stats
-        if: steps.build_method.outputs.method == 'standard'
-        run: sccache --show-stats || true
       - name: Extract package info
         id: pkg_info
         run: |
+          set -euo pipefail
           cd "${{ matrix.pkg }}"
           source PKGBUILD
+          PKGFILE=""
+          PKGFILE_PATH=""
           # Handle both standard and Docker builds
           if [[ "${{ steps.build_method.outputs.method }}" == "standard" ]]; then
-            PKGFILE="${{ steps.makepkg_standard.outputs.pkgfile0 }}"
+            PKGFILE_PATH="${{ fromJSON(steps.makepkg_standard.outputs.pkgfiles)[0] }}"
+            [[ -n "$PKGFILE_PATH" ]] && PKGFILE="${PKGFILE_PATH##*/}"
           fi
           # Fallback to finding the package file
           if [[ -z "$PKGFILE" ]]; then
-            PKGFILE=$(find . -maxdepth 1 -name "*.pkg.tar.zst" -printf '%f\n' | head -1)
+            shopt -s nullglob
+            pkgfiles=(*.pkg.tar.zst *.pkg.tar.xz)
+            shopt -u nullglob
+            if [[ ${#pkgfiles[@]} -gt 0 ]]; then
+              PKGFILE="${pkgfiles[0]}"
+              PKGFILE_PATH="${{ matrix.pkg }}/${PKGFILE}"
+            fi
           fi
           # Validate PKGFILE exists
-          if [[ -z "$PKGFILE" ]] || [[ ! -f "$PKGFILE" ]]; then
+          if [[ -z "$PKGFILE" ]] || [[ -z "$PKGFILE_PATH" ]] || [[ ! -f "$PKGFILE_PATH" ]]; then
             echo "Error: Package file not found"
             exit 1
           fi

@@ -17,6 +17,14 @@ inputs:
     description: "Support AUR dependencies if nonempty."
     required: false
     default: ""
+  requireSrcinfo:
+    description: "Require .SRCINFO to exist before building."
+    required: false
+    default: "false"
+  validateChecksums:
+    description: "Fail if running updpkgsums would modify PKGBUILD."
+    required: false
+    default: "false"
   namcapDisable:
     description: "Disable namcap checks if nonempty."
     required: false
