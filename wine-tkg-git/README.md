@@ -4,13 +4,11 @@
 
 Wine-tkg is a build-system aiming at easier custom wine builds creation.
 
-
 # Quick how-to :
 
 (for dependencies, see the [wiki page](https://github.com/Tk-Glitch/PKGBUILDS/wiki/wine-tkg-git) )
 
 **Independently of the distro used, you'll want MinGW compiler to build recent wine as it fails to build more often than not without it these days.**
-
 
 ## Download the source :
 
@@ -24,7 +22,6 @@ git clone https://github.com/Frogging-Family/wine-tkg-git.git
 If you want to customize the patches and features of your builds, you can find basic settings in [customization.cfg](https://github.com/Frogging-Family/wine-tkg-git/blob/master/wine-tkg-git/customization.cfg) and advanced settings in [wine-tkg-profiles/advanced-customization.cfg](https://github.com/Frogging-Family/wine-tkg-git/blob/master/wine-tkg-git/wine-tkg-profiles/advanced-customization.cfg).
 
 You can also create an external configuration file that will contain all settings in a centralized way and survive repo updates. A sample file for this can be found [here](https://github.com/Frogging-Family/wine-tkg-git/blob/master/wine-tkg-git/wine-tkg-profiles/sample-external-config.cfg). The default path for this file is `~/.config/frogminer/wine-tkg.cfg` and can be changed in `wine-tkg-profiles/advanced-customization.cfg` with the `_EXT_CONFIG_PATH` option.
-
 
 ## Building :
 

@@ -19,10 +19,10 @@ List the key features and highlights of this package:
 - Performance improvements over stock package
 
 <!-- Example:
-- ✅ Profile-Guided Optimization (PGO) for 20% performance boost
-- ✅ Hardware acceleration enabled (VA-API)
-- ✅ Custom privacy patches
-- ✅ Native architecture targeting (march=native)
+- Profile-Guided Optimization (PGO) for 20% performance boost
+- Hardware acceleration enabled (VA-API)
+- Custom privacy patches
+- Native architecture targeting (march=native)
 -->
 
 ## Source
@@ -91,10 +91,10 @@ Document custom configure options or build settings:
 ```bash
 # Example configure options
 ./configure \
-  --prefix=/usr \
-  --enable-optimizations \
-  --with-feature-x \
-  --without-feature-y
+ --prefix=/usr \
+ --enable-optimizations \
+ --with-feature-x \
+ --without-feature-y
 ```
 
 ## Performance
@@ -130,8 +130,8 @@ makedepends=('build-tool1' 'build-tool2')
 
 ```bash
 optdepends=(
-  'optional-pkg1: for feature X'
-  'optional-pkg2: for feature Y'
+ 'optional-pkg1: for feature X'
+ 'optional-pkg2: for feature Y'
 )
 ```
 

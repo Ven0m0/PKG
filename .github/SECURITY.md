@@ -30,17 +30,17 @@ When creating or updating PKGBUILDs, follow these security guidelines:
 #### 1. Source Verification
 
 ```bash
-# ✅ DO: Use HTTPS for all sources
+# DO: Use HTTPS for all sources
 source=("https://github.com/user/repo/archive/v${pkgver}.tar.gz")
 
-# ❌ DON'T: Use HTTP (vulnerable to MITM attacks)
+# DON'T: Use HTTP (vulnerable to MITM attacks)
 source=("http://insecure-site.com/package.tar.gz")
 
-# ✅ DO: Verify checksums
+# DO: Verify checksums
 sha256sums=('actual_checksum_here')
 
-# ❌ DON'T: Skip verification
-sha256sums=('SKIP')  # Only acceptable for local patches
+# DON'T: Skip verification
+sha256sums=('SKIP') # Only acceptable for local patches
 ```
 
 #### 2. GPG Signature Verification
@@ -50,9 +50,9 @@ When upstream provides GPG signatures:
 ```bash
 validpgpkeys=('FULL_40_CHARACTER_FINGERPRINT')
 source=("${url}/package-${pkgver}.tar.gz"
-        "${url}/package-${pkgver}.tar.gz.sig")
+ "${url}/package-${pkgver}.tar.gz.sig")
 sha256sums=('checksum'
-            'SKIP')
+ 'SKIP')
 ```
 
 #### 3. Patch Security
@@ -60,14 +60,14 @@ sha256sums=('checksum'
 ```bash
 # Review all patches before applying
 prepare() {
-  cd "${srcdir}/${pkgname}-${pkgver}"
+ cd "${srcdir}/${pkgname}-${pkgver}"
 
-  # Document what each patch does
-  # Patch from upstream fixing CVE-2024-XXXX
-  patch -Np1 -i ../0001-security-fix.patch
+ # Document what each patch does
+ # Patch from upstream fixing CVE-2024-XXXX
+ patch -Np1 -i ../0001-security-fix.patch
 
-  # Never apply untrusted patches
-  # Always review patch contents
+ # Never apply untrusted patches
+ # Always review patch contents
 }
 ```
 
@@ -80,26 +80,26 @@ export CFLAGS="$CFLAGS -fstack-clash-protection"
 export CFLAGS="$CFLAGS -D_FORTIFY_SOURCE=2"
 
 # Enable security-focused linker flags
-export LDFLAGS="-Wl,-z,relro,-z,now"  # Full RELRO
-export LDFLAGS="$LDFLAGS -Wl,-z,noexecstack"  # Non-executable stack
+export LDFLAGS="-Wl,-z,relro,-z,now" # Full RELRO
+export LDFLAGS="$LDFLAGS -Wl,-z,noexecstack" # Non-executable stack
 ```
 
 #### 5. Avoid Common Vulnerabilities
 
 ```bash
-# ❌ DON'T: Execute remote code without verification
+# DON'T: Execute remote code without verification
 curl https://example.com/install.sh | bash
 
-# ✅ DO: Download, verify, then execute
+# DO: Download, verify, then execute
 source=("https://example.com/install.sh::${url}/install.sh")
 sha256sums=('verified_checksum')
 
-# ❌ DON'T: Use eval with user input
+# DON'T: Use eval with user input
 eval "$user_input"
 
-# ✅ DO: Validate and sanitize inputs
+# DO: Validate and sanitize inputs
 if [[ "$var" =~ ^[a-zA-Z0-9_-]+$ ]]; then
-  # Safe to use
+ # Safe to use
 fi
 ```
 
@@ -114,7 +114,7 @@ depends=('essential-lib1' 'essential-lib2')
 # lib2: Security-critical crypto functions
 
 # Specify version constraints when security-critical
-depends=('openssl>=3.0.0')  # Requires specific version
+depends=('openssl>=3.0.0') # Requires specific version
 ```
 
 ### For Build Script Authors
@@ -123,35 +123,35 @@ depends=('openssl>=3.0.0')  # Requires specific version
 
 ```bash
 #!/usr/bin/env bash
-set -euo pipefail  # Exit on error, undefined vars, pipe failures
-IFS=$'\n\t'        # Safe word splitting
+set -euo pipefail # Exit on error, undefined vars, pipe failures
+IFS=$'\n\t' # Safe word splitting
 
 # Use absolute paths or validate
 readonly WORK_DIR="${PWD}"
 cd "${WORK_DIR}" || exit 1
 
 # Quote all variables
-echo "${variable}"  # ✅
-echo $variable      # ❌
+echo "${variable}" #
+echo $variable #
 
 # Validate input
 if [[ -n "${1:-}" ]] && [[ -d "$1" ]]; then
-  process_directory "$1"
+ process_directory "$1"
 fi
 ```
 
 #### Avoiding Command Injection
 
 ```bash
-# ❌ DON'T: Use variables in commands without quotes
+# DON'T: Use variables in commands without quotes
 rm -rf $dir/*
 
-# ✅ DO: Quote variables and validate
+# DO: Quote variables and validate
 if [[ -d "${dir}" ]]; then
-  rm -rf "${dir:?}"/*  # :? prevents deletion if empty
+ rm -rf "${dir:?}"/* # :? prevents deletion if empty
 fi
 
-# ✅ DO: Use arrays for complex commands
+# DO: Use arrays for complex commands
 cmd=(makepkg -s --noconfirm)
 "${cmd[@]}"
 ```
@@ -201,9 +201,9 @@ Send an email to the maintainer with:
 
 #### 3. What NOT to Do
 
-- ❌ **Do not** open a public issue
-- ❌ **Do not** disclose the vulnerability publicly before we've had time to fix it
-- ❌ **Do not** exploit the vulnerability beyond proof-of-concept testing
+- **Do not** open a public issue
+- **Do not** disclose the vulnerability publicly before we've had time to fix it
+- **Do not** exploit the vulnerability beyond proof-of-concept testing
 
 ### Response Timeline
 
@@ -255,7 +255,7 @@ Published security advisories can be found:
 
 To stay informed about security updates:
 
-1. **Watch this repository** (Settings → Watch → Custom → Security alerts)
+1. **Watch this repository** (Settings Watch Custom Security alerts)
 2. **Enable GitHub Security Alerts** for your fork
 3. **Subscribe to releases** for update notifications
 4. **Follow Dependabot PRs** for dependency updates
@@ -271,7 +271,7 @@ git merge upstream/main
 
 # For affected packages
 cd affected-package
-makepkg -srC  # Clean rebuild
+makepkg -srC # Clean rebuild
 sudo pacman -U *.pkg.tar.zst
 ```
 

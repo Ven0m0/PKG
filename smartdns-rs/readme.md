@@ -22,7 +22,7 @@ makepkg -si
 - Cross-platform support (x86_64, aarch64)
 - Optimized build with target-native CPU flags
 - Link-time optimization with LLD linker
-- Comprehensive test suite included
+- test suite included
 
 ## License
 

@@ -5,12 +5,12 @@ post_slug: "dxvk-gplasync-lowlatency-dxvk-sarek"
 microsoft_alias: "REPLACE_WITH_ALIAS"
 featured_image: "REPLACE_WITH_IMAGE_URL"
 categories:
-  - gaming
+ - gaming
 tags:
-  - dxvk
-  - vulkan
-  - wine
-  - performance
+ - dxvk
+ - vulkan
+ - wine
+ - performance
 ai_note: "AI-assisted content"
 summary: "Unified DXVK package providing dxvk-gplasync-lowlatency and dxvk-sarek variants for modern and legacy Vulkan-capable GPUs."
 post_date: "2025-01-01"
@@ -34,11 +34,11 @@ This package combines the best of both worlds, allowing you to choose the approp
 - **Source**: <https://github.com/Digger1955/dxvk-gplasync-lowlatency>
 - **Requirements**: Vulkan 1.3+ capable GPU
 - **Features**:
-  - Graphics Pipeline Library async shader compilation
-  - Low latency frame pacing for reduced input lag
-  - Based on DXVK 2.7.1
-  - Optimized state cache handling
-  - Full D3D8, D3D9, D3D10, and D3D11 support
+ - Graphics Pipeline Library async shader compilation
+ - Low latency frame pacing for reduced input lag
+ - Based on DXVK 2.7.1
+ - Optimized state cache handling
+ - Full D3D8, D3D9, D3D10, and D3D11 support
 
 **Ideal for**:
 - Modern NVIDIA GPUs (GTX 900 series and newer)
@@ -51,11 +51,11 @@ This package combines the best of both worlds, allowing you to choose the approp
 - **Source**: <https://github.com/pythonlover02/DXVK-Sarek>
 - **Requirements**: Vulkan 1.1+ capable GPU
 - **Features**:
-  - No Vulkan 1.3 requirement
-  - Based on DXVK 1.11.0 branch
-  - Configurable shader compilation using `DXVK_ALL_CORES`
-  - State caching for reduced stuttering
-  - Full D3D8, D3D9, D3D10, and D3D11 support
+ - No Vulkan 1.3 requirement
+ - Based on DXVK 1.11.0 branch
+ - Configurable shader compilation using `DXVK_ALL_CORES`
+ - State caching for reduced stuttering
+ - Full D3D8, D3D9, D3D10, and D3D11 support
 
 **Ideal for**:
 - Older NVIDIA GPUs (GTX 600/700/800 series)
