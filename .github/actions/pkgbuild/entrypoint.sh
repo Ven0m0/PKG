@@ -126,23 +126,23 @@ fi
 
 # AUR checks that .SRCINFO exists so a missing file can't go unnoticed.
 if [[ -f .SRCINFO ]]; then
-	tmp_srcinfo="$(mktemp)"
-	makepkg --printsrcinfo > "$tmp_srcinfo"
-	if ! cmp -s .SRCINFO "$tmp_srcinfo"; then
-		diff -u .SRCINFO "$tmp_srcinfo" || true
-		rm -f "$tmp_srcinfo"
+	tmp_srcinfo_file="$(mktemp)"
+	makepkg --printsrcinfo > "$tmp_srcinfo_file"
+	if ! cmp -s .SRCINFO "$tmp_srcinfo_file"; then
+		diff -u .SRCINFO "$tmp_srcinfo_file" || true
+		rm -f "$tmp_srcinfo_file"
 		echo "::error file=$FILE,line=$LINENO::Mismatched .SRCINFO. Update with: makepkg --printsrcinfo > .SRCINFO"
 		exit 1
 	fi
-	rm -f "$tmp_srcinfo"
+	rm -f "$tmp_srcinfo_file"
 fi
 
 if [[ "${INPUT_VALIDATECHECKSUMS:-false}" = true ]]; then
 	tmp_pkgbuild="$(mktemp)"
 	cp PKGBUILD "$tmp_pkgbuild"
-	if ! updpkgsums >/dev/null 2>&1; then
+	if ! updpkgsums_stderr="$(updpkgsums 2>&1 >/dev/null)"; then
 		rm -f "$tmp_pkgbuild"
-		echo "::error file=$FILE,line=$LINENO::updpkgsums failed while validating checksums"
+		echo "::error file=$FILE,line=$LINENO::updpkgsums failed while validating checksums: ${updpkgsums_stderr}"
 		exit 1
 	fi
 	if ! cmp -s "$tmp_pkgbuild" PKGBUILD; then

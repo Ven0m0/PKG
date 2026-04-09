@@ -246,19 +246,19 @@ jobs:
           PKGFILE_PATH=""
           # Handle both standard and Docker builds
           if [[ "${{ steps.build_method.outputs.method }}" == "standard" ]]; then
-            PKGFILES_JSON='${{ steps.makepkg_standard.outputs.pkgfiles }}'
-            if [[ -n "$PKGFILES_JSON" ]]; then
-              if ! PKGFILE_PATH=$(python -c 'import json, sys; data = json.loads(sys.argv[1]); print(data[0] if isinstance(data, list) and data else "", end=""); raise SystemExit(0 if isinstance(data, list) else 1)' "$PKGFILES_JSON" 2>/dev/null); then
-                echo "Error: Invalid pkgfiles output: $PKGFILES_JSON"
-                exit 1
-              fi
-            fi
+            PKGFILE_PATH="${{ steps.build_method.outputs.method == 'standard' && join(fromJSON(steps.makepkg_standard.outputs.pkgfiles), '\n') || '' }}"
+            PKGFILE_PATH="${PKGFILE_PATH%%$'\n'*}"
             [[ -n "$PKGFILE_PATH" ]] && PKGFILE="${PKGFILE_PATH##*/}"
           fi
           # Fallback to finding the package file
           if [[ -z "$PKGFILE" ]]; then
-            PKGFILE=$(find . -maxdepth 1 -name "*.pkg.tar.*" -printf '%f\n' | head -1)
-            [[ -n "$PKGFILE" ]] && PKGFILE_PATH="${{ matrix.pkg }}/${PKGFILE}"
+            shopt -s nullglob
+            pkgfiles=(./*.pkg.tar.*)
+            shopt -u nullglob
+            if [[ ${#pkgfiles[@]} -gt 0 ]]; then
+              PKGFILE="${pkgfiles[0]##./}"
+              PKGFILE_PATH="${{ matrix.pkg }}/${PKGFILE}"
+            fi
           fi
           # Validate PKGFILE exists
           if [[ -z "$PKGFILE" ]] || [[ -z "$PKGFILE_PATH" ]] || [[ ! -f "$PKGFILE_PATH" ]]; then
