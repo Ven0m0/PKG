@@ -246,13 +246,13 @@ jobs:
           PKGFILE_PATH=""
           # Handle both standard and Docker builds
           if [[ "${{ steps.build_method.outputs.method }}" == "standard" ]]; then
-            PKGFILE_PATH="${{ fromJSON(steps.makepkg_standard.outputs.pkgfiles)[0] || '' }}"
+            PKGFILE_PATH="${{ fromJSON(steps.makepkg_standard.outputs.pkgfiles)[0] }}"
             [[ -n "$PKGFILE_PATH" ]] && PKGFILE="${PKGFILE_PATH##*/}"
           fi
           # Fallback to finding the package file
           if [[ -z "$PKGFILE" ]]; then
             shopt -s nullglob
-            pkgfiles=(*.pkg.tar.*)
+            pkgfiles=(*.pkg.tar.zst *.pkg.tar.xz)
             shopt -u nullglob
             if [[ ${#pkgfiles[@]} -gt 0 ]]; then
               PKGFILE="${pkgfiles[0]}"
