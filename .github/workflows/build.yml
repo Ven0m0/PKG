@@ -248,14 +248,7 @@ jobs:
           if [[ "${{ steps.build_method.outputs.method }}" == "standard" ]]; then
             PKGFILES_JSON='${{ steps.makepkg_standard.outputs.pkgfiles }}'
             if [[ -n "$PKGFILES_JSON" ]]; then
-              if ! PKGFILE_PATH=$(python -c 'import json, sys
-try:
-  data = json.loads(sys.argv[1])
-except json.JSONDecodeError:
-  raise SystemExit(1)
-if not isinstance(data, list):
-  raise SystemExit(1)
-print(data[0] if data else "", end="")' "$PKGFILES_JSON"); then
+              if ! PKGFILE_PATH=$(python -c 'import json, sys; data = json.loads(sys.argv[1]); print(data[0] if isinstance(data, list) and data else "", end=""); raise SystemExit(0 if isinstance(data, list) else 1)' "$PKGFILES_JSON" 2>/dev/null); then
                 echo "Error: Invalid pkgfiles output: $PKGFILES_JSON"
                 exit 1
               fi
