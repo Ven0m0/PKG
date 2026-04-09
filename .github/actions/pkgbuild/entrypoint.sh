@@ -140,9 +140,9 @@ fi
 if [[ "${INPUT_VALIDATECHECKSUMS:-false}" = true ]]; then
 	tmp_pkgbuild="$(mktemp)"
 	cp PKGBUILD "$tmp_pkgbuild"
-	if ! updpkgsums_stderr="$(updpkgsums 2>&1 >/dev/null)"; then
+	if ! updpkgsums_output="$(updpkgsums 2>&1 >/dev/null)"; then
 		rm -f "$tmp_pkgbuild"
-		echo "::error file=$FILE,line=$LINENO::updpkgsums failed while validating checksums: ${updpkgsums_stderr}"
+		echo "::error file=$FILE,line=$LINENO::updpkgsums failed while validating checksums: ${updpkgsums_output}"
 		exit 1
 	fi
 	if ! cmp -s "$tmp_pkgbuild" PKGBUILD; then
