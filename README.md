@@ -3,45 +3,45 @@
 [![Maintainability](https://qlty.sh/gh/Ven0m0/projects/PKG/maintainability.svg)](https://qlty.sh/gh/Ven0m0/projects/PKG)
 [![License](https://img.shields.io/badge/license-Various-blue.svg)](LICENSE)
 
-A curated collection of **performance-optimized PKGBUILDs** for Arch Linux packages with custom patches, aggressive compiler optimizations, and enhanced configurations.
+Performance-optimized PKGBUILDs for Arch Linux packages with custom patches, compiler optimizations, and enhanced configurations.
 
 ## Utilities
 
-- [ISA Level Detection](ISA-DETECTION.md) - Check x86-64 microarchitecture level support (based on [CachyOS/cachyos-repo-add-script](https://github.com/CachyOS/cachyos-repo-add-script))
+- [ISA Level Detection](tools/check-isa-level.sh) - Check x86-64 microarchitecture level support (based on [CachyOS/cachyos-repo-add-script](https://github.com/CachyOS/cachyos-repo-add-script))
 
-## Cloudflare
+## Overview
 
 This repository provides optimized package builds for Arch Linux with a focus on:
 
-- **Performance**: Aggressive compiler optimizations (-O3, LTO, PGO, native architecture targeting)
+- **Performance**: Compiler optimizations (-O3, LTO, PGO, native architecture targeting)
 - **Security**: Enhanced security flags, verified checksums, HTTPS sources
 - **Customization**: Custom patches, debloating, and performance tuning
-- **Quality**: Automated CI/CD testing, comprehensive linting, and validation
+- **Quality**: Automated CI/CD testing, linting, and validation
 
 ## Features
 
 ### Build System
 
-- ✅ **Automated builds** with GitHub Actions CI/CD
-- ✅ **Docker support** for complex packages (Firefox, OBS Studio, etc.)
-- ✅ **Parallel compilation** with intelligent core limiting
-- ✅ **Caching support** (sccache, ccache, apt packages)
-- ✅ **Multiple compiler support** (Clang/LLVM preferred)
+- **Automated builds** with GitHub Actions CI/CD
+- **Docker support** for complex packages (Firefox, OBS Studio, etc.)
+- **Parallel compilation** with intelligent core limiting
+- **Caching support** (sccache, ccache, apt packages)
+- **Multiple compiler support** (Clang/LLVM preferred)
 
 ### Code Quality
 
-- ✅ **Comprehensive linting** (shellcheck, shellharden, shfmt, namcap)
-- ✅ **Automated formatting** with consistent style enforcement
-- ✅ **EditorConfig integration** for consistent coding standards
-- ✅ **Git hooks with lefthook** for automated quality checks
+- ** linting** (shellcheck, shellharden, shfmt, namcap)
+- **Automated formatting** with consistent style enforcement
+- **EditorConfig integration** for consistent coding standards
+- **Git hooks with lefthook** for automated quality checks
 
 ### Optimization Techniques
 
-- ✅ **Profile-Guided Optimization** (PGO) for critical packages
-- ✅ **Link-Time Optimization** (LTO) enabled by default
-- ✅ **Native architecture targeting** (march=native, mtune=native)
-- ✅ **Aggressive inlining** and vectorization
-- ✅ **Memory layout optimizations** (-fno-plt, section garbage collection)
+- **Profile-Guided Optimization** (PGO) for critical packages
+- **Link-Time Optimization** (LTO) enabled by default
+- **Native architecture targeting** (march=native, mtune=native)
+- **Aggressive inlining** and vectorization
+- **Memory layout optimizations** (-fno-plt, section garbage collection)
 
 ## Quick Start
 
@@ -82,24 +82,24 @@ cd ..
 
 ```
 PKG/
-├── .github/
-│   ├── workflows/          # CI/CD pipelines (build, lint, automerge)
-│   ├── scripts/            # CI-only helper scripts
-│   ├── instructions/       # GitHub-specific guidelines
-│   └── agents/             # AI agent configurations
-├── <package-name>/         # Individual package directories
-│   ├── PKGBUILD           # Package build script (required)
-│   ├── .SRCINFO           # Metadata (auto-generated)
-│   ├── README.md          # Package documentation
-│   ├── patches/           # Custom patches
-│   └── *.patch            # Individual patch files
-├── lib/helpers.sh         # Shared shell helper functions
-├── pkg.sh                 # Unified build/lint/srcinfo tool
-├── vp                     # Package helper CLI
-├── CLAUDE.md              # AI assistant documentation
-├── CONTRIBUTING.md        # Contribution guidelines
-├── SECURITY.md            # Security policy
-└── README.md              # This file
+ .github/
+ workflows/ # CI/CD pipelines (build, lint, automerge)
+ scripts/ # CI-only helper scripts
+ instructions/ # GitHub-specific guidelines
+ agents/ # AI agent configurations
+ <package-name>/ # Individual package directories
+ PKGBUILD # Package build script (required)
+ .SRCINFO # Metadata (auto-generated)
+ README.md # Package documentation
+ patches/ # Custom patches
+ *.patch # Individual patch files
+ lib/helpers.sh # Shared shell helper functions
+ pkg.sh # Unified build/lint/srcinfo tool
+ vp # Package helper CLI
+ CLAUDE.md # AI assistant documentation
+ CONTRIBUTING.md # Contribution guidelines
+ SECURITY.md # Security policy
+ README.md # This file
 ```
 
 ## Available Packages
@@ -108,7 +108,7 @@ PKG/
 
 | Package | Description | Optimizations |
 |---------|-------------|---------------|
-| **firefox** | Web browser | PGO, BOLT, VA-API, aggressive optimizations |
+| **firefox** | Web browser | PGO, BOLT, VA-API, heavy optimizations |
 | **chromium** | Web browser | Custom flags, performance patches |
 | **obs-studio** | Video recording/streaming | Optimized build configuration |
 | **ffmpeg** | Multimedia framework | Hardware acceleration, codec optimizations |
@@ -321,7 +321,7 @@ Security is a priority. See [SECURITY.md](SECURITY.md) for:
 
 ## Documentation
 
-- **[CLAUDE.md](CLAUDE.md)** - Comprehensive AI assistant guide and project conventions
+- **[CLAUDE.md](CLAUDE.md)** - AI assistant guide and project conventions
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines and workflow
 - **[SECURITY.md](SECURITY.md)** - Security policy and vulnerability reporting
 - **[TODO.md](TODO.md)** - Planned features and improvements
@@ -347,4 +347,3 @@ See individual package directories for specific license information.
 
 **Maintained by**: Ven0m0
 **Repository**: <https://github.com/Ven0m0/PKG>
-**Last Updated**: 2025-12-24

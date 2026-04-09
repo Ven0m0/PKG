@@ -40,9 +40,9 @@ Thank you for your interest in contributing to PKG! This document provides guide
 2. **base-devel** package group
 3. **Git** for version control
 4. **Code quality tools**:
-   ```bash
-   sudo pacman -S shellcheck shfmt namcap
-   ```
+ ```bash
+ sudo pacman -S shellcheck shfmt namcap
+ ```
 
 ### Fork and Clone
 
@@ -149,10 +149,10 @@ git push origin feature/package-name
 2. Click "New Pull Request"
 3. Select your feature branch
 4. Fill out the PR template:
-   - **Title**: `package-name: Brief description`
-   - **Description**: Detailed explanation of changes
-   - **Testing**: How you tested the changes
-   - **Related Issues**: Link any related issues
+ - **Title**: `package-name: Brief description`
+ - **Description**: Detailed explanation of changes
+ - **Testing**: How you tested the changes
+ - **Related Issues**: Link any related issues
 
 ## Coding Standards
 
@@ -219,7 +219,7 @@ shell_variant = bash
 # Contributor: Other Name <email@example.com>
 
 _pkgname=originalname
-pkgname="${_pkgname}-custom"  # Use suffix if conflicts exist
+pkgname="${_pkgname}-custom" # Use suffix if conflicts exist
 pkgver=1.0.0
 pkgrel=1
 pkgdesc='Clear, concise description'
@@ -232,37 +232,37 @@ optdepends=('optional-dep: for feature X')
 provides=("${_pkgname}")
 conflicts=("${_pkgname}")
 source=("https://url/to/${_pkgname}-${pkgver}.tar.gz"
-        'local-patch.patch')
+ 'local-patch.patch')
 sha256sums=('CHECKSUM_HERE'
-            'SKIP')  # Use SKIP for local files
+ 'SKIP') # Use SKIP for local files
 
 prepare() {
-  cd "${_pkgname}-${pkgver}" || exit
-  # Apply patches
-  patch -Np1 -i ../local-patch.patch
+ cd "${_pkgname}-${pkgver}" || exit
+ # Apply patches
+ patch -Np1 -i ../local-patch.patch
 }
 
 build() {
-  cd "${_pkgname}-${pkgver}" || exit
+ cd "${_pkgname}-${pkgver}" || exit
 
-  # Optimization flags
-  export CFLAGS="${CFLAGS/-O2/-O3} -pipe -fno-plt -fstack-protector-strong"
-  export CXXFLAGS="${CXXFLAGS/-O2/-O3} -pipe -fno-plt -fstack-protector-strong"
-  export LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
+ # Optimization flags
+ export CFLAGS="${CFLAGS/-O2/-O3} -pipe -fno-plt -fstack-protector-strong"
+ export CXXFLAGS="${CXXFLAGS/-O2/-O3} -pipe -fno-plt -fstack-protector-strong"
+ export LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
 
-  # Configure and build
-  ./configure --prefix=/usr
-  make
+ # Configure and build
+ ./configure --prefix=/usr
+ make
 }
 
 check() {
-  cd "${_pkgname}-${pkgver}" || exit
-  make check
+ cd "${_pkgname}-${pkgver}" || exit
+ make check
 }
 
 package() {
-  cd "${_pkgname}-${pkgver}" || exit
-  make DESTDIR="$pkgdir" install
+ cd "${_pkgname}-${pkgver}" || exit
+ make DESTDIR="$pkgdir" install
 }
 ```
 
@@ -281,7 +281,7 @@ export CXXFLAGS="$CXXFLAGS -fstack-protector-strong -fstack-clash-protection"
 
 # Linker optimizations
 export LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
-export LDFLAGS="$LDFLAGS -Wl,--gc-sections"  # Remove unused sections
+export LDFLAGS="$LDFLAGS -Wl,--gc-sections" # Remove unused sections
 
 # Parallel builds
 export MAKEFLAGS="-j$(nproc)"
@@ -299,10 +299,10 @@ export RUSTFLAGS="$RUSTFLAGS -Ccodegen-units=1 -Cpanic=abort"
 1. **Use HTTPS for sources**: `https://` not `http://`
 2. **Verify checksums**: Use `sha256sums` or `sha512sums`
 3. **GPG signatures** (when available):
-   ```bash
-   validpgpkeys=('KEY_FINGERPRINT')
-   source+=("${url}.sig")
-   ```
+ ```bash
+ validpgpkeys=('KEY_FINGERPRINT')
+ source+=("${url}.sig")
+ ```
 4. **Review patches**: Understand what every patch does
 5. **No arbitrary code execution**: Avoid `curl | bash` patterns
 
@@ -313,7 +313,7 @@ export RUSTFLAGS="$RUSTFLAGS -Ccodegen-units=1 -Cpanic=abort"
 ```bash
 # CPU-specific optimizations
 if [[ $(uname -m) == "x86_64" ]]; then
-  makedepends+=('nasm')
+ makedepends+=('nasm')
 fi
 ```
 
@@ -321,8 +321,8 @@ fi
 
 ```bash
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/user/repo/archive/v${pkgver}.tar.gz"
-        "${pkgname}.desktop"
-        "0001-fix-something.patch")
+ "${pkgname}.desktop"
+ "0001-fix-something.patch")
 ```
 
 #### Git Sources
@@ -332,8 +332,8 @@ source=("git+https://github.com/user/repo.git#tag=v${pkgver}")
 sha256sums=('SKIP')
 
 pkgver() {
-  cd repo
-  git describe --long --tags | sed 's/^v//;s/-/.r/;s/-/./'
+ cd repo
+ git describe --long --tags | sed 's/^v//;s/-/.r/;s/-/./'
 }
 ```
 
@@ -542,16 +542,16 @@ Ensure all checks pass before requesting review.
 ```bash
 # Patch naming convention
 patches/
-├── 0001-descriptive-name.patch
-├── 0002-another-feature.patch
-└── 0003-security-fix.patch
+ 0001-descriptive-name.patch
+ 0002-another-feature.patch
+ 0003-security-fix.patch
 
 # In PKGBUILD
 prepare() {
-  cd "${srcdir}/${_pkgname}-${pkgver}"
-  for patch in "${srcdir}"/patches/*.patch; do
-    patch -Np1 -i "$patch"
-  done
+ cd "${srcdir}/${_pkgname}-${pkgver}"
+ for patch in "${srcdir}"/patches/*.patch; do
+ patch -Np1 -i "$patch"
+ done
 }
 ```
 
@@ -564,14 +564,14 @@ prepare() {
 
 ### Common Mistakes to Avoid
 
-1. ❌ Forgetting to update .SRCINFO
-2. ❌ Not testing clean builds
-3. ❌ Hardcoding paths that should be variables
-4. ❌ Using HTTP instead of HTTPS
-5. ❌ Not validating checksums
-6. ❌ Ignoring linter warnings
-7. ❌ Mixing tabs and spaces
-8. ❌ Missing error handling in prepare/build functions
+1. Forgetting to update .SRCINFO
+2. Not testing clean builds
+3. Hardcoding paths that should be variables
+4. Using HTTP instead of HTTPS
+5. Not validating checksums
+6. Ignoring linter warnings
+7. Mixing tabs and spaces
+8. Missing error handling in prepare/build functions
 
 ## Resources
 
@@ -600,4 +600,3 @@ By contributing to this project, you agree that your contributions will be licen
 ---
 
 **Questions?** Open an issue or discussion on GitHub.
-**Thank you for contributing!**

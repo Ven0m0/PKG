@@ -2,7 +2,7 @@
 
 ## Description
 
-Comprehensive collection of DXVK variants optimized for different use cases and hardware. DXVK is a Vulkan-based translation layer for Direct3D 9/10/11, allowing Windows games to run on Linux with improved performance.
+ collection of DXVK variants optimized for different use cases and hardware. DXVK is a Vulkan-based translation layer for Direct3D 9/10/11, allowing Windows games to run on Linux with improved performance.
 
 ## Variants
 
@@ -18,7 +18,7 @@ This repository includes three DXVK variants:
 - Optimized state cache handling
 - Supports D3D8, D3D9, D3D10, D3D11
 
-[Read more →](dxvk-gplasync-lowlatency/readme.md)
+[Read more ](dxvk-gplasync-lowlatency/readme.md)
 
 ### 2. dxvk-sarek
 
@@ -30,7 +30,7 @@ This repository includes three DXVK variants:
 - Perfect for GTX 600/700 series, older AMD GCN GPUs
 - Backported QoL improvements from newer DXVK
 
-[Read more →](dxvk-sarek/readme.md)
+[Read more ](dxvk-sarek/readme.md)
 
 ### 3. dxvk-nvapi-vkreflex-layer
 
@@ -42,7 +42,7 @@ This repository includes three DXVK variants:
 - PhysX support
 - Works with both Wine and Proton
 
-[Read more →](dxvk-nvapi/readme.md)
+[Read more ](dxvk-nvapi/readme.md)
 
 ## Quick Start
 
@@ -77,24 +77,24 @@ setup_dxvk_nvapi install
 
 ## Comparison Table
 
-| Feature                 | gplasync-lowlatency | sarek    | nvapi         |
+| Feature | gplasync-lowlatency | sarek | nvapi |
 | ----------------------- | ------------------- | -------- | ------------- |
-| **DXVK Version**        | 2.7.1               | 1.11.0   | Layer only    |
-| **Vulkan Requirement**  | 1.3                 | 1.1+     | 1.1+          |
-| **GPL Async**           | ✅                   | ❌        | N/A           |
-| **Low Latency Mode**    | ✅                   | ❌        | ✅ (Reflex)    |
-| **Old GPU Support**     | ❌                   | ✅        | ⚠️ (NVIDIA)   |
-| **DLSS Support**        | ❌                   | ❌        | ✅             |
-| **NVIDIA Reflex**       | ❌                   | ❌        | ✅             |
-| **State Cache**         | ✅ Advanced          | ✅ Basic  | N/A           |
-| **D3D8 Support**        | ✅                   | ✅        | N/A           |
-| **Best For**            | Gaming performance  | Old GPUs | NVIDIA users  |
+| **DXVK Version** | 2.7.1 | 1.11.0 | Layer only |
+| **Vulkan Requirement** | 1.3 | 1.1+ | 1.1+ |
+| **GPL Async** | | | N/A |
+| **Low Latency Mode** | | | (Reflex) |
+| **Old GPU Support** | | | (NVIDIA) |
+| **DLSS Support** | | | |
+| **NVIDIA Reflex** | | | |
+| **State Cache** | Advanced | Basic | N/A |
+| **D3D8 Support** | | | N/A |
+| **Best For** | Gaming performance | Old GPUs | NVIDIA users |
 
 ## Use Cases
 
 ### Gaming on Modern Hardware
 
-→ Use **dxvk-gplasync-lowlatency**
+ Use **dxvk-gplasync-lowlatency**
 
 - Latest features and optimizations
 - Best performance on new GPUs
@@ -102,7 +102,7 @@ setup_dxvk_nvapi install
 
 ### Gaming on Older Hardware
 
-→ Use **dxvk-sarek**
+ Use **dxvk-sarek**
 
 - Supports older Vulkan versions
 - Compatible with GTX 600/700, AMD GCN 1-3
@@ -110,7 +110,7 @@ setup_dxvk_nvapi install
 
 ### NVIDIA-Specific Features
 
-→ Use **dxvk-nvapi-vkreflex-layer** (in addition to DXVK)
+ Use **dxvk-nvapi-vkreflex-layer** (in addition to DXVK)
 
 - Enable DLSS for AI upscaling
 - Use Reflex for competitive gaming
@@ -141,21 +141,21 @@ DXVK_STATE_CACHE_PATH=~/.cache/wine/dxvk_state_cache
 **dxvk-gplasync-lowlatency:**
 
 ```bash
-DXVK_ASYNC=1  # Enable async compilation (default)
-DXVK_LOW_LATENCY_ALLOW_CPU_FRAMES_OVERLAP=0  # Reduce input lag
+DXVK_ASYNC=1 # Enable async compilation (default)
+DXVK_LOW_LATENCY_ALLOW_CPU_FRAMES_OVERLAP=0 # Reduce input lag
 ```
 
 **dxvk-sarek:**
 
 ```bash
-DXVK_ALL_CORES=1  # Use all CPU cores for compilation
+DXVK_ALL_CORES=1 # Use all CPU cores for compilation
 ```
 
 **dxvk-nvapi:**
 
 ```bash
-DXVK_NVAPI_LOG_LEVEL=info  # NVAPI debug logging
-VKD3D_CONFIG=dxr  # Enable ray tracing
+DXVK_NVAPI_LOG_LEVEL=info # NVAPI debug logging
+VKD3D_CONFIG=dxr # Enable ray tracing
 ```
 
 ## Sources

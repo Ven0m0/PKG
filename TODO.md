@@ -4,17 +4,19 @@ This document tracks planned features, improvements, and long-term goals for the
 
 ## High Priority
 
-- implement build workflows from https://github.com/loathingKernel/PKGBUILDs
-- https://github.com/John-CPP/ABS
-- https://github.com/ms178/archpkgbuilds
-- https://github.com/Terromur/PKGBUILDs
-- https://github.com/ms178/archpkgbuilds/tree/main/packages/vkd3d-proton-mingw-git
-- https://github.com/ms178/archpkgbuilds/tree/main/packages/tar-parallel
-- https://github.com/FabioLolix/PKGBUILD-AUR_fix
+### External references to review
+
+- [ ] Implement build workflows inspired by [loathingKernel/PKGBUILDs](https://github.com/loathingKernel/PKGBUILDs)
+- [ ] Review [John-CPP/ABS](https://github.com/John-CPP/ABS)
+- [ ] Review [ms178/archpkgbuilds](https://github.com/ms178/archpkgbuilds)
+- [ ] Review [Terromur/PKGBUILDs](https://github.com/Terromur/PKGBUILDs)
+- [ ] Review [ms178 vkd3d-proton-mingw-git](https://github.com/ms178/archpkgbuilds/tree/main/packages/vkd3d-proton-mingw-git)
+- [ ] Review [ms178 tar-parallel](https://github.com/ms178/archpkgbuilds/tree/main/packages/tar-parallel)
+- [ ] Review [FabioLolix/PKGBUILD-AUR_fix](https://github.com/FabioLolix/PKGBUILD-AUR_fix)
 
 ### Documentation
 
-- [x] **Comprehensive README.md** - Added detailed project overview, quick start, features
+- [x] **README.md** - Added detailed project overview, quick start, features
 - [x] **CONTRIBUTING.md** - Created contribution guidelines and workflow documentation
 - [x] **Enhanced SECURITY.md** - Expanded security policy with best practices
 - [x] **Package README template** - Created standard template for package documentation
@@ -34,11 +36,11 @@ This document tracks planned features, improvements, and long-term goals for the
 ### Package Improvements
 
 - [ ] **Add more optimized PKGBUILDs**
-  - [ ] Python (PGO-optimized build)
-  - [ ] GCC (optimized bootstrap)
-  - [ ] Node.js (with custom V8 flags)
-  - [ ] PostgreSQL (with JIT and optimizations)
-  - [ ] Nginx (with custom modules)
+ - [ ] Python (PGO-optimized build)
+ - [ ] GCC (optimized bootstrap)
+ - [ ] Node.js (with custom V8 flags)
+ - [ ] PostgreSQL (with JIT and optimizations)
+ - [ ] Nginx (with custom modules)
 
 - [ ] **Enhance existing packages**
   - [ ] Firefox: BOLT optimization refinement
@@ -48,140 +50,149 @@ This document tracks planned features, improvements, and long-term goals for the
   - [ ] gitoxide: Fix optimize.patch to be valid
   - [ ] varia: Create PKGBUILD from make-appimage.sh
 
+- [ ] **Package-specific follow-ups**
+  - [ ] DXVK: review [dxvk-mingw-git](https://github.com/ms178/archpkgbuilds/tree/main/packages/dxvk-mingw-git)
+  - [ ] DXVK: review [dxvk-pure-clang-git](https://github.com/Terromur/PKGBUILDs/tree/main/dxvk-pure-clang-git)
+  - [ ] FFmpeg: review [ms178 ffmpeg PKGBUILD](https://github.com/ms178/archpkgbuilds/tree/main/packages/ffmpeg)
+  - [ ] Firefox: review features and patches from [DarkFox](https://github.com/compiledkernel-idk/DarkFox)
+  - [ ] Firefox: review updates from [CachyOS firefox-wayland-cachy-hg](https://github.com/CachyOS/firefox-wayland-cachy-hg)
+  - [ ] Heroic Games Launcher: review [ms178 heroic-games-launcher PKGBUILD](https://github.com/ms178/archpkgbuilds/blob/main/packages/heroic-games-launcher/PKGBUILD)
+  - [ ] Wine CachyOS: review [ms178 wine-cachyos](https://github.com/ms178/archpkgbuilds/tree/main/packages/wine-cachyos)
+
 - [ ] **AppImage integration research**
-  - [ ] [Citron AppImage](https://github.com/pkgforge-dev/Citron-AppImage)
-  - [ ] [Azahar AppImage Enhanced](https://github.com/pkgforge-dev/Azahar-AppImage-Enhanced)
+ - [ ] [Citron AppImage](https://github.com/pkgforge-dev/Citron-AppImage)
+ - [ ] [Azahar AppImage Enhanced](https://github.com/pkgforge-dev/Azahar-AppImage-Enhanced)
 
 - [ ] **Package documentation improvements**
-  - [ ] Standardize all package READMEs using template
-  - [ ] Add performance benchmarks where applicable
-  - [ ] Document build options comprehensively
+ - [ ] Standardize all package READMEs using template
+ - [ ] Add performance benchmarks where applicable
+ - [ ] Document build options thoroughly
 
 ### Build System
 
 - [ ] **Enhanced caching**
-  - [ ] Distributed ccache/sccache setup
-  - [ ] PGO profile caching and reuse
-  - [ ] Source tarball caching
+ - [ ] Distributed ccache/sccache setup
+ - [ ] PGO profile caching and reuse
+ - [ ] Source tarball caching
 
 - [ ] **Build optimization**
-  - [ ] Parallel package builds
-  - [ ] Build dependency graph generation
-  - [ ] Incremental build support
+ - [ ] Parallel package builds
+ - [ ] Build dependency graph generation
+ - [ ] Incremental build support
 
 - [ ] **Docker improvements**
-  - [ ] Multi-stage Docker builds
-  - [ ] Smaller base images
-  - [ ] Layer optimization
+ - [ ] Multi-stage Docker builds
+ - [ ] Smaller base images
+ - [ ] Layer optimization
 
 ### Quality Assurance
 
 - [ ] **Automated package testing**
-  - [ ] Basic functionality tests
-  - [ ] Integration tests for complex packages
-  - [ ] Performance regression testing
+ - [ ] Basic functionality tests
+ - [ ] Integration tests for complex packages
+ - [ ] Performance regression testing
 
 - [ ] **Code quality improvements**
-  - [x] Pre-commit hooks setup
-  - [x] Automated formatting enforcement (yamlfmt, biome integration)
-  - [x] Additional linting rules (enhanced shellcheck, ruff, yamlfmt)
+ - [x] Pre-commit hooks setup
+ - [x] Automated formatting enforcement (yamlfmt, biome integration)
+ - [x] Additional linting rules (enhanced shellcheck, ruff, yamlfmt)
 
 - [ ] **Security enhancements**
-  - [x] Automated vulnerability scanning (dependency-review with fail-on-severity)
-  - [x] Supply chain verification (dependency-review)
-  - [ ] Reproducible builds
+ - [x] Automated vulnerability scanning (dependency-review with fail-on-severity)
+ - [x] Supply chain verification (dependency-review)
+ - [ ] Reproducible builds
 
 ## Low Priority / Long-term
 
 ### Cross-Platform Support
 
 - [ ] **[AppImages](https://github.com/pkgforge-dev/Anylinux-AppImages)**
-  - [ ] Research AppImage integration
-  - [ ] Create AppImage build pipeline
-  - [ ] Compatibility testing (Arch, Debian, Termux)
-  - [ ] Documentation for AppImage creation
+ - [ ] Research AppImage integration
+ - [ ] Create AppImage build pipeline
+ - [ ] Compatibility testing (Arch, Debian, Termux)
+ - [ ] Documentation for AppImage creation
 
 - [ ] **Container images**
-  - [ ] OCI/Docker images from PKGBUILDs
-  - [ ] Automated image building
-  - [ ] Image registry setup
+ - [ ] OCI/Docker images from PKGBUILDs
+ - [ ] Automated image building
+ - [ ] Image registry setup
 
 ### Patch Management
 
 - [ ] **[TKG patches integration](https://github.com/Frogging-Family/community-patches)**
-  - [ ] Implement autofetch for community patches
-  - [ ] Patch compatibility testing
-  - [ ] Automated patch updating
-  - [ ] User-selectable patch sets
+ - [ ] Implement autofetch for community patches
+ - [ ] Patch compatibility testing
+ - [ ] Automated patch updating
+ - [ ] User-selectable patch sets
 
 - [ ] **Custom patch repository**
-  - [ ] Centralized patch management
-  - [ ] Patch versioning and tracking
-  - [ ] Automated patch application testing
+ - [ ] Centralized patch management
+ - [ ] Patch versioning and tracking
+ - [ ] Automated patch application testing
 
 ### Debloating Project
 
 - [ ] **[Archlinux-pkgs-debloated](https://github.com/Ven0m0/archlinux-pkgs-debloated)**
-  - [ ] Define debloating criteria
-  - [ ] Identify common bloat patterns
-  - [ ] Create debloated variants
-  - [ ] Document removed features
+ - [ ] Define debloating criteria
+ - [ ] Identify common bloat patterns
+ - [ ] Create debloated variants
+ - [ ] Document removed features
 
 ### Advanced Optimizations
 
 - [ ] **Profile-Guided Optimization (PGO)**
-  - [ ] Automated PGO profile generation
-  - [ ] Profile sharing infrastructure
-  - [ ] Workload-specific profiles
+ - [ ] Automated PGO profile generation
+ - [ ] Profile sharing infrastructure
+ - [ ] Workload-specific profiles
 
 - [ ] **BOLT optimization**
-  - [ ] Expand BOLT to more packages
-  - [ ] BOLT profile optimization
-  - [ ] Performance measurement framework
+ - [ ] Expand BOLT to more packages
+ - [ ] BOLT profile optimization
+ - [ ] Performance measurement framework
 
 - [ ] **Architecture-specific builds**
-  - [ ] x86-64-v2, v3, v4 variants
-  - [ ] ARM64 support
-  - [ ] RISC-V experimental builds
+ - [ ] x86-64-v2, v3, v4 variants
+ - [ ] ARM64 support
+ - [ ] RISC-V experimental builds
 
 ### Community Features
 
 - [ ] **Package request system**
-  - [ ] Template for package requests
-  - [ ] Prioritization mechanism
-  - [ ] Community voting
+ - [ ] Template for package requests
+ - [ ] Prioritization mechanism
+ - [ ] Community voting
 
 - [ ] **Build farm**
-  - [ ] Distributed build infrastructure
-  - [ ] Community-contributed builders
-  - [ ] Build status dashboard
+ - [ ] Distributed build infrastructure
+ - [ ] Community-contributed builders
+ - [ ] Build status dashboard
 
 - [ ] **Package adoption program**
-  - [ ] Guidelines for package maintainers
-  - [ ] Co-maintainer system
-  - [ ] Maintainer documentation
+ - [ ] Guidelines for package maintainers
+ - [ ] Co-maintainer system
+ - [ ] Maintainer documentation
 
 ### Automation
 
 - [ ] **CI/CD enhancements**
-  - [x] Multi-architecture builds (arm64 support enabled)
-  - [x] Enhanced Docker security (capability dropping, no-new-privileges)
-  - [x] Input validation for workflow_dispatch
-  - [x] Optimized caching strategies
-  - [ ] Automated package updates
-  - [ ] Upstream monitoring
-  - [ ] Changelog generation
-  - [ ] Release automation
+ - [x] Multi-architecture builds (arm64 support enabled)
+ - [x] Enhanced Docker security (capability dropping, no-new-privileges)
+ - [x] Input validation for workflow_dispatch
+ - [x] Optimized caching strategies
+ - [ ] Automated package updates
+ - [ ] Upstream monitoring
+ - [ ] Changelog generation
+ - [ ] Release automation
 
 - [ ] **Bot integration**
-  - [ ] Automated issue triage
-  - [ ] PR auto-review for common issues
-  - [ ] Dependency update automation
+ - [ ] Automated issue triage
+ - [ ] PR auto-review for common issues
+ - [ ] Dependency update automation
 
 - [ ] **Metrics and monitoring**
-  - [ ] Build time tracking
-  - [ ] Success rate monitoring
-  - [ ] Popular package analytics
+ - [ ] Build time tracking
+ - [ ] Success rate monitoring
+ - [ ] Popular package analytics
 
 ## Completed
 
@@ -192,14 +203,14 @@ This document tracks planned features, improvements, and long-term goals for the
 - [x] **Better TODO.md organization** (2025-12-20)
 - [x] **Git hooks setup with lefthook** (2025-12-24)
 - [x] **Workflow refactoring and optimization** (2025-12-29)
-  - Removed irrelevant webpack.yml workflow
-  - Enhanced build.yml with multi-arch support, Docker security hardening, input validation
-  - Upgraded to latest action versions (arch-pkgbuild-builder@v1.25)
-  - Replaced yamllint with yamlfmt and prettier with biome in lint.yml
-  - Enhanced dependency-review.yml with security options (fail-on-severity, license controls)
-  - Added proper error handling with set -euo pipefail across workflows
-  - Removed unsafe apt-get upgrade operations from CI
-  - Added Docker operation timeouts and security constraints
+ - Removed irrelevant webpack.yml workflow
+ - Enhanced build.yml with multi-arch support, Docker security hardening, input validation
+ - Upgraded to latest action versions (arch-pkgbuild-builder@v1.25)
+ - Replaced yamllint with yamlfmt and prettier with biome in lint.yml
+ - Enhanced dependency-review.yml with security options (fail-on-severity, license controls)
+ - Added proper error handling with set -euo pipefail across workflows
+ - Removed unsafe apt-get upgrade operations from CI
+ - Added Docker operation timeouts and security constraints
 
 ## Ideas / Research
 
@@ -220,8 +231,6 @@ These are ideas that need more research before committing:
 - [Frogging-Family/community-patches](https://github.com/Frogging-Family/community-patches) - Community patch repository
 - [CachyOS-PKGBUILDS](https://github.com/CachyOS/CachyOS-PKGBUILDS) - Inspiration for optimizations
 - [lseman's PKGBUILDs](https://github.com/lseman/PKGBUILDs) - PGO examples
-- [pkgforge-dev/Anylinux-AppImages](https://github.com/pkgforge-dev/Anylinux-AppImages)
-- [Frogging-Family](https://github.com/Frogging-Family/community-patches)
 
 ### Technical Resources
 

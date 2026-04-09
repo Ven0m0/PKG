@@ -17,20 +17,20 @@ ENABLE_BOLT=true makepkg -si
 
 ## Key Features
 
-✅ **Profile-Guided Optimization** (PGO) with smart profile reuse
-✅ **Optional 3-Stage Context-Sensitive PGO** (+1-3% performance)
-✅ **VA-API hardware acceleration** (force-enabled for Intel/AMD/NVIDIA)
-✅ **Aggressive compiler optimizations** (-O3, native arch, full LTO)
-✅ **Polly loop optimization** for better vectorization
-✅ **Smart RAM-based core limiting** (prevents OOM)
-✅ **System library integration** (reduces size, improves compatibility)
-✅ **Privacy-focused** (all telemetry disabled, Ghostery patches)
-✅ **KDE integration patches** included
-✅ **WASM SIMD/AVX/Memory64** optimizations enabled
-✅ **sccache support** (auto-detected)
-✅ **Firefox Vanilla optimizations** (Enhanced WASM, aggressive module disabling)
-✅ **RAW image format support** enabled
-✅ **Enhanced binary stripping** (aggressive size reduction)
+ **Profile-Guided Optimization** (PGO) with smart profile reuse
+ **Optional 3-Stage Context-Sensitive PGO** (+1-3% performance)
+ **VA-API hardware acceleration** (force-enabled for Intel/AMD/NVIDIA)
+ **Aggressive compiler optimizations** (-O3, native arch, full LTO)
+ **Polly loop optimization** for better vectorization
+ **Smart RAM-based core limiting** (prevents OOM)
+ **System library integration** (reduces size, improves compatibility)
+ **Privacy-focused** (all telemetry disabled, Ghostery patches)
+ **KDE integration patches** included
+ **WASM SIMD/AVX/Memory64** optimizations enabled
+ **sccache support** (auto-detected)
+ **Firefox Vanilla optimizations** (Enhanced WASM, maximum module disabling)
+ **RAW image format support** enabled
+ **Enhanced binary stripping** (maximum size reduction)
 
 ## Build Options
 
@@ -91,7 +91,7 @@ This ultimate PKGBUILD is merged from multiple optimized Firefox builds:
 - **Floorp PKGBUILD** - PGO profile reuse, smart core limiting
 - **Flowfox** - Clean build patterns
 - **Waterfox** - Additional optimization techniques
-- **[Firefox Vanilla](https://github.com/Ven0m0/firefox-vanilla)** - Enhanced WASM optimizations, aggressive performance tuning
+- **[Firefox Vanilla](https://github.com/Ven0m0/firefox-vanilla)** - Enhanced WASM optimizations, performance tuning
 
 ### Additional Credits
 

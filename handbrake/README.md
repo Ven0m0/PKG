@@ -3,7 +3,7 @@
 ### Purpose of the project
 
 This project contains the patches needed to replace SVT-AV1 with SVT-AV1-Essential inside HandBrake.\
-Based on Ven0m0/HandBrake-SVT-AV1-Essential, this integration additionally includes enhanced features from both HandBrake-SVT-AV1-HDR and HandBrake-SVT-AV1-PSY forks, providing comprehensive support for HDR content encoding and psycho-visual optimizations.
+Based on Ven0m0/HandBrake-SVT-AV1-Essential, this integration additionally includes enhanced features from both HandBrake-SVT-AV1-HDR and HandBrake-SVT-AV1-PSY forks, providing support for HDR content encoding and psycho-visual optimizations.
 
 ### Features
 

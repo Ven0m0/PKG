@@ -1,6 +1,6 @@
 # glibc-eac-roco
 
-## ⚠️ SECURITY WARNING - GAMING-SPECIFIC FORK ⚠️
+## SECURITY WARNING - GAMING-SPECIFIC FORK
 
 **THIS IS A SPECIALIZED GAMING BUILD WITH SECURITY/MODERNIZATION TRADE-OFFS**
 
@@ -9,7 +9,7 @@ This package contains custom patches that **revert upstream glibc improvements**
 - **Rogue Company** game
 - Other games using older glibc assumptions
 
-### **⚠️ DO NOT USE FOR GENERAL-PURPOSE SYSTEMS**
+### ** DO NOT USE FOR GENERAL-PURPOSE SYSTEMS**
 
 This build is **NOT recommended** for:
 - Production servers
@@ -85,24 +85,24 @@ This build is **NOT recommended** for:
 
 | Aspect | Official glibc | glibc-eac-roco |
 | :------ | :------------- | :------------- |
-| **Security** | ✅ Latest patches | ⚠️ Reverted improvements |
-| **Performance** | ✅ Optimized | ⚠️ Older code paths |
-| **Compatibility** | ✅ Standard | ⚠️ Divergent |
-| **Gaming (EAC/Rogue Co)** | ❌ May not work | ✅ Works |
-| **General Use** | ✅ Recommended | ❌ Not recommended |
-| **Security Updates** | ✅ Upstream | ⚠️ Manual tracking needed |
+| **Security** | Latest patches | Reverted improvements |
+| **Performance** | Optimized | Older code paths |
+| **Compatibility** | Standard | Divergent |
+| **Gaming (EAC/Rogue Co)** | May not work | Works |
+| **General Use** | Recommended | Not recommended |
+| **Security Updates** | Upstream | Manual tracking needed |
 
 ---
 
 ## Recommendations
 
-### ✅ Use This Package If:
+### Use This Package If:
 - You **need** to play games with Easy Anti-Cheat
 - You **need** to play Rogue Company
 - You understand and accept the security trade-offs
 - This is a **dedicated gaming system**
 
-### ❌ DO NOT Use This Package If:
+### DO NOT Use This Package If:
 - You don't play EAC-protected games
 - You run a multi-user system
 - You handle sensitive data

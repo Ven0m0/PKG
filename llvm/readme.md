@@ -1,6 +1,6 @@
 # LLVM Minimal (Optimized)
 
-Comprehensive LLVM toolchain with optimizations including clang, clang-tools-extra, lld, lldb, polly, bolt, and compiler-rt.
+ LLVM toolchain with optimizations including clang, clang-tools-extra, lld, lldb, polly, bolt, and compiler-rt.
 
 ## Description
 
@@ -14,7 +14,7 @@ This package builds LLVM and related tools from git sources with performance opt
 ## Features
 
 - **Performance optimizations**: -O3, -fno-semantic-interposition, minimal debug info
-- **Comprehensive toolset**: clang, lld, lldb, polly, bolt
+- ** toolset**: clang, lld, lldb, polly, bolt
 - **Multilib support**: Compatible with 32-bit and 64-bit builds
 - **Minimal size**: Distribution components used to avoid unnecessary static libraries
 

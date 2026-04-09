@@ -82,28 +82,28 @@ makepkg -si
 1. Edit `customization.cfg` to your preferences
 2. (Optional) Add custom patches as `*.mymesapatch` in the directory
 3. Build:
-   ```bash
-   makepkg -si
-   ```
+ ```bash
+ makepkg -si
+ ```
 
 ### PGO Build (Profile-Guided Optimization)
 
 1. First build with PGO generation:
-   ```bash
-   # In customization.cfg, set:
-   _additional_meson_flags="--strip --buildtype release -Db_pgo=generate"
-   _lto="false"
-   makepkg -si
-   ```
+ ```bash
+ # In customization.cfg, set:
+ _additional_meson_flags="--strip --buildtype release -Db_pgo=generate"
+ _lto="false"
+ makepkg -si
+ ```
 
 2. Run your games/applications to generate profiles
 
 3. Rebuild with PGO optimization:
-   ```bash
-   # In customization.cfg, set:
-   _additional_meson_flags="--strip --buildtype release -Db_pgo=use"
-   makepkg -si
-   ```
+ ```bash
+ # In customization.cfg, set:
+ _additional_meson_flags="--strip --buildtype release -Db_pgo=use"
+ makepkg -si
+ ```
 
 ## User Patches
 
@@ -112,9 +112,9 @@ makepkg -si
 1. Place patch files in the `mesa-git/` directory or `mesa-git/mesa-userpatches/`
 2. Name them with `.mymesapatch` extension
 3. Enable in `customization.cfg`:
-   ```bash
-   _user_patches="true"
-   ```
+ ```bash
+ _user_patches="true"
+ ```
 
 ### Reverting Patches
 
@@ -162,9 +162,9 @@ This build is configured with:
 ## Notes
 
 - `.SRCINFO` must be regenerated after changing `customization.cfg`:
-  ```bash
-  makepkg --printsrcinfo > .SRCINFO
-  ```
+ ```bash
+ makepkg --printsrcinfo > .SRCINFO
+ ```
 - Git builds can be unstable; use stable `mesa` package for production systems
 - Build time can be long (30-60+ minutes) depending on enabled drivers and CPU
 
