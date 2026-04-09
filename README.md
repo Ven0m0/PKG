@@ -7,7 +7,7 @@ A curated collection of **performance-optimized PKGBUILDs** for Arch Linux packa
 
 ## Utilities
 
-- [ISA Level Detection](ISA-DETECTION.md) - Check x86-64 microarchitecture level support (based on [CachyOS/cachyos-repo-add-script](https://github.com/CachyOS/cachyos-repo-add-script))
+- [ISA Level Detection](tools/check-isa-level.sh) - Check x86-64 microarchitecture level support (based on [CachyOS/cachyos-repo-add-script](https://github.com/CachyOS/cachyos-repo-add-script))
 
 ## Cloudflare
 
