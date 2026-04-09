@@ -246,7 +246,14 @@ jobs:
           PKGFILE_PATH=""
           # Handle both standard and Docker builds
           if [[ "${{ steps.build_method.outputs.method }}" == "standard" ]]; then
-            PKGFILE_PATH=$(jq -r '.[0] // empty' <<< '${{ steps.makepkg_standard.outputs.pkgfiles }}')
+            PKGFILES_JSON='${{ steps.makepkg_standard.outputs.pkgfiles }}'
+            if [[ -n "$PKGFILES_JSON" ]]; then
+              if ! jq -e 'type == "array"' >/dev/null 2>&1 <<<"$PKGFILES_JSON"; then
+                echo "Error: Invalid pkgfiles output: $PKGFILES_JSON"
+                exit 1
+              fi
+              PKGFILE_PATH=$(jq -r '.[0] // empty' <<<"$PKGFILES_JSON")
+            fi
             [[ -n "$PKGFILE_PATH" ]] && PKGFILE="${PKGFILE_PATH##*/}"
           fi
           # Fallback to finding the package file

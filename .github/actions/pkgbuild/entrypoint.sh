@@ -125,15 +125,21 @@ if [[ "${INPUT_REQUIRESRCINFO:-false}" = true ]] && [[ ! -f .SRCINFO ]]; then
 fi
 
 # AUR checks that .SRCINFO exists so a missing file can't go unnoticed.
-if [[ -f .SRCINFO ]] && ! makepkg --printsrcinfo | diff - .SRCINFO; then
-	echo "::error file=$FILE,line=$LINENO::Mismatched .SRCINFO. Update with: makepkg --printsrcinfo > .SRCINFO"
-	exit 1
+if [[ -f .SRCINFO ]]; then
+	if ! makepkg --printsrcinfo | diff -u .SRCINFO - >/dev/null; then
+		echo "::error file=$FILE,line=$LINENO::Mismatched .SRCINFO. Update with: makepkg --printsrcinfo > .SRCINFO"
+		exit 1
+	fi
 fi
 
 if [[ "${INPUT_VALIDATECHECKSUMS:-false}" = true ]]; then
 	tmp_pkgbuild="$(mktemp)"
 	cp PKGBUILD "$tmp_pkgbuild"
-	updpkgsums
+	if ! updpkgsums >/dev/null 2>&1; then
+		rm -f "$tmp_pkgbuild"
+		echo "::error file=$FILE,line=$LINENO::updpkgsums failed while validating checksums"
+		exit 1
+	fi
 	if ! cmp -s "$tmp_pkgbuild" PKGBUILD; then
 		diff -u "$tmp_pkgbuild" PKGBUILD || true
 		rm -f "$tmp_pkgbuild"
