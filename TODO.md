@@ -4,17 +4,19 @@ This document tracks planned features, improvements, and long-term goals for the
 
 ## High Priority
 
-- implement build workflows from https://github.com/loathingKernel/PKGBUILDs
-- https://github.com/John-CPP/ABS
-- https://github.com/ms178/archpkgbuilds
-- https://github.com/Terromur/PKGBUILDs
-- https://github.com/ms178/archpkgbuilds/tree/main/packages/vkd3d-proton-mingw-git
-- https://github.com/ms178/archpkgbuilds/tree/main/packages/tar-parallel
-- https://github.com/FabioLolix/PKGBUILD-AUR_fix
+### External references to review
+
+- [ ] Implement build workflows inspired by [loathingKernel/PKGBUILDs](https://github.com/loathingKernel/PKGBUILDs)
+- [ ] Review [John-CPP/ABS](https://github.com/John-CPP/ABS)
+- [ ] Review [ms178/archpkgbuilds](https://github.com/ms178/archpkgbuilds)
+- [ ] Review [Terromur/PKGBUILDs](https://github.com/Terromur/PKGBUILDs)
+- [ ] Review [ms178 vkd3d-proton-mingw-git](https://github.com/ms178/archpkgbuilds/tree/main/packages/vkd3d-proton-mingw-git)
+- [ ] Review [ms178 tar-parallel](https://github.com/ms178/archpkgbuilds/tree/main/packages/tar-parallel)
+- [ ] Review [FabioLolix/PKGBUILD-AUR_fix](https://github.com/FabioLolix/PKGBUILD-AUR_fix)
 
 ### Documentation
 
-- [x] ** README.md** - Added detailed project overview, quick start, features
+- [x] **README.md** - Added detailed project overview, quick start, features
 - [x] **CONTRIBUTING.md** - Created contribution guidelines and workflow documentation
 - [x] **Enhanced SECURITY.md** - Expanded security policy with best practices
 - [x] **Package README template** - Created standard template for package documentation
@@ -41,12 +43,21 @@ This document tracks planned features, improvements, and long-term goals for the
  - [ ] Nginx (with custom modules)
 
 - [ ] **Enhance existing packages**
- - [ ] Firefox: BOLT optimization refinement
- - [ ] Chromium: Update to latest patches
- - [ ] Mesa: Latest upstream features
- - [ ] LLVM: PGO instrumentation
- - [ ] gitoxide: Fix optimize.patch to be valid
- - [ ] varia: Create PKGBUILD from make-appimage.sh
+  - [ ] Firefox: BOLT optimization refinement
+  - [ ] Chromium: Update to latest patches
+  - [ ] Mesa: Latest upstream features
+  - [ ] LLVM: PGO instrumentation
+  - [ ] gitoxide: Fix optimize.patch to be valid
+  - [ ] varia: Create PKGBUILD from make-appimage.sh
+
+- [ ] **Package-specific follow-ups**
+  - [ ] DXVK: review [dxvk-mingw-git](https://github.com/ms178/archpkgbuilds/tree/main/packages/dxvk-mingw-git)
+  - [ ] DXVK: review [dxvk-pure-clang-git](https://github.com/Terromur/PKGBUILDs/tree/main/dxvk-pure-clang-git)
+  - [ ] FFmpeg: review [ms178 ffmpeg PKGBUILD](https://github.com/ms178/archpkgbuilds/tree/main/packages/ffmpeg)
+  - [ ] Firefox: review features and patches from [DarkFox](https://github.com/compiledkernel-idk/DarkFox)
+  - [ ] Firefox: review updates from [CachyOS firefox-wayland-cachy-hg](https://github.com/CachyOS/firefox-wayland-cachy-hg)
+  - [ ] Heroic Games Launcher: review [ms178 heroic-games-launcher PKGBUILD](https://github.com/ms178/archpkgbuilds/blob/main/packages/heroic-games-launcher/PKGBUILD)
+  - [ ] Wine CachyOS: review [ms178 wine-cachyos](https://github.com/ms178/archpkgbuilds/tree/main/packages/wine-cachyos)
 
 - [ ] **AppImage integration research**
  - [ ] [Citron AppImage](https://github.com/pkgforge-dev/Citron-AppImage)
@@ -220,8 +231,6 @@ These are ideas that need more research before committing:
 - [Frogging-Family/community-patches](https://github.com/Frogging-Family/community-patches) - Community patch repository
 - [CachyOS-PKGBUILDS](https://github.com/CachyOS/CachyOS-PKGBUILDS) - Inspiration for optimizations
 - [lseman's PKGBUILDs](https://github.com/lseman/PKGBUILDs) - PGO examples
-- [pkgforge-dev/Anylinux-AppImages](https://github.com/pkgforge-dev/Anylinux-AppImages)
-- [Frogging-Family](https://github.com/Frogging-Family/community-patches)
 
 ### Technical Resources
 
