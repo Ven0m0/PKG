@@ -246,8 +246,7 @@ jobs:
           PKGFILE_PATH=""
           # Handle both standard and Docker builds
           if [[ "${{ steps.build_method.outputs.method }}" == "standard" ]]; then
-            PKGFILE_PATH="${{ join(fromJSON(steps.makepkg_standard.outputs.pkgfiles), '\n') }}"
-            PKGFILE_PATH="${PKGFILE_PATH%%$'\n'*}"
+            PKGFILE_PATH="${{ fromJSON(steps.makepkg_standard.outputs.pkgfiles)[0] || '' }}"
             [[ -n "$PKGFILE_PATH" ]] && PKGFILE="${PKGFILE_PATH##*/}"
           fi
           # Fallback to finding the package file
