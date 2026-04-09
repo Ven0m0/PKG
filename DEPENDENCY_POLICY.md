@@ -675,8 +675,6 @@ optdepends=(
 
 - [Arch PKGBUILD Guidelines](https://wiki.archlinux.org/title/PKGBUILD)
 - [Arch Package Guidelines](https://wiki.archlinux.org/title/Arch_package_guidelines)
-- [DEPENDENCY_AUDIT_REPORT.md](./DEPENDENCY_AUDIT_REPORT.md)
-- [DEPENDENCY_BLOAT_ANALYSIS.md](./DEPENDENCY_BLOAT_ANALYSIS.md)
 
 ---
 
