@@ -120,7 +120,7 @@ fi
 # Assume that if .SRCINFO is missing then it is generated elsewhere unless it is
 # explicitly required by the caller.
 if [[ "${INPUT_REQUIRESRCINFO:-false}" = true ]] && [[ ! -f .SRCINFO ]]; then
-	echo "::error file=$FILE,line=$LINENO::.SRCINFO is required but missing"
+	echo "::error file=$FILE,line=$LINENO::SRCINFO file is required but missing"
 	exit 1
 fi
 
