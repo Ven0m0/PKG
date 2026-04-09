@@ -119,18 +119,18 @@ fi
 
 # Assume that if .SRCINFO is missing then it is generated elsewhere unless it is
 # explicitly required by the caller.
-if [ "${INPUT_REQUIRESRCINFO:-false}" = true ] && [ ! -f .SRCINFO ]; then
+if [[ "${INPUT_REQUIRESRCINFO:-false}" = true ]] && [[ ! -f .SRCINFO ]]; then
 	echo "::error file=$FILE,line=$LINENO::.SRCINFO is required but missing"
 	exit 1
 fi
 
 # AUR checks that .SRCINFO exists so a missing file can't go unnoticed.
-if [ -f .SRCINFO ] && ! makepkg --printsrcinfo | diff - .SRCINFO; then
+if [[ -f .SRCINFO ]] && ! makepkg --printsrcinfo | diff - .SRCINFO; then
 	echo "::error file=$FILE,line=$LINENO::Mismatched .SRCINFO. Update with: makepkg --printsrcinfo > .SRCINFO"
 	exit 1
 fi
 
-if [ "${INPUT_VALIDATECHECKSUMS:-false}" = true ]; then
+if [[ "${INPUT_VALIDATECHECKSUMS:-false}" = true ]]; then
 	tmp_pkgbuild="$(mktemp)"
 	cp PKGBUILD "$tmp_pkgbuild"
 	updpkgsums
