@@ -42,11 +42,20 @@ jobs:
           uv tool install ruff
           uv tool install black
 
-      # Node.js toolchain — pattern from setup-bun/action.yml
+      # Node.js + Bun toolchain — pattern from setup-bun/action.yml
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "22"
+          node-version: "24"
+
+      - name: Enable Corepack
+        shell: bash
+        run: corepack enable
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
       - name: Install JS and YAML linters
         shell: bash
