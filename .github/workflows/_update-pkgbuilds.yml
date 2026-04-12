@@ -22,7 +22,7 @@ jobs:
         Update version-controlled PKGBUILDs and open one pull request.
         ${{ inputs.packages != '' && format('Only process these package directories: {0}', inputs.packages) || 'If no packages are provided, process every package listed in nvchecker.toml.' }}
         Requirements:
-        1. Discover package directories with `rg --files -g '**/PKGBUILD'` and limit work to the requested directories or the package keys in `nvchecker.toml`.
+        1. Discover package directories with `git ls-files ':(glob)**/PKGBUILD'`; if that is unavailable, fall back to `rg --files -g '**/PKGBUILD'`. Limit work to the requested directories or the package keys in `nvchecker.toml`.
         2. Read `nvchecker.toml` and `.github/nvchecker/old_ver.json` first. Keep both files version controlled and update `.github/nvchecker/old_ver.json` for every package you change.
         3. Run fully non-interactively. Never wait for input. Use explicit flags for git, gh, and makepkg commands.
         4. Before editing anything, create a branch named `update/pkgbuilds-$(date +%Y%m%d-%H%M%S)`.
