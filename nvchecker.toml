@@ -24,6 +24,8 @@ github = "llvm/llvm-project"
 use_latest_release = true
 prefix = "llvmorg-"
 
+# Directory name is chromium/, but the packaged browser is Cromite and its
+# upstream release metadata lives in uazo/cromite.
 ["chromium"]
 source = "github"
 github = "uazo/cromite"
