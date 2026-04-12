@@ -29,9 +29,11 @@ jobs:
         5. For normal PKGBUILDs, update `pkgver`, reset `pkgrel=1`, run `updpkgsums`, then `makepkg --printsrcinfo > .SRCINFO`.
         6. For `proton-cachyos-slr` and `wine-cachyos`, update `_srctag` and keep the derived `pkgver` expression unchanged.
         7. For `llvm`, treat the nvchecker result as the tracked upstream release version for `.github/nvchecker/old_ver.json`; if the PKGBUILD derives `pkgver` via `pkgver()`, refresh it with non-interactive makepkg tooling instead of editing the generated value by hand.
-        8. For `chromium`, parse the tracked Cromite release as `{pkgver}-{commit}`, update both `pkgver` and `_commit`, and if `_pkgver` is missing insert the unevaluated PKGBUILD assignment `_pkgver=${pkgver}` immediately after the `pkgver=` line so the source URLs keep following the current `pkgver` variable before refreshing sums and `.SRCINFO`.
-        9. If `updpkgsums` or `makepkg --printsrcinfo` fails, skip that package and record the reason.
-        10. Commit only the changed tracked files with a concise summary of updated and skipped packages, push the branch, and create one PR against `main`. If nothing changed, exit without creating a PR.
+        8. For `chromium`, parse the tracked Cromite release as `{pkgver}-{commit}`.
+        9. For `chromium`, update both `pkgver` and `_commit`, and if `_pkgver` is missing insert the unevaluated PKGBUILD assignment `_pkgver=${pkgver}` immediately after the `pkgver=` line so the source URLs keep following the current `pkgver` variable.
+        10. For `chromium`, refresh sums and `.SRCINFO` after the metadata update.
+        11. If `updpkgsums` or `makepkg --printsrcinfo` fails, skip that package and record the reason.
+        12. Commit only the changed tracked files with a concise summary of updated and skipped packages, push the branch, and create one PR against `main`. If nothing changed, exit without creating a PR.
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
