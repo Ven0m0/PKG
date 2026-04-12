@@ -10,7 +10,7 @@ newver = ".github/nvchecker/new_ver.json"
 
 ["proton-cachyos-slr"]
 source = "regex"
-url = "https://api.github.com/repos/CachyOS/proton-cachyos/releases/latest"
+url = "https://api.github.com/repos/CachyOS/proton-cachyos/releases?per_page=100"
 regex = '"tag_name":\s*"cachyos-([\d.]+-\d{8})-slr"'
 
 ["wine-cachyos"]

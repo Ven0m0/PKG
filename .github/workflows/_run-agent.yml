@@ -137,6 +137,7 @@ jobs:
         if: inputs.provider == 'opencode'
         uses: actions/cache@v5
         with:
+          # OpenCode stores downloaded provider packages under ~/.cache/opencode.
           path: ~/.cache/opencode
           key: opencode-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.github/workflows/_run-agent.yml') }}
           restore-keys: |
