@@ -1,0 +1,73 @@
+name: Copilot Setup Steps
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+permissions:
+  contents: read
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install system packages
+        uses: awalsh128/cache-apt-pkgs-action@v1
+        with:
+          packages: shellcheck jq
+          version: 1.0
+
+      # Python toolchain — uses astral-sh/setup-uv for fast installs
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install Python linters
+        shell: bash
+        run: |
+          uv tool install ruff
+          uv tool install black
+
+      # Node.js toolchain — pattern from setup-bun/action.yml
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Install JS and YAML linters
+        shell: bash
+        run: |
+          npm install -g --no-fund --no-audit @biomejs/biome
+          go install github.com/google/yamlfmt/cmd/yamlfmt@latest
+          sudo mv "$HOME/go/bin/yamlfmt" /usr/local/bin/
+
+      - name: Install shfmt
+        shell: bash
+        run: |
+          SHFMT_VERSION="3.10.0"
+          wget -q "https://github.com/mvdan/sh/releases/download/v${SHFMT_VERSION}/shfmt_v${SHFMT_VERSION}_linux_amd64" -O shfmt
+          chmod +x shfmt
+          sudo mv shfmt /usr/local/bin/
+
+      - name: Install shellharden
+        shell: bash
+        run: |
+          SHELLHARDEN_VERSION="4.3.1"
+          wget -q "https://github.com/anordal/shellharden/releases/download/v${SHELLHARDEN_VERSION}/shellharden-x86_64-unknown-linux-gnu.tar.gz" -O shellharden.tar.gz
+          tar -xzf shellharden.tar.gz
+          chmod +x shellharden
+          sudo mv shellharden /usr/local/bin/
