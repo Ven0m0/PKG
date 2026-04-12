@@ -78,19 +78,38 @@ jobs:
         with:
           packages: shellcheck jq
           version: 1.0
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: false
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.14"
-      - name: Install linters
+      - name: Install Python linters
+        shell: bash
+        run: |
+          uv tool install ruff
+          uv tool install black
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - name: Enable Corepack
+        shell: bash
+        run: corepack enable
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install JS and YAML linters
         shell: bash
         run: |
           set -euo pipefail
-          # Install Python linters
-          pip install --no-cache-dir ruff black
+          # Install JS/TS linters (prefer bun over npm)
+          bun add --global @biomejs/biome oxlint
 
-          # Install YAML and JSON formatters
-          npm install -g --no-fund --no-audit @biomejs/biome
+          # Install YAML formatter
           go install github.com/google/yamlfmt/cmd/yamlfmt@latest
           sudo mv "$HOME/go/bin/yamlfmt" /usr/local/bin/
 
