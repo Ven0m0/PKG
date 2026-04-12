@@ -10,7 +10,7 @@ arch=(x86_64)
 url="https://heroicgameslauncher.com/"
 license=(GPL-3.0-only)
 _electron=electron36
-depends=($_electron zlib gcc-libs glibc)
+depends=("$_electron" zlib gcc-libs glibc)
 makedepends=(git npm python desktop-file-utils)
 optdepends=('bun: build with bun' 'pnpm: build with pnpm')
 provides=(heroic-games-launcher)
@@ -29,8 +29,8 @@ prepare() {
 }
 build() {
   cd "$_pkgname" || exit
-  local _electron_version=$(< /usr/lib/"$_electron"/version)
-  local -a _builder_opts=(-c.electronDist="/usr/lib/${_electron}/" -c.electronVersion="${_electron_version}")
+  local _electron_version=$(</usr/lib/"$_electron"/version)
+  local -a _builder_opts=(-c.electronDist="/usr/lib/${_electron}/" -c.electronVersion="$_electron_version")
   if command -v bun &>/dev/null; then
     NODE_ENV=development bun install
     NODE_ENV=production bun run download-helper-binaries
@@ -57,7 +57,7 @@ package() {
   # icon
   install -Dm644 ./"$_pkgname"/flatpak/com.heroicgameslauncher.hgl.png -t "${pkgdir}/usr/share/pixmaps"
   # metainfo
-  install -Dm644 ./"$_pkgname"/flatpak/templates/com.heroicgameslauncher.hgl.metainfo.xml.template "${pkgdir}"/usr/share/metainfo/com.heroicgameslauncher.hgl.metainfo.xml
+  install -Dm644 ./"$_pkgname"/flatpak/templates/com.heroicgameslauncher.hgl.metainfo.xml.template "$pkgdir"/usr/share/metainfo/com.heroicgameslauncher.hgl.metainfo.xml
   # fix icon on Gnome dock
   desktop-file-edit --set-key=Exec --set-value="heroic %U" --set-key=StartupWMClass --set-value=heroic flatpak/com.heroicgameslauncher.hgl.desktop
   # desktop file
