@@ -141,7 +141,7 @@ jobs:
         with:
           # OpenCode stores downloaded provider packages under ~/.cache/opencode.
           path: ~/.cache/opencode
-          key: opencode-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.github/workflows/_run-agent.yml') }}
+          key: opencode-${{ runner.os }}-${{ runner.arch }}-v1
           restore-keys: |
             opencode-${{ runner.os }}-${{ runner.arch }}-
 
