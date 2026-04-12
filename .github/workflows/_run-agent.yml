@@ -65,6 +65,8 @@ permissions:
 jobs:
   run-agent:
     runs-on: ubuntu-latest
+    # Package update tasks may need extra time for non-interactive checksum and
+    # metadata refreshes on heavyweight packages such as llvm or chromium.
     timeout-minutes: 90
     env:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
