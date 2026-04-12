@@ -117,10 +117,10 @@ optdepends=(
 provides=('wine=10.0' 'wine-mono' 'wine-gecko')
 conflicts=('wine' 'wine-mono' 'wine-gecko')
 
-prepare() {
-  rm -rf "$pkgname"-{32,64}-build
-  mkdir "$pkgname"-{32,64}-build
-  cd "$pkgname" || exit
+prepare(){
+  rm -rf "${pkgname}"-{32,64}-build
+  mkdir "${pkgname}"-{32,64}-build
+  cd "${pkgname}" || exit
   git config user.email "wine@cachyos.org"
   git config user.name "wine cachyos"
   git tag "wine-${_srctag}" --annotate -m "$pkgver" --force
@@ -142,7 +142,7 @@ prepare() {
     -W Staging
 }
 
-build() {
+build(){
   local march="nocona" mtune="core-avx2"
   local OPTIMIZE_FLAGS="-O3 -march=$march -mtune=$mtune -mfpmath=sse -pipe"
   OPTIMIZE_FLAGS+=" -mprefer-avx128 -fvect-cost-model=cheap -fipa-pta"
@@ -197,14 +197,14 @@ build() {
     --with-mingw \
     --with-alsa --without-xinerama --without-pcsclite \
     --without-ffmpeg --without-xxf86vm --without-pcap \
-    --without-oss --without-sane --without-v4l2 --without-cups --without-gphoto \
+    --without-oss --without-sane --without-v4l2  --without-cups --without-gphoto \
     --disable-lsteamclient \
     --disable-tests --enable-archs=x86_64 \
     --with-wine64="$srcdir/${pkgname}-64-build"
   make
 }
 
-package() {
+package(){
   cd "$srcdir/${pkgname}-32-build" || exit
   make prefix="$pkgdir/usr" \
     libdir="$pkgdir/usr/lib" \
@@ -234,11 +234,11 @@ package() {
 
   # Install wine-gecko
   install -d -m755 "$pkgdir/usr/share/wine/gecko/"
-  cp -dr --no-preserve='ownership' wine-gecko-"$_geckover"-x86{,_64} "$pkgdir/usr/share/wine/gecko/"
+  cp -dr --no-preserve='ownership' wine-gecko-"${_geckover}"-x86{,_64} "$pkgdir/usr/share/wine/gecko/"
 
   # Install wine-mono
   install -d -m755 "$pkgdir/usr/share/wine/mono"
-  cp -r -a --no-preserve='ownership' wine-mono-"$_monover" "$pkgdir/usr/share/wine/mono"
+  cp -r -a --no-preserve='ownership' wine-mono-"${_monover}" "$pkgdir/usr/share/wine/mono"
 
   # Install xalia
   install -d -m755 "$pkgdir/usr/share/xalia"

@@ -1,4 +1,6 @@
 {
-  "$schema": "https://nvchecker.readthedocs.io/en/stable/verbump/",
-  "data": {}
+  "proton-cachyos-slr": "10.0-20260320",
+  "wine-cachyos": "10.0-20251126",
+  "llvm": "21.0.0",
+  "chromium": "145.0.7632.120-d133d52d09c925b6542ff00e368d18d74df85e7c"
 }

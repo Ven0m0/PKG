@@ -1,7 +1,7 @@
 # shellcheck enable=all shell=bash source-path=SCRIPTDIR
 # Maintainer: Ven0m0
-: "${_install_path:=usr/share}"
-: "${_electron_builder_version:=<26}"
+: ${_install_path:=usr/share}
+: ${_electron_builder_version:=<26}
 _pkgname="legcord"
 pkgname="$_pkgname"
 pkgver=1.2.2
@@ -27,14 +27,15 @@ _pkgsrc="$_pkgname"
 source=("$_pkgsrc"::"git+$url.git#tag=v$pkgver")
 sha256sums=('28b45a17d144968b9c7297c3273c92e8886c6afd49c5ca5997c1e0efb057f5be')
 
+
 build() (
   # avoid cluttering user home
   export HOME="${srcdir}/tmp_home"
   export XDG_CACHE_HOME="${srcdir}/tmp_cache" XDG_CONFIG_HOME="${srcdir}/tmp_config"
   export XDG_DATA_HOME="${srcdir}/tmp_data" XDG_STATE_HOME="${srcdir}/tmp_state"
   local _electron_version=$(cat /usr/lib/electron/version)
-  sed -E -e 's#("electron"): "[^"]+",#\1: "'"$_electron_version"'",#' -i "$_pkgsrc/package.json"
-  [[ -n $_electron_builder_version ]] && sed -E -e 's#("electron-builder"): "[^"]+",#\1: "'"$_electron_builder_version"'",#' -i "$_pkgsrc/package.json"
+  sed -E -e 's#("electron"): "[^"]+",#\1: "'${_electron_version}'",#' -i "$_pkgsrc/package.json"
+  [[ -n $_electron_builder_version ]] && sed -E -e 's#("electron-builder"): "[^"]+",#\1: "'${_electron_builder_version}'",#' -i "$_pkgsrc/package.json"
   local _electron_builder_options=(--linux dir --publish never
     -c.electronDist="/usr/lib/electron${_electron_version%%.*}" -c.electronVersion="$_electron_version")
   cd "$_pkgsrc" || exit

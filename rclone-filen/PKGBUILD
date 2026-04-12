@@ -40,7 +40,7 @@ build() {
 }
 package() {
   cd "rclone-filen" || exit
-  install -D rclone "$pkgdir"/usr/bin/rclone
+  install -D rclone ${pkgdir}/usr/bin/rclone
   install -Dm644 rclone.bash_completion "$pkgdir"/usr/share/bash-completion/completions/rclone
   install -Dm644 rclone.zsh_completion "$pkgdir"/usr/share/zsh/site-functions/_rclone
   install -Dm644 rclone.fish_completion "$pkgdir"/usr/share/fish/vendor_completions.d/rclone.fish

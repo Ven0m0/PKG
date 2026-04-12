@@ -44,7 +44,7 @@ _guideps=(
   'harfbuzz'
   'libgudev'
   'pango'
-  'desktop-file-utils'
+  'desktop-file-utils' 
   'hicolor-icon-theme'
 )
 makedepends=(
@@ -73,7 +73,7 @@ source=("HandBrake::git+https://github.com/HandBrake/HandBrake.git#tag=${pkgver}
 sha256sums=('SKIP')
 pkgver() {
   git -C HandBrake/ gc --auto --prune=now
-  git -C HandBrake/ describe "${_commit:-}" | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
+  git -C HandBrake/ describe ${_commit:-} | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
 }
 
 setup_compiler() {
@@ -92,13 +92,13 @@ build() {
   setup_compiler
   local -a CONFIGURE_OPTIONS=(
     --launch-jobs=0 --prefix=/usr --harden
-    --cc="$CC" --ar="$AR" --ranlib="$RANLIB" --strip="$STRIP"
+    --cc="${CC}" --ar="${AR}" --ranlib="${RANLIB}" --strip="${STRIP}"
     --lto=on --optimize=speed --cpu=native --enable-qsv --enable-vce
     --enable-nvenc --enable-nvdec --disable-fdk-aac --disable-x265
     --disable-df-fetch --disable-df-verify --disable-numa)
   cd "${srcdir}/HandBrake" || exit 1
   ./configure "${CONFIGURE_OPTIONS[@]}"
-  make -C build -j "$(nproc)"
+  make -C build -j $(nproc)
 }
 
 package_handbrake-svt-av1-essential-llvm-optimized() {
@@ -107,7 +107,7 @@ package_handbrake-svt-av1-essential-llvm-optimized() {
   provides=(handbrake)
   conflicts=(handbrake)
   cd "HandBrake" || exit
-  make --directory="${srcdir}/HandBrake/build" DESTDIR="$pkgdir" install
+  make --directory="${srcdir}/HandBrake/build" DESTDIR="${pkgdir}" install
   install -D LICENSE -t "${pkgdir}/usr/share/licenses/${pkgname}"
   rm "${pkgdir}/usr/bin/HandBrakeCLI"
 }

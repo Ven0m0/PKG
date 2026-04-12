@@ -2,8 +2,8 @@
 # Contributor: Nick Lay <layns(at)mail(dot)uc(dot)edu>
 
 ## options
-: "${_build_clang:=true}"
-: "${_branch=primehack-aur}"
+: ${_build_clang:=true}
+: ${_branch=primehack-aur}
 _projectname='dolphin'
 _pkgname="$_projectname-emu"
 _mainpkgname="dolphin-emu"
@@ -17,18 +17,18 @@ url="https://github.com/xiota/dolphin-primehack"
 license=('GPL-2.0-or-later')
 arch=('x86_64' 'aarch64')
 depends=(
-  # Based on the repo package
-  'bluez-libs' 'bzip2' 'enet' 'gcc-libs' 'glibc' 'hidapi' 'libavcodec.so'
-  'libavformat.so' 'libavutil.so' 'libcurl.so' 'libfmt.so' 'libgl'
-  'libsfml-network.so' 'libsfml-system.so' 'libspng.so' 'libswscale.so'
-  'libusb-1.0.so' 'libx11' 'libxi' 'libxrandr' 'lz4' 'lzo' 'mbedtls2' 'pugixml'
-  'sdl3' 'sfml' 'speexdsp' 'xxhash' 'xz' 'zstd'
-  # Additional dependencies to replace vendored deps
-  'cubeb' 'glslang' 'libiconv' 'llvm' 'minizip-ng' 'zlib-ng'
+	# Based on the repo package
+	'bluez-libs' 'bzip2' 'enet' 'gcc-libs' 'glibc' 'hidapi' 'libavcodec.so'
+	'libavformat.so' 'libavutil.so' 'libcurl.so' 'libfmt.so' 'libgl'
+	'libsfml-network.so' 'libsfml-system.so' 'libspng.so' 'libswscale.so'
+	'libusb-1.0.so' 'libx11' 'libxi' 'libxrandr' 'lz4' 'lzo' 'mbedtls2' 'pugixml'
+	'sdl3' 'sfml' 'speexdsp' 'xxhash' 'xz' 'zstd'
+	# Additional dependencies to replace vendored deps
+	'cubeb' 'glslang' 'libiconv' 'llvm' 'minizip-ng' 'zlib-ng'
 )
 makedepends=(
-  'alsa-lib' 'cmake' 'git' 'libevdev' 'libminiupnpc.so' 'libpulse'
-  'libudev.so' 'ninja' 'python' 'qt6-base' 'qt6-svg' 'vulkan-headers'
+	'alsa-lib' 'cmake' 'git' 'libevdev' 'libminiupnpc.so' 'libpulse'
+	'libudev.so' 'ninja' 'python' 'qt6-base' 'qt6-svg' 'vulkan-headers'
 )
 if [[ ${_build_clang::1} == "t" ]]; then
   makedepends+=(
@@ -47,35 +47,35 @@ options+=(!emptydirs)
 _pkgsrc="xiota.primehack"
 source=("$_pkgsrc"::"git+$url.git#branch=$_branch")
 source=(
-  "$pkgname::git+https://github.com/$_mainpkgname/$_projectname"
-  "$pkgname-cppipc::git+https://github.com/mutouyun/cpp-ipc.git"
-  "$pkgname-cppoptparse::git+https://github.com/weisslj/cpp-optparse.git"
-  "$pkgname-imgui::git+https://github.com/ocornut/imgui.git"
-  "$pkgname-implot::git+https://github.com/epezent/implot.git"
-  "$pkgname-mgba::git+https://github.com/mgba-emu/mgba.git"
-  "$pkgname-rcheevos::git+https://github.com/RetroAchievements/rcheevos.git"
-  "$pkgname-tinygltf::git+https://github.com/syoyo/tinygltf.git"
-  "$pkgname-vh::git+https://github.com/KhronosGroup/Vulkan-Headers.git"
-  "$pkgname-vma::git+https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git"
-  "$pkgname-watcher::git+https://github.com/e-dant/watcher.git"
+	"$pkgname::git+https://github.com/$_mainpkgname/$_projectname"
+	"$pkgname-cppipc::git+https://github.com/mutouyun/cpp-ipc.git"
+	"$pkgname-cppoptparse::git+https://github.com/weisslj/cpp-optparse.git"
+	"$pkgname-imgui::git+https://github.com/ocornut/imgui.git"
+	"$pkgname-implot::git+https://github.com/epezent/implot.git"
+	"$pkgname-mgba::git+https://github.com/mgba-emu/mgba.git"
+	"$pkgname-rcheevos::git+https://github.com/RetroAchievements/rcheevos.git"
+	"$pkgname-tinygltf::git+https://github.com/syoyo/tinygltf.git"
+	"$pkgname-vh::git+https://github.com/KhronosGroup/Vulkan-Headers.git"
+	"$pkgname-vma::git+https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git"
+	"$pkgname-watcher::git+https://github.com/e-dant/watcher.git"
 )
 b2sums=('SKIP'
-  'SKIP'
-  'SKIP'
-  'SKIP'
-  'SKIP'
-  'SKIP'
-  'SKIP'
-  'SKIP'
-  'SKIP'
-  'SKIP'
-  'SKIP')
+        'SKIP'
+        'SKIP'
+        'SKIP'
+        'SKIP'
+        'SKIP'
+        'SKIP'
+        'SKIP'
+        'SKIP'
+        'SKIP'
+        'SKIP')
 _sourcedirectory="$pkgname"
 
 prepare() {
   cd "$srcdir/$_sourcedirectory/" || exit
   [[ -d 'build/' ]] && rm -rf 'build/'
-
+  
   git rm -r 'Externals/FFmpeg-bin'
   git rm -r 'Externals/Qt'
   git rm -r 'Externals/SDL/SDL'
@@ -91,25 +91,25 @@ prepare() {
   git rm -r 'Externals/miniupnpc/miniupnp'
   git rm -r 'Externals/spirv_cross/SPIRV-Cross'
   # git submodule update --init --depth=1 --recursive
-  # Provide submodules
-  declare -A _submodules=(
-    [cppipc]='cpp-ipc/cpp-ipc'
-    [cppoptparse]='cpp-optparse/cpp-optparse'
-    [imgui]='imgui/imgui'
-    [implot]='implot/implot'
-    [mgba]='mGBA/mgba'
-    [rcheevos]='rcheevos/rcheevos'
-    [tinygltf]='tinygltf/tinygltf'
-    [vh]='Vulkan-Headers'
-    [vma]='VulkanMemoryAllocator'
-    [watcher]='watcher/watcher'
-  )
-  for _submod in "${!_submodules[@]}"; do
-    _path="Externals/${_submodules[$_submod]}"
-    git submodule init "$_path"
-    git config "submodule.$_path.url" "$srcdir/$pkgbase-$_submod/"
-    git -c protocol.file.allow=always submodule update --depth=1 "$_path"
-  done
+	# Provide submodules
+	declare -A _submodules=(
+		[cppipc]='cpp-ipc/cpp-ipc'
+		[cppoptparse]='cpp-optparse/cpp-optparse'
+		[imgui]='imgui/imgui'
+		[implot]='implot/implot'
+		[mgba]='mGBA/mgba'
+		[rcheevos]='rcheevos/rcheevos'
+		[tinygltf]='tinygltf/tinygltf'
+		[vh]='Vulkan-Headers'
+		[vma]='VulkanMemoryAllocator'
+		[watcher]='watcher/watcher'
+	)
+	for _submod in "${!_submodules[@]}"; do
+		_path="Externals/${_submodules[$_submod]}"
+		git submodule init "$_path"
+		git config "submodule.$_path.url" "$srcdir/$pkgbase-$_submod/"
+		git -c protocol.file.allow=always submodule update --depth=1 "$_path"
+	done
   # Delete gcc specific options
   sed '/_ARCHIVE_/d' -i CMakeLists.txt
   # Fix for Qt 6.10
@@ -171,57 +171,57 @@ END
   cmake --build 'build/' -j"$(nproc)"
 }
 check() {
-  # Get git version to compare
-  cd "$srcdir/$_sourcedirectory/" || exit
-  _checkversion="$(git describe | cut --delimiter='-' --fields=1-2)"
-  # Run tests
-  cd "$srcdir/$_sourcedirectory/build/" || exit
-  ninja unittests
-  # Verify that the basic functionality works
-  _checkoutput="$(QT_QPA_PLATFORM='offscreen' "$srcdir/$_sourcedirectory/build/Binaries/$_noguipkgname" --version)"
-  printf '%s\n' "$_checkoutput"
-  printf '%s\n' "$_checkoutput" | grep -q -E "^${_projectname^}( \[.+\])? ${_checkversion}(-dirty)?(-ICC)?$"
+	# Get git version to compare
+	cd "$srcdir/$_sourcedirectory/" || exit
+	_checkversion="$(git describe | cut --delimiter='-' --fields=1-2)"
+	# Run tests
+	cd "$srcdir/$_sourcedirectory/build/" || exit
+	ninja unittests
+	# Verify that the basic functionality works
+	_checkoutput="$(QT_QPA_PLATFORM='offscreen' "$srcdir/$_sourcedirectory/build/Binaries/$_noguipkgname" --version)"
+	printf '%s\n' "$_checkoutput"
+	printf '%s\n' "$_checkoutput" | grep -q -E "^${_projectname^}( \[.+\])? ${_checkversion}(-dirty)?(-ICC)?$"
 }
 
 package() {
-  DESTDIR="$pkgdir" cmake --install build
+  DESTDIR="${pkgdir}" cmake --install build
   install -Dm644 "${srcdir}/${_pkgsrc}/Data/51-usb-device.rules" "${pkgdir}/usr/lib/udev/rules.d/51-usb-device-primehack.rules"
-  rm -rf "$pkgdir"/usr/{include,lib/libdiscord-rpc.a}
+  rm -rf "${pkgdir}"/usr/{include,lib/libdiscord-rpc.a}
 }
 
 package_dolphin-emu-git() {
-  pkgdesc="$pkgdesc$_pkgdescappend"
-  depends+=(
-    'alsa-lib' 'hicolor-icon-theme' 'libevdev' 'libminiupnpc.so' 'libpulse'
-    'libudev.so' 'qt6-base' 'qt6-svg'
-  )
-  provides=("$_mainpkgname")
-  conflicts=("$_mainpkgname")
-  cd "$srcdir/$_sourcedirectory/" || exit
-  DESTDIR="$pkgdir" cmake --install 'build/'
-  install -Dm644 'Data/51-usb-device.rules' "$pkgdir/usr/lib/udev/rules.d/51-usb-device.rules"
-  rm -rf "$pkgdir/usr/bin/$_noguipkgname"
-  rm -rf "$pkgdir/usr/bin/$_projectname-tool"
-  rm -rf "$pkgdir/usr/share/man/man6/$_noguipkgname.6"
+	pkgdesc="$pkgdesc$_pkgdescappend"
+	depends+=(
+		'alsa-lib' 'hicolor-icon-theme' 'libevdev' 'libminiupnpc.so' 'libpulse'
+		'libudev.so' 'qt6-base' 'qt6-svg'
+	)
+	provides=("$_mainpkgname")
+	conflicts=("$_mainpkgname")
+	cd "$srcdir/$_sourcedirectory/" || exit
+	DESTDIR="$pkgdir" cmake --install 'build/'
+	install -Dm644 'Data/51-usb-device.rules' "$pkgdir/usr/lib/udev/rules.d/51-usb-device.rules"
+	rm -rf "$pkgdir/usr/bin/$_noguipkgname"
+	rm -rf "$pkgdir/usr/bin/$_projectname-tool"
+	rm -rf "$pkgdir/usr/share/man/man6/$_noguipkgname.6"
 }
 package_dolphin-emu-nogui-git() {
-  pkgdesc="$pkgdesc - no GUI$_pkgdescappend"
-  depends+=("$_mainpkgname")
-  optdepends=()
-  provides=("$_noguipkgname" "$_mainpkgname-cli")
-  conflicts=("$_noguipkgname" "$_mainpkgname-cli")
-  cd "$srcdir/$_sourcedirectory/" || exit
-  install -Dm755 "$srcdir/$_sourcedirectory/build/Binaries/$_noguipkgname" "$pkgdir/usr/bin/$_noguipkgname"
-  ln -sf "/usr/bin/$_noguipkgname" "$pkgdir/usr/bin/$_mainpkgname-cli"
-  install -Dm644 "Data/$_noguipkgname.6" "$pkgdir/usr/share/man/man6/$_noguipkgname.6"
+	pkgdesc="$pkgdesc - no GUI$_pkgdescappend"
+	depends+=("$_mainpkgname")
+	optdepends=()
+	provides=("$_noguipkgname" "$_mainpkgname-cli")
+	conflicts=("$_noguipkgname" "$_mainpkgname-cli")
+	cd "$srcdir/$_sourcedirectory/" || exit
+	install -Dm755 "$srcdir/$_sourcedirectory/build/Binaries/$_noguipkgname" "$pkgdir/usr/bin/$_noguipkgname"
+	ln -sf "/usr/bin/$_noguipkgname" "$pkgdir/usr/bin/$_mainpkgname-cli"
+	install -Dm644 "Data/$_noguipkgname.6" "$pkgdir/usr/share/man/man6/$_noguipkgname.6"
 }
 package_dolphin-emu-tool-git() {
-  pkgdesc="$pkgdesc - CLI-based utility for functions such as managing disc images$_pkgdescappend"
-  depends+=(
-    'alsa-lib' 'libevdev' 'libpulse' 'libudev.so' 'qt6-base'
-  )
-  provides=("$_toolpkgname")
-  conflicts=("$_toolpkgname")
-  cd "$srcdir/$_sourcedirectory/" || exit
-  install -Dm755 "$srcdir/$_sourcedirectory/build/Binaries/$_projectname-tool" "$pkgdir/usr/bin/$_projectname-tool"
+	pkgdesc="$pkgdesc - CLI-based utility for functions such as managing disc images$_pkgdescappend"
+	depends+=(
+		'alsa-lib' 'libevdev' 'libpulse' 'libudev.so' 'qt6-base'
+	)
+	provides=("$_toolpkgname")
+	conflicts=("$_toolpkgname")
+	cd "$srcdir/$_sourcedirectory/" || exit
+	install -Dm755 "$srcdir/$_sourcedirectory/build/Binaries/$_projectname-tool" "$pkgdir/usr/bin/$_projectname-tool"
 }

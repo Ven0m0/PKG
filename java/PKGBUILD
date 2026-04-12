@@ -26,7 +26,7 @@ makedepends=('java-environment>=22' 'cpio' 'unzip' 'zip' 'libelf' 'libcups' 'lib
 optdepends=(
   'gvfs: open links e.g. hyperlinks'
 )
-source=(https://github.com/openjdk/jdk"${_majorver}u/archive/$_git_tag".tar.gz
+source=(https://github.com/openjdk/jdk${_majorver}u/archive/${_git_tag}.tar.gz
   freedesktop-java.desktop
   freedesktop-jconsole.desktop
   freedesktop-jshell.desktop)
@@ -35,9 +35,9 @@ sha256sums=('1fb3cebfeeedc83f94442e25d8f321e28da34c09fc0fe21b4b700bcdb2ed0ee4'
   '3544325a47fd7f9854d2ee4a0a6eb17d729af20889b641838aceb58837fb2d58'
   '5d6beeeac3d097b2c85099fceeba4a5e48e07fd286ad438f57936ebcd7bfbdbb')
 
-case "$CARCH" in
-  x86_64 | x86_64_v3 | x86_64_v4) _JARCH='x86_64' ;;
-  i686) _JARCH='x86' ;;
+case "${CARCH}" in
+x86_64 | x86_64_v3 | x86_64_v4) _JARCH='x86_64' ;;
+i686) _JARCH='x86' ;;
 esac
 
 _jvmdir=/usr/lib/jvm/java-${_majorver}-openjdk
@@ -54,7 +54,7 @@ _commondeps=('java-runtime-common>=3' 'ca-certificates-utils' 'nss' 'libjpeg-tur
   'glibc' 'gcc-libs')
 
 build() {
-  cd "$_jdkdir" || exit
+  cd "${_jdkdir}" || exit
   NUM_PROC_OPT=''
   # Use parameter expansion instead of echo | sed for better efficiency
   if [[ ${MAKEFLAGS} =~ -j([0-9]+) ]]; then
@@ -62,7 +62,7 @@ build() {
   else
     MAKEFLAG_J=""
   fi
-  if [[ -n $MAKEFLAG_J ]]; then
+  if [[ -n "${MAKEFLAG_J}" ]]; then
     # http://hg.openjdk.java.net/jdk10/jdk10/file/85e6cb013b98/make/InitSupport.gmk#l105
     echo "Removing '-j${MAKEFLAG_J}' from MAKEFLAGS to prevent build fail. Passing it directly to ./configure."
     export MAKEFLAGS=${MAKEFLAGS/-j${MAKEFLAG_J}/}
@@ -102,22 +102,22 @@ build() {
   bash configure \
     --with-version-string="${_majorver}.${_minorver}.${_securityver}" \
     --with-stdc++lib=dynamic \
-    --with-extra-cflags="$_CFLAGS" \
-    --with-extra-cxxflags="$_CXXFLAGS" \
-    --with-extra-ldflags="$_LDFLAGS" \
+    --with-extra-cflags="${_CFLAGS}" \
+    --with-extra-cxxflags="${_CXXFLAGS}" \
+    --with-extra-ldflags="${_LDFLAGS}" \
     --with-libjpeg=system \
     --with-giflib=system \
     --with-libpng=system \
     --with-lcms=system \
     --with-zlib=system \
     --with-harfbuzz=system \
-    --with-jvm-features="$jvm_features" \
+    --with-jvm-features="${jvm_features}" \
     --with-debug-level=optimized \
     --with-native-debug-symbols=internal \
     --enable-unlimited-crypto \
     --disable-warnings-as-errors \
     --with-vendor-name="Arch Linux" \
-    "$NUM_PROC_OPT"
+    ${NUM_PROC_OPT}
   #--disable-javac-server
   #--with-zlib=bundled
   #--with-debug-level=release
@@ -126,7 +126,7 @@ build() {
   find "${srcdir}/${_imgdir}" -iname '*.so' -exec chmod +x {} +
 }
 check() {
-  cd "$_jdkdir" || exit
+  cd ${_jdkdir} || exit
 }
 package_jre-openjdk-headless() {
   pkgdesc="OpenJDK Java ${_majorver} headless runtime environment"
@@ -134,22 +134,22 @@ package_jre-openjdk-headless() {
   optdepends=('java-rhino: for some JavaScript support')
   provides=("java-runtime-headless=${_majorver}" "java-runtime-headless-openjdk=${_majorver}" "jre${_majorver}-openjdk-headless=${pkgver}-${pkgrel}")
   conflicts=("jdk-openjdk" "jre-openjdk")
-  backup=(etc/"$pkgbase"/logging.properties
-    etc/"$pkgbase"/management/jmxremote.access
-    etc/"$pkgbase"/management/jmxremote.password.template
-    etc/"$pkgbase"/management/management.properties
-    etc/"$pkgbase"/net.properties
-    etc/"$pkgbase"/security/java.policy
-    etc/"$pkgbase"/security/java.security
-    etc/"$pkgbase"/security/policy/README.txt
-    etc/"$pkgbase"/security/policy/limited/default_US_export.policy
-    etc/"$pkgbase"/security/policy/limited/default_local.policy
-    etc/"$pkgbase"/security/policy/limited/exempt_local.policy
-    etc/"$pkgbase"/security/policy/unlimited/default_US_export.policy
-    etc/"$pkgbase"/security/policy/unlimited/default_local.policy
-    etc/"$pkgbase"/sound.properties)
+  backup=(etc/${pkgbase}/logging.properties
+    etc/${pkgbase}/management/jmxremote.access
+    etc/${pkgbase}/management/jmxremote.password.template
+    etc/${pkgbase}/management/management.properties
+    etc/${pkgbase}/net.properties
+    etc/${pkgbase}/security/java.policy
+    etc/${pkgbase}/security/java.security
+    etc/${pkgbase}/security/policy/README.txt
+    etc/${pkgbase}/security/policy/limited/default_US_export.policy
+    etc/${pkgbase}/security/policy/limited/default_local.policy
+    etc/${pkgbase}/security/policy/limited/exempt_local.policy
+    etc/${pkgbase}/security/policy/unlimited/default_US_export.policy
+    etc/${pkgbase}/security/policy/unlimited/default_local.policy
+    etc/${pkgbase}/sound.properties)
   install=install_jre-openjdk-headless.sh
-  cd "$_imgdir"/jre || exit
+  cd ${_imgdir}/jre || exit
   install -dm 755 "${pkgdir}${_jvmdir}"
   cp -a bin lib "${pkgdir}${_jvmdir}"
   for f in "${_nonheadless[@]}"; do
@@ -158,17 +158,17 @@ package_jre-openjdk-headless() {
   # Conf
   install -dm 755 "${pkgdir}/etc"
   cp -r conf "${pkgdir}/etc/${pkgbase}"
-  ln -s /etc/"$pkgbase" "${pkgdir}/${_jvmdir}/conf"
+  ln -s /etc/"${pkgbase}" "${pkgdir}/${_jvmdir}/conf"
   # Legal
   install -dm 755 "${pkgdir}/usr/share/licenses"
   cp -r legal "${pkgdir}/usr/share/licenses/${pkgbase}"
-  ln -s "$pkgbase" "${pkgdir}/usr/share/licenses/${pkgname}"
-  ln -s /usr/share/licenses/"$pkgbase" "${pkgdir}/${_jvmdir}/legal"
+  ln -s "${pkgbase}" "${pkgdir}/usr/share/licenses/${pkgname}"
+  ln -s /usr/share/licenses/"${pkgbase}" "${pkgdir}/${_jvmdir}/legal"
   # Man pages
   for f in bin/*; do
-    f=$(basename "$f")
+    f=$(basename "${f}")
     _man=../jdk/man/man1/"${f}.1"
-    test -f "$_man" && install -Dm 644 "$_man" "${pkgdir}/usr/share/man/man1/${f}-openjdk${_majorver}.1"
+    test -f "${_man}" && install -Dm 644 "${_man}" "${pkgdir}/usr/share/man/man1/${f}-openjdk${_majorver}.1"
   done
   ln -s /usr/share/man "${pkgdir}/${_jvmdir}/man"
   # Link JKS keystore from ca-certificates-utils
@@ -183,41 +183,41 @@ package_jre-openjdk() {
   provides=("java-runtime=${_majorver}" "java-runtime-openjdk=${_majorver}" "jre${_majorver}-openjdk=${pkgver}-${pkgrel}"
     "java-runtime-headless=${_majorver}" "java-runtime-headless-openjdk=${_majorver}" "jre${_majorver}-openjdk-headless=${pkgver}-${pkgrel}")
   conflicts=("jdk-openjdk" "jre-openjdk-headless")
-  backup=(etc/"$pkgbase"/logging.properties
-    etc/"$pkgbase"/management/jmxremote.access
-    etc/"$pkgbase"/management/jmxremote.password.template
-    etc/"$pkgbase"/management/management.properties
-    etc/"$pkgbase"/net.properties
-    etc/"$pkgbase"/security/java.policy
-    etc/"$pkgbase"/security/java.security
-    etc/"$pkgbase"/security/policy/README.txt
-    etc/"$pkgbase"/security/policy/limited/default_US_export.policy
-    etc/"$pkgbase"/security/policy/limited/default_local.policy
-    etc/"$pkgbase"/security/policy/limited/exempt_local.policy
-    etc/"$pkgbase"/security/policy/unlimited/default_US_export.policy
-    etc/"$pkgbase"/security/policy/unlimited/default_local.policy
-    etc/"$pkgbase"/sound.properties)
+  backup=(etc/${pkgbase}/logging.properties
+    etc/${pkgbase}/management/jmxremote.access
+    etc/${pkgbase}/management/jmxremote.password.template
+    etc/${pkgbase}/management/management.properties
+    etc/${pkgbase}/net.properties
+    etc/${pkgbase}/security/java.policy
+    etc/${pkgbase}/security/java.security
+    etc/${pkgbase}/security/policy/README.txt
+    etc/${pkgbase}/security/policy/limited/default_US_export.policy
+    etc/${pkgbase}/security/policy/limited/default_local.policy
+    etc/${pkgbase}/security/policy/limited/exempt_local.policy
+    etc/${pkgbase}/security/policy/unlimited/default_US_export.policy
+    etc/${pkgbase}/security/policy/unlimited/default_local.policy
+    etc/${pkgbase}/sound.properties)
   install=install_jre-openjdk.sh
-  cd "$_imgdir"/jre || exit
+  cd ${_imgdir}/jre || exit
   install -dm 755 "${pkgdir}${_jvmdir}"
   cp -a bin lib "${pkgdir}${_jvmdir}"
   for f in "${_nonheadless[@]}"; do
-    install -Dm 755 "$f" "${pkgdir}${_jvmdir}/${f}"
+    install -Dm 755 ${f} "${pkgdir}${_jvmdir}/${f}"
   done
   # Conf
   install -dm 755 "${pkgdir}/etc"
   cp -r conf "${pkgdir}/etc/${pkgbase}"
-  ln -s /etc/"$pkgbase" "${pkgdir}/${_jvmdir}/conf"
+  ln -s /etc/"${pkgbase}" "${pkgdir}/${_jvmdir}/conf"
   # Legal
   install -dm 755 "${pkgdir}/usr/share/licenses"
   cp -r legal "${pkgdir}/usr/share/licenses/${pkgbase}"
-  ln -s "$pkgbase" "${pkgdir}/usr/share/licenses/${pkgname}"
-  ln -s /usr/share/licenses/"$pkgbase" "${pkgdir}/${_jvmdir}/legal"
+  ln -s "${pkgbase}" "${pkgdir}/usr/share/licenses/${pkgname}"
+  ln -s /usr/share/licenses/"${pkgbase}" "${pkgdir}/${_jvmdir}/legal"
   # Man pages
   for f in bin/*; do
-    f=$(basename "$f")
+    f=$(basename "${f}")
     _man=../jdk/man/man1/"${f}.1"
-    test -f "$_man" && install -Dm 644 "$_man" "${pkgdir}/usr/share/man/man1/${f}-openjdk${_majorver}.1"
+    test -f "${_man}" && install -Dm 644 "${_man}" "${pkgdir}/usr/share/man/man1/${f}-openjdk${_majorver}.1"
   done
   ln -s /usr/share/man "${pkgdir}/${_jvmdir}/man"
   # Link JKS keystore from ca-certificates-utils
@@ -244,39 +244,39 @@ package_jdk-openjdk() {
     "java-runtime=${_majorver}" "java-runtime-openjdk=${_majorver}" "jre${_majorver}-openjdk=${pkgver}-${pkgrel}"
     "java-runtime-headless=${_majorver}" "java-runtime-headless-openjdk=${_majorver}" "jre${_majorver}-openjdk-headless=${pkgver}-${pkgrel}")
   conflicts=("jre-openjdk" "jre-openjdk-headless")
-  backup=(etc/"$pkgbase"/logging.properties
-    etc/"$pkgbase"/management/jmxremote.access
-    etc/"$pkgbase"/management/jmxremote.password.template
-    etc/"$pkgbase"/management/management.properties
-    etc/"$pkgbase"/net.properties
-    etc/"$pkgbase"/security/java.policy
-    etc/"$pkgbase"/security/java.security
-    etc/"$pkgbase"/security/policy/README.txt
-    etc/"$pkgbase"/security/policy/limited/default_US_export.policy
-    etc/"$pkgbase"/security/policy/limited/default_local.policy
-    etc/"$pkgbase"/security/policy/limited/exempt_local.policy
-    etc/"$pkgbase"/security/policy/unlimited/default_US_export.policy
-    etc/"$pkgbase"/security/policy/unlimited/default_local.policy
-    etc/"$pkgbase"/sound.properties)
+  backup=(etc/${pkgbase}/logging.properties
+    etc/${pkgbase}/management/jmxremote.access
+    etc/${pkgbase}/management/jmxremote.password.template
+    etc/${pkgbase}/management/management.properties
+    etc/${pkgbase}/net.properties
+    etc/${pkgbase}/security/java.policy
+    etc/${pkgbase}/security/java.security
+    etc/${pkgbase}/security/policy/README.txt
+    etc/${pkgbase}/security/policy/limited/default_US_export.policy
+    etc/${pkgbase}/security/policy/limited/default_local.policy
+    etc/${pkgbase}/security/policy/limited/exempt_local.policy
+    etc/${pkgbase}/security/policy/unlimited/default_US_export.policy
+    etc/${pkgbase}/security/policy/unlimited/default_local.policy
+    etc/${pkgbase}/sound.properties)
   install=install_jdk-openjdk.sh
-  cd "$_imgdir"/jdk || exit
+  cd ${_imgdir}/jdk || exit
   install -dm 755 "${pkgdir}${_jvmdir}"
   cp -a bin demo include jmods lib release "${pkgdir}${_jvmdir}"
   rm "${pkgdir}${_jvmdir}/lib/src.zip"
   # Conf
   install -dm 755 "${pkgdir}/etc"
   cp -r conf "${pkgdir}/etc/${pkgbase}"
-  ln -s /etc/"$pkgbase" "${pkgdir}/${_jvmdir}/conf"
+  ln -s /etc/"${pkgbase}" "${pkgdir}/${_jvmdir}/conf"
   # Legal
   install -dm 755 "${pkgdir}/usr/share/licenses"
   cp -r legal "${pkgdir}/usr/share/licenses/${pkgbase}"
-  ln -s "$pkgbase" "${pkgdir}/usr/share/licenses/${pkgname}"
-  ln -s /usr/share/licenses/"$pkgbase" "${pkgdir}/${_jvmdir}/legal"
+  ln -s "${pkgbase}" "${pkgdir}/usr/share/licenses/${pkgname}"
+  ln -s /usr/share/licenses/"${pkgbase}" "${pkgdir}/${_jvmdir}/legal"
   # Man pages
   for f in bin/*; do
-    f=$(basename "$f")
+    f=$(basename "${f}")
     _man=../jdk/man/man1/"${f}.1"
-    test -f "$_man" && install -Dm 644 "$_man" "${pkgdir}/usr/share/man/man1/${f}-openjdk${_majorver}.1"
+    test -f "${_man}" && install -Dm 644 "${_man}" "${pkgdir}/usr/share/man/man1/${f}-openjdk${_majorver}.1"
   done
   ln -s /usr/share/man "${pkgdir}/${_jvmdir}/man"
   # Link JKS keystore from ca-certificates-utils
@@ -300,9 +300,9 @@ package_openjdk-src() {
   # Depends on JDK to get license files
   depends=("jdk${_majorver}-openjdk=${pkgver}-${pkgrel}")
   provides=("openjdk${_majorver}-src=${pkgver}-${pkgrel}")
-  install -Dm 644 -t "${pkgdir}${_jvmdir}/lib" "$_imgdir"/jdk/lib/src.zip
+  install -Dm 644 -t "${pkgdir}${_jvmdir}/lib" ${_imgdir}/jdk/lib/src.zip
   install -dm 755 "${pkgdir}/usr/share/licenses"
-  ln -s "$pkgbase" "${pkgdir}/usr/share/licenses/${pkgname}"
+  ln -s "${pkgbase}" "${pkgdir}/usr/share/licenses/${pkgname}"
 }
 package_openjdk-doc() {
   pkgdesc="OpenJDK Java ${_majorver} documentation"
@@ -310,8 +310,8 @@ package_openjdk-doc() {
   depends=("jdk${_majorver}-openjdk=${pkgver}-${pkgrel}")
   provides=("openjdk${_majorver}-doc=${pkgver}-${pkgrel}")
   install -dm 755 "${pkgdir}/usr/share/doc"
-  cp -r "$_imgdir"/docs "${pkgdir}/usr/share/doc/${pkgbase}"
+  cp -r ${_imgdir}/docs "${pkgdir}/usr/share/doc/${pkgbase}"
   install -dm 755 "${pkgdir}/usr/share/licenses"
-  ln -s "$pkgbase" "${pkgdir}/usr/share/licenses/${pkgname}"
+  ln -s "${pkgbase}" "${pkgdir}/usr/share/licenses/${pkgname}"
 }
 # vim: ts=2 sw=2 et:
