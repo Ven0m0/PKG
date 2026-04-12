@@ -60,7 +60,7 @@ jobs:
       - name: Install JS and YAML linters
         shell: bash
         run: |
-          npm install -g --no-fund --no-audit @biomejs/biome
+          bun add --global @biomejs/biome oxlint
           go install github.com/google/yamlfmt/cmd/yamlfmt@latest
           sudo mv "$HOME/go/bin/yamlfmt" /usr/local/bin/
 
