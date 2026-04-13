@@ -17,7 +17,7 @@ jobs:
     uses: ./.github/workflows/_run-agent.yml
     with:
       provider: opencode
-      model: "kilo/x-ai/grok-code-fast-1:optimized:free"
+      model: "opencode/minimax-m2.5-free"
       prompt: |
         Update version-controlled PKGBUILDs and open one pull request.
         ${{ inputs.packages != '' && format('Only process these package directories: {0}', inputs.packages) || 'If no packages are provided, process every package listed in nvchecker.toml.' }}
