@@ -2,7 +2,7 @@
 # Based on work by: HurricanePootis <hurricanepootis@protonmail.com>
 
 pkgname=borked3ds
-pkgver=2025.03.11
+pkgver=v2025.03.11
 pkgrel=4
 _commit=bff691f6d606f29a667a60eebade794cccdee133
 pkgdesc='Experimental Nintendo 3DS emulator based on Citra (optimized)'

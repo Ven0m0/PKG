@@ -9,8 +9,8 @@
 
 pkgbase=glibc-eac-roco
 pkgname=(glibc-eac-roco lib32-glibc-eac-roco glibc-eac-roco-locales)
-pkgver=2.42+r33+gde1fe81f4714
-_commit=de1fe81f471496366580ad728b8986a3424b2fd7
+pkgver=2.42.9000+r37+g7aa1a7b3974
+_commit=7aa1a7b39745de9bbd2ff3824dcd8e7ff3895419
 pkgrel=1
 arch=(x86_64)
 url='https://www.gnu.org/software/libc'

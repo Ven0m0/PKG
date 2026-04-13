@@ -1,7 +1,7 @@
 # Maintainer: Ven0m0
 _pkgname=aria2
 pkgname="$_pkgname-ven0m0"
-pkgver=1.37.0
+pkgver=release-1.37.0
 pkgrel=3
 pkgdesc='Download utility that supports HTTP(S), FTP, BitTorrent, and Metalink'
 arch=('x86_64')

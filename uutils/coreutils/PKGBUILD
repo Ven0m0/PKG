@@ -3,7 +3,7 @@
 # Contributor: Árni Dagur <arnidg at protonmail dot ch>
 
 pkgname=uutils-coreutils-git
-pkgver=0.5.0.r306.gbc3b613
+pkgver=0.8.0.r463.gc6cbfab
 pkgrel=1
 pkgdesc="Rust rewrite of coreutils"
 url=https://github.com/uutils/coreutils

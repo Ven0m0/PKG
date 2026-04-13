@@ -9,7 +9,7 @@
 # Contributor: dada513 <dada513@protonmail.com>
 
 pkgname=prismlauncher
-pkgver=9.4
+pkgver=11.0.2
 pkgrel=3
 pkgdesc="Minecraft launcher with ability to manage multiple instances (optimized)"
 arch=('x86_64' 'aarch64')
