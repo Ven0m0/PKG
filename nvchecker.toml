@@ -8,85 +8,359 @@
 oldver = ".github/nvchecker/old_ver.json"
 newver = ".github/nvchecker/new_ver.json"
 
-# ═══════════════════════════════════════════════════════════════════
-# NPM Packages
-# ═══════════════════════════════════════════════════════════════════
+["proton-cachyos-slr"]
+source = "regex"
+# The GitHub API returns the newest releases first; checking the first 100 is
+# enough for the current release history and keeps the lookup non-interactive.
+url = "https://api.github.com/repos/CachyOS/proton-cachyos/releases?per_page=100"
+regex = '"tag_name":\s*"cachyos-([\d.]+-\d{8})-slr"'
 
-# Example: Regular NPM package
-# ["aur/example-npm-package"]
-# source = "npm"
-# npm = "package-name"
+["wine-cachyos"]
+source = "regex"
+# The GitHub tags API is ordered newest-first; checking the first 100 tags is
+# enough for the current stable history and keeps the lookup non-interactive.
+url = "https://api.github.com/repos/CachyOS/wine-cachyos/tags?per_page=100"
+regex = '"name":\s*"cachyos-([\d.]+-\d{8})-wine"'
 
-# Example: Scoped NPM package
-# ["aur/example-scoped-package"]
-# source = "npm"
-# npm = "@scope/package-name"
+["llvm"]
+source = "github"
+github = "llvm/llvm-project"
+use_latest_release = true
+prefix = "llvmorg-"
 
-# ═══════════════════════════════════════════════════════════════════
-# PyPI Packages
-# ═══════════════════════════════════════════════════════════════════
-
-# Example: PyPI package
-# ["aur/example-pypi-package"]
-# source = "pypi"
-# pypi = "package-name"
+# The nvchecker key follows the chromium/ package directory name in this repo
+# to stay aligned with the package directory structure, even though the
+# packaged browser is Cromite and its upstream release metadata lives in
+# uazo/cromite.
+["chromium"]
+source = "github"
+github = "uazo/cromite"
+use_latest_release = true
+prefix = "v"
 
 # ═══════════════════════════════════════════════════════════════════
 # GitHub Releases
 # ═══════════════════════════════════════════════════════════════════
 
-# Example: GitHub release with 'v' prefix (e.g., v1.0.0 -> 1.0.0)
-# ["aur/example-github-package"]
-# source = "github"
-# github = "owner/repo"
-# use_latest_release = true
-# prefix = "v"
+["aria2"]
+source = "github"
+github = "aria2/aria2"
+use_latest_release = true
 
-# Example: GitHub using max tag (for repos without formal releases)
-# ["aur/example-github-tag"]
-# source = "github"
-# github = "owner/repo"
-# use_max_tag = true
-# prefix = "v"
+["borked3DS"]
+source = "github"
+github = "Borked3DS/Borked3DS"
+use_latest_release = true
+
+["code"]
+source = "github"
+github = "microsoft/vscode"
+use_latest_release = true
+prefix = "v"
+
+["dxvk/dxvk-gplasync"]
+# Tracks the gplasync-lowlatency variant (default when _variant=gplasync)
+source = "github"
+github = "Digger1955/dxvk-gplasync-lowlatency"
+use_latest_release = true
+prefix = "v"
+
+["egl-wayland2"]
+source = "github"
+github = "NVIDIA/egl-wayland2"
+use_latest_release = true
+
+["etchdns"]
+source = "github"
+github = "jedisct1/etchdns"
+use_latest_release = true
+
+["filen-desktop"]
+source = "github"
+github = "FilenCloudDienste/filen-desktop"
+use_latest_release = true
+
+["glfw-wayland"]
+# Tracks upstream GLFW releases (the cursorfix patch is applied from BoyOrigin/glfw-wayland)
+source = "github"
+github = "glfw/glfw"
+use_latest_release = true
+
+["handbrake"]
+source = "github"
+github = "HandBrake/HandBrake"
+use_latest_release = true
+
+["heroic-games-launcher"]
+source = "github"
+github = "Heroic-Games-Launcher/HeroicGamesLauncher"
+use_latest_release = true
+prefix = "v"
+
+["intel-ucode-min"]
+# Tracks Intel microcode releases as a trigger to refresh the scan hook
+source = "github"
+github = "intel/Intel-Linux-Processor-Microcode-Data-Files"
+use_latest_release = true
+prefix = "microcode-"
+
+["legcord"]
+source = "github"
+github = "Legcord/Legcord"
+use_latest_release = true
+prefix = "v"
+
+["mpv"]
+source = "github"
+github = "mpv-player/mpv"
+use_latest_release = true
+prefix = "v"
+
+["nvidia_oc"]
+source = "github"
+github = "Dreaming-Codes/nvidia_oc"
+use_latest_release = true
+
+["obs-studio"]
+source = "github"
+github = "obsproject/obs-studio"
+use_latest_release = true
+
+["onlyoffice"]
+source = "github"
+github = "ONLYOFFICE/DesktopEditors"
+use_latest_release = true
+prefix = "v"
+
+["preload-ng"]
+source = "github"
+github = "miguel-b-p/preload-ng"
+use_latest_release = true
+
+["prismlauncher"]
+# Tracks official PrismLauncher releases; Diegiwg/PrismLauncher-Cracked follows upstream
+source = "github"
+github = "PrismLauncher/PrismLauncher"
+use_latest_release = true
+
+["qpdf"]
+source = "github"
+github = "qpdf/qpdf"
+use_latest_release = true
+prefix = "v"
+
+["rare"]
+source = "github"
+github = "RareDevs/Rare"
+use_latest_release = true
+
+["ryujinx"]
+# Tracks Ryujinx via its Gitea instance API
+source = "regex"
+url = "https://git.ryujinx.app/api/v1/repos/ryubing/ryujinx/releases?limit=1"
+regex = '"tag_name":\s*"([\d.]+)"'
+
+["smartdns-rs"]
+source = "github"
+github = "mokeyish/smartdns-rs"
+use_latest_release = true
+prefix = "v"
+
+["sudachi"]
+source = "github"
+github = "emuplace/sudachi.emuplace.app"
+use_latest_release = true
+prefix = "v"
+
+["umu-launcher"]
+source = "github"
+github = "Open-Wine-Components/umu-launcher"
+use_latest_release = true
+
+["universal-android-debloater"]
+source = "github"
+github = "Universal-Debloater-Alliance/universal-android-debloater-next-generation"
+use_latest_release = true
+prefix = "v"
+
+["watchman"]
+source = "github"
+github = "facebook/watchman"
+use_latest_release = true
+prefix = "v"
+
+["zlib-ng/zlib-ng"]
+source = "github"
+github = "zlib-ng/zlib-ng"
+use_latest_release = true
+
+["zlib-ng/lib32-zlib-ng"]
+# Tracks the 2.x stable/compat branch; the 3.x development track is in zlib-ng/zlib-ng
+source = "github"
+github = "zlib-ng/zlib-ng"
+use_max_tag = true
+include_regex = "^2\\."
 
 # ═══════════════════════════════════════════════════════════════════
-# Git HEAD Packages (-git packages)
+# uutils
 # ═══════════════════════════════════════════════════════════════════
 
-# Example: Git package tracking commit hash
-# ["aur/example-git-package-git"]
-# source = "git"
-# git = "https://github.com/owner/repo.git"
-# use_commit = true
+["uutils/coreutils"]
+source = "github"
+github = "uutils/coreutils"
+use_latest_release = true
+prefix = "v"
 
-# Example: Git package with branch specified
-# ["aur/example-git-package-branch-git"]
-# source = "git"
-# git = "https://github.com/owner/repo.git"
-# branch = "develop"
-# use_commit = true
+["uutils/diffutils"]
+source = "github"
+github = "uutils/diffutils"
+use_latest_release = true
+prefix = "v"
+
+["uutils/findutils"]
+# Source tarball uses bare version (no v-prefix) in the download URL
+source = "github"
+github = "uutils/findutils"
+use_latest_release = true
+
+["uutils/procps"]
+source = "github"
+github = "uutils/procps"
+use_max_tag = true
+
+["uutils/tar"]
+source = "github"
+github = "uutils/tar"
+use_max_tag = true
 
 # ═══════════════════════════════════════════════════════════════════
-# Other Sources
+# OpenJDK
 # ═══════════════════════════════════════════════════════════════════
 
-# Example: crates.io (Rust)
-# ["aur/example-rust-package"]
-# source = "cratesio"
-# cratesio = "package-name"
+["java"]
+# JDK 24 update repository; tags use format jdk-24.X.Y+Z (strip "jdk-" prefix)
+source = "github"
+github = "openjdk/jdk24u"
+use_max_tag = true
+prefix = "jdk-"
 
-# Example: RubyGems
-# ["aur/example-ruby-package"]
-# source = "gems"
-# gems = "package-name"
+["java/java-openjdk"]
+# JDK 25 (current EA/GA); tags use format jdk-25.X.Y+Z
+source = "github"
+github = "openjdk/jdk25u"
+use_max_tag = true
+prefix = "jdk-"
 
-# Example: Go packages
-# ["aur/example-go-package"]
-# source = "go"
-# go = "github.com/owner/repo"
+["java/java21-openjdk"]
+# JDK 21 LTS update repository; tags use format jdk-21.X.Y+Z
+source = "github"
+github = "openjdk/jdk21u"
+use_max_tag = true
+prefix = "jdk-"
 
-# Example: HTTP (regex-based version extraction)
-# ["aur/example-http-package"]
-# source = "regex"
-# url = "https://example.com/download"
-# regex = 'version-([\d.]+)\.tar\.gz'
+# ═══════════════════════════════════════════════════════════════════
+# Git-based / max-tag packages
+# ═══════════════════════════════════════════════════════════════════
+
+["dolphin-emu"]
+# git package tracking xiota/dolphin-primehack; pkgver() derives from git describe
+source = "github"
+github = "xiota/dolphin-primehack"
+use_max_tag = true
+
+["endeavouros-keyring"]
+source = "github"
+github = "endeavouros-team/keyring"
+use_max_tag = true
+
+["ffmpeg"]
+# FFmpeg tags use "n" prefix (e.g. n8.1 → 8.1)
+source = "github"
+github = "FFmpeg/FFmpeg"
+use_max_tag = true
+prefix = "n"
+
+["ghostty"]
+# git package tracking ghostty-org/ghostty HEAD; use_max_tag gives the latest stable tag
+source = "github"
+github = "ghostty-org/ghostty"
+use_max_tag = true
+
+["glibc"]
+# git package tracking sourceware glibc via the bminor/glibc GitHub mirror
+source = "github"
+github = "bminor/glibc"
+use_max_tag = true
+prefix = "glibc-"
+
+["mesa-git"]
+# git package sourced from mesa3d/mesa HEAD
+source = "github"
+github = "mesa3d/mesa"
+use_max_tag = true
+prefix = "mesa-"
+
+["rclone-filen"]
+# git package tracking FilenCloudDienste/filen-rclone
+source = "github"
+github = "FilenCloudDienste/filen-rclone"
+use_max_tag = true
+
+["svt-av1"]
+# git package tracking nekotrix/SVT-AV1-Essential
+source = "github"
+github = "nekotrix/SVT-AV1-Essential"
+use_max_tag = true
+
+["update-alternatives"]
+# git package tracking fthomys/update-alternatives
+source = "github"
+github = "fthomys/update-alternatives"
+use_max_tag = true
+
+["wine-tkg-git"]
+# wine-tkg builds from wine source; track wine/wine releases as an update trigger
+source = "github"
+github = "wine-mirror/wine"
+use_max_tag = true
+prefix = "wine-"
+
+# ═══════════════════════════════════════════════════════════════════
+# npm
+# ═══════════════════════════════════════════════════════════════════
+
+["gemini-cli"]
+source = "npm"
+npm = "@google/gemini-cli"
+
+# ═══════════════════════════════════════════════════════════════════
+# Regex / HTTP sources
+# ═══════════════════════════════════════════════════════════════════
+
+["endeavouros-mirrorlist"]
+# Reads pkgver from EndeavourOS team's own PKGBUILD for the mirrorlist
+source = "regex"
+url = "https://raw.githubusercontent.com/endeavouros-team/PKGBUILDS/master/endeavouros-mirrorlist/PKGBUILD"
+regex = 'pkgver=([\d.]+)'
+
+["firefox"]
+# Official Mozilla release metadata endpoint
+source = "regex"
+url = "https://product-details.mozilla.org/1.0/firefox_versions.json"
+regex = '"LATEST_FIREFOX_VERSION":\s*"([\d.]+)"'
+
+# ═══════════════════════════════════════════════════════════════════
+# Repology (Debian / distro-tracked packages)
+# ═══════════════════════════════════════════════════════════════════
+
+["localepurge"]
+source = "repology"
+repology = "localepurge"
+
+# ═══════════════════════════════════════════════════════════════════
+# Packages with no trackable upstream (version set manually)
+# ═══════════════════════════════════════════════════════════════════
+
+# firefox-sync  – local shell script; pkgver is a manually set date (YYYYMMDD)
+# intel-ucode-min – local pacman hook script; pkgver (1.0.1) is the script's own
+#                   internal revision, not the Intel microcode release version

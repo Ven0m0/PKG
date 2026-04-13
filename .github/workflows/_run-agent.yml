@@ -65,6 +65,9 @@ permissions:
 jobs:
   run-agent:
     runs-on: ubuntu-latest
+    # Package update tasks may need extra time for non-interactive checksum and
+    # metadata refreshes on heavyweight packages such as LLVM or Chromium.
+    timeout-minutes: 90
     env:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -77,6 +80,10 @@ jobs:
       GIT_AUTHOR_EMAIL: Ven0m0@users.noreply.github.com
       GIT_COMMITTER_NAME: Ven0m0
       GIT_COMMITTER_EMAIL: Ven0m0@users.noreply.github.com
+      CI: "true"
+      GH_PROMPT_DISABLED: "1"
+      GIT_TERMINAL_PROMPT: "0"
+      DEBIAN_FRONTEND: noninteractive
 
     steps:
       - name: Checkout
@@ -128,6 +135,16 @@ jobs:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
           include_commit_log: true
 
+      - name: Cache OpenCode runtime
+        if: inputs.provider == 'opencode'
+        uses: actions/cache@v5
+        with:
+          # OpenCode stores downloaded provider packages under ~/.cache/opencode.
+          path: ~/.cache/opencode
+          key: opencode-${{ runner.os }}-${{ runner.arch }}-v1
+          restore-keys: |
+            opencode-${{ runner.os }}-${{ runner.arch }}-
+
       - name: Run OpenCode
         if: inputs.provider == 'opencode'
         uses: anomalyco/opencode/github@latest
@@ -139,7 +156,7 @@ jobs:
           OPENCODE_EXPERIMENTAL: "true"
           OPENCODE_EXPERIMENTAL_MARKDOWN: "true"
           OPENCODE_ENABLE_EXPERIMENTAL_MODELS: "true"
-          OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "20000"
+          OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "300000"
           OPENCODE_EXPERIMENTAL_LAZY_TOOLS: "true"
           OPENCODE_PRUNE_SCALE_WITH_CONTEXT: "true"
           OPENCODE_DISABLE_FILETIME_CHECK: "true"
@@ -188,6 +205,8 @@ jobs:
         with:
           path: ~/.kilo/bin
           key: kilo-${{ runner.os }}-${{ runner.arch }}-${{ steps.kilo-version.outputs.version }}
+          restore-keys: |
+            kilo-${{ runner.os }}-${{ runner.arch }}-
 
       - name: Install Kilo CLI
         if: inputs.provider == 'kilo' && steps.kilo-cache.outputs.cache-hit != 'true'
@@ -217,7 +236,7 @@ jobs:
           OPENCODE_EXPERIMENTAL: "true"
           OPENCODE_EXPERIMENTAL_MARKDOWN: "true"
           OPENCODE_ENABLE_EXPERIMENTAL_MODELS: "true"
-          OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "20000"
+          OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "300000"
           OPENCODE_EXPERIMENTAL_LAZY_TOOLS: "true"
           OPENCODE_PRUNE_SCALE_WITH_CONTEXT: "true"
           OPENCODE_DISABLE_FILETIME_CHECK: "true"
