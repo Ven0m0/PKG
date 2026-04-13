@@ -119,16 +119,6 @@ jobs:
           gemini_model: ${{ inputs.model }}
           prompt: ${{ inputs.prompt }}
 
-      - name: Cache OpenCode runtime
-        if: inputs.provider == 'opencode'
-        uses: actions/cache@v5
-        with:
-          # OpenCode stores downloaded provider packages under ~/.cache/opencode.
-          path: ~/.cache/opencode
-          key: opencode-${{ runner.os }}-${{ runner.arch }}-v1
-          restore-keys: |
-            opencode-${{ runner.os }}-${{ runner.arch }}-
-
       - name: Run OpenCode
         if: inputs.provider == 'opencode'
         uses: anomalyco/opencode/github@latest
@@ -139,14 +129,17 @@ jobs:
           KILO_API_KEY: ${{ secrets.KILO_API_KEY }}
           KILO_ORG_ID: ${{ secrets.KILO_ORG_ID }}
           GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
           OPENCODE_EXPERIMENTAL: "true"
+          OPENCODE_ENABLE_EXA: "1"
+          OPENCODE_EXPERIMENTAL_LSP_TOOL: "true"
           OPENCODE_EXPERIMENTAL_MARKDOWN: "true"
           OPENCODE_ENABLE_EXPERIMENTAL_MODELS: "true"
           OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "300000"
           OPENCODE_EXPERIMENTAL_LAZY_TOOLS: "true"
           OPENCODE_PRUNE_SCALE_WITH_CONTEXT: "true"
           OPENCODE_DISABLE_FILETIME_CHECK: "true"
-          OPENCODE_DISABLE_CLAUDE_CODE_PROMPT: "true"
+          OPENCODE_DISABLE_CLAUDE_CODE_PROMPT: "1"
           OPENCODE_DISABLE_AUTOUPDATE: "true"
           OPENCODE_EXPERIMENTAL_OXFMT: "true"
           MORPH_TIMEOUT: "60000"
