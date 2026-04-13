@@ -11,8 +11,6 @@
     ":(){:|:&};:": "deny",
     "doom_loop": "deny"
   },
-  "model": "opencode/minimax-m2.5-free",
-  "small_model": "opencode/minimax-m2.5-free",
   "disabled_providers": ["openai"],
   "plugin": [
     "openslimedit@1.0.4",
