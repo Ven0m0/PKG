@@ -2,7 +2,7 @@
 _pkgbasename=ghostty
 pkgname=${_pkgbasename}-x86_64-v3-git
 pkgrel=1
-pkgver=r11113.d8e7a6634
+pkgver=r11400.22efb0be2
 pkgdesc="Fast, native, feature-rich terminal emulator with modern x86_64-v3 optimizations and bundled shell integration + terminfo"
 arch=('x86_64')
 url="https://github.com/ghostty-org/${_pkgbasename}"

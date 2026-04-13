@@ -1,6 +1,6 @@
 # Maintainer: Ven0m0 <ven0m0.wastaken@gmail.com>
 pkgname=filen-desktop
-pkgver=3.0.48
+pkgver=3.0.47
 pkgrel=1
 pkgdesc="Desktop client including Syncing, Virtual Drive, S3, WebDAV, File Browsing, Chats, Notes, Contacts"
 arch=('x86_64' 'aarch64')

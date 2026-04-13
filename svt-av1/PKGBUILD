@@ -2,7 +2,7 @@
 
 _pkgname=svt-av1-essential
 pkgname=${_pkgname}-git
-pkgver=3.1.0.Essential.r0.g0d3bca9c
+pkgver=4.0.1.r1.g4ae9272b
 pkgrel=1
 pkgdesc='A no-nonsense SVT-AV1 encoder fork with sensible defaults and Quality of Life improvements'
 arch=('x86_64')

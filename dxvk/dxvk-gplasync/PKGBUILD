@@ -8,7 +8,7 @@ _variant=${_variant:-gplasync}
 
 if [[ "${_variant}" == "sarek" ]]; then
   pkgname=dxvk-sarek
-  pkgver=1.11.0
+  pkgver=2.7.1
   pkgdesc='Vulkan-based D3D8/9/10/11 implementation for older GPUs without Vulkan 1.3 support (Sarek fork)'
   url='https://github.com/pythonlover02/DXVK-Sarek'
   _commit='b8bb58e6c8db5c08f7b56e90b88834f0b3e16ff1'  # v1.11.0
@@ -29,7 +29,7 @@ if [[ "${_variant}" == "sarek" ]]; then
   )
 else
   pkgname=dxvk-gplasync-lowlatency
-  pkgver=2.7.1
+  pkgver=2.7.1-2
   pkgdesc='Vulkan-based implementation of D3D8/9/10/11 with GPL Async and Low Latency features'
   url='https://github.com/Digger1955/dxvk-gplasync-lowlatency'
   _srcdir='dxvk-gplasync-lowlatency'
