@@ -11,51 +11,55 @@ on:
 
 permissions:
   contents: read
+env:
+  DEBIAN_FRONTEND: noninteractive 
+  DEBCONF_NOWARNINGS: yes
 
 jobs:
   copilot-setup-steps:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 59
     steps:
       - uses: actions/checkout@v6
 
       - name: Install system packages
         uses: awalsh128/cache-apt-pkgs-action@v1
         with:
-          packages: shellcheck jq
+          packages: shellcheck jq build-essential pkg-config
           version: 1.0
 
       # Python toolchain — uses astral-sh/setup-uv for fast installs
       - name: Install uv
         uses: astral-sh/setup-uv@v8.1.0
         with:
-          enable-cache: false
-
+          enable-cache: true
+          cache-dependency-glob: |
+            uv.lock
+            pyproject.toml
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.14"
-
-      - name: Install Python linters
-        shell: bash
-        run: |
-          uv tool install ruff
-          uv tool install black
 
       # Node.js + Bun toolchain — pattern from setup-bun/action.yml
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
           node-version: "24"
-
       - name: Enable Corepack
         shell: bash
         run: corepack enable
-
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+  
+      - name: Install repository toolchain
+        uses: jdx/mise-action@v4
+        with:
+          install: true
+          cache: true
+          experimental: true
 
       - name: Install JS and YAML linters
         shell: bash
@@ -63,7 +67,6 @@ jobs:
           bun add --global @biomejs/biome oxlint
           go install github.com/google/yamlfmt/cmd/yamlfmt@latest
           sudo mv "$HOME/go/bin/yamlfmt" /usr/local/bin/
-
       - name: Install shfmt
         shell: bash
         run: |
