@@ -26,7 +26,7 @@ jobs:
       - name: Install system packages
         uses: awalsh128/cache-apt-pkgs-action@v1
         with:
-          # Ubuntu package names: `golang-go` provides `go` for yamlfmt installation.
+          # Ubuntu package names: `golang-go` provides `go`; `pacman` and `namcap` are used only for PKGBUILD syntax validation and metadata inspection in this Ubuntu bootstrap environment.
           packages: fd-find golang-go jq namcap pacman parallel ripgrep shellcheck wget
           version: 1.0
 
@@ -74,7 +74,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # This repo does not pin standalone lint CLI versions yet, so bootstrap the latest tools.
+          # This repo does not pin standalone lint CLI versions yet, so bootstrap the latest tools here until a shared version manifest exists.
           uv tool install ruff
           bun add --global @biomejs/biome
           go install github.com/google/yamlfmt/cmd/yamlfmt@latest
