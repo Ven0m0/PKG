@@ -1,63 +1,39 @@
 ---
 name: update-pkgbuild
-description: "Bump a PKGBUILD to a new upstream version: update pkgver/pkgrel, regenerate checksums, sync .SRCINFO, and verify the build. Use when asked to update a package, bump a version, or apply upstream changes. Triggers on: 'update package', 'bump version', 'new release', 'pkgver bump'."
+description: "Update a tracked package version in this repo: read nvchecker state, apply the right PKGBUILD special case, refresh checksums and .SRCINFO, and validate with the existing package tooling. Use when asked to update a package, bump a version, handle a new release, or perform a pkgver bump."
 allowed-tools: "Read, Write, Edit, Bash, Glob, Grep"
 ---
 
 # Update PKGBUILD
 
-Bump a package to a new upstream version with a clean, verifiable diff.
+Update a tracked package with a clean, verifiable diff that matches this repository's automation.
 
 ## Steps
 
-1. **Identify the change** — determine `OLD_VERSION` and `NEW_VERSION` from the
-   issue, PR, or `nvchecker.toml` / `.github/nvchecker/old_ver.json`.
-
-2. **Update `pkgver`** in `<package>/PKGBUILD`. Reset `pkgrel=1` unless only
-   `pkgrel` is being bumped (e.g., a patch with no upstream change).
-
-3. **Refresh checksums** — run inside the package directory:
+1. **Read tracking state first** — inspect `nvchecker.toml` and `.github/nvchecker/old_ver.json` before deciding what to change.
+2. **Choose the correct path**:
+   - Prefer `.github/scripts/try-update.sh` for straightforward mechanical bumps.
+   - Fall back to manual PKGBUILD edits when patches, generated versions, or package-specific logic require it.
+3. **Apply the version update**:
+   - Normal packages: update `pkgver`, reset `pkgrel=1`.
+   - `proton-cachyos-slr` and `wine-cachyos`: update `_srctag`; leave the derived `pkgver` expression unchanged.
+   - `llvm`: treat the tracked nvchecker value as the upstream release version and refresh any generated `pkgver()` result with non-interactive makepkg tooling.
+   - `chromium`: parse the tracked release as `{pkgver}-{commit}`, update both `pkgver` and `_commit`, and ensure `_pkgver=${pkgver}` is present.
+4. **Refresh generated metadata**:
    ```bash
-   cd <package>
-   makepkg -g 2>/dev/null
-   ```
-   Replace the old `sha256sums`/`sha512sums` arrays with the output.
-   Never use `SKIP` for remote sources.
-
-4. **Regenerate `.SRCINFO`**:
-   ```bash
+   updpkgsums
    makepkg --printsrcinfo > .SRCINFO
    ```
-
-5. **Apply patch conflicts** (if any) — check that existing patches in
-   `prepare()` still apply cleanly; update or drop as needed.
-
-6. **Validate**:
+5. **Check patches** — verify that any `prepare()` patches still apply after the version bump.
+6. **Update tracked version state** — keep `.github/nvchecker/old_ver.json` in sync for every package you changed.
+7. **Validate**:
    ```bash
-   ./pkg.sh lint          # from repo root
-   makepkg -srC           # clean build in package dir (optional but preferred)
-   ```
-
-7. **Commit**:
-   ```
-   <package>: update to <NEW_VERSION>
+   pkg.sh lint
+   makepkg -srC
    ```
 
 ## Invariants
 
-- `.SRCINFO` must always be committed alongside any PKGBUILD change.
-- Never commit `pkg/`, `src/`, `*.tar.*`, `*.zip`.
-- CI (`build.yml`) will rebuild the package on push — a passing `./pkg.sh lint`
-  is the minimum gate before committing.
-
-## Automated path
-
-The `.github/scripts/try-update.sh` script handles mechanical bumps for npm,
-GitHub-release, and `-git` packages. Invoke it when the version change is
-straightforward and no patch conflicts are expected:
-
-```bash
-PKG_DIR=<package> OLD_VERSION=<old> NEW_VERSION=<new> .github/scripts/try-update.sh
-```
-
-If the script exits non-zero, fall back to the manual steps above.
+- Commit `.SRCINFO` with every PKGBUILD change.
+- Commit the PKGBUILD, `.SRCINFO`, and related source files only; leave generated build trees and package archives out of the diff.
+- If automation fails, record why and stop rather than inventing a silent workaround.
