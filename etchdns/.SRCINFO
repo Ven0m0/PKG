@@ -1,1 +1,12 @@
-/bin/bash: line 1: makepkg: command not found
+pkgbase = etchdns
+pkgver = 0.1.3
+pkgrel = 1
+pkgdesc = Caching DNS proxy with advanced security features and WebAssembly hooks
+url = https://github.com/jedisct1/etchdns
+arch = x86_64 aarch64
+license = (MIT)
+depends = (gcc-libs glibc)
+makedepends = (rust cargo)
+options = (strip !emptydirs !debug !libtool)
+source = etchdns-0.1.3.tar.gz
+sha256sums = (SKIP)
