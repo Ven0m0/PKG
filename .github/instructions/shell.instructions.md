@@ -1,6 +1,6 @@
 ---
 applyTo: "**/*.sh"
-description: Bash scripts in this repo must stay strict-mode, use 2-space indentation, and prefer repo-aware discovery helpers in new code.
+description: Bash scripts in this repo must stay strict-mode, use 2-space indent, and prefer repo-aware discovery helpers in new code.
 ---
 
 # Shell Script Rules

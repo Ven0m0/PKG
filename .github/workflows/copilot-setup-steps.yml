@@ -14,7 +14,7 @@ permissions:
 
 env:
   DEBIAN_FRONTEND: noninteractive
-  DEBCONF_NOWARNINGS: "yes"
+  DEBCONF_NOWARNINGS: yes
 
 jobs:
   copilot-setup-steps:
@@ -26,6 +26,7 @@ jobs:
       - name: Install system packages
         uses: awalsh128/cache-apt-pkgs-action@v1
         with:
+          # Ubuntu package names: `golang-go` provides `go` for yamlfmt installation.
           packages: fd-find golang-go jq namcap pacman parallel ripgrep shellcheck wget
           version: 1.0
 
@@ -40,6 +41,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v8.1.0
         with:
+          # No uv lockfile is tracked here; install the CLI without dependency cache wiring.
           enable-cache: false
 
       - name: Set up Python
@@ -72,6 +74,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # This repo does not pin standalone lint CLI versions yet, so bootstrap the latest tools.
           uv tool install ruff
           bun add --global @biomejs/biome
           go install github.com/google/yamlfmt/cmd/yamlfmt@latest
