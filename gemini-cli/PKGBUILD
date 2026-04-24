@@ -1,7 +1,7 @@
 # Originally from: https://archlinux.org/packages/gemini-cli/ kept auto update nightly
 _pkgname=gemini-cli
 pkgname="${_pkgname}-autoup"
-pkgver=0.39.0
+pkgver=0.39.1
 pkgrel=1
 pkgdesc="An open-source AI agent that brings the power of Gemini directly into your terminal. Nightly auto-update version."
 arch=('x86_64')
@@ -10,7 +10,7 @@ license=('Apache-2.0')
 makedepends=('bun' 'npm')
 depends=('nodejs')
 source=("https://registry.npmjs.org/@google/${_pkgname}/-/${_pkgname}-$pkgver.tgz")
-sha256sums=('8b0093325fd6a316fa273b2a7b9c98ff0d714b0560ae1fd48363b003c993d0c8')
+sha256sums=('f6afd726bd2e4510e8407c9dda3c34a3fa63d5f4baea7cff10375269ef974216')
 conflicts=("$_pkgname")
 noextract=("${_pkgname}-${pkgver}.tgz")
 
