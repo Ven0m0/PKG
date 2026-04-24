@@ -38,15 +38,15 @@ optdepends=(
 options=(!strip !emptydirs !debug !makeflags !lto)
 source=(
   "https://archive.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"
-  ${_pkgname}.desktop
-  ${_pkgname}-symbolic.svg
+  "$_pkgname".desktop
+  "$_pkgname"-symbolic.svg
   patches/*.patch
   patches/ghostery/*.patch
   patches/firedragon/*.patch
 )
 sha256sums=('b861fdee999d9b6404e1e865d6f707c41b4bded1b5ea62affc176288c1484b8a' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
 # Tunables - set these in your environment to control build behavior
-:  "${NATIVE_ARCH:=native}"      # CPU architecture to optimize for
+: "${NATIVE_ARCH:=native}"      # CPU architecture to optimize for
 : "${ENABLE_PGO:=true}"         # Profile-Guided Optimization (recommended)
 : "${ENABLE_PGO_REUSE:=true}"   # Reuse previous PGO profiles
 : "${ENABLE_PGO_3STAGE:=false}" # 3-stage context-sensitive PGO (higher performance, 50% longer build)
@@ -54,12 +54,12 @@ sha256sums=('b861fdee999d9b6404e1e865d6f707c41b4bded1b5ea62affc176288c1484b8a' '
 : "${ENABLE_POLLY:=true}"       # Polly loop optimization
 : "${ENABLE_VAAPI:=true}"       # Hardware video acceleration
 : "${BUILD_LIMIT_CORES:=true}"  # Auto-limit cores based on available RAM
-: ${_build_lto:=true}
-: ${_build_system_libs:=true}
+: "${_build_lto:=true}"
+: "${_build_system_libs:=true}"
 # Aggressive optimization flags
 _cflags=(
   -O3
-  -march=${NATIVE_ARCH} -mtune=${NATIVE_ARCH}
+  -march="$NATIVE_ARCH" -mtune="$NATIVE_ARCH"
   -fomit-frame-pointer
   -ffunction-sections -fdata-sections
   -pipe -fjump-tables
@@ -90,7 +90,7 @@ _google_api_key=AIzaSyDwr302FpOSkGRpLlUpPThNTDPbXcIn_FM
 # more information.
 _mozilla_api_key=16674381-f021-49de-8622-3021c5942aff
 
-prepare(){
+prepare() {
   mkdir -p mozbuild
   cd "$_pkgname-$pkgver" || exit
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h. cmake
@@ -109,7 +109,7 @@ prepare(){
   # Clear forced startup pages
   sed -E -e 's&^\s*pref\("startup\.homepage.*$&&' -i browser/branding/*/pref/firefox-branding.js
 }
-_write_mozconfig(){
+_write_mozconfig() {
   cd "$srcdir/$_pkgname-$pkgver" || exit
   # Calculate optimal core count based on available RAM
   local _cores _mem _nproc
@@ -311,7 +311,7 @@ END
   command -v sccache &>/dev/null && echo 'ac_add_options --with-ccache=sccache' >>../mozconfig
 }
 
-build(){
+build() {
   # Unset variables to prevent issues with PGO profiling
   unset DBUS_SESSION_BUS_ADDRESS \
     DISPLAY \
@@ -336,7 +336,7 @@ build(){
   # Environment setup
   ulimit -n 4096
   # Build date
-  export MOZ_BUILD_DATE="$(date -u${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH} +%Y%m%d%H%M%S)"
+  export MOZ_BUILD_DATE="$(date -u"${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH}" +%Y%m%d%H%M%S)"
   export CC=clang CXX=clang++ AR=llvm-ar NM=llvm-nm RANLIB=llvm-ranlib LD=ld. lld RUST_MIN_STACK=16777216 PYTHONOPTIMIZE=2 CARGO_CACHE_RUSTC_INFO=1 OPT_LEVEL=3 CARGO_INCREMENTAL=0 MOZ_NOSPAM=1 MOZ_ENABLE_FULL_SYMBOLS=0
   # Use sccache if available
   command -v sccache &>/dev/null && export RUSTC_WRAPPER=sccache
@@ -374,7 +374,7 @@ build(){
       exec dbus-run-session -- tinywl -s 'echo $WAYLAND_DISPLAY; read _; kill $PPID'
   }
   local -x WAYLAND_DISPLAY
-  read WAYLAND_DISPLAY <&${VIRTWL[0]}
+  read WAYLAND_DISPLAY <&"${VIRTWL[0]}"
   if [[ ${ENABLE_PGO} == "true" ]]; then
     # Determine which profile to use
     local _final_profile="merged.profdata"
@@ -396,7 +396,7 @@ build(){
       fi
     fi
     # Stage 1: Generate initial profile if needed
-    if [[ !  -s merged.profdata ]]; then
+    if [[ ! -s merged.profdata ]]; then
       echo "==> PGO Stage 1: Building instrumented browser..."
       cat >. mozconfig ../mozconfig - <<END
 ac_add_options --enable-profile-generate=cross
@@ -419,7 +419,7 @@ END
       fi
     fi
     # Stage 2: Context-sensitive profiling (only if 3-stage is enabled)
-    if [[ ${ENABLE_PGO} == "true" ]] && [[ ${ENABLE_PGO_3STAGE} == "true" ]] && [[ !  -s merged-cs.profdata ]]; then
+    if [[ ${ENABLE_PGO} == "true" ]] && [[ ${ENABLE_PGO_3STAGE} == "true" ]] && [[ ! -s merged-cs.profdata ]]; then
       echo "==> PGO Stage 2: Building with Stage 1 profile for context-sensitive profiling..."
       cat >.mozconfig ../mozconfig - <<END
 ac_add_options --enable-profile-generate=cross
@@ -497,15 +497,15 @@ END
           -split-functions=3 \
           -split-all-cold \
           -dyno-stats \
-          -icf=1 || : 
+          -icf=1 || :
         [[ -f "${bin}.bolt" ]] && mv -f "${bin}.bolt" "$bin"
       fi
     done
   fi
-  exec {VIRTWL[0]}<&- {VIRTWL[1]}>&-
-  rm -rf "${XDG_RUNTIME_DIR}"
+  exec {VIRTWL[0]} {VIRTWL[1]} <&- >&-
+  rm -rf "$XDG_RUNTIME_DIR"
 }
-package(){
+package() {
   cd "$_pkgname-$pkgver" || exit
   DESTDIR="$pkgdir" ./mach install
   # Vendor preferences (privacy, performance, hardware acceleration)
@@ -600,7 +600,7 @@ END
   ln -srf "$pkgdir/usr/bin/$_pkgname" "$pkgdir/usr/lib/$_pkgname/firefox-bin"
   # Link ONNX runtime if available
   if [[ -f /usr/lib/libonnxruntime.so ]]; then
-    ln -srv /usr/lib/libonnxruntime.so "$pkgdir/usr/lib/$_pkgname/libonnxruntime.so" 2>/dev/null || : 
+    ln -srv /usr/lib/libonnxruntime.so "$pkgdir/usr/lib/$_pkgname/libonnxruntime.so" 2>/dev/null || :
   fi
 }
 

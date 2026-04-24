@@ -31,10 +31,10 @@ optdepends=('pipewire: WebRTC desktop sharing under Wayland'
   'upower: Battery Status API support')
 install="${pkgname}.install"
 options=('!lto') # Chromium adds its own flags for ThinLTO
-source=(https://commondatastorage.googleapis.com/chromium-browser-official/chromium-$_pkgver-lite.tar.xz
-  https://github.com/foutrelis/chromium-launcher/archive/v$_launcher_ver/chromium-launcher-$_launcher_ver.tar.gz
-  https://github.com/uazo/cromite/archive/refs/tags/v$pkgver-$_commit.tar.gz
-  https://dl.google.com/linux/deb/pool/main/g/google-chrome-stable/google-chrome-stable_$_chrome_ver-1_amd64.deb
+source=(https://commondatastorage.googleapis.com/chromium-browser-official/chromium-"$_pkgver"-lite.tar.xz
+  https://github.com/foutrelis/chromium-launcher/archive/v"$_launcher_ver/chromium-launcher-$_launcher_ver".tar.gz
+  https://github.com/uazo/cromite/archive/refs/tags/v"$pkgver-$_commit".tar.gz
+  https://dl.google.com/linux/deb/pool/main/g/google-chrome-stable/google-chrome-stable_"$_chrome_ver"-1_amd64.deb
   widevine-revision.patch
   chromium-138-nodejs-version-check.patch
   chromium-138-rust-1.86-mismatched_lifetime_syntaxes.patch
@@ -88,9 +88,9 @@ declare -gA _system_libs=(
   [zlib]=minizip
 )
 _unwanted_bundled_libs=(
-  $(printf "%s\n" ${!_system_libs[@]} | sed 's/^libjpeg$/&_turbo/')
+  "$(printf "%s\n" ${!_system_libs[@]} | sed 's/^libjpeg$/&_turbo/')"
 )
-depends+=(${_system_libs[@]})
+depends+=("${_system_libs[@]}")
 
 # Google API keys (see https://www.chromium.org/developers/how-tos/api-keys)
 #
@@ -116,7 +116,7 @@ prepare() {
     third_party/blink/renderer/core/xml/parser/xml_document_parser.cc \
     third_party/libxml/chromium/*.cc
 
-  pushd $srcdir/cromite-"$pkgver"-"$_commit"/build/patches || exit
+  pushd "$srcdir/cromite-$pkgver"-"$_commit"/build/patches || exit
   # Restore default codecs
   rm -f Enable-platform-aac-audio-and-h264-video.patch
   # Enable reverse image search
@@ -145,22 +145,22 @@ prepare() {
   done <"$srcdir/cromite-$pkgver-$_commit/build/cromite_patches_list.txt"
 
   # Widevine fixes from Debian
-  patch -Np1 -i $srcdir/widevine-revision.patch
+  patch -Np1 -i "$srcdir"/widevine-revision.patch
 
   # Upstream fixes
 
   # Fixes from Gentoo
-  patch -Np1 -i $srcdir/chromium-138-nodejs-version-check.patch
-  patch -Np1 -i $srcdir/chromium-141-cssstylesheet-iwyu.patch
+  patch -Np1 -i "$srcdir"/chromium-138-nodejs-version-check.patch
+  patch -Np1 -i "$srcdir"/chromium-141-cssstylesheet-iwyu.patch
 
   # Fixes from NixOS
-  patch -Np1 -i $srcdir/chromium-138-rust-1.86-mismatched_lifetime_syntaxes.patch
+  patch -Np1 -i "$srcdir"/chromium-138-rust-1.86-mismatched_lifetime_syntaxes.patch
 
   # Allow libclang_rt.builtins from compiler-rt >= 16 to be used
-  patch -Np1 -i $srcdir/compiler-rt-adjust-paths.patch
+  patch -Np1 -i "$srcdir"/compiler-rt-adjust-paths.patch
 
   # Increase _FORTIFY_SOURCE level to match Arch's default flags
-  patch -Np1 -i $srcdir/increase-fortify-level.patch
+  patch -Np1 -i "$srcdir"/increase-fortify-level.patch
 
   # Link to system tools required by the build
   mkdir -p third_party/node/linux/node-linux-x64/bin
@@ -180,7 +180,7 @@ prepare() {
   # *should* do what the remove_bundled_libraries.py script does, with the
   # added benefit of not having to list all the remaining libraries
   local _lib
-  for _lib in ${_unwanted_bundled_libs[@]}; do
+  for _lib in "${_unwanted_bundled_libs[@]}"; do
     find "third_party/$_lib" -type f \
       \! -path "third_party/$_lib/chromium/*" \
       \! -path "third_party/$_lib/google/*" \
@@ -335,7 +335,7 @@ package() {
     info_file=chrome/installer/linux/common/chromium-browser.info
     . "$info_file"
     PACKAGE=cromite
-    export $(grep -o '^[A-Z_]*' "$info_file")
+    export "$(grep -o '^[A-Z_]*' "$info_file")"
     sed -E -e 's/@@([A-Z_]*)@@/\${\1}/g' -e '/<update_contact>/d' "$tmpl_file" | envsubst
   ) \
     | install -Dm644 /dev/stdin "$pkgdir/usr/share/metainfo/cromite.appdata.xml"
@@ -377,9 +377,9 @@ package() {
 
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/cromite/LICENSE"
 
-  cp -a $srcdir/WidevineCdm "$pkgdir/usr/lib/cromite/"
+  cp -a "$srcdir"/WidevineCdm "$pkgdir/usr/lib/cromite/"
   find "$pkgdir/usr/lib/cromite/WidevineCdm" -name '*.so' -exec chmod +x {} +
-  install -Dm644 $srcdir/WidevineCdm/LICENSE \
+  install -Dm644 "$srcdir"/WidevineCdm/LICENSE \
     "$pkgdir/usr/share/licenses/cromite/LICENSE.widevine"
 }
 

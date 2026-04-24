@@ -18,23 +18,23 @@ export CARGO_PROFILE_RELEASE_LTO=true CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 CARG
 export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target
 command -v sccache &>/dev/null && export RUSTC_WRAPPER=sccache SCCACHE_IDLE_TIMEOUT=10800 SCCACHE_DIRECT=true
 
-pkgver(){
+pkgver() {
   cd update-alternatives || exit
   printf 'r%s.%s' "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
 }
 
-build(){
+build() {
   cd update-alternatives || exit
   export RUSTFLAGS="-Ctarget-cpu=native -Copt-level=3 -Ccodegen-units=1 -Clto=fat -Clink-arg=-fuse-ld=lld -Cstrip=symbols -Cpanic=abort" CFLAGS+=' -ffat-lto-objects'
   cargo build -r --locked
 }
 
-check(){
+check() {
   cd update-alternatives || exit
   cargo test -r --locked
 }
 
-package(){
+package() {
   cd update-alternatives || exit
   install -Dm755 "target/release/update-alternatives" "$pkgdir/usr/bin/update-alternatives"
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"

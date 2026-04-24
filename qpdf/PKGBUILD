@@ -32,10 +32,10 @@ build() {
 
 package() {
   cd "${_pkgname}-${pkgver}" || exit
-  DESTDIR="${pkgdir}" cmake --install build
+  DESTDIR="$pkgdir" cmake --install build
   install -Dm644 completions/bash/qpdf "${pkgdir}/usr/share/bash-completion/completions/qpdf"
   install -Dm644 completions/zsh/_qpdf "${pkgdir}/usr/share/zsh/site-functions/_qpdf"
-  rm -rf "${pkgdir}"/usr/share/doc
-  mkdir -m755 -p "${pkgdir}"/usr/share/licenses/"${_pkgname}"
-  install -m644 {Artistic-2.0,LICENSE.txt} "${pkgdir}"/usr/share/licenses/"${_pkgname}"/
+  rm -rf "$pkgdir"/usr/share/doc
+  mkdir -m755 -p "$pkgdir"/usr/share/licenses/"$_pkgname"
+  install -m644 {Artistic-2.0,LICENSE.txt} "$pkgdir"/usr/share/licenses/"$_pkgname"/
 }
