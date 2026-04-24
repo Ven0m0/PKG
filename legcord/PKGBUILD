@@ -4,7 +4,7 @@
 : ${_electron_builder_version:=<26}
 _pkgname="legcord"
 pkgname="$_pkgname"
-pkgver=1.2.2
+pkgver=1.2.4
 pkgrel=1
 pkgdesc="Discord client with builtin client mod and theme support"
 url="https://github.com/Legcord/Legcord"
@@ -25,7 +25,7 @@ replaces=(armcord)
 install="notes.install"
 _pkgsrc="$_pkgname"
 source=("$_pkgsrc"::"git+$url.git#tag=v$pkgver")
-sha256sums=('28b45a17d144968b9c7297c3273c92e8886c6afd49c5ca5997c1e0efb057f5be')
+sha256sums=('SKIP')
 
 
 build() (

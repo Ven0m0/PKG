@@ -1,1 +1,15 @@
-/bin/bash: line 1: makepkg: command not found
+pkgbase = legcord
+pkgver = 1.2.4
+pkgrel = 1
+pkgdesc = Discord client with builtin client mod and theme support
+url = https://github.com/Legcord/Legcord
+arch = x86_64 aarch64
+license = (OSL-3.0)
+depends = (electron)
+makedepends = (git nodejs npm)
+optdepends = (libnotify: Notifications xdg-utils: Open links, files, etc bun: install via bun pnpm: install via pnpm npm: install via npm)
+provides = (legcord)
+conflicts = (armcord legcord)
+replaces = (armcord)
+source = legcord::git+https://github.com/Legcord/Legcord.git#tag=v1.2.4
+sha256sums = (SKIP)
