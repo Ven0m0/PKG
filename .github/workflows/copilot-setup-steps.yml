@@ -11,49 +11,56 @@ on:
 
 permissions:
   contents: read
+
 env:
-  DEBIAN_FRONTEND: noninteractive 
-  DEBCONF_NOWARNINGS: yes
+  DEBIAN_FRONTEND: noninteractive
+  DEBCONF_NOWARNINGS: "yes"
 
 jobs:
   copilot-setup-steps:
     runs-on: ubuntu-latest
-    timeout-minutes: 59
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
 
       - name: Install system packages
         uses: awalsh128/cache-apt-pkgs-action@v1
         with:
-          packages: shellcheck jq build-essential pkg-config
+          packages: fd-find golang-go jq namcap pacman parallel ripgrep shellcheck wget
           version: 1.0
 
-      # Python toolchain — uses astral-sh/setup-uv for fast installs
+      - name: Expose fd on Ubuntu
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v fdfind >/dev/null 2>&1; then
+            sudo ln -sf "$(command -v fdfind)" /usr/local/bin/fd
+          fi
+
       - name: Install uv
         uses: astral-sh/setup-uv@v8.1.0
         with:
-          enable-cache: true
-          cache-dependency-glob: |
-            uv.lock
-            pyproject.toml
+          enable-cache: false
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.14"
 
-      # Node.js + Bun toolchain — pattern from setup-bun/action.yml
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
           node-version: "24"
+
       - name: Enable Corepack
         shell: bash
         run: corepack enable
+
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-  
+
       - name: Install repository toolchain
         uses: jdx/mise-action@v4
         with:
@@ -61,25 +68,22 @@ jobs:
           cache: true
           experimental: true
 
-      - name: Install JS and YAML linters
+      - name: Install repo linters and helpers
         shell: bash
         run: |
-          bun add --global @biomejs/biome oxlint
+          set -euo pipefail
+          uv tool install ruff
+          bun add --global @biomejs/biome
           go install github.com/google/yamlfmt/cmd/yamlfmt@latest
-          sudo mv "$HOME/go/bin/yamlfmt" /usr/local/bin/
-      - name: Install shfmt
-        shell: bash
-        run: |
-          SHFMT_VERSION="3.10.0"
-          wget -q "https://github.com/mvdan/sh/releases/download/v${SHFMT_VERSION}/shfmt_v${SHFMT_VERSION}_linux_amd64" -O shfmt
-          chmod +x shfmt
-          sudo mv shfmt /usr/local/bin/
+          sudo install -m 0755 "$HOME/go/bin/yamlfmt" /usr/local/bin/yamlfmt
 
-      - name: Install shellharden
-        shell: bash
-        run: |
-          SHELLHARDEN_VERSION="4.3.1"
-          wget -q "https://github.com/anordal/shellharden/releases/download/v${SHELLHARDEN_VERSION}/shellharden-x86_64-unknown-linux-gnu.tar.gz" -O shellharden.tar.gz
-          tar -xzf shellharden.tar.gz
-          chmod +x shellharden
-          sudo mv shellharden /usr/local/bin/
+          shfmt_version="3.10.0"
+          wget -q "https://github.com/mvdan/sh/releases/download/v${shfmt_version}/shfmt_v${shfmt_version}_linux_amd64" -O shfmt
+          sudo install -m 0755 shfmt /usr/local/bin/shfmt
+          rm -f shfmt
+
+          shellharden_version="4.3.1"
+          wget -q "https://github.com/anordal/shellharden/releases/download/v${shellharden_version}/shellharden-x86_64-unknown-linux-gnu.tar.gz" -O shellharden.tar.gz
+          tar -xzf shellharden.tar.gz shellharden
+          sudo install -m 0755 shellharden /usr/local/bin/shellharden
+          rm -f shellharden shellharden.tar.gz

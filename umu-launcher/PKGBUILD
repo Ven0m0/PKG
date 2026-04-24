@@ -66,11 +66,11 @@ optdepends=(
   'python-truststore: Verify certificates using OS trust stores'
 )
 source=(
-  "git+https://github.com/Open-Wine-Components/umu-launcher.git#tag=1.4.0"
-  574.patch
+    "git+https://github.com/Open-Wine-Components/umu-launcher.git#tag=1.4.0"
+    574.patch
 )
 sha256sums=('0e825bb8b0809a954177f0a493b992de3893dc26859f8b11deea4a37da33198b'
-  '5ee37d468064803bd754f01c2686654d41f9594f5dd3fea0606f705984acea27')
+            '5ee37d468064803bd754f01c2686654d41f9594f5dd3fea0606f705984acea27')
 
 pkgver() {
   cd "$srcdir"/umu-launcher || exit
@@ -82,10 +82,10 @@ prepare() {
 
   git config --global user.email "builder@builder.org"
   git config --global user.name "Bob the Builder"
-  git am -3 "$srcdir/574.patch"
+  git am -3  "$srcdir/574.patch"
 
   export RUSTUP_TOOLCHAIN=stable
-  export CARGO_HOME="$srcdir"/umu-cargo
+  export CARGO_HOME="${srcdir}"/umu-cargo
   cargo update
   cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
 }
@@ -93,7 +93,7 @@ prepare() {
 build() {
   cd "$srcdir"/umu-launcher || exit
   export RUSTUP_TOOLCHAIN=stable
-  export CARGO_HOME="$srcdir"/umu-cargo
+  export CARGO_HOME="${srcdir}"/umu-cargo
   ./configure.sh --prefix=/usr --use-system-pyzstd --use-system-urllib
   make
 }

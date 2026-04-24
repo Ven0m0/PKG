@@ -38,7 +38,7 @@ check() {
 
 package() {
   meson install -C build --destdir "$pkgdir"
-  #  install -Dt "$pkgdir/usr/share/licenses/$pkgname" -m644 $pkgname/COPYING
+#  install -Dt "$pkgdir/usr/share/licenses/$pkgname" -m644 $pkgname/COPYING
 }
 
 # vim:set sw=2 sts=-1 et:

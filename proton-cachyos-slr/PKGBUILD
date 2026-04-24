@@ -9,9 +9,9 @@ epoch=1
 
 _package_name="proton-cachyos-${_srctag}-slr-x86_64"
 sha256sums=('6065f798e5a133e9a8905fe27cdac28480d84bda60b258f0cb3f80623f0de256'
-  '6983622dc08784891929b843e8c5bf566c160eb2c23b7fc89c0f4dbabcd5db69')
+            '6983622dc08784891929b843e8c5bf566c160eb2c23b7fc89c0f4dbabcd5db69')
 source=(
-  https://github.com/CachyOS/proton-cachyos/releases/download/cachyos-"$_srctag-slr/$_package_name".tar.xz
+  https://github.com/CachyOS/proton-cachyos/releases/download/cachyos-${_srctag}-slr/${_package_name}.tar.xz
   compatibilitytool.vdf.template
 )
 
@@ -82,19 +82,19 @@ install=${pkgname}.install
 
 package() {
 
-  local _compatdir="${pkgdir}/usr/share/steam/compatibilitytools.d"
-  mkdir -p "$_compatdir"
-  sed -r \
-    -e "s|##INSTALL_PATH##|/opt/${pkgname}|" \
-    -e "s|##DISPLAY_NAME##|proton-cachyos-${_srctag} (steam linux runtime)|" \
-    -e "s|##INTERNAL_TOOL_NAME##|${pkgname}|" \
-    "${srcdir}/compatibilitytool.vdf.template" >"${_compatdir}/${pkgname}.vdf"
+    local _compatdir="${pkgdir}/usr/share/steam/compatibilitytools.d"
+    mkdir -p "${_compatdir}"
+    sed -r \
+      -e "s|##INSTALL_PATH##|/opt/${pkgname}|" \
+      -e "s|##DISPLAY_NAME##|proton-cachyos-${_srctag} (steam linux runtime)|" \
+      -e "s|##INTERNAL_TOOL_NAME##|${pkgname}|" \
+      "${srcdir}/compatibilitytool.vdf.template" > "${_compatdir}/${pkgname}.vdf"
 
-  local _installdir="${pkgdir}/opt/"
-  mkdir -p "${_installdir}/${pkgname}"
-  rsync --delete -arx "$_package_name"/* "${_installdir}/${pkgname}"
+    local _installdir="${pkgdir}/opt/"
+    mkdir -p "${_installdir}/${pkgname}"
+    rsync --delete -arx "${_package_name}"/* "${_installdir}/${pkgname}"
 
-  mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}"
-  mv "${_installdir}/${pkgname}"/{PATENTS.AV1,LICENSE{,.OFL}} \
-    "${pkgdir}/usr/share/licenses/${pkgname}"
+    mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}"
+    mv "${_installdir}/${pkgname}"/{PATENTS.AV1,LICENSE{,.OFL}} \
+        "${pkgdir}/usr/share/licenses/${pkgname}"
 }

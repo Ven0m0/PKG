@@ -14,35 +14,35 @@ pkgrel=1
 arch=('x86_64' 'aarch64' 'armv7h')
 url='https://github.com/microsoft/vscode'
 license=('MIT')
-depends=("$_electron" 'libsecret' 'libx11' 'libxkbfile' 'ripgrep')
+depends=($_electron 'libsecret' 'libx11' 'libxkbfile' 'ripgrep')
 optdepends=('bash-completion: Bash completions'
-  'zsh-completions: ZSH completions'
-  'x11-ssh-askpass: SSH authentication')
+            'zsh-completions: ZSH completions'
+            'x11-ssh-askpass: SSH authentication')
 makedepends=('git' 'nodejs-lts-jod' 'npm' 'python' 'desktop-file-utils' 'zip' 'jq')
 provides=('vscode' 'vscodium' 'codium' 'vscodium-electron')
 conflicts=('vscode' 'vscodium' 'codium' 'vscodium-bin' 'vscodium-git' 'vscodium-electron')
 options=('!strip' '!debug')
 source=(vscode::"git+https://github.com/microsoft/vscode.git#tag=$pkgver"
-  'code.mjs'
-  'code.sh'
-  'product_json.diff'
-  'clipath.patch'
-  # Originally taken from https://github.com/termux/termux-packages/raw/0974620c52e72d0c80bcc8a42bad482555f629e8/x11-packages/code-oss/0009-openvsx-extension-signature.patch
-  '0009-openvsx-extension-signature.patch'
-  'translucent.patch'
-  'microphone.patch'
-  'extension-management.patch'
-  'xterm.patch')
+        'code.mjs'
+        'code.sh'
+        'product_json.diff'
+        'clipath.patch'
+        # Originally taken from https://github.com/termux/termux-packages/raw/0974620c52e72d0c80bcc8a42bad482555f629e8/x11-packages/code-oss/0009-openvsx-extension-signature.patch
+        '0009-openvsx-extension-signature.patch'
+        'translucent.patch'
+        'microphone.patch'
+        'extension-management.patch'
+        'xterm.patch')
 sha512sums=('9ce51d81c7fc36fb23f272fa76b89dd307b81cd59512854ca5f2962148f85ae27c5ec3d9af757805ae128a620ce2117af4641d0fe454b0e45e02165835a6e0a8'
-  '793f9ff6306e3992ac89802d98110cba288ea1181a901467333293b7d76182ef9792c2a39ff49d9347a18a174b1f42bc58862091dff583f4146c2704eea28033'
-  '937299c6cb6be2f8d25f7dbc95cf77423875c5f8353b8bd6cd7cc8e5603cbf8405b14dbf8bd615db2e3b36ed680fc8e1909410815f7f8587b7267a699e00ab37'
-  'b1aa0d7c5b3e3e8ba1172822d75ea38e90efc431b270e0b4ca9e45bf9c0be0f60922c8618969ef071b5b6dbd9ac9f030294f1bf49bcc28c187b46d113dca63a7'
-  'e570b30cd470190aa56596913478d5fb8ba265a0f8c9d1408ea2118612cc69a360cc55e4523c3dc9c65f73e3dea53fc6620c97f6592fb9f86c3aca51ad3d9744'
-  'f60105e1a542d21622063d5c646ad9abf707394f214da24249bd873c130d2f5ebb875cc63a335c64dc9857b9c8d86ad1e75eb70072876db2453bace1f8d4475e'
-  '94045c480b6596e2f4bbf63833807262beff7396f97f17736dd4cbf91a69b140c81b4819487c0c58bf23594ee9636bff26213322f0ea4aa6f8ad18cb54caefcc'
-  '25abdf02babacc3d7bf0e67f46b0941d5bb94c38ed6a48867d39fed69f392a9445d030bda1594f267108349e276d9be5301721cdcd6c5c14cb9fd75c91ce2075'
-  'a7b4884fbaa516dd55bcfa68397623ce32897cdd01ea203179c1717ec7f56bc858ab117285368ba61ef5d573fced06ddd9e310d4610d92249091edd24dd5f276'
-  '5f8a737de48088fb3e68f60cec24f02f3cc40068167be4adad3538fa1513146dd41a9edd57ef81d44b7b3a9b6e031f309f02da514856305cc7f8f121a7194462')
+            '793f9ff6306e3992ac89802d98110cba288ea1181a901467333293b7d76182ef9792c2a39ff49d9347a18a174b1f42bc58862091dff583f4146c2704eea28033'
+            '937299c6cb6be2f8d25f7dbc95cf77423875c5f8353b8bd6cd7cc8e5603cbf8405b14dbf8bd615db2e3b36ed680fc8e1909410815f7f8587b7267a699e00ab37'
+            'b1aa0d7c5b3e3e8ba1172822d75ea38e90efc431b270e0b4ca9e45bf9c0be0f60922c8618969ef071b5b6dbd9ac9f030294f1bf49bcc28c187b46d113dca63a7'
+            'e570b30cd470190aa56596913478d5fb8ba265a0f8c9d1408ea2118612cc69a360cc55e4523c3dc9c65f73e3dea53fc6620c97f6592fb9f86c3aca51ad3d9744'
+            'f60105e1a542d21622063d5c646ad9abf707394f214da24249bd873c130d2f5ebb875cc63a335c64dc9857b9c8d86ad1e75eb70072876db2453bace1f8d4475e'
+            '94045c480b6596e2f4bbf63833807262beff7396f97f17736dd4cbf91a69b140c81b4819487c0c58bf23594ee9636bff26213322f0ea4aa6f8ad18cb54caefcc'
+            '25abdf02babacc3d7bf0e67f46b0941d5bb94c38ed6a48867d39fed69f392a9445d030bda1594f267108349e276d9be5301721cdcd6c5c14cb9fd75c91ce2075'
+            'a7b4884fbaa516dd55bcfa68397623ce32897cdd01ea203179c1717ec7f56bc858ab117285368ba61ef5d573fced06ddd9e310d4610d92249091edd24dd5f276'
+            '5f8a737de48088fb3e68f60cec24f02f3cc40068167be4adad3538fa1513146dd41a9edd57ef81d44b7b3a9b6e031f309f02da514856305cc7f8f121a7194462')
 
 # Even though we don't officially support other archs, let's
 # allow the user to use this PKGBUILD to compile the package
@@ -87,8 +87,8 @@ prepare() {
 
   # Change electron binary name to the target electron
   sed -e "s|name=electron|name=$_electron|" \
-    -e '/PKGBUILD/d' \
-    -i ../code.sh
+      -e '/PKGBUILD/d' \
+      -i ../code.sh
   sed "1s|.*|#!/usr/lib/$_electron/electron|" -i ../code.mjs
 
   # see https://gitlab.archlinux.org/archlinux/packaging/packages/code/-/issues/42
@@ -126,7 +126,7 @@ prepare() {
           s|@@EXEC@@|code-oss|g
           s|@@LICENSE@@|MIT|g
           s|@@URLPROTOCOL@@|vscode|g' \
-    resources/linux/code{.appdata.xml,.desktop,-url-handler.desktop}
+          resources/linux/code{.appdata.xml,.desktop,-url-handler.desktop}
 
   desktop-file-edit --set-key StartupWMClass --set-value code-oss resources/linux/code.desktop
 
@@ -153,8 +153,8 @@ build() {
   export XDG_CACHE_HOME="$srcdir"
   npm install --cpu="$_vscode_arch"
   npm run gulp \
-    --openssl-legacy-provider \
-    vscode-linux-"$_vscode_arch"-min
+       --openssl-legacy-provider \
+       vscode-linux-"${_vscode_arch}"-min
 }
 
 package() {

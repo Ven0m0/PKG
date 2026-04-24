@@ -1,34 +1,36 @@
 ---
-applyTo: "**/PKGBUILD,**/.SRCINFO"
+applyTo: "**/{PKGBUILD,.SRCINFO}"
+description: PKGBUILD edits must keep version tracking, checksums, and .SRCINFO in sync with this repository's update automation.
 ---
 
 # PKGBUILD Rules
 
 ## Invariants
 
-- **Always** run `makepkg --printsrcinfo > .SRCINFO` after any PKGBUILD change.
-- Never commit `pkg/`, `src/`, `*.tar.*`, `*.zip`.
-- HTTPS sources only; `sha256sums`/`sha512sums` on all remote sources; `SKIP` only for local files.
+- Always run `makepkg --printsrcinfo > .SRCINFO` after any PKGBUILD change.
+- Commit the PKGBUILD, `.SRCINFO`, and related source files only; leave generated build trees and package archives out of the diff.
+- HTTPS sources only; use `sha256sums` or `sha512sums` for remote sources and `SKIP` only for local files.
+- Read `nvchecker.toml` and `.github/nvchecker/old_ver.json` before changing tracked package versions.
 
-## Optimization flags
+## Standard update flow
 
 ```bash
-export CFLAGS="${CFLAGS/-O2/-O3} -pipe -fno-plt -fstack-protector-strong"
-export CXXFLAGS="${CXXFLAGS/-O2/-O3} -pipe -fno-plt -fstack-protector-strong"
-export LDFLAGS="-Wl,-O1,--sort-common,--as-needed,-z,relro,-z,now"
-export MAKEFLAGS="-j$(nproc)"
-# Rust:
-export RUSTFLAGS="-C target-cpu=native -C opt-level=3 -C lto=fat -C codegen-units=1"
+updpkgsums
+makepkg --printsrcinfo > .SRCINFO
+pkg.sh lint
+makepkg -srC
 ```
+
+Reset `pkgrel=1` when updating `pkgver` unless the change is only a packaging revision.
+
+## Special cases
+
+- `proton-cachyos-slr` and `wine-cachyos`: update `_srctag`; keep the derived `pkgver` expression unchanged.
+- `llvm`: treat the tracked nvchecker value as the upstream release version; if `pkgver()` derives the final value, refresh it with makepkg tooling instead of hand-editing the generated version.
+- `chromium`: parse the tracked release as `{pkgver}-{commit}`; update `pkgver`, `_commit`, and keep `_pkgver=${pkgver}` present before recalculating checksums and `.SRCINFO`.
 
 ## Patches
 
-- Naming: `0001-descriptive-name.patch`, `0002-next.patch`
-- Apply in `prepare()`: `patch -Np1 -i ../0001-descriptive-name.patch`
-
-## Validation
-
-```bash
-./pkg.sh lint          # shellcheck + shfmt + .SRCINFO sync check
-makepkg -srC           # clean local build
-```
+- Naming: `0001-descriptive-name.patch`, `0002-next-change.patch`
+- Apply patch files from `prepare()` with `patch -Np1 -i` against the package-local patch file you just edited
+- If an update touches patched sources, verify every patch still applies cleanly.

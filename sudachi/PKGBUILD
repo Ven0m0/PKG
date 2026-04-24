@@ -9,9 +9,9 @@ arch=('x86_64')
 url='https://sudachi.emuplace.app'
 license=('GPL-3.0-or-later')
 depends=('qt6-base' 'hicolor-icon-theme' 'brotli' 'zydis' 'libvdpau' 'libx11'
-  'openssl' 'libdrm' 'glibc' 'opus' 'systemd-libs' 'libva' 'gcc-libs' 'speexdsp')
+         'openssl' 'libdrm' 'glibc' 'opus' 'systemd-libs' 'libva' 'gcc-libs' 'speexdsp')
 makedepends=('git' 'cmake' 'doxygen' 'ninja' 'rapidjson' 'qt6-tools' 'qt6-multimedia'
-  'vulkan-headers' 'nasm' 'llvm' 'gamemode' 'zip' 'unzip')
+             'vulkan-headers' 'nasm' 'llvm' 'gamemode' 'zip' 'unzip')
 optdepends=('gamemode: gamemode support')
 options=(!debug)
 noextract=("${pkgname}-${pkgver}.zip")
@@ -49,21 +49,21 @@ source=("${pkgname}-${pkgver}.zip::https://github.com/emuplace/sudachi.emuplace.
   tz::git+https://github.com/eggert/tz
   zycore::git+https://github.com/zyantific/zycore-c)
 sha256sums=('0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5'
-  'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP'
-  'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP'
-  'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP'
-  'SKIP' 'SKIP' 'SKIP')
+            'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP'
+            'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP'
+            'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP'
+            'SKIP' 'SKIP' 'SKIP')
 
 prepare() {
-  cd "$srcdir" || exit
+  cd "${srcdir}" || exit
   [[ -d ${pkgname}-${pkgver} ]] && rm -rf "${pkgname}-${pkgver}"
   bsdunzip -d "${pkgname}-${pkgver}" "${pkgname}-${pkgver}.zip"
   cd "${srcdir}/${pkgname}-${pkgver}" || exit
   git init
   # Initialize git submodules with local sources
   for _submodule in enet dynarmic discord-rpc vulkan-headers sirit mbedtls xbyak opus \
-    cpp-httplib cpp-jwt libadrenotools VulkanMemoryAllocator breakpad \
-    simpleini oaknut Vulkan-Utility-Libraries vcpkg cubeb SDL3; do
+                    cpp-httplib cpp-jwt libadrenotools VulkanMemoryAllocator breakpad \
+                    simpleini oaknut Vulkan-Utility-Libraries vcpkg cubeb SDL3; do
     rm -rf "externals/${_submodule}"
     git -c protocol.file.allow=always submodule add "${srcdir}/${_submodule}" "externals/${_submodule}"
   done
@@ -76,27 +76,27 @@ prepare() {
   git -c protocol.file.allow=always submodule add "${srcdir}/tzdb_to_nx" externals/nx_tzdb/tzdb_to_nx
   # Nested submodules
   pushd externals/cubeb || exit
-  git config submodule.googletest.url "${srcdir}/googletest"
-  git config submodule.cmake/sanitizers-cmake.url "${srcdir}/sanitizers-cmake"
-  git config submodule.src/cubeb-coreaudio-rs.url "${srcdir}/cubeb-coreaudio-rs"
-  git config submodule.src/cubeb-pulse-rs.url "${srcdir}/cubeb-pulse-rs"
-  git -c protocol.file.allow=always submodule update
+    git config submodule.googletest.url "${srcdir}/googletest"
+    git config submodule.cmake/sanitizers-cmake.url "${srcdir}/sanitizers-cmake"
+    git config submodule.src/cubeb-coreaudio-rs.url "${srcdir}/cubeb-coreaudio-rs"
+    git config submodule.src/cubeb-pulse-rs.url "${srcdir}/cubeb-pulse-rs"
+    git -c protocol.file.allow=always submodule update
   popd || exit
   pushd externals/libadrenotools || exit
-  git config submodule.lib/linkernsbypass.url "${srcdir}/linkernsbypass"
-  git -c protocol.file.allow=always submodule update
+    git config submodule.lib/linkernsbypass.url "${srcdir}/linkernsbypass"
+    git -c protocol.file.allow=always submodule update
   popd || exit
   pushd externals/sirit || exit
-  git config submodule.externals/SPIRV-Headers.url "${srcdir}/SPIRV-Headers"
-  git -c protocol.file.allow=always submodule update
+    git config submodule.externals/SPIRV-Headers.url "${srcdir}/SPIRV-Headers"
+    git -c protocol.file.allow=always submodule update
   popd || exit
   pushd externals/nx_tzdb/tzdb_to_nx || exit
-  git config submodule.externals/tz/tz.url "${srcdir}/tz"
-  git -c protocol.file.allow=always submodule update
+    git config submodule.externals/tz/tz.url "${srcdir}/tz"
+    git -c protocol.file.allow=always submodule update
   popd || exit
   pushd externals/dynarmic/externals/zydis || exit
-  git config submodule.dependencies/zycore.url "${srcdir}/zycore"
-  git -c protocol.file.allow=always submodule update
+    git config submodule.dependencies/zycore.url "${srcdir}/zycore"
+    git -c protocol.file.allow=always submodule update
   popd || exit
   # Compatibility patches
   sed -i 's/\bwindow\b/render_window/g' src/sudachi_cmd/emu_window/emu_window_sdl3_vk.cpp
@@ -124,6 +124,6 @@ build() {
 
 package() {
   cd "${srcdir}/${pkgname}-${pkgver}" || exit
-  DESTDIR="$pkgdir" cmake --install build
+  DESTDIR="${pkgdir}" cmake --install build
 }
 # vim: ts=2 sw=2 et:

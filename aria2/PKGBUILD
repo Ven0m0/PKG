@@ -29,7 +29,7 @@ build() {
   cd "$_pkgname-$pkgver" || exit
   export CFLAGS="${CFLAGS/-O2/-O3}" CXXFLAGS="${CXXFLAGS/-O2/-O3}"
   ./configure --prefix=/usr --enable-libaria2 --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt --without-gnutls --with-openssl
-  make -j"$(nproc)"
+  make -j$(nproc)
 }
 
 check() {
