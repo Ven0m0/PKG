@@ -15,6 +15,7 @@ permissions:
 env:
   DEBIAN_FRONTEND: noninteractive
   DEBCONF_NOWARNINGS: yes
+  UV_PYTHON_PREFERENCE: only-managed
 
 jobs:
   copilot-setup-steps:
@@ -41,13 +42,9 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v8.1.0
         with:
-          # No uv lockfile is tracked here; install the CLI without dependency cache wiring.
-          enable-cache: false
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
           python-version: "3.14"
+          enable-cache: false
+          cache-python: true
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
