@@ -124,15 +124,15 @@ class VpDev:
 
     def _get_pkg_dirs(self) -> list[Path]:
         """Get all package directories (dirs with PKGBUILD, excluding skip_dirs)"""
-        dirs = []
-        for d in sorted(self.root.iterdir()):
-            if (
-                d.is_dir()
+        return sorted(
+            [
+                d
+                for d in self.root.iterdir()
+                if d.is_dir()
                 and d.name not in self.skip_dirs
                 and (d / "PKGBUILD").exists()
-            ):
-                dirs.append(d)
-        return dirs
+            ]
+        )
 
     def new(self, nm: str) -> int:
         d = self.root / nm
