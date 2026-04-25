@@ -53,6 +53,49 @@ wait_for_jobs() {
   done
 }
 
+# ─── Parallel/Serial Batch Execution Helper ──────────────────────────────────
+# Run tasks in batch (parallel or serial) for list of directories
+# Usage: run_task_batch "$parallel" "$max_jobs" "handler_func" "errs_var" "items_var" "pre_task_func" "processor_func"
+run_task_batch() {
+  local parallel=$1 max_jobs=$2 handler=$3 errs_var=$4 items_var=$5 pre_task=$6 processor=$7
+  local -n items_ref=$items_var
+
+  if [[ $parallel == true ]]; then
+    local -a pids=()
+    local tmpdir
+    tmpdir=$(mktemp -d)
+    trap 'rm -rf "$tmpdir"' RETURN
+
+    for item in "${items_ref[@]}"; do
+      [[ -d "$item" ]] || continue
+
+      wait_for_jobs "$max_jobs"
+
+      if [[ -n $pre_task ]]; then "$pre_task" "$item"; fi
+
+      ("$processor" "$item" >"$tmpdir/${item//\//_}.log" 2>&1) &
+      pids+=($!)
+    done
+
+    for pid in "${pids[@]}"; do wait "$pid" || true; done
+
+    for logfile in "$tmpdir"/*.log; do
+      [[ -f $logfile ]] || continue
+      "$handler" "$errs_var" <"$logfile"
+    done
+  else
+    for item in "${items_ref[@]}"; do
+      [[ -d "$item" ]] || continue
+
+      if [[ -n $pre_task ]]; then "$pre_task" "$item"; fi
+
+      local output
+      output=$("$processor" "$item" 2>&1)
+      "$handler" "$errs_var" <<<"$output"
+    done
+  fi
+}
+
 # ─── Script Directory ────────────────────────────────────────────────────────
 # Get the directory of the calling script
 # Usage: cd_to_script_dir
