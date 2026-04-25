@@ -116,10 +116,6 @@ class PackageBasic:
         package_basic.additional_properties = d
         return package_basic
 
-    @property
-    def additional_keys(self) -> List[str]:
-        return list(self.additional_properties.keys())
-
     def __getitem__(self, key: str) -> Any:
         return self.additional_properties[key]
 
@@ -185,10 +181,6 @@ class SearchResult:
         )
         search_result.additional_properties = d
         return search_result
-
-    @property
-    def additional_keys(self) -> List[str]:
-        return list(self.additional_properties.keys())
 
     def __getitem__(self, key: str) -> Any:
         return self.additional_properties[key]
@@ -401,10 +393,6 @@ class PackageDetailed:
         package_detailed.additional_properties = d
         return package_detailed
 
-    @property
-    def additional_keys(self) -> List[str]:
-        return list(self.additional_properties.keys())
-
     def __getitem__(self, key: str) -> Any:
         return self.additional_properties[key]
 
@@ -468,10 +456,6 @@ class InfoResult:
         )
         info_result.additional_properties = d
         return info_result
-
-    @property
-    def additional_keys(self) -> List[str]:
-        return list(self.additional_properties.keys())
 
     def __getitem__(self, key: str) -> Any:
         return self.additional_properties[key]
