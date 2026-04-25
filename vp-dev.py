@@ -2,6 +2,7 @@
 """vp-dev - Development tool for Ven0m0's PKG repository"""
 
 import sys
+import shlex
 import json
 import argparse
 import subprocess
@@ -83,8 +84,6 @@ class VpDev:
         if not pb.exists():
             return None
         try:
-            import shlex
-
             cmd = f'source {shlex.quote(str(pb))} 2>/dev/null;echo "${{pkgname}}|${{pkgver}}|${{pkgrel}}|${{pkgdesc}}|${{url}}"'
             r = subprocess.run(
                 ["bash", "-c", cmd],
