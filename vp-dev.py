@@ -225,7 +225,9 @@ makepkg -si
             for line in si.read_text().splitlines():
                 if "=" not in line:
                     continue
-                k, v = [x.strip() for x in line.split("=", 1)]
+                k, v = line.split("=", 1)
+                k = k.strip()
+                v = v.strip()
                 if k == "pkgname":
                     if "name" in data:
                         break  # Stop at first package
