@@ -488,19 +488,24 @@ class InfoResult:
 
 handle = None
 aur_url = "https://aur.archlinux.org/rpc/v5"
+AUR_REQUEST_TIMEOUT = 10
 
 local_repos = {"custom", "loathk-public", "loathk-personal"}
 arch_repos = {"core", "extra", "community", "multilib"}
 
 
 def search_single(name: str):
-    response = requests.get(f"{aur_url}/search/{name}?by=name")
+    response = requests.get(
+        f"{aur_url}/search/{name}?by=name", timeout=AUR_REQUEST_TIMEOUT
+    )
     return SearchResult.from_dict((json.loads(response.content)))
 
 
 def info_multiple(names: List[str]):
     payload = {"arg[]": names}
-    response = requests.get(f"{aur_url}/info", params=payload)
+    response = requests.get(
+        f"{aur_url}/info", params=payload, timeout=AUR_REQUEST_TIMEOUT
+    )
     return InfoResult.from_dict(json.loads(response.content))
 
 
