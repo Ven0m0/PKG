@@ -521,13 +521,10 @@ if __name__ == "__main__":
     colorama_init()
 
     handle = config.init_with_config("/etc/pacman.conf")
-    arch_dbs = list(
-        filter(lambda r: r.name in arch_repos, [db for db in handle.get_syncdbs()])
-    )
+    syncdbs = handle.get_syncdbs()
+    arch_dbs = [db for db in syncdbs if db.name in arch_repos]
 
-    local_dbs = list(
-        filter(lambda r: r.name in local_repos, [db for db in handle.get_syncdbs()])
-    )
+    local_dbs = [db for db in syncdbs if db.name in local_repos]
 
     # Pre-calculate Arch package map to avoid N+1 queries in the loop
     # Maps package name to (package_object, db_name)
