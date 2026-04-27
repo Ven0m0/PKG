@@ -83,20 +83,57 @@ class VpDev:
         if not pb.exists():
             return None
         try:
-            import shlex
+            content = pb.read_text(errors="replace")
+            vars_dict = {}
 
-            cmd = f'source {shlex.quote(str(pb))} 2>/dev/null;echo "${{pkgname}}|${{pkgver}}|${{pkgrel}}|${{pkgdesc}}|${{url}}"'
-            r = subprocess.run(
-                ["bash", "-c", cmd],
-                capture_output=True,
-                text=True,
-                cwd=pb.parent,
-                check=False,
-            )
-            if r.returncode != 0:
-                return None
-            p = r.stdout.strip().split("|")
-            if len(p) < 4:
+            cleaned_content = re.sub(r"(?m)^\s*#.*$", "", content)
+
+            for m in re.finditer(
+                r"^[ \t]*([a-zA-Z0-9_]+)=([^\n]+|(?:\([^)]+\)))",
+                cleaned_content,
+                re.MULTILINE,
+            ):
+                var = m.group(1)
+                if var not in vars_dict:
+                    val = m.group(2).strip()
+
+                    if val.startswith("(") and val.endswith(")"):
+                        inner = val[1:-1].strip()
+                        tokens = inner.split()
+                        if tokens:
+                            val = tokens[0]
+                        else:
+                            val = ""
+
+                    if val and (val[0] == val[-1]) and val[0] in ("'", '"'):
+                        val = val[1:-1]
+
+                    vars_dict[var] = val
+
+            def expand_vars(text, depth=0):
+                if not text or depth > 10:
+                    return text
+
+                def replace(match):
+                    v = match.group(1) or match.group(2)
+                    return expand_vars(vars_dict.get(v, ""), depth + 1)
+
+                if "$" in text:
+                    return re.sub(
+                        r"\$\{([a-zA-Z0-9_]+)\}|\$([a-zA-Z0-9_]+)", replace, text
+                    )
+                return text
+
+            name = expand_vars(vars_dict.get("pkgname", ""))
+            if not name:
+                name = expand_vars(vars_dict.get("pkgbase", ""))
+
+            version = expand_vars(vars_dict.get("pkgver", ""))
+            rel = expand_vars(vars_dict.get("pkgrel", ""))
+            desc = expand_vars(vars_dict.get("pkgdesc", ""))
+            url = expand_vars(vars_dict.get("url", ""))
+
+            if not name or not version or not rel:
                 return None
 
             if self.files_cache is not None:
@@ -112,10 +149,10 @@ class VpDev:
                 fs = [f for f in r2.stdout.strip().split("\n") if f and f != "PKGBUILD"]
 
             return {
-                "name": p[0],
-                "version": f"{p[1]}-{p[2]}",
-                "description": p[3],
-                "url": p[4] if len(p) > 4 else "",
+                "name": name,
+                "version": f"{version}-{rel}",
+                "description": desc,
+                "url": url,
                 "files": sorted(fs),
             }
         except Exception as e:
