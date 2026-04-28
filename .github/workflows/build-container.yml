@@ -1,9 +1,6 @@
 name: Build Container
 
 on:
-  schedule:
-    - cron: '33 4 * * 1'
-    - cron: '33 4 * * 4'
   push:
     branches:
       - main
