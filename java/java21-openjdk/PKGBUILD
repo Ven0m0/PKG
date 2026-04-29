@@ -2,8 +2,6 @@
 # Maintainer: Frederik Schwan <freswa at archlinux dot org>
 # Contributor: Guillaume ALAUX <guillaume@archlinux.org>
 
-# TODO add test, see about packaging jtreg and using it here
-
 pkgbase=java21-openjdk
 pkgname=(
   jre21-openjdk-headless
@@ -50,6 +48,7 @@ makedepends=(
   unzip
   zip
 )
+checkdepends=('jtreg')
 # https://bugs.openjdk.org/browse/JDK-8340215
 options=(
   !lto
@@ -158,8 +157,7 @@ build() {
 
 check() {
   cd ${_jdkdir}
-  # TODO package jtreg
-  # make -k check
+  make -k check
 }
 
 package_jre21-openjdk-headless() {
