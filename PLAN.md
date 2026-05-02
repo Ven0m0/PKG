@@ -255,7 +255,7 @@ Single-stage Dockerfiles include build tools in the final image, inflating size 
 ### T027 · Implement reproducible builds support
 `PKGBUILDs` · medium · feature · L · needs:T026 · blocks:—
 Builds embed non-deterministic timestamps; independent rebuilds produce different binary hashes, blocking supply-chain verification.
-- [ ] `SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)` exported in `prepare()` for all timestamp-embedding PKGBUILDs
+- [ ] SOURCE_DATE_EPOCH handled via makepkg native support for reproducible builds
 - [ ] Two independent builds of same `pkgver` produce byte-identical `.pkg.tar.zst`; CI job `reproducible.yml` fails on hash mismatch
 > `ref reproducible-builds.org/docs/source-date-epoch; double-build in CI verified via sha256sum`
 
