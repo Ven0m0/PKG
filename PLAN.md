@@ -22,8 +22,8 @@ placeholders such as `.github/SECURITY.md` with `CVE-2024-XXXX`.
 | T010 | Add Node.js PKGBUILD with custom V8 flags                   | med    | feature  | M  | —        | —      |
 | T011 | Add PostgreSQL PKGBUILD with JIT and compile-time opts      | med    | feature  | M  | —        | —      |
 | T012 | Add Nginx PKGBUILD with custom modules                      | med    | feature  | M  | —        | —      |
-| T014 | Add basic per-package functionality test suite              | high   | feature  | L  | T013 T015 | —    |
-| T013 | Implement automated chroot-based package test framework     | high   | feature  | L  | T016 T034 | T014  |
+| T013 | Implement automated chroot-based package test framework     | high   | feature  | L  | T014 T016 T034 | — |
+| T014 | Add basic per-package functionality test suite              | high   | feature  | L  | T015     | T013   |
 | T015 | Add performance regression test harness                     | low    | feature  | L  | —        | T014   |
 | T016 | Set up binary repository with pre-built packages            | med    | feature  | XL | —        | T013   |
 | T017 | Implement notification system for security/version alerts   | med    | feature  | M  | —        | —      |
