@@ -1,7 +1,7 @@
 # Implementation Plan
 _2026-05-02 · 37 tasks_
 
-Consolidates all open items from `TODO.md` and one in-code security marker
+Consolidates selected open items from `TODO.md` and one in-code security marker
 (`filen-desktop/filen-desktop.sh:11`). No `FIXME`/`HACK`/`XXX`/`DEPRECATED` comments
 found in source.
 
