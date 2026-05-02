@@ -3,7 +3,7 @@
 # Features: Aggressive optimization, PGO, VA-API, system libraries, hardware acceleration
 pkgname=firefox-custom
 _pkgname=firefox
-pkgver=150.0
+pkgver=150.0.1
 pkgrel=1
 pkgdesc='Firefox with aggressive optimizations, VA-API, PGO, and all performance tweaks'
 arch=(x86_64)
