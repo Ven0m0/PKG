@@ -219,7 +219,7 @@ Package READMEs vary in structure, degrading discoverability and installation gu
 ### T022 · Add parallel build support to pkg.sh cmd_build
 `pkg.sh` · medium · perf · M · needs:— · blocks:—
 `cmd_build` runs sequentially while `cmd_lint` already supports `PARALLEL=true`; full-repo builds are unnecessarily slow.
-- [ ] `pkg.sh build` accepts `--jobs N` (default `nproc`); per-package output buffered, not interleaved
+cmd_build already supports PARALLEL=true; this task focuses on refining output buffering and job control.
 - [ ] `PARALLEL=false` disables parallelism; exit code non-zero if any build fails
 - [ ] `shellcheck -s bash` passes on `pkg.sh`
 > `replicate cmd_lint job-dispatch pattern; tmp_dir for per-package output; wait -n (bash 5.1+) for job completion`
