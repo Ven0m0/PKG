@@ -243,7 +243,7 @@ PGO training reruns on every commit, wasting CI time when source is unchanged.
 Inter-package dependencies (e.g., `llvm` → `mesa`) are implicit; correct build ordering requires an explicit graph.
 - [ ] `tools/dep-graph.py` outputs DOT-format graph from all PKGBUILDs; exits non-zero on cycle detected
 - [ ] Output verified correct for ≥3 known dependency pairs
-> `parse depends/makedepends via bash -c 'source PKGBUILD; echo "${depends[@]}"'; graphlib.TopologicalSorter (Python 3.9+)`
+> parse depends/makedepends via makepkg --printsrcinfo; graphlib.TopologicalSorter (Python 3.9+)
 
 ### T026 · Convert Dockerfiles to multi-stage with minimal base image
 `Dockerfile(s)` · low · refactor · M · needs:— · blocks:T027
