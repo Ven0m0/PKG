@@ -86,7 +86,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: 2
       - name: Configure git identity
         shell: bash
         run: |
@@ -176,7 +176,6 @@ jobs:
           )"
           [[ -n "${VERSION}" ]] || { echo "Failed to fetch Kilo version" >&2; exit 1; }
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-
       - name: Cache Kilo
         if: inputs.provider == 'kilo'
         id: kilo-cache
@@ -186,18 +185,12 @@ jobs:
           key: kilo-${{ runner.os }}-${{ runner.arch }}-${{ steps.kilo-version.outputs.version }}
           restore-keys: |
             kilo-${{ runner.os }}-${{ runner.arch }}-
-
       - name: Install Kilo CLI
         if: inputs.provider == 'kilo' && steps.kilo-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
           curl -fsSL https://kilo.ai/cli/install | bash
-
-      - name: Add Kilo to PATH
-        if: inputs.provider == 'kilo'
-        shell: bash
-        run: echo "$HOME/.kilo/bin" >> "$GITHUB_PATH"
-
+          echo "$HOME/.kilo/bin" >> "$GITHUB_PATH"
       - name: Run Kilo
         if: inputs.provider == 'kilo'
         shell: bash
