@@ -215,7 +215,7 @@ Recurring failures (dirty `.SRCINFO`, checksum mismatches, `namcap` warnings) la
 Package READMEs vary in structure, degrading discoverability and installation guidance consistency.
 - [ ] All 55 package dirs have `README.md` conforming to template (Description/Installation/Build Options/Notes sections)
 - [ ] CI lint step validates section presence via `grep -q "## Installation"`
-> `git ls-files ':(glob)**/PKGBUILD' to enumerate; generate missing READMEs from docs/package-readme-template.md`
+> `git ls-files ':(glob)**/PKGBUILD' to enumerate; generate missing READMEs from .github/PACKAGE_README_TEMPLATE.md`
 
 ### T022 · Harden pkg.sh cmd_build parallel output and job control
 `pkg.sh` · medium · perf · M · needs:— · blocks:—
