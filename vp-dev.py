@@ -397,11 +397,13 @@ makepkg -si
 
     def clean(self) -> int:
         info("Cleaning build artifacts...")
-        pats = ["*.pkg.tar.zst", "*.pkg.tar.xz", "*.log", "pkg", "src", "*.bak"]
         c = 0
         for d in self._get_pkg_dirs():
-            for pat in pats:
-                for it in d.glob(pat):
+            for it in d.iterdir():
+                name = it.name
+                if name in ("pkg", "src") or name.endswith(
+                    (".pkg.tar.zst", ".pkg.tar.xz", ".log", ".bak")
+                ):
                     (shutil.rmtree if it.is_dir() else it.unlink)(it)
                     info(f"Removed {'directory' if it.is_dir() else 'file'}: {it}")
                     c += 1
