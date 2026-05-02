@@ -2,7 +2,7 @@
 # Maintainer: loathingkernel <loathingkernel _a_ gmail _d_ com>
 
 pkgname=proton-cachyos-slr
-_srctag=10.0-20260420
+_srctag=11.0-20260428
 pkgver=${_srctag//-/.}
 pkgrel=1
 epoch=1
