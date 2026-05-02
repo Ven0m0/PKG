@@ -305,7 +305,7 @@ GitHub Releases are created manually; tag pushes do not automatically produce si
 > `curl -fsSL raw GitHub URL; store pinned SHA in .tkg-patches-lock; validate with git apply --check`
 
 ### T034 · Create OCI images from PKGBUILDs with automated registry push
-`.github/workflows/publish-oci.yml` (new) · low · feature · XL · needs:T013 · blocks:—
+.github/workflows/publish-oci.yml (new) · low · feature · XL · needs:T016 · blocks:—
 No OCI images are published; users must install Arch Linux to use optimized binaries.
 - [ ] `publish-oci.yml` builds per-package images pushed to `ghcr.io/${GITHUB_REPOSITORY_OWNER}/<pkgname>:<pkgver>`
 - [ ] Base layer `archlinux:base`; manifest includes `org.opencontainers.image.source` label; `pkg.sh lint` passes
