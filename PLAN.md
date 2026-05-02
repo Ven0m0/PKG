@@ -85,7 +85,7 @@ Custom patches in `chromium/patches/` may reject or have been merged upstream si
 
 ### T005 · Add LLVM PGO instrumentation to PKGBUILD
 `llvm/PKGBUILD` · medium · perf · L · needs:— · blocks:T006 T024 T028
-3-stage PGO build produces a measurably faster LLVM compiler and provides the instrumented toolchain required by T006/T028.
+2-stage PGO build produces a measurably faster LLVM compiler and provides the instrumented toolchain required by T006/T028.
 - [ ] PKGBUILD performs instrument → profile-collect → optimized-rebuild; profile stored at `${srcdir}/pgo-data/`
 - [ ] `makepkg -srC` succeeds on x86_64; final binary benchmarks ≥3% faster on `llvm-test-suite`
 - [ ] `.SRCINFO` regenerated; `pkg.sh lint` passes
