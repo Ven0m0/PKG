@@ -3,7 +3,8 @@ _2026-05-02 · 37 tasks_
 
 Consolidates selected open items from `TODO.md` and one in-code security marker
 (`filen-desktop/filen-desktop.sh:11`). No `FIXME`/`HACK`/`XXX`/`DEPRECATED` comments
-found in source.
+were found in the package/source files covered by this plan; repo docs still contain
+placeholders such as `.github/SECURITY.md` with `CVE-2024-XXXX`.
 
 ## Index (topological order)
 
