@@ -12,8 +12,28 @@ from colorama import init as colorama_init
 from colorama import Fore
 
 
+class AdditionalPropertiesMixin:
+    additional_properties: Dict[str, Any]
+
+    @property
+    def additional_keys(self) -> List[str]:
+        return list(self.additional_properties.keys())
+
+    def __getitem__(self, key: str) -> Any:
+        return self.additional_properties[key]
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        self.additional_properties[key] = value
+
+    def __delitem__(self, key: str) -> None:
+        del self.additional_properties[key]
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.additional_properties
+
+
 @attr.s(auto_attribs=True)
-class PackageBasic:
+class PackageBasic(AdditionalPropertiesMixin):
     id: Optional[int] = None
     name: Optional[str] = None
     description: Optional[str] = None
@@ -116,25 +136,9 @@ class PackageBasic:
         package_basic.additional_properties = d
         return package_basic
 
-    @property
-    def additional_keys(self) -> List[str]:
-        return list(self.additional_properties.keys())
-
-    def __getitem__(self, key: str) -> Any:
-        return self.additional_properties[key]
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        self.additional_properties[key] = value
-
-    def __delitem__(self, key: str) -> None:
-        del self.additional_properties[key]
-
-    def __contains__(self, key: str) -> bool:
-        return key in self.additional_properties
-
 
 @attr.s(auto_attribs=True)
-class SearchResult:
+class SearchResult(AdditionalPropertiesMixin):
     resultcount: Optional[int] = None
     type: Optional[str] = None
     version: Optional[int] = None
@@ -186,25 +190,9 @@ class SearchResult:
         search_result.additional_properties = d
         return search_result
 
-    @property
-    def additional_keys(self) -> List[str]:
-        return list(self.additional_properties.keys())
-
-    def __getitem__(self, key: str) -> Any:
-        return self.additional_properties[key]
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        self.additional_properties[key] = value
-
-    def __delitem__(self, key: str) -> None:
-        del self.additional_properties[key]
-
-    def __contains__(self, key: str) -> bool:
-        return key in self.additional_properties
-
 
 @attr.s(auto_attribs=True)
-class PackageDetailed:
+class PackageDetailed(AdditionalPropertiesMixin):
     id: Optional[int] = None
     name: Optional[str] = None
     description: Optional[str] = None
@@ -401,25 +389,9 @@ class PackageDetailed:
         package_detailed.additional_properties = d
         return package_detailed
 
-    @property
-    def additional_keys(self) -> List[str]:
-        return list(self.additional_properties.keys())
-
-    def __getitem__(self, key: str) -> Any:
-        return self.additional_properties[key]
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        self.additional_properties[key] = value
-
-    def __delitem__(self, key: str) -> None:
-        del self.additional_properties[key]
-
-    def __contains__(self, key: str) -> bool:
-        return key in self.additional_properties
-
 
 @attr.s(auto_attribs=True)
-class InfoResult:
+class InfoResult(AdditionalPropertiesMixin):
     resultcount: Optional[int] = None
     type: Optional[str] = None
     version: Optional[int] = None
@@ -468,22 +440,6 @@ class InfoResult:
         )
         info_result.additional_properties = d
         return info_result
-
-    @property
-    def additional_keys(self) -> List[str]:
-        return list(self.additional_properties.keys())
-
-    def __getitem__(self, key: str) -> Any:
-        return self.additional_properties[key]
-
-    def __setitem__(self, key: str, value: Any) -> None:
-        self.additional_properties[key] = value
-
-    def __delitem__(self, key: str) -> None:
-        del self.additional_properties[key]
-
-    def __contains__(self, key: str) -> bool:
-        return key in self.additional_properties
 
 
 handle = None
