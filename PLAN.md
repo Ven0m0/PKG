@@ -276,7 +276,7 @@ BOLT is applied only to Firefox; LLVM, GCC, and Python could benefit from the sa
 
 ### T030 · Add x86-64-v3/v4 architecture-specific build variants
 `PKGBUILDs` · low · feature · L · needs:— · blocks:—
-All packages target baseline x86_64; AVX2/AVX-512 users cannot get binaries tuned for their CPU.
+Current implementation supports x86-64-v3; this task expands support to include v4 variants for AVX-512 users.
 - [ ] CI matrix (`x86_64_v3`, `x86_64_v4`) produces separate archives with suffixed `pkgname`
 - [ ] Install script warns on incompatible CPU; `nvchecker.toml` covers all variants; `pkg.sh lint` passes
 > `_march=x86-64-v3; CFLAGS+=" -march=${_march}"; pkgname=${_pkgname}-${_march//-/}`
