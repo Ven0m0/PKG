@@ -217,13 +217,14 @@ Package READMEs vary in structure, degrading discoverability and installation gu
 - [ ] CI lint step validates section presence via `grep -q "## Installation"`
 > `git ls-files ':(glob)**/PKGBUILD' to enumerate; generate missing READMEs from docs/package-readme-template.md`
 
-### T022 · Add parallel build support to pkg.sh cmd_build
+### T022 · Harden pkg.sh cmd_build parallel output and job control
 `pkg.sh` · medium · perf · M · needs:— · blocks:—
-`cmd_build` runs sequentially while `cmd_lint` already supports `PARALLEL=true`; full-repo builds are unnecessarily slow.
-cmd_build already supports PARALLEL=true; this task focuses on refining output buffering and job control.
-- [ ] `PARALLEL=false` disables parallelism; exit code non-zero if any build fails
+`cmd_build` already supports parallel execution via `PARALLEL`/`--serial` and `MAX_JOBS`, but full-repo builds still need more robust buffered output collection and job control.
+This task focuses on preserving current parallel behavior while making per-package logs, completion handling, and failure propagation reliable.
+- [ ] `PARALLEL=false`/`--serial` still force serial builds; `MAX_JOBS` still limits concurrency when parallel mode is enabled
+- [ ] Parallel builds buffer or collect per-package output cleanly; overall exit code is non-zero if any build fails
 - [ ] `shellcheck -s bash` passes on `pkg.sh`
-> `replicate cmd_lint job-dispatch pattern; tmp_dir for per-package output; wait -n (bash 5.1+) for job completion`
+> `keep existing PARALLEL/MAX_JOBS behavior; use tmp_dir for per-package output collection and robust wait/job-status handling`
 
 ### T023 · Implement distributed ccache/sccache setup in CI
 `.github/actions/setup-sccache/action.yml` (new) · low · perf · M · needs:— · blocks:—
