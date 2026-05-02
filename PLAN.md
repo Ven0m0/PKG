@@ -236,7 +236,7 @@ Large packages (LLVM, Chromium, Firefox) rebuild from scratch in CI without comp
 ### T024 · Add PGO profile caching and reuse to CI workflows
 `.github/workflows/` · low · perf · M · needs:T005 · blocks:—
 PGO training reruns on every commit, wasting CI time when source is unchanged.
-- [ ] `actions/cache` key `pgo-${{ hashFiles('PKGBUILD') }}`; training stage skipped on cache hit
+- [ ] `actions/cache` key `pgo-${{ hashFiles('**/PKGBUILD') }}`; training stage skipped on cache hit
 - [ ] Profile at `${srcdir}/pgo-data/merged.profdata`; cache invalidated on `pkgver` bump
 > `actions/cache restore before cmake configure; skip training if cache-hit output is 'true'`
 
