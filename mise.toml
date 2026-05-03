@@ -1,3 +1,33 @@
+[settings]
+experimental = true
+color = true
+yes = true
+auto_install = true
+
+[settings.python]
+uv_venv_auto = "create|source"
+uv_venv_create_args = ["--seed", "--system-site-packages"]
+
+[settings.pipx]
+uvx = true
+
+[settings.dotnet]
+cli_telemetry_optout = true
+
+[tools]
+python = "3.14"
+uv = "latest"
+ruff = "latest"
+ty = "latest"
+prek = "latest"
+"pipx:pytest" = "latest"
+"pipx:basedpyright" = "latest"
+ripgrep = "latest"
+fd = "latest"
+"actionlint" = "latest"
+"shellcheck" = "latest"
+"shfmt" = "latest"
+
 [env]
 PACKAGING_ROOT = "{{config_root}}"
 CACHE_DIR = "{{config_root}}/.cache"
