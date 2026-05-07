@@ -113,7 +113,7 @@ jobs:
 
       - name: Run Gemini
         if: inputs.provider == 'gemini'
-        uses: google-github-actions/run-gemini-cli@f8ccaba862180254d5633c35bf3b7310792eb69f
+        uses: google-github-actions/run-gemini-cli@c28f3c6f6e6a537f8fb46e016f65dcfcee381ffa
         with:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
           gemini_model: ${{ inputs.model }}
