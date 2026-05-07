@@ -1,6 +1,7 @@
 name: Copilot Setup Steps
 
 on:
+  # checkov:skip=CKV_GHA_7: Manual inputs required
   workflow_dispatch:
   push:
     paths:

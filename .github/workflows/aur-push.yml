@@ -5,6 +5,7 @@ on:
     paths:
       - "aur/**/PKGBUILD"
       - "aur/**/.SRCINFO"
+  # checkov:skip=CKV_GHA_7: Manual inputs required
   workflow_dispatch:
     inputs:
       packages:

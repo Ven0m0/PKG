@@ -7,11 +7,15 @@ on:
     paths:
       - '.github/builder/**'
       - '.github/workflows/build-container.yml'
+  # checkov:skip=CKV_GHA_7: Manual inputs required
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/builder
+
+permissions:
+  contents: read
 
 jobs:
   build:

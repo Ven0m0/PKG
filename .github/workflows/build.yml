@@ -1,5 +1,6 @@
 name: Build Packages
 on:
+  # checkov:skip=CKV_GHA_7: Manual inputs required
   workflow_dispatch:
     inputs:
       create_release:

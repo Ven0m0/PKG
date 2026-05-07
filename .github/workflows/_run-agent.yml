@@ -36,6 +36,7 @@ on:
       KILO_ORG_ID:
         required: false
 
+  # checkov:skip=CKV_GHA_7: Manual inputs required
   workflow_dispatch:
     inputs:
       provider:

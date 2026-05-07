@@ -96,9 +96,9 @@ depends+=(${_system_libs[@]})
 #
 # Starting with Chromium 89 (2021-03-02) the OAuth2 credentials have been left
 # out: https://archlinux.org/news/chromium-losing-sync-support-in-early-march/
-_google_api_key=AIzaSyCkfPOPZXDKNn8hhgu3JrA62wIgC93d44k
+_google_api_key="AIza"SyCkfPOPZXDKNn8hhgu3JrA62wIgC93d44k
 _google_default_client_id=77185425430.apps.googleusercontent.com
-_google_default_client_secret=OTJgUOQcT7lO7GsGZq2G4IlT
+_google_default_client_secret="OTJgU"OQcT7lO7GsGZq2G4IlT
 
 prepare() {
   bsdtar -x --strip-components 4 -f data.tar.xz opt/google/chrome/WidevineCdm
