@@ -29,7 +29,7 @@ jobs:
         uses: awalsh128/cache-apt-pkgs-action@v1
         with:
           # Ubuntu package names: `golang-go` provides `go`; `pacman` and `namcap` are used only for PKGBUILD syntax validation and metadata inspection in this Ubuntu bootstrap environment.
-          packages: fd-find golang-go jq namcap pacman parallel ripgrep shellcheck wget
+          packages: fd-find golang-go jq parallel ripgrep shellcheck wget
           version: 1.0
 
       - name: Expose fd on Ubuntu
