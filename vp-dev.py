@@ -83,20 +83,49 @@ class VpDev:
         if not pb.exists():
             return None
         try:
-            import shlex
-
-            cmd = f'source {shlex.quote(str(pb))} 2>/dev/null;echo "${{pkgname}}|${{pkgver}}|${{pkgrel}}|${{pkgdesc}}|${{url}}"'
-            r = subprocess.run(
-                ["bash", "-c", cmd],
-                capture_output=True,
-                text=True,
-                cwd=pb.parent,
-                check=False,
+            content = pb.read_text()
+            vars = {}
+            # Match assignments: key=value or key=(...)
+            # Supports simple variables and arrays (takes first element)
+            # Note: This is a simplified parser and may not handle all shell syntax
+            pattern = re.compile(
+                r"^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(\((?:[^)]|\n)*\)|'[^']*'|\"[^\"]*\"|[^\n#]*)",
+                re.MULTILINE,
             )
-            if r.returncode != 0:
-                return None
-            p = r.stdout.strip().split("|")
-            if len(p) < 4:
+            for m in pattern.finditer(content):
+                k, v = m.groups()
+                v = v.strip()
+                if v.startswith("(") and v.endswith(")"):
+                    inner = v[1:-1].strip()
+                    elems = re.findall(r"'[^']*'|\"[^\"]*\"|[^\s]+", inner)
+                    v = elems[0].strip("\"'") if elems else ""
+                else:
+                    v = v.strip("\"'")
+                vars[k] = v
+
+            def expand(val: str, depth: int = 0) -> str:
+                if depth > 10 or not val:
+                    return val
+
+                def replace_var(m: re.Match) -> str:
+                    name = m.group(1) or m.group(2)
+                    if name in vars:
+                        return expand(vars[name], depth + 1)
+                    return m.group(0)
+
+                return re.sub(
+                    r"\$\{([a-zA-Z_][a-zA-Z0-9_]*)\}|\$([a-zA-Z_][a-zA-Z0-9_]*)",
+                    replace_var,
+                    val,
+                )
+
+            pkgname = expand(vars.get("pkgname", ""))
+            pkgver = expand(vars.get("pkgver", ""))
+            pkgrel = expand(vars.get("pkgrel", ""))
+            pkgdesc = expand(vars.get("pkgdesc", ""))
+            url = expand(vars.get("url", ""))
+
+            if not all([pkgname, pkgver, pkgrel]):
                 return None
 
             if self.files_cache is not None:
@@ -112,10 +141,10 @@ class VpDev:
                 fs = [f for f in r2.stdout.strip().split("\n") if f and f != "PKGBUILD"]
 
             return {
-                "name": p[0],
-                "version": f"{p[1]}-{p[2]}",
-                "description": p[3],
-                "url": p[4] if len(p) > 4 else "",
+                "name": pkgname,
+                "version": f"{pkgver}-{pkgrel}",
+                "description": pkgdesc,
+                "url": url,
                 "files": sorted(fs),
             }
         except Exception as e:
@@ -271,25 +300,13 @@ makepkg -si
                 info(f"Found (fast): {pi['name']} {pi['version']}")
                 return pi
 
-            # Slow path: source PKGBUILD
+            # Slow path: parse PKGBUILD
             pb = d / "PKGBUILD"
-            srcinfo = d / ".SRCINFO"
 
-            # Fallback to full parse and regeneration
+            # Fallback to full parse
             pi = self._parse_pkg(pb)
             if pi:
                 info(f"Found: {pi['name']} {pi['version']}")
-                r = subprocess.run(
-                    ["makepkg", "--printsrcinfo"],
-                    cwd=d,
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                )
-                if r.returncode == 0:
-                    srcinfo.write_text(r.stdout)
-                else:
-                    warn(f"Failed to generate .SRCINFO for {d.name}")
                 return pi
             else:
                 warn(f"Failed to parse {d.name}/PKGBUILD")
