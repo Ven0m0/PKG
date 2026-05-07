@@ -1,5 +1,5 @@
 pkgbase = visual-studio-code
-pkgver = 1.117.0
+pkgver = 1.119.0
 pkgrel = 1
 pkgdesc = Code editing. Rebranded.
 url = https://code.visualstudio.com/
