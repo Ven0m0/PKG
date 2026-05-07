@@ -6,7 +6,6 @@ from typing import List, Any, Dict, Type, Optional
 import attr
 import pyalpm
 import requests
-from pycman import config
 
 from colorama import init as colorama_init
 from colorama import Fore
@@ -474,6 +473,7 @@ def print_package_update(
 
 
 if __name__ == "__main__":
+    import pycman.config as config
     colorama_init()
 
     handle = config.init_with_config("/etc/pacman.conf")
