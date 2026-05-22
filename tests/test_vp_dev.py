@@ -420,6 +420,8 @@ class TestVpDev(unittest.TestCase):
 
         result = self.vd.clean()
         self.assertEqual(result, 0)
+        mock_file.unlink.assert_called_once()
+        mock_rmtree.assert_called_once_with(mock_dir)
 
 
 if __name__ == '__main__':
