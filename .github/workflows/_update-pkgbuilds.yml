@@ -1,5 +1,6 @@
 name: _update-pkgbuilds
 on:
+  # checkov:skip=CKV_GHA_7: Manual inputs required
   workflow_dispatch:
     inputs:
       packages:
@@ -7,6 +8,9 @@ on:
         required: false
         type: string
         default: ""
+permissions:
+  contents: read
+
 jobs:
   update-pkgbuilds:
     permissions:

@@ -1,16 +1,9 @@
 #!/usr/bin/env python3
 
-import json
 from typing import List, Any, Dict, Type, Optional
 
 import attr
-import pyalpm
 import requests
-from pycman import config
-
-from colorama import init as colorama_init
-from colorama import Fore
-
 
 class AdditionalPropertiesMixin:
     additional_properties: Dict[str, Any]
@@ -444,20 +437,31 @@ class InfoResult(AdditionalPropertiesMixin):
 
 handle = None
 aur_url = "https://aur.archlinux.org/rpc/v5"
+AUR_REQUEST_TIMEOUT = 10
 
 local_repos = {"custom", "loathk-public", "loathk-personal"}
 arch_repos = {"core", "extra", "community", "multilib"}
 
+_ANSI_RED = "\033[31m"
+_ANSI_GREEN = "\033[32m"
+_ANSI_RESET = "\033[0m"
+
 
 def search_single(name: str):
-    response = requests.get(f"{aur_url}/search/{name}?by=name")
-    return SearchResult.from_dict((json.loads(response.content)))
+    response = requests.get(
+        f"{aur_url}/search/{name}?by=name", timeout=AUR_REQUEST_TIMEOUT
+    )
+    response.raise_for_status()
+    return SearchResult.from_dict(response.json())
 
 
 def info_multiple(names: List[str]):
     payload = {"arg[]": names}
-    response = requests.get(f"{aur_url}/info", params=payload)
-    return InfoResult.from_dict(json.loads(response.content))
+    response = requests.get(
+        f"{aur_url}/info", params=payload, timeout=AUR_REQUEST_TIMEOUT
+    )
+    response.raise_for_status()
+    return InfoResult.from_dict(response.json())
 
 
 def print_package_update(
@@ -467,23 +471,21 @@ def print_package_update(
         "{:20s} {:28s} {} -> {}".format(
             f"{remote_db} - {local_db}",
             package_name,
-            Fore.RED + local_version + Fore.RESET,
-            Fore.GREEN + remote_version + Fore.RESET,
+            _ANSI_RED + local_version + _ANSI_RESET,
+            _ANSI_GREEN + remote_version + _ANSI_RESET,
         )
     )
 
 
 if __name__ == "__main__":
-    colorama_init()
+    import pyalpm
+    import pycman.config as config
 
     handle = config.init_with_config("/etc/pacman.conf")
-    arch_dbs = list(
-        filter(lambda r: r.name in arch_repos, [db for db in handle.get_syncdbs()])
-    )
+    syncdbs = handle.get_syncdbs()
+    arch_dbs = [db for db in syncdbs if db.name in arch_repos]
 
-    local_dbs = list(
-        filter(lambda r: r.name in local_repos, [db for db in handle.get_syncdbs()])
-    )
+    local_dbs = [db for db in syncdbs if db.name in local_repos]
 
     # Pre-calculate Arch package map to avoid N+1 queries in the loop
     # Maps package name to (package_object, db_name)

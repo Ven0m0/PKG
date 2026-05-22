@@ -11,6 +11,7 @@ on:
       - '**/PKGBUILD'
       - '**/**.install'
       - '**/**.sh'
+  # checkov:skip=CKV_GHA_7: Manual inputs required
   workflow_dispatch:
 
 jobs:
