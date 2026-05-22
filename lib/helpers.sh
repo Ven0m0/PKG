@@ -73,13 +73,13 @@ run_task_batch() {
 
       if [[ -n $pre_task ]]; then "$pre_task" "$item"; fi
 
-      ("$processor" "$item" >"$tmpdir/${item//\//_}.log" 2>&1) &
+      ("$processor" "$item" >"$tmpdir/job_${item//\//_}.log" 2>&1) &
       pids+=($!)
     done
 
     for pid in "${pids[@]}"; do wait "$pid" || true; done
 
-    for logfile in "$tmpdir"/*.log; do
+    for logfile in "$tmpdir"/job_*.log; do
       [[ -f $logfile ]] || continue
       "$handler" "$errs_var" <"$logfile"
     done
