@@ -394,40 +394,10 @@ cmd_lint() {
 
   printf 'Linting %d package(s) [parallel=%s, max_jobs=%d]\n' "${#pkgs[@]}" "$parallel" "$max_jobs"
 
-  if [[ $parallel == true ]]; then
-    local -a pids=()
-    local tmpdir
-    tmpdir=$(mktemp -d)
-    trap 'rm -rf "$tmpdir"' EXIT
+  _lint_pre() { printf '==> %s\n' "$1"; }
+  _lint_proc() { lint_pkg "$1" "$root" "$sc" "$sh" "$sf" "$nc"; }
 
-    for pkg in "${pkgs[@]}"; do
-      [[ -d $pkg ]] || continue
-
-      wait_for_jobs "$max_jobs"
-
-      printf '==> %s\n' "$pkg"
-      (lint_pkg "$pkg" "$root" "$sc" "$sh" "$sf" "$nc" >"$tmpdir/$pkg.log" 2>&1) &
-      pids+=($!)
-    done
-
-    for pid in "${pids[@]}"; do
-      wait "$pid" || true
-    done
-
-    for logfile in "$tmpdir"/*.log; do
-      [[ -f $logfile ]] || continue
-      handle_lint_output errs <"$logfile"
-    done
-  else
-    for pkg in "${pkgs[@]}"; do
-      [[ -d $pkg ]] || continue
-      printf '==> %s\n' "$pkg"
-
-      local output
-      output=$(lint_pkg "$pkg" "$root" "$sc" "$sh" "$sf" "$nc" 2>&1)
-      handle_lint_output errs <<<"$output"
-    done
-  fi
+  run_task_batch "$parallel" "$max_jobs" handle_lint_output errs pkgs _lint_pre _lint_proc
 
   if [[ ${#errs[@]} -gt 0 ]]; then
     printf '\n%bFound %s error(s)%b\n' "$R" "${#errs[@]}" "$D" >&2
@@ -495,38 +465,9 @@ cmd_srcinfo() {
 
   log "Processing ${#pkgs[@]} package(s) [parallel=$parallel, max_jobs=$max_jobs]"
 
-  if [[ $parallel == true ]]; then
-    local -a pids=()
-    local tmpdir
-    tmpdir=$(mktemp -d)
-    trap 'rm -rf "$tmpdir"' EXIT
+  _srcinfo_proc() { process_srcinfo_pkg "$1" "$root"; }
 
-    for pkg in "${pkgs[@]}"; do
-      [[ ! -d $pkg ]] && continue
-
-      wait_for_jobs "$max_jobs"
-
-      (process_srcinfo_pkg "$pkg" "$root" >"$tmpdir/$pkg.log" 2>&1) &
-      pids+=($!)
-    done
-
-    for pid in "${pids[@]}"; do
-      wait "$pid" || true
-    done
-
-    for logfile in "$tmpdir"/*.log; do
-      [[ -f $logfile ]] || continue
-      handle_srcinfo_output errs <"$logfile"
-    done
-  else
-    for pkg in "${pkgs[@]}"; do
-      [[ ! -d $pkg ]] && continue
-
-      local output
-      output=$(process_srcinfo_pkg "$pkg" "$root" 2>&1)
-      handle_srcinfo_output errs <<<"$output"
-    done
-  fi
+  run_task_batch "$parallel" "$max_jobs" handle_srcinfo_output errs pkgs "" _srcinfo_proc
 
   if [[ ${#errs[@]} -gt 0 ]]; then
     err "Failed to process ${#errs[@]} package(s)"

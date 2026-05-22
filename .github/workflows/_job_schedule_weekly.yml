@@ -5,6 +5,7 @@ permissions:
   contents: write
 
 on:
+  # checkov:skip=CKV_GHA_7: Manual inputs required
   workflow_dispatch:
   schedule:
     - cron: '0 0 */7 * *'

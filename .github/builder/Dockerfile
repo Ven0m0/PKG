@@ -85,11 +85,10 @@ RUN curl -fsSL https://opencode.ai/install@v1.0.0 -o /tmp/opencode-install.sh &&
 
 # Install yay (AUR helper) as builder user
 USER builder
-WORKDIR /tmp
-RUN git clone https://aur.archlinux.org/yay-bin.git && \
-    cd yay-bin && \
+WORKDIR /tmp/yay-bin
+RUN git clone https://aur.archlinux.org/yay-bin.git . && \
     makepkg -si --noconfirm && \
-    cd .. && rm -rf yay-bin
+    rm -rf /tmp/yay-bin
 
 # Install AUR-only dependencies for managed packages
 RUN yay -S --noconfirm --needed \
@@ -124,6 +123,9 @@ RUN git config --system user.name "AUR Bot" && \
 COPY --chmod=755 entrypoint.sh /entrypoint.sh
 
 WORKDIR /workspace
+
+USER builder
+HEALTHCHECK NONE
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["bash"]

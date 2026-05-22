@@ -1,5 +1,6 @@
 name: Lint and Format
 on:
+  # checkov:skip=CKV_GHA_7: Manual inputs required
   workflow_dispatch:
   push:
     paths: ["**/PKGBUILD", "**/.SRCINFO", "**.sh", "**.py", "**.json", "**.y?ml"]
