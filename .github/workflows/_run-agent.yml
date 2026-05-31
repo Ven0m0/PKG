@@ -189,9 +189,11 @@ jobs:
       - name: Install Kilo CLI
         if: inputs.provider == 'kilo' && steps.kilo-cache.outputs.cache-hit != 'true'
         shell: bash
-        run: |
-          curl -fsSL https://kilo.ai/cli/install | bash
-          echo "$HOME/.kilo/bin" >> "$GITHUB_PATH"
+        run: curl -fsSL https://kilo.ai/cli/install | bash
+      - name: Add Kilo to PATH
+        if: inputs.provider == 'kilo'
+        shell: bash
+        run: echo "$HOME/.kilo/bin" >> "$GITHUB_PATH"
       - name: Run Kilo
         if: inputs.provider == 'kilo'
         shell: bash
