@@ -21,7 +21,7 @@ jobs:
     uses: ./.github/workflows/_run-agent.yml
     with:
       provider: opencode
-      model: "kilo/kilo-auto/frontier"
+      model: "opencode/minimax-m2.5-free"
       prompt: |
         Update version-controlled PKGBUILDs and open one pull request.
         ${{ inputs.packages != '' && format('Only process these package directories: {0}', inputs.packages) || 'If no packages are provided, process every package listed in nvchecker.toml.' }}
@@ -43,5 +43,4 @@ jobs:
       OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       KILO_API_KEY: ${{ secrets.KILO_API_KEY }}
-      KILO_ORG_ID: ${{ secrets.KILO_ORG_ID }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
