@@ -46,8 +46,16 @@ jobs:
             mapfile -t files < <(git diff --name-only "$base" HEAD 2>/dev/null | grep -E '\.(sh|py|json|ya?ml)$' || true)
           fi
 
-          pkgs_json=$(printf '%s\n' "${pkgs[@]}" | jq -Rsc 'split("\n")[:-1]')
-          files_json=$(printf '%s\n' "${files[@]}" | jq -Rsc 'split("\n")[:-1]')
+          if [[ ${#pkgs[@]} -gt 0 ]]; then
+            pkgs_json=$(printf '%s\n' "${pkgs[@]}" | jq -Rsc 'split("\n")[:-1]')
+          else
+            pkgs_json='[]'
+          fi
+          if [[ ${#files[@]} -gt 0 ]]; then
+            files_json=$(printf '%s\n' "${files[@]}" | jq -Rsc 'split("\n")[:-1]')
+          else
+            files_json='[]'
+          fi
           echo "pkgs=$pkgs_json" >> "$GITHUB_OUTPUT"
           echo "files=$files_json" >> "$GITHUB_OUTPUT"
   pkgbuild-lint:
