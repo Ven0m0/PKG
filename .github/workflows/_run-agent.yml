@@ -145,14 +145,10 @@ jobs:
           OPENCODE_EXPERIMENTAL_OXFMT: "true"
           MORPH_TIMEOUT: "60000"
           MORPH_MODEL: morph-v3-fast
-          # Pin opencode binary: v1.15.6 broke opencode/* model auth
-          # (requires OIDC console token instead of OPENCODE_API_KEY).
-          # The install script inherits VERSION and installs this exact release.
-          VERSION: "1.14.51"
         with:
           model: ${{ inputs.model != '' && inputs.model || 'opencode/minimax-m2.5-free' }}
           prompt: ${{ inputs.prompt }}
-          use_github_token: true
+          use_github_token: false
 
       - name: Get Kilo version
         if: inputs.provider == 'kilo'
