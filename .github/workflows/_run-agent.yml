@@ -148,7 +148,7 @@ jobs:
         with:
           model: ${{ inputs.model != '' && inputs.model || 'opencode/minimax-m2.5-free' }}
           prompt: ${{ inputs.prompt }}
-          use_github_token: false
+          use_github_token: true
 
       - name: Get Kilo version
         if: inputs.provider == 'kilo'
