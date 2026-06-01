@@ -146,7 +146,7 @@ jobs:
           MORPH_TIMEOUT: "60000"
           MORPH_MODEL: morph-v3-fast
         with:
-          model: ${{ inputs.model != '' && inputs.model || 'opencode/minimax-m2.5-free' }}
+          model: ${{ inputs.model != '' && inputs.model || 'opencode/minimax-m2.5' }}
           prompt: ${{ inputs.prompt }}
           use_github_token: true
 
