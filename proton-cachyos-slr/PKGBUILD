@@ -2,13 +2,13 @@
 # Maintainer: loathingkernel <loathingkernel _a_ gmail _d_ com>
 
 pkgname=proton-cachyos-slr
-_srctag=11.0-20260429
+_srctag=11.0-20260521
 pkgver=${_srctag//-/.}
 pkgrel=1
 epoch=1
 
 _package_name="proton-cachyos-${_srctag}-slr-x86_64"
-sha256sums=('28f754d6f512e9fed4ef56eb9a3013a5adfc06a4d3f6cf2d3fba7ec0506ba8a2'
+sha256sums=('b2f0ec8e931b02cbcb575c6f4cf1f37932a648a3add271dd7dd12f1395f5b72c'
             '6983622dc08784891929b843e8c5bf566c160eb2c23b7fc89c0f4dbabcd5db69')
 source=(
   https://github.com/CachyOS/proton-cachyos/releases/download/cachyos-${_srctag}-slr/${_package_name}.tar.xz
