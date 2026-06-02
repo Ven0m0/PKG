@@ -1,7 +1,7 @@
 {
   "proton-cachyos-slr": "11.0-20260521",
   "wine-cachyos": "10.0-20251126",
-  "llvm": "22.1.6",
+  "llvm": "22.1.7",
   "chromium": "147.0.7727.56-271900671db643de04aa9f909f0dcc3415c8b827",
   "aria2": "release-1.37.0",
   "borked3DS": "v2025.03.11",
