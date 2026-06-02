@@ -3,7 +3,7 @@
 # Features: Aggressive optimization, PGO, VA-API, system libraries, hardware acceleration
 pkgname=firefox-custom
 _pkgname=firefox
-pkgver=150.0.1
+pkgver=151.0.2
 pkgrel=1
 pkgdesc='Firefox with aggressive optimizations, VA-API, PGO, and all performance tweaks'
 arch=(x86_64)
@@ -36,15 +36,15 @@ optdepends=(
   'kmozillahelper: KDE integration'
 )
 options=(!strip !emptydirs !debug !makeflags !lto)
+# Local patches live in this package's patches/ tree and are applied directly
+# from $startdir in prepare(); keeping them out of source= avoids makepkg's
+# inability to checksum subdirectory-prefixed local paths (updpkgsums fails).
 source=(
   "https://archive.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"
   ${_pkgname}.desktop
   ${_pkgname}-symbolic.svg
-  patches/*.patch
-  patches/ghostery/*.patch
-  patches/firedragon/*.patch
 )
-sha256sums=('b861fdee999d9b6404e1e865d6f707c41b4bded1b5ea62affc176288c1484b8a' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
+sha256sums=('63c4267799f2618dd7ac5997d0306bbcf2a5306caaca0056795bc6c61d00f8c8' 'SKIP' 'SKIP')
 # Tunables - set these in your environment to control build behavior
 :  "${NATIVE_ARCH:=native}"      # CPU architecture to optimize for
 : "${ENABLE_PGO:=true}"         # Profile-Guided Optimization (recommended)
@@ -97,14 +97,14 @@ prepare(){
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
   echo -n "$_google_api_key" >google-api-key
   echo -n "$_mozilla_api_key" >mozilla-api-key
-  # Apply any patches
-  local src
-  for src in "${source[@]}"; do
-    src="${src%%::*}"
-    src="${src##*/}"
-    [[ $src == *.patch ]] || continue
-    echo "Applying patch $src..."
-    patch -Np1 -i "../${src}" || exit 1
+  # Apply local patches straight from the package tree (kept out of source=).
+  local patch
+  for patch in "$startdir"/patches/*.patch \
+    "$startdir"/patches/ghostery/*.patch \
+    "$startdir"/patches/firedragon/*.patch; do
+    [[ -e $patch ]] || continue
+    echo "Applying patch ${patch##*/}..."
+    patch -Np1 -i "$patch" || exit 1
   done
   # Clear forced startup pages
   sed -E -e 's&^\s*pref\("startup\.homepage.*$&&' -i browser/branding/*/pref/firefox-branding.js

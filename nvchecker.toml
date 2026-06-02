@@ -38,9 +38,9 @@ github = "uazo/cromite"
 use_latest_release = true
 prefix = "v"
 
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 # GitHub Releases
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 
 ["aria2"]
 source = "github"
@@ -59,11 +59,13 @@ use_latest_release = true
 prefix = "v"
 
 ["dxvk/dxvk-gplasync"]
-# Tracks the gplasync-lowlatency variant (default when _variant=gplasync)
+# Tracks the gplasync-lowlatency variant (default when _variant=gplasync).
+# Upstream release tags look like DXVK-GPLALL-2.7.1-4; strip the prefix so the
+# tracked value is the bare 2.7.1-4 that the PKGBUILD's _pkgver consumes.
 source = "github"
 github = "Digger1955/dxvk-gplasync-lowlatency"
 use_latest_release = true
-prefix = "v"
+prefix = "DXVK-GPLALL-"
 
 ["egl-wayland2"]
 source = "github"
@@ -201,9 +203,9 @@ github = "zlib-ng/zlib-ng"
 use_max_tag = true
 include_regex = "^2\\."
 
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 # uutils
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 
 ["uutils/coreutils"]
 source = "github"
@@ -233,9 +235,9 @@ source = "github"
 github = "uutils/tar"
 use_max_tag = true
 
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 # OpenJDK
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 
 ["java"]
 # JDK 24 update repository; tags use format jdk-24.X.Y+Z (strip "jdk-" prefix)
@@ -258,9 +260,9 @@ github = "openjdk/jdk21u"
 use_max_tag = true
 prefix = "jdk-"
 
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 # Git-based / max-tag packages
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 
 ["dolphin-emu"]
 # git package tracking xiota/dolphin-primehack; pkgver() derives from git describe
@@ -294,9 +296,11 @@ use_max_tag = true
 prefix = "glibc-"
 
 ["mesa-git"]
-# git package sourced from mesa3d/mesa HEAD
-source = "github"
-github = "mesa3d/mesa"
+# git package tracking Mesa HEAD; Mesa lives on gitlab.freedesktop.org
+# (github.com/mesa3d/mesa is a dead 404), so track the max mesa-* tag there.
+source = "gitlab"
+gitlab = "mesa/mesa"
+host = "gitlab.freedesktop.org"
 use_max_tag = true
 prefix = "mesa-"
 
@@ -325,17 +329,17 @@ github = "wine-mirror/wine"
 use_max_tag = true
 prefix = "wine-"
 
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 # npm
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 
 ["gemini-cli"]
 source = "npm"
 npm = "@google/gemini-cli"
 
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 # Regex / HTTP sources
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 
 ["endeavouros-mirrorlist"]
 # Reads pkgver from EndeavourOS team's own PKGBUILD for the mirrorlist
@@ -349,17 +353,17 @@ source = "regex"
 url = "https://product-details.mozilla.org/1.0/firefox_versions.json"
 regex = '"LATEST_FIREFOX_VERSION":\s*"([\d.]+)"'
 
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 # Repology (Debian / distro-tracked packages)
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 
 ["localepurge"]
 source = "repology"
 repology = "localepurge"
 
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 # Packages with no trackable upstream (version set manually)
-# ═══════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
 
 # firefox-sync  – local shell script; pkgver is a manually set date (YYYYMMDD)
 # intel-ucode-min – local pacman hook script; pkgver (1.0.1) is the script's own
