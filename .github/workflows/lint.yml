@@ -88,7 +88,7 @@ jobs:
           packages: shellcheck jq
           version: 1.0
       - name: Install uv
-        uses: astral-sh/setup-uv@v8.1.0
+        uses: astral-sh/setup-uv@v8.2.0
         with:
           enable-cache: false
       - name: Setup Python
