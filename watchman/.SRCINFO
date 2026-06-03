@@ -1,11 +1,36 @@
 pkgbase = watchman
-pkgver = 2026.05.04.00
-pkgrel = 1
-pkgdesc = Watches files and records, or triggers actions, when they change (optimized)
-url = https://github.com/facebook/watchman
-arch = x86_64
-license = (MIT)
-depends = (boost-libs edencommon fb303 fbthrift fmt folly gcc-libs glibc google-glog libunwind openssl pcre2 python)
-makedepends = (boost cmake cpptoml fizz gtest mvfst python-setuptools rust)
-source = watchman-2026.05.04.00.tar.gz
-sha256sums = (157c96ffaf219bdf267be80814d97f5b1eff146d366b971121060d83f46fc3bf)
+	pkgdesc = Watches files and records, or triggers actions, when they change (optimized)
+	pkgver = 2026.06.01.00
+	pkgrel = 1
+	url = https://github.com/facebook/watchman
+	arch = x86_64
+	license = MIT
+	makedepends = boost
+	makedepends = cmake
+	makedepends = cpptoml
+	makedepends = fizz=2026.06.01.00
+	makedepends = gtest
+	makedepends = mvfst=2026.06.01.00
+	makedepends = python-setuptools
+	makedepends = rust
+	depends = boost-libs
+	depends = edencommon=2026.06.01.00
+	depends = fb303=2026.06.01.00
+	depends = fbthrift=2026.06.01.00
+	depends = fmt
+	depends = folly=2026.06.01.00
+	depends = gcc-libs
+	depends = glibc
+	depends = google-glog
+	depends = libunwind
+	depends = openssl
+	depends = pcre2
+	depends = python
+	options = !strip
+	backup = etc/watchman.json
+	source = watchman-2026.06.01.00.tar.gz::https://github.com/facebook/watchman/archive/v2026.06.01.00.tar.gz
+	source = watchman-destdir.patch::https://src.fedoraproject.org/rpms/watchman/raw/a446ccc61c73d74053792656c3832f93bf0fe262/f/watchman-destdir.patch
+	sha256sums = 678ad731bd5102f5090fab2cd8abdadeb5d9b18a2e580f7dba03d40f501978c2
+	sha256sums = d40feab6aa7dc6522c648660e88642fdf721ee1f9d80c23f6891a6381067a38b
+
+pkgname = watchman
