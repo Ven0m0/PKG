@@ -162,7 +162,7 @@ jobs:
         with:
           model: ${{ inputs.model != '' && inputs.model || 'opencode/minimax-m2.5' }}
           prompt: ${{ inputs.prompt }}
-          use_github_token: true
+          use_github_token: false
 
       - name: Run OpenCode (fallback model)
         if: inputs.provider == 'opencode' && inputs.fallback_model != '' && steps.opencode.outcome == 'failure'
@@ -192,7 +192,7 @@ jobs:
         with:
           model: ${{ inputs.fallback_model }}
           prompt: ${{ inputs.prompt }}
-          use_github_token: true
+          use_github_token: false
 
       - name: Get Kilo version
         if: inputs.provider == 'kilo'
