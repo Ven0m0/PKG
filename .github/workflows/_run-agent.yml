@@ -22,6 +22,11 @@ on:
         required: false
         type: string
         default: ""
+      fallback_model:
+        description: "OpenCode fallback model, tried only if the primary opencode run fails (blank = no fallback)"
+        required: false
+        type: string
+        default: ""
     secrets:
       ANTHROPIC_API_KEY:
         required: false
@@ -51,6 +56,11 @@ on:
         type: string
       model:
         description: "Model override (leave blank for provider default)"
+        required: false
+        type: string
+        default: ""
+      fallback_model:
+        description: "OpenCode fallback model, tried only if the primary opencode run fails (blank = no fallback)"
         required: false
         type: string
         default: ""
@@ -121,7 +131,11 @@ jobs:
           prompt: ${{ inputs.prompt }}
 
       - name: Run OpenCode
+        id: opencode
         if: inputs.provider == 'opencode'
+        # Only swallow the failure when a fallback model is configured, so a
+        # solo run still fails the job normally.
+        continue-on-error: ${{ inputs.fallback_model != '' }}
         uses: anomalyco/opencode/github@github-v1.2.25
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -147,6 +161,36 @@ jobs:
           MORPH_MODEL: morph-v3-fast
         with:
           model: ${{ inputs.model != '' && inputs.model || 'opencode/minimax-m2.5' }}
+          prompt: ${{ inputs.prompt }}
+          use_github_token: true
+
+      - name: Run OpenCode (fallback model)
+        if: inputs.provider == 'opencode' && inputs.fallback_model != '' && steps.opencode.outcome == 'failure'
+        uses: anomalyco/opencode/github@github-v1.2.25
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          KILO_API_KEY: ${{ secrets.KILO_API_KEY }}
+          KILO_ORG_ID: ${{ secrets.KILO_ORG_ID }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
+          OPENCODE_EXPERIMENTAL: "true"
+          OPENCODE_ENABLE_EXA: "1"
+          OPENCODE_EXPERIMENTAL_LSP_TOOL: "true"
+          OPENCODE_EXPERIMENTAL_MARKDOWN: "true"
+          OPENCODE_ENABLE_EXPERIMENTAL_MODELS: "true"
+          OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "300000"
+          OPENCODE_EXPERIMENTAL_LAZY_TOOLS: "true"
+          OPENCODE_PRUNE_SCALE_WITH_CONTEXT: "true"
+          OPENCODE_DISABLE_FILETIME_CHECK: "true"
+          OPENCODE_DISABLE_CLAUDE_CODE_PROMPT: "1"
+          OPENCODE_DISABLE_AUTOUPDATE: "true"
+          OPENCODE_EXPERIMENTAL_OXFMT: "true"
+          MORPH_TIMEOUT: "60000"
+          MORPH_MODEL: morph-v3-fast
+        with:
+          model: ${{ inputs.fallback_model }}
           prompt: ${{ inputs.prompt }}
           use_github_token: true
 
