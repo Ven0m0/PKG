@@ -21,7 +21,7 @@ jobs:
     uses: ./.github/workflows/_run-agent.yml
     with:
       provider: opencode
-      model: "opencode/minimax-m3-free"
+      model: "opencode/qwen3.6-plus-free" # opencode/minimax-m3-free
       prompt: |
         Update version-controlled PKGBUILDs to their latest upstream versions and open one pull request.
         ${{ inputs.packages != '' && format('Only process these package directories: {0}', inputs.packages) || 'If no packages are provided, process every package key in nvchecker.toml.' }}
