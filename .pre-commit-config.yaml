@@ -1,0 +1,24 @@
+# Minimal, non-destructive pre-commit config so pre-commit.ci has a valid
+# configuration to run. Heavy linting/formatting is handled by MegaLinter
+# (.mega-linter.yml); these hooks only validate syntax and catch common
+# mistakes, and never rewrite files.
+ci:
+  autofix_prs: false
+  autoupdate_schedule: monthly
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-json
+        # firefox/policies.json contains trailing commas (JSONC-style); leave
+        # it to MegaLinter rather than failing this lightweight syntax gate.
+        exclude: ^firefox/policies\.json$
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: detect-private-key
+      - id: check-added-large-files
+        args: [--maxkb=2048]
