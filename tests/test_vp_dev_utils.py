@@ -6,7 +6,7 @@ from pathlib import Path
 
 # Import vp-dev.py as a module
 ROOT = Path(__file__).parent.parent
-spec = importlib.util.spec_from_file_location("vp_dev", ROOT / "vp-dev.py")
+spec = importlib.util.spec_from_file_location("vp_dev", ROOT / "tools" / "vp-dev.py")
 vp_dev = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(vp_dev)
 

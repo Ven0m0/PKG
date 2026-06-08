@@ -177,7 +177,7 @@ makepkg -si
 Or build all variants:
 
 ```bash
-./pkg.sh build dxvk-gplasync-lowlatency dxvk-sarek dxvk-nvapi
+./tools/pkg.sh build dxvk-gplasync-lowlatency dxvk-sarek dxvk-nvapi
 ```
 
 ## License

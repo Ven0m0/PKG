@@ -32,7 +32,7 @@ PATCH_ARCH=${PATCH_ARCH:-1}
 # ═══════════════════════════════════════════════════════════════════════════
 usage() {
   cat <<'EOF'
-Usage: pkg.sh <command> [OPTIONS] [PACKAGE...]
+Usage: tools/pkg.sh <command> [OPTIONS] [PACKAGE...]
 
 Unified Arch Linux package management tool.
 
@@ -55,10 +55,10 @@ ENVIRONMENT VARIABLES:
   MAX_JOBS, PARALLEL, RETRIES, FORCE_BUILD, ONE_PACKAGE, DIST_MODE
 
 EXAMPLES:
-  pkg.sh build aria2 firefox    # Build specific packages
-  pkg.sh build                  # Build all packages
-  pkg.sh lint                   # Lint all PKGBUILDs
-  pkg.sh srcinfo                # Update all .SRCINFO files
+  tools/pkg.sh build aria2 firefox    # Build specific packages
+  tools/pkg.sh build                  # Build all packages
+  tools/pkg.sh lint                   # Lint all PKGBUILDs
+  tools/pkg.sh srcinfo                # Update all .SRCINFO files
 EOF
 }
 
@@ -220,6 +220,7 @@ cmd_build() {
     esac
   done
 
+  cd_to_repo_root
   setup_env
 
   if ((${#args[@]})); then
@@ -373,7 +374,7 @@ handle_lint_output() {
 }
 
 cmd_lint() {
-  cd_to_script_dir
+  cd_to_repo_root
   local root="$PWD"
   local -a pkgs errs=()
   local max_jobs=${MAX_JOBS:-$(nproc)}
@@ -450,7 +451,7 @@ handle_srcinfo_output() {
 }
 
 cmd_srcinfo() {
-  cd_to_script_dir
+  cd_to_repo_root
   local root="$PWD"
   local -a pkgs errs=()
   local max_jobs=${MAX_JOBS:-$(nproc)}

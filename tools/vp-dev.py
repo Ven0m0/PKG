@@ -50,7 +50,8 @@ class VpDev:
     _VAR_REF_RE = re.compile(r"\$\{([a-zA-Z0-9_]+)\}|\$([a-zA-Z0-9_]+)")
 
     def __init__(self) -> None:
-        self.root = Path(__file__).parent
+        # This script lives at <repo>/tools/vp-dev.py; the repo root is one level up.
+        self.root = Path(__file__).resolve().parent.parent
         self.pkg_json = self.root / "packages.json"
         self.git = "/usr/bin/git"
         self.skip_dirs = {
@@ -210,11 +211,6 @@ package(){{
 
 ## Installation
 ```bash
-vp install {nm}
-```
-
-Or manual build:
-```bash
 cd {nm}
 makepkg -si
 ```
@@ -335,26 +331,13 @@ makepkg -si
             results = executor.map(self._process_package, self._get_pkg_dirs())
             pkgs = [p for p in results if p]
 
-        # Get vp version
-        vv = "unknown"
-        vp = self.root / "vp"
-        if vp.exists():
-            try:
-                m = re.search(r'^VERSION="([^"]+)"', vp.read_text(), re.MULTILINE)
-                if m:
-                    vv = m.group(1)
-            except Exception:
-                pass
-
         if self.pkg_json.exists():
             shutil.copy(self.pkg_json, self.pkg_json.with_suffix(".json.bak"))
         self.pkg_json.write_text(
-            json.dumps(
-                {"packages": pkgs, "tools": {"vp": vv, "vp-dev": VERSION}}, indent=2
-            )
+            json.dumps({"packages": pkgs, "tools": {"vp-dev": VERSION}}, indent=2)
         )
         ok(f"Updated packages.json with {len(pkgs)} packages")
-        info(f"Tool versions: vp v{vv}, vp-dev v{VERSION}")
+        info(f"Tool version: vp-dev v{VERSION}")
         return 0
 
     def publish(self) -> int:
