@@ -50,7 +50,7 @@ format-shell:
 lint-shell:
 	@echo "→ Linting shell scripts..."
 	@if command -v shellcheck >/dev/null 2>&1; then \
-		shellcheck tools/pkg.sh tools/check-isa-level.sh || true; \
+		shellcheck tools/pkg.sh tools/check-isa-level.sh tools/lib/helpers.sh || true; \
 	else \
 		echo "  ⚠ shellcheck not found, skipping shell linting"; \
 	fi

@@ -265,16 +265,14 @@ def main() -> None:
             print("")
             continue
 
-        aur_map = {
-            ap.name: ap
-            for ap in info_multiple([lp.name for lp in aur_candidates]).results
-        }
+        aur_results = info_multiple([lp.name for lp in aur_candidates]).results or []
+        aur_map = {ap.name: ap for ap in aur_results}
 
         for lp in aur_candidates:
             ap = aur_map.get(lp.name)
             if ap is None:
                 print("{:20s} {}".format(f"non - {ldb.name}", lp.name))
-            elif pyalpm.vercmp(lp.version, ap.version) < 0:
+            elif ap.version and pyalpm.vercmp(lp.version, ap.version) < 0:
                 print_package_update("aur", ldb.name, lp.name, ap.version, lp.version)
 
         print("")

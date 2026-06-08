@@ -106,7 +106,11 @@ cd_to_repo_root() {
   if root=$(git rev-parse --show-toplevel 2>/dev/null) && [[ -n $root ]]; then
     cd -- "$root" || exit 1
   else
-    # Fallback: this file lives at <root>/tools/lib/helpers.sh
-    cd -P -- "${BASH_SOURCE[0]%/*}/../.." || exit 1
+    # Fallback: this file lives at <root>/tools/lib/helpers.sh. Guard against a
+    # slash-less BASH_SOURCE (e.g. `source helpers.sh` from its own directory),
+    # where ${dir%/*} would otherwise drop the dir and break cd.
+    local dir=${BASH_SOURCE[0]}
+    [[ $dir != */* ]] && dir=./$dir
+    cd -P -- "${dir%/*}/../.." || exit 1
   fi
 }
