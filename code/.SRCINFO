@@ -1,6 +1,6 @@
 pkgbase = code
 	pkgdesc = The Open Source build of Visual Studio Code (vscode) editor
-	pkgver = 1.123
+	pkgver = 1.123.0
 	pkgrel = 1
 	url = https://github.com/microsoft/vscode
 	arch = x86_64
@@ -34,7 +34,7 @@ pkgbase = code
 	conflicts = vscodium-electron
 	options = !strip
 	options = !debug
-	source = vscode::git+https://github.com/microsoft/vscode.git#tag=1.123
+	source = vscode::git+https://github.com/microsoft/vscode.git#tag=1.123.0
 	source = code.mjs
 	source = code.sh
 	source = product_json.diff
