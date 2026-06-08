@@ -5,10 +5,11 @@ import sys
 from pathlib import Path
 import logging
 
-format = "%(levelname)s: %(message)s"
-logging.basicConfig(stream=sys.stderr, format=format, level=logging.INFO)
-logger = logging.getLogger(os.path.basename(__file__))
 script_name = os.path.basename(__file__)
+logging.basicConfig(
+    stream=sys.stderr, format="%(levelname)s: %(message)s", level=logging.INFO
+)
+logger = logging.getLogger(script_name)
 
 workflows_folder = ".github/workflows/"
 workflows_path = Path(workflows_folder)

@@ -11,7 +11,7 @@ from pathlib import Path
 
 # Dynamically import vp-dev.py using an absolute path relative to this test file
 current_dir = Path(os.path.dirname(os.path.abspath(__file__)))
-vp_dev_path = current_dir.parent / "vp-dev.py"
+vp_dev_path = current_dir.parent / "tools" / "vp-dev.py"
 
 spec = importlib.util.spec_from_file_location("vp_dev", vp_dev_path)
 vp_dev = importlib.util.module_from_spec(spec)

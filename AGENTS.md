@@ -18,8 +18,8 @@ PKG maintains Arch Linux PKGBUILDs, patches, and automation around version track
 ## Repository map
 
 - Package directories live both at the repo root and in grouped folders such as `dxvk/`, `java/`, `uutils/`, and `zlib-ng/`.
-- `pkg.sh` is the canonical entry point for `build`, `lint`, and `srcinfo`.
-- `lib/helpers.sh` contains shared helpers, including `find_pkgbuilds`.
+- `tools/` holds all repository tooling: `tools/pkg.sh` (canonical entry point for `build`, `lint`, `srcinfo`), `tools/vp-dev.py`, `tools/find_updates.py`, `tools/check-isa-level.sh`, and the workflow generators `tools/generate-schedule.py` / `tools/generate-workflow.py`.
+- `tools/lib/helpers.sh` contains shared shell helpers, including `find_pkgbuilds`.
 - `nvchecker.toml` and `.github/nvchecker/old_ver.json` track upstream versions.
 - `.github/scripts/try-update.sh`, `create-pr.sh`, and `fetch-changelog.sh` drive automated package updates.
 - `.github/actions/pkgbuild/` is the reusable PKGBUILD validation action.
@@ -37,9 +37,9 @@ fd -t f -g 'PKGBUILD'               # fallback when fd is available
 ## Standard commands
 
 ```bash
-pkg.sh lint
-pkg.sh build <package>
-pkg.sh srcinfo
+tools/pkg.sh lint
+tools/pkg.sh build <package>
+tools/pkg.sh srcinfo
 mise r list
 mise r setup-all
 mise r sync-all

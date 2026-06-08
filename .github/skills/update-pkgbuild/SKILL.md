@@ -28,7 +28,7 @@ Update a tracked package with a clean, verifiable diff that matches this reposit
 6. **Update tracked version state** — keep `.github/nvchecker/old_ver.json` in sync for every package you changed.
 7. **Validate**:
    ```bash
-   pkg.sh lint
+   tools/pkg.sh lint
    makepkg -srC
    ```
 

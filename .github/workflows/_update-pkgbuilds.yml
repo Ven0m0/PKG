@@ -51,7 +51,7 @@ jobs:
         13. Skip a package only when no bounded fix exists. For a genuine skip, leave its old_ver.json entry UNCHANGED so the next run retries it, and record the package, attempted version, and precise reason.
 
         Validate, commit, report:
-        14. Before committing, validate each changed package: `.SRCINFO` regenerated and consistent with the PKGBUILD, `bash -n PKGBUILD` passes, and `pkg.sh lint` / `pkg.sh srcinfo` succeed when available.
+        14. Before committing, validate each changed package: `.SRCINFO` regenerated and consistent with the PKGBUILD, `bash -n PKGBUILD` passes, and `tools/pkg.sh lint` / `tools/pkg.sh srcinfo` succeed when available.
         15. Create branch `update/pkgbuilds-$(date +%Y%m%d-%H%M%S)` before any change. Commit the tracked files with a concise summary, push, and open exactly one PR against `main`; if an open update PR already exists, update it instead of duplicating.
         16. The PR body must list, with old→new versions: packages updated, packages skipped (with reasons), and packages already current. If nothing changed, exit without creating a PR.
     secrets:

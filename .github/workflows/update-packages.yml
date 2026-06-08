@@ -25,8 +25,8 @@ jobs:
           sudo apt-get install -y jq pacman namcap
       - name: Update packages.json
         run: |
-          chmod +x vp-dev.py
-          ./vp-dev.py update
+          chmod +x tools/vp-dev.py
+          ./tools/vp-dev.py update
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
