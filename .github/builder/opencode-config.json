@@ -13,8 +13,8 @@
   },
   "share": "manual",
   "default_agent": "build",
-  "model": "opencode/minimax-m2.5-free",
-  "small_model": "opencode/minimax-m2.5-free",
+  "model": "opencode/nemotron-3-ultra-free",
+  "small_model": "opencode/deepseek-v4-flash-free",
   "disabled_providers": ["openai"],
   "plugin": [
     "openslimedit@1.0.4",
