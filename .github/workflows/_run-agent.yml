@@ -133,9 +133,12 @@ jobs:
       - name: Run OpenCode
         id: opencode
         if: inputs.provider == 'opencode'
-        # Only swallow the failure when a fallback model is configured, so a
-        # solo run still fails the job normally.
-        continue-on-error: ${{ inputs.fallback_model != '' }}
+        # Must be a literal: expressions here are re-evaluated inside the
+        # composite action, where workflow inputs are empty, so
+        # `inputs.fallback_model != ''` silently becomes false
+        # (actions/runner#2418). The gate step below restores job failure
+        # when neither attempt succeeds.
+        continue-on-error: true
         uses: anomalyco/opencode/github@github-v1.2.25
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -160,11 +163,12 @@ jobs:
           MORPH_TIMEOUT: "60000"
           MORPH_MODEL: morph-v3-fast
         with:
-          model: ${{ inputs.model != '' && inputs.model || 'opencode/minimax-m2.5-free' }}
+          model: ${{ inputs.model != '' && inputs.model || 'opencode/nemotron-3-ultra-free' }}
           prompt: ${{ inputs.prompt }}
           use_github_token: false
 
       - name: Run OpenCode (fallback model)
+        id: opencode-fallback
         if: inputs.provider == 'opencode' && inputs.fallback_model != '' && steps.opencode.outcome == 'failure'
         uses: anomalyco/opencode/github@github-v1.2.25
         env:
@@ -193,6 +197,16 @@ jobs:
           model: ${{ inputs.fallback_model }}
           prompt: ${{ inputs.prompt }}
           use_github_token: false
+
+      # Restores the failure swallowed by continue-on-error on the primary
+      # OpenCode step when no fallback ran or the fallback was skipped.
+      - name: Fail if no OpenCode attempt succeeded
+        if: inputs.provider == 'opencode' && steps.opencode.outcome != 'success' && steps.opencode-fallback.outcome != 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "::error::OpenCode failed (primary: ${{ steps.opencode.outcome }}, fallback: ${{ steps.opencode-fallback.outcome }})"
+          exit 1
 
       - name: Get Kilo version
         if: inputs.provider == 'kilo'
