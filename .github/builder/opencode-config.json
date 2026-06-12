@@ -14,7 +14,7 @@
   "share": "manual",
   "default_agent": "build",
   "model": "opencode/nemotron-3-ultra-free",
-  "small_model": "opencode/nemotron-3-ultra-free",
+  "small_model": "opencode/deepseek-v4-flash-free",
   "disabled_providers": ["openai"],
   "plugin": [
     "openslimedit@1.0.4",
