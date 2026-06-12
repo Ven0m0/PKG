@@ -13,7 +13,7 @@
     ":(){:|:&};:": "deny",
     "doom_loop": "deny"
   },
-  "disabled_providers": ["openai"],
+  "disabled_providers": [""],
   "plugin": [
     "openslimedit@1.0.4",
     "opencode-ignore@1.1.0",
