@@ -17,10 +17,11 @@ regex = '"tag_name":\s*"cachyos-([\d.]+-\d{8})-slr"'
 
 ["wine-cachyos"]
 source = "regex"
-# The GitHub tags API is ordered newest-first; checking the first 100 tags is
-# enough for the current stable history and keeps the lookup non-interactive.
+# The GitHub tags API is ordered newest-first; the experimental tag format is
+# experimental-wine-bleeding-edge-<version>-<date>-<hashes>.  Capture the full
+# suffix after the prefix so _srctag can reconstruct the exact tag.
 url = "https://api.github.com/repos/CachyOS/wine-cachyos/tags?per_page=100"
-regex = '"name":\s*"cachyos-([\d.]+-\d{8})-wine"'
+regex = '"name":\s*"experimental-wine-bleeding-edge-([^"]+)"'
 
 ["llvm"]
 source = "github"
@@ -62,9 +63,12 @@ prefix = "v"
 # Tracks the gplasync-lowlatency variant (default when _variant=gplasync).
 # Upstream release tags look like DXVK-GPLALL-2.7.1-4; strip the prefix so the
 # tracked value is the bare 2.7.1-4 that the PKGBUILD's _pkgver consumes.
+# use_max_tag instead of use_latest_release because the upstream publishes
+# maintenance releases on the 2.6.x branch after newer 2.7.x releases, which
+# causes use_latest_release to pick an older version by number.
 source = "github"
 github = "Digger1955/dxvk-gplasync-lowlatency"
-use_latest_release = true
+use_max_tag = true
 prefix = "DXVK-GPLALL-"
 
 ["egl-wayland2"]
@@ -168,11 +172,6 @@ github = "mokeyish/smartdns-rs"
 use_latest_release = true
 prefix = "v"
 
-["sudachi"]
-source = "github"
-github = "emuplace/sudachi.emuplace.app"
-use_latest_release = true
-prefix = "v"
 
 ["umu-launcher"]
 source = "github"
@@ -185,11 +184,6 @@ github = "Universal-Debloater-Alliance/universal-android-debloater-next-generati
 use_latest_release = true
 prefix = "v"
 
-["watchman"]
-source = "github"
-github = "facebook/watchman"
-use_latest_release = true
-prefix = "v"
 
 ["zlib-ng/zlib-ng"]
 source = "github"
@@ -271,9 +265,10 @@ github = "xiota/dolphin-primehack"
 use_max_tag = true
 
 ["endeavouros-keyring"]
-source = "github"
-github = "endeavouros-team/keyring"
-use_max_tag = true
+# The keyring repo has no tags; read pkgver from the upstream PKGBUILD instead.
+source = "regex"
+url = "https://raw.githubusercontent.com/endeavouros-team/PKGBUILDS/master/endeavouros-keyring/PKGBUILD"
+regex = 'pkgver=([\d.]+)'
 
 ["ffmpeg"]
 # FFmpeg tags use "n" prefix (e.g. n8.1 → 8.1)
@@ -317,10 +312,11 @@ github = "nekotrix/SVT-AV1-Essential"
 use_max_tag = true
 
 ["update-alternatives"]
-# git package tracking fthomys/update-alternatives
-source = "github"
-github = "fthomys/update-alternatives"
-use_max_tag = true
+# The upstream repo has no tags; track HEAD commit count via git source so the
+# -git pkgver() has a version to compare against.
+source = "git"
+git = "https://github.com/fthomys/update-alternatives.git"
+branch = "main"
 
 ["wine-tkg-git"]
 # wine-tkg builds from wine source; track wine/wine releases as an update trigger
@@ -360,6 +356,7 @@ regex = '"LATEST_FIREFOX_VERSION":\s*"([\d.]+)"'
 ["localepurge"]
 source = "repology"
 repology = "localepurge"
+repo = "debian_unstable"
 
 # ════════════════════════════════════════════════════════════════
 # Packages with no trackable upstream (version set manually)
