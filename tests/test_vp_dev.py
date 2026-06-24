@@ -424,5 +424,183 @@ class TestVpDev(unittest.TestCase):
         mock_rmtree.assert_called_once_with(mock_dir)
 
 
+
+    @patch("vp_dev.err")
+    def test_updpkgsums_pkg_not_found(self, mock_err):
+        mock_d = MagicMock(spec=Path)
+        mock_d.exists.return_value = False
+        mock_root = MagicMock(spec=Path)
+
+        def root_truediv_side_effect(name):
+            if name == "testpkg":
+                return mock_d
+            return MagicMock()
+
+        mock_root.__truediv__.side_effect = root_truediv_side_effect
+        self.vd.root = mock_root
+
+        result = self.vd.updpkgsums("testpkg")
+
+        self.assertEqual(result, 1)
+        mock_err.assert_called_once_with("Package 'testpkg' not found!")
+
+    @patch("vp_dev.err")
+    def test_updpkgsums_no_pkgbuild(self, mock_err):
+        mock_d = MagicMock(spec=Path)
+        mock_pb = MagicMock(spec=Path)
+
+        def d_exists():
+            return True
+        mock_d.exists.side_effect = d_exists
+
+        def pb_exists():
+            return False
+        mock_pb.exists.side_effect = pb_exists
+
+        def d_truediv_side_effect(name):
+            if name == "PKGBUILD":
+                return mock_pb
+            return MagicMock()
+        mock_d.__truediv__.side_effect = d_truediv_side_effect
+
+        mock_root = MagicMock(spec=Path)
+        def root_truediv_side_effect(name):
+            if name == "testpkg":
+                return mock_d
+            return MagicMock()
+        mock_root.__truediv__.side_effect = root_truediv_side_effect
+
+        self.vd.root = mock_root
+
+        result = self.vd.updpkgsums("testpkg")
+
+        self.assertEqual(result, 1)
+        mock_err.assert_called_once_with("No PKGBUILD found in testpkg")
+
+    @patch("vp_dev.ok")
+    @patch("vp_dev.info")
+    @patch("vp_dev.subprocess.run")
+    def test_updpkgsums_success(self, mock_run, mock_info, mock_ok):
+        mock_d = MagicMock(spec=Path)
+        mock_pb = MagicMock(spec=Path)
+        mock_srcinfo = MagicMock(spec=Path)
+
+        mock_d.exists.return_value = True
+        mock_pb.exists.return_value = True
+
+        def d_truediv_side_effect(name):
+            if name == "PKGBUILD":
+                return mock_pb
+            elif name == ".SRCINFO":
+                return mock_srcinfo
+            return MagicMock()
+        mock_d.__truediv__.side_effect = d_truediv_side_effect
+
+        mock_root = MagicMock(spec=Path)
+        def root_truediv_side_effect(name):
+            if name == "testpkg":
+                return mock_d
+            return MagicMock()
+        mock_root.__truediv__.side_effect = root_truediv_side_effect
+        self.vd.root = mock_root
+
+        mock_r1 = MagicMock()
+        mock_r1.returncode = 0
+        mock_r2 = MagicMock()
+        mock_r2.returncode = 0
+        mock_r2.stdout = "srcinfo content"
+        mock_run.side_effect = [mock_r1, mock_r2]
+
+        result = self.vd.updpkgsums("testpkg")
+
+        self.assertEqual(result, 0)
+        self.assertEqual(mock_run.call_count, 2)
+
+        # Verify subprocess.run calls
+        mock_run.assert_any_call(
+            ["updpkgsums"], cwd=mock_d, capture_output=True, text=True, check=False
+        )
+        mock_run.assert_any_call(
+            ["makepkg", "--printsrcinfo"], cwd=mock_d, capture_output=True, text=True, check=False
+        )
+
+        mock_srcinfo.write_text.assert_called_once_with("srcinfo content")
+        self.assertEqual(mock_ok.call_count, 2)
+        mock_ok.assert_any_call("Updated checksums for testpkg")
+        mock_ok.assert_any_call("Generated .SRCINFO")
+
+    @patch("vp_dev.warn")
+    @patch("vp_dev.ok")
+    @patch("vp_dev.info")
+    @patch("vp_dev.subprocess.run")
+    def test_updpkgsums_makepkg_fails(self, mock_run, mock_info, mock_ok, mock_warn):
+        mock_d = MagicMock(spec=Path)
+        mock_pb = MagicMock(spec=Path)
+
+        mock_d.exists.return_value = True
+        mock_pb.exists.return_value = True
+
+        def d_truediv_side_effect(name):
+            if name == "PKGBUILD":
+                return mock_pb
+            return MagicMock()
+        mock_d.__truediv__.side_effect = d_truediv_side_effect
+
+        mock_root = MagicMock(spec=Path)
+        def root_truediv_side_effect(name):
+            if name == "testpkg":
+                return mock_d
+            return MagicMock()
+        mock_root.__truediv__.side_effect = root_truediv_side_effect
+        self.vd.root = mock_root
+
+        mock_r1 = MagicMock()
+        mock_r1.returncode = 0
+        mock_r2 = MagicMock()
+        mock_r2.returncode = 1
+        mock_run.side_effect = [mock_r1, mock_r2]
+
+        result = self.vd.updpkgsums("testpkg")
+
+        self.assertEqual(result, 0)
+        self.assertEqual(mock_run.call_count, 2)
+        mock_warn.assert_called_once_with("Failed to generate .SRCINFO")
+
+    @patch("vp_dev.err")
+    @patch("vp_dev.info")
+    @patch("vp_dev.subprocess.run")
+    def test_updpkgsums_updpkgsums_fails(self, mock_run, mock_info, mock_err):
+        mock_d = MagicMock(spec=Path)
+        mock_pb = MagicMock(spec=Path)
+
+        mock_d.exists.return_value = True
+        mock_pb.exists.return_value = True
+
+        def d_truediv_side_effect(name):
+            if name == "PKGBUILD":
+                return mock_pb
+            return MagicMock()
+        mock_d.__truediv__.side_effect = d_truediv_side_effect
+
+        mock_root = MagicMock(spec=Path)
+        def root_truediv_side_effect(name):
+            if name == "testpkg":
+                return mock_d
+            return MagicMock()
+        mock_root.__truediv__.side_effect = root_truediv_side_effect
+        self.vd.root = mock_root
+
+        mock_r1 = MagicMock()
+        mock_r1.returncode = 1
+        mock_r1.stderr = "error output"
+        mock_run.return_value = mock_r1
+
+        result = self.vd.updpkgsums("testpkg")
+
+        self.assertEqual(result, 1)
+        mock_run.assert_called_once()
+        mock_err.assert_called_once_with("Failed to update checksums: error output")
+
+
 if __name__ == '__main__':
     unittest.main()
