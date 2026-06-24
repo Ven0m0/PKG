@@ -272,7 +272,7 @@ makepkg -si
             if "name" in data and "pkgver" in data and "pkgrel" in data:
                 if self.files_cache is not None:
                     files = sorted(
-                        [f for f in self.files_cache.get(d, []) if f != "PKGBUILD"]
+                        (f for f in self.files_cache.get(d, []) if f != "PKGBUILD")
                     )
                 else:
                     r = self._git(
@@ -280,7 +280,7 @@ makepkg -si
                     )
                     if r.returncode == 0:
                         files = sorted(
-                            [f for f in r.stdout.splitlines() if f and f != "PKGBUILD"]
+                            (f for f in r.stdout.splitlines() if f and f != "PKGBUILD")
                         )
                 return {
                     "name": data["name"],
