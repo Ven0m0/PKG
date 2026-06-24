@@ -1,6 +1,6 @@
 pkgbase = code
 	pkgdesc = The Open Source build of Visual Studio Code (vscode) editor
-	pkgver = 1.124.2
+	pkgver = 1.125.0
 	pkgrel = 1
 	url = https://github.com/microsoft/vscode
 	arch = x86_64
@@ -34,7 +34,7 @@ pkgbase = code
 	conflicts = vscodium-electron
 	options = !strip
 	options = !debug
-	source = vscode::git+https://github.com/microsoft/vscode.git#tag=1.124.2
+	source = vscode::git+https://github.com/microsoft/vscode.git#tag=1.125.0
 	source = code.mjs
 	source = code.sh
 	source = product_json.diff
@@ -44,7 +44,7 @@ pkgbase = code
 	source = microphone.patch
 	source = extension-management.patch
 	source = xterm.patch
-	sha512sums = 5d63ad60c6c1d3539bc5f57ac52df74f5878dbdae71059f7286e3969085a0fd57e41cec8b4123a7f3f6cef4dcd7c0900fe0006786d0eb04540a3eecd99ee33a5
+	sha512sums = 46be7a27fbff0f3ee7990a564fc38312626b8596d7211d3f4a96e8872ff16338dbe38d98bb65cff3b697427a54657bd3a98687bf5e3e93046692a0c47b84a6a8
 	sha512sums = 793f9ff6306e3992ac89802d98110cba288ea1181a901467333293b7d76182ef9792c2a39ff49d9347a18a174b1f42bc58862091dff583f4146c2704eea28033
 	sha512sums = 3de728229367014fb571761765461117c66c23cf80fecb64cba9af63b89f93ae77938c7a6dfeee71d84c6faf529a71fe9e703f55e8bffd469605fee36bc8cf2b
 	sha512sums = 02272060c3d8dc04edd9476c992c27e60d6f7d7d1605896100cc9ee080f4d970167e55efdd5568a97a02ced98cf3b9875f03eb1b1675120fbe12d7369b86c86d

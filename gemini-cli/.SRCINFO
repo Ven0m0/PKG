@@ -1,6 +1,6 @@
 pkgbase = gemini-cli-autoup
 	pkgdesc = An open-source AI agent that brings the power of Gemini directly into your terminal. Nightly auto-update version.
-	pkgver = 0.46.0
+	pkgver = 0.47.0
 	pkgrel = 1
 	url = https://github.com/google-gemini/gemini-cli
 	arch = x86_64
@@ -9,8 +9,8 @@ pkgbase = gemini-cli-autoup
 	makedepends = npm
 	depends = nodejs
 	conflicts = gemini-cli
-	noextract = gemini-cli-0.46.0.tgz
-	source = https://registry.npmjs.org/@google/gemini-cli/-/gemini-cli-0.46.0.tgz
-	sha256sums = 0f36bcd29dcb69ac484427fad57006579b4b559f4b36ecbf893e9f960e1bbc40
+	noextract = gemini-cli-0.47.0.tgz
+	source = https://registry.npmjs.org/@google/gemini-cli/-/gemini-cli-0.47.0.tgz
+	sha256sums = c97121a2f89f538e6bd594be94d7562f648cd63ff0257c02ae7e4d988a483267
 
 pkgname = gemini-cli-autoup

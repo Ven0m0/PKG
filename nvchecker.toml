@@ -268,7 +268,7 @@ use_max_tag = true
 # The keyring repo has no tags; read pkgver from the upstream PKGBUILD instead.
 source = "regex"
 url = "https://raw.githubusercontent.com/endeavouros-team/PKGBUILDS/master/endeavouros-keyring/PKGBUILD"
-regex = 'pkgver=([\d.]+)'
+regex = 'pkgver=["\']?([\d.]+)'
 
 ["ffmpeg"]
 # FFmpeg tags use "n" prefix (e.g. n8.1 → 8.1)
