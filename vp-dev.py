@@ -294,7 +294,7 @@ makepkg -si
             else:
                 warn(f"Failed to parse {d.name}/PKGBUILD")
                 return None
-        except (OSError, subprocess.SubprocessError) as e:
+        except (OSError, ValueError, subprocess.SubprocessError) as e:
             err(f"Error processing package {d}: {e}")
             return None
 
