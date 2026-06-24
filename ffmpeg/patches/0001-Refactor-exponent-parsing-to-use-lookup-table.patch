@@ -1,0 +1,51 @@
+From 15240d884a566feaf562542016d6cd627189b839 Mon Sep 17 00:00:00 2001
+From: "google-labs-jules[bot]"
+ <161369871+google-labs-jules[bot]@users.noreply.github.com>
+Date: Wed, 24 Jun 2026 02:41:01 +0000
+Subject: [PATCH] Refactor exponent parsing to use lookup table
+
+---
+ libavcodec/wmaenc.c | 17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
+
+diff --git a/libavcodec/wmaenc.c b/libavcodec/wmaenc.c
+index 6949f08f..6286276b 100644
+--- a/libavcodec/wmaenc.c
++++ b/libavcodec/wmaenc.c
+@@ -164,27 +164,24 @@ static void init_exp(WMACodecContext *s, int ch, const int *exp_param)
+ static void encode_exp_vlc(WMACodecContext *s, int ch, const int *exp_param)
+ {
+     int last_exp;
+-    const uint16_t *ptr;
+-    float *q, *q_end;
++    int i, n;
+
+-    ptr   = s->exponent_bands[s->frame_len_bits - s->block_len_bits];
+-    q     = s->exponents[ch];
+-    q_end = q + s->block_len;
++    n = s->exponent_sizes[s->frame_len_bits - s->block_len_bits];
+     if (s->version == 1) {
+         last_exp = *exp_param++;
+         av_assert0(last_exp - 10 >= 0 && last_exp - 10 < 32);
+         put_bits(&s->pb, 5, last_exp - 10);
+-        q += *ptr++;
+-    } else
++        i = 1;
++    } else {
+         last_exp = 36;
+-    while (q < q_end) {
++        i = 0;
++    }
++    for (; i < n; i++) {
+         int exp  = *exp_param++;
+         int code = exp - last_exp + 60;
+         av_assert1(code >= 0 && code < 120);
+         put_bits(&s->pb, ff_aac_scalefactor_bits[code],
+                  ff_aac_scalefactor_code[code]);
+-        /* XXX: use a table */
+-        q       += *ptr++;
+         last_exp = exp;
+     }
+ }
+--
+2.53.0
