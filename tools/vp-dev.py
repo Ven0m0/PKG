@@ -257,18 +257,19 @@ makepkg -si
             return None
         try:
             data, files = {}, []
-            for line in si.read_text().splitlines():
-                if "=" not in line:
-                    continue
-                k, v = line.split("=", 1)
-                k = k.strip()
-                v = v.strip()
-                if k == "pkgname":
-                    if "name" in data:
-                        break  # Stop at first package
-                    data["name"] = v
-                elif k in ("pkgver", "pkgrel", "pkgdesc", "url"):
-                    data[k] = v
+            with si.open(encoding="utf-8") as f:
+                for line in f:
+                    if "=" not in line:
+                        continue
+                    k, v = line.split("=", 1)
+                    k = k.strip()
+                    v = v.strip()
+                    if k == "pkgname":
+                        if "name" in data:
+                            break  # Stop at first package
+                        data["name"] = v
+                    elif k in ("pkgver", "pkgrel", "pkgdesc", "url"):
+                        data[k] = v
             if "name" in data and "pkgver" in data and "pkgrel" in data:
                 if self.files_cache is not None:
                     files = sorted(
