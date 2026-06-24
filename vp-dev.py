@@ -314,7 +314,7 @@ makepkg -si
                 m = re.search(r'^VERSION="([^"]+)"', vp.read_text(), re.MULTILINE)
                 if m:
                     vv = m.group(1)
-            except OSError:
+            except (OSError, ValueError):
                 pass
 
         if self.pkg_json.exists():
