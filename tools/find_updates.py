@@ -150,11 +150,8 @@ class SearchResult(AdditionalPropertiesMixin):
         type = self.type
         version = self.version
         results: Optional[List[Dict[str, Any]]] = None
-        if not isinstance(self.results, type(None)):
-            results = []
-            for results_item_data in self.results:
-                results_item = results_item_data.to_dict()
-                results.append(results_item)
+        if self.results is not None:
+            results = [results_item_data.to_dict() for results_item_data in self.results]
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update({})
@@ -238,37 +235,37 @@ class PackageDetailed(AdditionalPropertiesMixin):
         url = self.url
         submitter = self.submitter
         license_: Optional[List[str]] = None
-        if not isinstance(self.license_, type(None)):
+        if self.license_ is not None:
             license_ = self.license_
         depends: Optional[List[str]] = None
-        if not isinstance(self.depends, type(None)):
+        if self.depends is not None:
             depends = self.depends
         make_depends: Optional[List[str]] = None
-        if not isinstance(self.make_depends, type(None)):
+        if self.make_depends is not None:
             make_depends = self.make_depends
         opt_depends: Optional[List[str]] = None
-        if not isinstance(self.opt_depends, type(None)):
+        if self.opt_depends is not None:
             opt_depends = self.opt_depends
         check_depends: Optional[List[str]] = None
-        if not isinstance(self.check_depends, type(None)):
+        if self.check_depends is not None:
             check_depends = self.check_depends
         provides: Optional[List[str]] = None
-        if not isinstance(self.provides, type(None)):
+        if self.provides is not None:
             provides = self.provides
         conflicts: Optional[List[str]] = None
-        if not isinstance(self.conflicts, type(None)):
+        if self.conflicts is not None:
             conflicts = self.conflicts
         replaces: Optional[List[str]] = None
-        if not isinstance(self.replaces, type(None)):
+        if self.replaces is not None:
             replaces = self.replaces
         groups: Optional[List[str]] = None
-        if not isinstance(self.groups, type(None)):
+        if self.groups is not None:
             groups = self.groups
         keywords: Optional[List[str]] = None
-        if not isinstance(self.keywords, type(None)):
+        if self.keywords is not None:
             keywords = self.keywords
         co_maintainers: Optional[List[str]] = None
-        if not isinstance(self.co_maintainers, type(None)):
+        if self.co_maintainers is not None:
             co_maintainers = self.co_maintainers
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -403,11 +400,8 @@ class InfoResult(AdditionalPropertiesMixin):
         type = self.type
         version = self.version
         results: Optional[List[Dict[str, Any]]] = None
-        if not isinstance(self.results, type(None)):
-            results = []
-            for results_item_data in self.results:
-                results_item = results_item_data.to_dict()
-                results.append(results_item)
+        if self.results is not None:
+            results = [results_item_data.to_dict() for results_item_data in self.results]
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update({})
