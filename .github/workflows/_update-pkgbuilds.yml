@@ -1,5 +1,6 @@
 name: _update-pkgbuilds
 on:
+  # checkov:skip=CKV_GHA_7: workflow_dispatch inputs are required for manual triggers
   workflow_dispatch:
     inputs:
       packages:
@@ -7,13 +8,15 @@ on:
         required: false
         type: string
         default: ""
+
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+  issues: write
+
 jobs:
   update-pkgbuilds:
-    permissions:
-      id-token: write
-      contents: write
-      pull-requests: write
-      issues: write
     uses: ./.github/workflows/_run-agent.yml
     with:
       provider: opencode

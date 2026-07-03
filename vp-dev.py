@@ -70,7 +70,7 @@ class VpDev:
                     if d not in self.files_cache:
                         self.files_cache[d] = []
                     self.files_cache[d].append(rel)
-        except Exception as e:
+        except (OSError, subprocess.SubprocessError) as e:
             warn(f"Failed to populate file cache: {e}")
             self.files_cache = None
 
@@ -118,7 +118,7 @@ class VpDev:
                 "url": p[4] if len(p) > 4 else "",
                 "files": sorted(fs),
             }
-        except Exception as e:
+        except (OSError, subprocess.SubprocessError) as e:
             err(f"Failed to parse {pb}: {e}")
             return None
 
@@ -252,7 +252,7 @@ makepkg -si
                     "url": data.get("url", ""),
                     "files": files,
                 }
-        except Exception:
+        except (OSError, subprocess.SubprocessError):
             pass
         return None
 
@@ -294,7 +294,7 @@ makepkg -si
             else:
                 warn(f"Failed to parse {d.name}/PKGBUILD")
                 return None
-        except Exception as e:
+        except (OSError, subprocess.SubprocessError) as e:
             err(f"Error processing package {d}: {e}")
             return None
 
@@ -314,7 +314,7 @@ makepkg -si
                 m = re.search(r'^VERSION="([^"]+)"', vp.read_text(), re.MULTILINE)
                 if m:
                     vv = m.group(1)
-            except Exception:
+            except OSError:
                 pass
 
         if self.pkg_json.exists():

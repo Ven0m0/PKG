@@ -3,6 +3,7 @@ name: Check Updates
 on:
   schedule:
     - cron: '0 5 * * *'
+  # checkov:skip=CKV_GHA_7: workflow_dispatch inputs are required for manual triggers
   workflow_dispatch:
     inputs:
       package:

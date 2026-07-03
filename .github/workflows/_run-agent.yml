@@ -7,6 +7,7 @@
 name: Run Agent
 
 on:
+  # checkov:skip=CKV_GHA_7: workflow_dispatch inputs are required for manual triggers
   workflow_call:
     inputs:
       provider:

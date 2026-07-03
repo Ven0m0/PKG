@@ -1,5 +1,6 @@
 name: Build Packages
 on:
+  # checkov:skip=CKV_GHA_7: workflow_dispatch inputs are required for manual triggers
   workflow_dispatch:
     inputs:
       create_release:
