@@ -80,103 +80,302 @@ class _AurModel:
 
 
 @attr.s(auto_attribs=True)
-class PackageBasic(_AurModel):
-    id: int | None = None
-    name: str | None = None
-    description: str | None = None
-    package_base_id: int | None = None
-    package_base: str | None = None
-    maintainer: str | None = None
-    num_votes: int | None = None
-    popularity: float | None = None
-    first_submitted: int | None = None
-    last_modified: int | None = None
-    out_of_date: str | None = None
-    version: str | None = None
-    url_path: str | None = None
-    url: str | None = None
-    additional_properties: dict[str, Any] = attr.ib(init=False, factory=dict)
+class SearchResult(AdditionalPropertiesMixin):
+    resultcount: Optional[int] = None
+    type: Optional[str] = None
+    version: Optional[int] = None
+    results: Optional[List["PackageBasic"]] = None
+    additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
-    _FIELDS = {
-        "id": "ID",
-        "name": "Name",
-        "description": "Description",
-        "package_base_id": "PackageBaseID",
-        "package_base": "PackageBase",
-        "maintainer": "Maintainer",
-        "num_votes": "NumVotes",
-        "popularity": "Popularity",
-        "first_submitted": "FirstSubmitted",
-        "last_modified": "LastModified",
-        "out_of_date": "OutOfDate",
-        "version": "Version",
-        "url_path": "URLPath",
-        "url": "URL",
-    }
+    def to_dict(self) -> Dict[str, Any]:
+        resultcount = self.resultcount
+        type = self.type
+        version = self.version
+        results: Optional[List[Dict[str, Any]]] = None
+        if self.results is not None:
+            results = [results_item_data.to_dict() for results_item_data in self.results]
+        field_dict: Dict[str, Any] = {}
+        field_dict.update(self.additional_properties)
+        field_dict.update({})
+        if resultcount is not None:
+            field_dict["resultcount"] = resultcount
+        if type is not None:
+            field_dict["type"] = type
+        if version is not None:
+            field_dict["version"] = version
+        if results is not None:
+            field_dict["results"] = results
+        return field_dict
 
-
-@attr.s(auto_attribs=True)
-class PackageDetailed(_AurModel):
-    id: int | None = None
-    name: str | None = None
-    description: str | None = None
-    package_base_id: int | None = None
-    package_base: str | None = None
-    maintainer: str | None = None
-    num_votes: int | None = None
-    popularity: float | None = None
-    first_submitted: int | None = None
-    last_modified: int | None = None
-    out_of_date: str | None = None
-    version: str | None = None
-    url_path: str | None = None
-    url: str | None = None
-    submitter: str | None = None
-    license_: list[str] | None = None
-    depends: list[str] | None = None
-    make_depends: list[str] | None = None
-    opt_depends: list[str] | None = None
-    check_depends: list[str] | None = None
-    provides: list[str] | None = None
-    conflicts: list[str] | None = None
-    replaces: list[str] | None = None
-    groups: list[str] | None = None
-    keywords: list[str] | None = None
-    co_maintainers: list[str] | None = None
-    additional_properties: dict[str, Any] = attr.ib(init=False, factory=dict)
-
-    _FIELDS = {
-        **PackageBasic._FIELDS,
-        "submitter": "Submitter",
-        "license_": "License",
-        "depends": "Depends",
-        "make_depends": "MakeDepends",
-        "opt_depends": "OptDepends",
-        "check_depends": "CheckDepends",
-        "provides": "Provides",
-        "conflicts": "Conflicts",
-        "replaces": "Replaces",
-        "groups": "Groups",
-        "keywords": "Keywords",
-        "co_maintainers": "CoMaintainers",
-    }
+    @classmethod
+    def from_dict(
+        cls: Type["SearchResult"], src_dict: Dict[str, Any]
+    ) -> "SearchResult":
+        d = src_dict.copy()
+        resultcount = d.pop("resultcount", None)
+        type = d.pop("type", None)
+        version = d.pop("version", None)
+        results = []
+        _results = d.pop("results", None)
+        for results_item_data in _results or []:
+            results_item = PackageBasic.from_dict(results_item_data)
+            results.append(results_item)
+        search_result = cls(
+            resultcount=resultcount,
+            type=type,
+            version=version,
+            results=results,
+        )
+        search_result.additional_properties = d
+        return search_result
 
 
 @attr.s(auto_attribs=True)
-class SearchResult(_AurModel):
-    resultcount: int | None = None
-    type: str | None = None
-    version: int | None = None
-    results: list[PackageBasic] | None = None
-    additional_properties: dict[str, Any] = attr.ib(init=False, factory=dict)
+class PackageDetailed(AdditionalPropertiesMixin):
+    id: Optional[int] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    package_base_id: Optional[int] = None
+    package_base: Optional[str] = None
+    maintainer: Optional[str] = None
+    num_votes: Optional[int] = None
+    popularity: Optional[float] = None
+    first_submitted: Optional[int] = None
+    last_modified: Optional[int] = None
+    out_of_date: Optional[str] = None
+    version: Optional[str] = None
+    url_path: Optional[str] = None
+    url: Optional[str] = None
+    submitter: Optional[str] = None
+    license_: Optional[List[str]] = None
+    depends: Optional[List[str]] = None
+    make_depends: Optional[List[str]] = None
+    opt_depends: Optional[List[str]] = None
+    check_depends: Optional[List[str]] = None
+    provides: Optional[List[str]] = None
+    conflicts: Optional[List[str]] = None
+    replaces: Optional[List[str]] = None
+    groups: Optional[List[str]] = None
+    keywords: Optional[List[str]] = None
+    co_maintainers: Optional[List[str]] = None
+    additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
-    _FIELDS = {
-        "resultcount": "resultcount",
-        "type": "type",
-        "version": "version",
-        "results": "results",
-    }
-    _NESTED = {"results": PackageBasic}
+    def to_dict(self) -> Dict[str, Any]:
+        id = self.id
+        name = self.name
+        description = self.description
+        package_base_id = self.package_base_id
+        package_base = self.package_base
+        maintainer = self.maintainer
+        num_votes = self.num_votes
+        popularity = self.popularity
+        first_submitted = self.first_submitted
+        last_modified = self.last_modified
+        out_of_date = self.out_of_date
+        version = self.version
+        url_path = self.url_path
+        url = self.url
+        submitter = self.submitter
+        license_: Optional[List[str]] = None
+        if self.license_ is not None:
+            license_ = self.license_
+        depends: Optional[List[str]] = None
+        if self.depends is not None:
+            depends = self.depends
+        make_depends: Optional[List[str]] = None
+        if self.make_depends is not None:
+            make_depends = self.make_depends
+        opt_depends: Optional[List[str]] = None
+        if self.opt_depends is not None:
+            opt_depends = self.opt_depends
+        check_depends: Optional[List[str]] = None
+        if self.check_depends is not None:
+            check_depends = self.check_depends
+        provides: Optional[List[str]] = None
+        if self.provides is not None:
+            provides = self.provides
+        conflicts: Optional[List[str]] = None
+        if self.conflicts is not None:
+            conflicts = self.conflicts
+        replaces: Optional[List[str]] = None
+        if self.replaces is not None:
+            replaces = self.replaces
+        groups: Optional[List[str]] = None
+        if self.groups is not None:
+            groups = self.groups
+        keywords: Optional[List[str]] = None
+        if self.keywords is not None:
+            keywords = self.keywords
+        co_maintainers: Optional[List[str]] = None
+        if self.co_maintainers is not None:
+            co_maintainers = self.co_maintainers
+        field_dict: Dict[str, Any] = {}
+        field_dict.update(self.additional_properties)
+        field_dict.update({})
+        if id is not None:
+            field_dict["ID"] = id
+        if name is not None:
+            field_dict["Name"] = name
+        if description is not None:
+            field_dict["Description"] = description
+        if package_base_id is not None:
+            field_dict["PackageBaseID"] = package_base_id
+        if package_base is not None:
+            field_dict["PackageBase"] = package_base
+        if maintainer is not None:
+            field_dict["Maintainer"] = maintainer
+        if num_votes is not None:
+            field_dict["NumVotes"] = num_votes
+        if popularity is not None:
+            field_dict["Popularity"] = popularity
+        if first_submitted is not None:
+            field_dict["FirstSubmitted"] = first_submitted
+        if last_modified is not None:
+            field_dict["LastModified"] = last_modified
+        if out_of_date is not None:
+            field_dict["OutOfDate"] = out_of_date
+        if version is not None:
+            field_dict["Version"] = version
+        if url_path is not None:
+            field_dict["URLPath"] = url_path
+        if url is not None:
+            field_dict["URL"] = url
+        if submitter is not None:
+            field_dict["Submitter"] = submitter
+        if license_ is not None:
+            field_dict["License"] = license_
+        if depends is not None:
+            field_dict["Depends"] = depends
+        if make_depends is not None:
+            field_dict["MakeDepends"] = make_depends
+        if opt_depends is not None:
+            field_dict["OptDepends"] = opt_depends
+        if check_depends is not None:
+            field_dict["CheckDepends"] = check_depends
+        if provides is not None:
+            field_dict["Provides"] = provides
+        if conflicts is not None:
+            field_dict["Conflicts"] = conflicts
+        if replaces is not None:
+            field_dict["Replaces"] = replaces
+        if groups is not None:
+            field_dict["Groups"] = groups
+        if keywords is not None:
+            field_dict["Keywords"] = keywords
+        if co_maintainers is not None:
+            field_dict["CoMaintainers"] = co_maintainers
+        return field_dict
+
+    @classmethod
+    def from_dict(
+        cls: Type["PackageDetailed"], src_dict: Dict[str, Any]
+    ) -> "PackageDetailed":
+        d = src_dict.copy()
+        id = d.pop("ID", None)
+        name = d.pop("Name", None)
+        description = d.pop("Description", None)
+        package_base_id = d.pop("PackageBaseID", None)
+        package_base = d.pop("PackageBase", None)
+        maintainer = d.pop("Maintainer", None)
+        num_votes = d.pop("NumVotes", None)
+        popularity = d.pop("Popularity", None)
+        first_submitted = d.pop("FirstSubmitted", None)
+        last_modified = d.pop("LastModified", None)
+        out_of_date = d.pop("OutOfDate", None)
+        version = d.pop("Version", None)
+        url_path = d.pop("URLPath", None)
+        url = d.pop("URL", None)
+        submitter = d.pop("Submitter", None)
+        license_: Optional[List[str]] = d.pop("License", None)
+        depends: Optional[List[str]] = d.pop("Depends", None)
+        make_depends: Optional[List[str]] = d.pop("MakeDepends", None)
+        opt_depends: Optional[List[str]] = d.pop("OptDepends", None)
+        check_depends: Optional[List[str]] = d.pop("CheckDepends", None)
+        provides: Optional[List[str]] = d.pop("Provides", None)
+        conflicts: Optional[List[str]] = d.pop("Conflicts", None)
+        replaces: Optional[List[str]] = d.pop("Replaces", None)
+        groups: Optional[List[str]] = d.pop("Groups", None)
+        keywords: Optional[List[str]] = d.pop("Keywords", None)
+        co_maintainers: Optional[List[str]] = d.pop("CoMaintainers", None)
+        package_detailed = cls(
+            id=id,
+            name=name,
+            description=description,
+            package_base_id=package_base_id,
+            package_base=package_base,
+            maintainer=maintainer,
+            num_votes=num_votes,
+            popularity=popularity,
+            first_submitted=first_submitted,
+            last_modified=last_modified,
+            out_of_date=out_of_date,
+            version=version,
+            url_path=url_path,
+            url=url,
+            submitter=submitter,
+            license_=license_,
+            depends=depends,
+            make_depends=make_depends,
+            opt_depends=opt_depends,
+            check_depends=check_depends,
+            provides=provides,
+            conflicts=conflicts,
+            replaces=replaces,
+            groups=groups,
+            keywords=keywords,
+            co_maintainers=co_maintainers,
+        )
+        package_detailed.additional_properties = d
+        return package_detailed
+
+
+@attr.s(auto_attribs=True)
+class InfoResult(AdditionalPropertiesMixin):
+    resultcount: Optional[int] = None
+    type: Optional[str] = None
+    version: Optional[int] = None
+    results: Optional[List["PackageDetailed"]] = None
+    additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        resultcount = self.resultcount
+        type = self.type
+        version = self.version
+        results: Optional[List[Dict[str, Any]]] = None
+        if self.results is not None:
+            results = [results_item_data.to_dict() for results_item_data in self.results]
+        field_dict: Dict[str, Any] = {}
+        field_dict.update(self.additional_properties)
+        field_dict.update({})
+        if resultcount is not None:
+            field_dict["resultcount"] = resultcount
+        if type is not None:
+            field_dict["type"] = type
+        if version is not None:
+            field_dict["version"] = version
+        if results is not None:
+            field_dict["results"] = results
+        return field_dict
+
+    @classmethod
+    def from_dict(cls: Type["InfoResult"], src_dict: Dict[str, Any]) -> "InfoResult":
+        d = src_dict.copy()
+        resultcount = d.pop("resultcount", None)
+        type = d.pop("type", None)
+        version = d.pop("version", None)
+        results = []
+        _results = d.pop("results", None)
+        for results_item_data in _results or []:
+            results_item = PackageDetailed.from_dict(results_item_data)
+            results.append(results_item)
+        info_result = cls(
+            resultcount=resultcount,
+            type=type,
+            version=version,
+            results=results,
+        )
+        info_result.additional_properties = d
+        return info_result
 
 
 @attr.s(auto_attribs=True)
