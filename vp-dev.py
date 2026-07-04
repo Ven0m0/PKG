@@ -70,7 +70,7 @@ class VpDev:
                     if d not in self.files_cache:
                         self.files_cache[d] = []
                     self.files_cache[d].append(rel)
-        except (OSError, subprocess.SubprocessError) as e:
+        except (OSError, ValueError, subprocess.SubprocessError) as e:
             warn(f"Failed to populate file cache: {e}")
             self.files_cache = None
 
