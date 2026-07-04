@@ -118,7 +118,7 @@ class VpDev:
                 "url": p[4] if len(p) > 4 else "",
                 "files": sorted(fs),
             }
-        except (OSError, subprocess.SubprocessError) as e:
+        except (OSError, ValueError, subprocess.SubprocessError) as e:
             err(f"Failed to parse {pb}: {e}")
             return None
 
