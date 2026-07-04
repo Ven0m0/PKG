@@ -14,6 +14,8 @@ This document tracks planned features, improvements, and long-term goals for the
 | update-alternatives | nvchecker git auth error |
 | zlib-ng/lib32-zlib-ng | include_regex `^2\.` matched no tags |
 | mesa-git | gitlab.freedesktop.org returned 500 |
+- [ ] remove lefthook completely and replace it with prek pre-commit
+
 
 ### External references to review
 
