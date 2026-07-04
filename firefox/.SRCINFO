@@ -1,6 +1,6 @@
 pkgbase = firefox-custom
 	pkgdesc = Firefox with aggressive optimizations, VA-API, PGO, and all performance tweaks
-	pkgver = 152.0.2
+	pkgver = 152.0.4
 	pkgrel = 1
 	url = https://mozilla.org/firefox
 	arch = x86_64
@@ -80,17 +80,17 @@ pkgbase = firefox-custom
 	optdepends = libdbusmenu-gtk3: Global menu support
 	optdepends = profile-sync-daemon: Load browser profile into RAM
 	optdepends = kmozillahelper: KDE integration
-	provides = firefox=152.0.2
+	provides = firefox=152.0.4
 	conflicts = firefox
 	options = !strip
 	options = !emptydirs
 	options = !debug
 	options = !makeflags
 	options = !lto
-	source = https://archive.mozilla.org/pub/firefox/releases/152.0.2/source/firefox-152.0.2.source.tar.xz
+	source = https://archive.mozilla.org/pub/firefox/releases/152.0.4/source/firefox-152.0.4.source.tar.xz
 	source = firefox.desktop
 	source = firefox-symbolic.svg
-	sha256sums = 79f3f454e79ec75eef0ff60243510fe5445c430ed70efbfef597a2760a7a5d3b
+	sha256sums = fd89982202cda5353a27307d85d48902d46576d46d1c9e36d55740e63b5216bb
 	sha256sums = 6d7980e1c05e1e05127413d2e29607aa2ff201a94c8888e7f4a945bd343c561e
 	sha256sums = 07e2391b50ba21ac4c2275291550f0f7d555f5a2c823c7609ab55ea9cb401de5
 

@@ -1,7 +1,7 @@
 # Maintainer: Ven0m0
 pkgname=smartdns-rs
-pkgver=0.13.0
-pkgrel=2
+pkgver=0.13.1
+pkgrel=1
 pkgdesc='Cross-platform local DNS server that returns the fastest IP address'
 arch=('x86_64' 'aarch64')
 url='https://github.com/mokeyish/smartdns-rs'
@@ -14,7 +14,7 @@ backup=('etc/smartdns/smartdns.conf')
 options=('strip' '!emptydirs' '!debug')
 install="$pkgname.install"
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('SKIP')
+sha256sums=('18e9f15044d9b59dfdd6559f234eac97a73335054d1b64b251274c23d1b1219c')
 
 export CARGO_PROFILE_RELEASE_LTO=true CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 CARGO_PROFILE_RELEASE_DEBUG=0 CARGO_INCREMENTAL=0
 export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target
