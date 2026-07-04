@@ -7,6 +7,7 @@ This document tracks planned features, improvements, and long-term goals for the
 ### Fix packages
 
 - [ ] Fix package nvchecker to allow [_update-pkgbuilds.yml](.github/workflows/_update-pkgbuilds.yml) and [_run-agent.yml](.github/workflows/_run-agent.yml) to update the packages aswell.
+
 | Package | Reason |
 |---------|--------|
 | dxvk/dxvk-gplasync | nvchecker returned a downgrade (2.5.3-... < 2.7.1-4) |
