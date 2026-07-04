@@ -17,7 +17,7 @@ description: PKGBUILD edits must keep version tracking, checksums, and .SRCINFO 
 ```bash
 updpkgsums
 makepkg --printsrcinfo > .SRCINFO
-pkg.sh lint
+tools/pkg.sh lint
 makepkg -srC
 ```
 

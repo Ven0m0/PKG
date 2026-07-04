@@ -43,7 +43,7 @@ if [ -n "${INPUT_AURDEPS:-}" ]; then
 SigLevel = Optional TrustAll
 Server = https://arch.alerque.com/\$arch
 EOM
-	pacman-key --recv-keys 63CC496475267693
+	sudo pacman-key --recv-keys 63CC496475267693
 fi
 
 if [ -n "${INPUT_PACMANCONF:-}" ]; then
@@ -66,8 +66,8 @@ fi
 sudo pacman -Syu --noconfirm
 
 # Update keyring
-pacman-key --init
-pacman-key --populate archlinux
+sudo pacman-key --init
+sudo pacman-key --populate archlinux
 
 sudo pacman -Syu --noconfirm --needed base base-devel
 sudo pacman -Syu --noconfirm --needed ccache

@@ -31,7 +31,7 @@ lint: lint-shell lint-packages
 format-python:
 	@echo "→ Formatting Python..."
 	@if command -v ruff >/dev/null 2>&1; then \
-		ruff format vp-dev.py --quiet; \
+		ruff format tools/ --quiet; \
 	else \
 		echo "  ⚠ ruff not found, skipping Python formatting"; \
 	fi
@@ -40,7 +40,7 @@ format-python:
 format-shell:
 	@echo "→ Formatting shell scripts..."
 	@if command -v shfmt >/dev/null 2>&1; then \
-		shfmt -w -i 2 -bn -ci vp pkg.sh; \
+		shfmt -w -i 2 -bn -ci tools/pkg.sh tools/lib/helpers.sh tools/check-isa-level.sh; \
 		find . -maxdepth 2 -type f -name "PKGBUILD" -exec shfmt -w -i 2 -bn -ci {} \; 2>/dev/null || true; \
 	else \
 		echo "  ⚠ shfmt not found, skipping shell formatting"; \
@@ -50,7 +50,7 @@ format-shell:
 lint-shell:
 	@echo "→ Linting shell scripts..."
 	@if command -v shellcheck >/dev/null 2>&1; then \
-		shellcheck vp pkg.sh || true; \
+		shellcheck tools/pkg.sh tools/check-isa-level.sh tools/lib/helpers.sh || true; \
 	else \
 		echo "  ⚠ shellcheck not found, skipping shell linting"; \
 	fi
@@ -67,20 +67,20 @@ lint-packages:
 # Update packages.json
 update-packages:
 	@echo "→ Updating packages.json..."
-	@if [ -f vp-dev ]; then \
-		./vp-dev update; \
+	@if [ -f tools/vp-dev.py ]; then \
+		./tools/vp-dev.py update; \
 	else \
-		echo "  ✗ vp-dev not found"; \
+		echo "  ✗ tools/vp-dev.py not found"; \
 		exit 1; \
 	fi
 
 # Publish
 publish:
 	@echo "→ Publishing repository..."
-	@if [ -f vp-dev ]; then \
-		./vp-dev publish; \
+	@if [ -f tools/vp-dev.py ]; then \
+		./tools/vp-dev.py publish; \
 	else \
-		echo "  ✗ vp-dev not found"; \
+		echo "  ✗ tools/vp-dev.py not found"; \
 		exit 1; \
 	fi
 

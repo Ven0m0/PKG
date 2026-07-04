@@ -1,5 +1,6 @@
 name: _update-pkgbuilds
 on:
+  # checkov:skip=CKV_GHA_7: Manual inputs required
   workflow_dispatch:
     inputs:
       packages:
@@ -7,6 +8,9 @@ on:
         required: false
         type: string
         default: ""
+permissions:
+  contents: read
+
 jobs:
   update-pkgbuilds:
     permissions:
@@ -17,23 +21,39 @@ jobs:
     uses: ./.github/workflows/_run-agent.yml
     with:
       provider: opencode
-      model: "opencode/minimax-m2.5-free"
+      model: "opencode/minimax-m3-free" # opencode/nemotron-3-ultra-free
+      fallback_model: "opencode/deepseek-v4-flash-free"
       prompt: |
-        Update version-controlled PKGBUILDs and open one pull request.
-        ${{ inputs.packages != '' && format('Only process these package directories: {0}', inputs.packages) || 'If no packages are provided, process every package listed in nvchecker.toml.' }}
-        Requirements:
-        1. Discover package directories with `git ls-files ':(glob)**/PKGBUILD'`; if that is unavailable, fall back to `rg --files -g 'PKGBUILD'`. Limit work to the requested directories or the package keys in `nvchecker.toml`.
-        2. Read `nvchecker.toml` and `.github/nvchecker/old_ver.json` first. Keep both files version controlled and update `.github/nvchecker/old_ver.json` for every package you change.
-        3. Run fully non-interactively. Never wait for input. Use explicit flags for git, gh, and makepkg commands.
-        4. Before making any changes, create a branch named `update/pkgbuilds-$(date +%Y%m%d-%H%M%S)`.
-        5. For normal PKGBUILDs, update `pkgver`, reset `pkgrel=1`, run `updpkgsums`, then `makepkg --printsrcinfo > .SRCINFO`.
-        6. For `proton-cachyos-slr` and `wine-cachyos`, update `_srctag` and keep the derived `pkgver` expression unchanged.
-        7. For `llvm`, treat the nvchecker result as the tracked upstream release version for `.github/nvchecker/old_ver.json`; if the PKGBUILD derives `pkgver` via `pkgver()`, refresh it with non-interactive makepkg tooling instead of editing the generated value by hand.
-        8. For `chromium`, parse the tracked Cromite release as `{pkgver}-{commit}`.
-        9. For `chromium`, update both `pkgver` and `_commit`, and if `_pkgver` is missing insert the unevaluated PKGBUILD assignment `_pkgver=${pkgver}` immediately after the `pkgver=` line so the source URLs keep following the current `pkgver` variable.
-        10. For `chromium`, refresh sums and `.SRCINFO` after the metadata update.
-        11. If `updpkgsums` or `makepkg --printsrcinfo` fails, skip that package and record the reason.
-        12. Commit only the changed tracked files with a concise summary of updated and skipped packages, push the branch, and create one PR against `main`. If nothing changed, exit without creating a PR.
+        Update version-controlled PKGBUILDs to their latest upstream versions and open one pull request.
+        ${{ inputs.packages != '' && format('Only process these package directories: {0}', inputs.packages) || 'If no packages are provided, process every package key in nvchecker.toml.' }}
+
+        Treat `.github/skills/update-pkgbuild/SKILL.md` and `.github/instructions/pkgbuild.instructions.md` as the canonical procedure; the rules below are the contract for this run and win on any conflict.
+
+        Environment and safety:
+        1. Run fully non-interactively; never block on input. Pass explicit flags to git, gh, nvchecker, makepkg and updpkgsums.
+        2. Ensure the makepkg toolchain is present (makepkg, updpkgsums from pacman-contrib, base-devel). If the runner lacks it, run the build-tool steps inside an `archlinux:latest` container. A missing toolchain is a setup error to fix, never a reason to skip packages.
+        3. Commit ONLY tracked sources: PKGBUILD, .SRCINFO and `.github/nvchecker/old_ver.json`. Never commit downloaded tarballs/debs or the `git+` clones that updpkgsums/makepkg leave in package dirs — remove them before staging.
+        4. Isolate each package so one failure cannot abort the run; process every package, then report.
+
+        Discover and detect drift:
+        5. Discover packages with `git ls-files ':(glob)**/PKGBUILD'` (fallback `rg --files -g 'PKGBUILD'`). Limit work to the requested dirs or the keys in `nvchecker.toml`.
+        6. Read `nvchecker.toml` and `.github/nvchecker/old_ver.json`, then actually run nvchecker against `nvchecker.toml` to obtain current upstream versions and diff them against old_ver. Do NOT guess versions — derive every "latest" from nvchecker/upstream.
+        7. Update a package only when upstream is strictly newer than the packaged version (confirm with `vercmp`); never downgrade. When `pkgver` changes, reset `pkgrel=1`; if it is unchanged, leave the package and its files untouched.
+
+        Per-package rules — classify each package first:
+        8. Normal PKGBUILD: set `pkgver`, reset `pkgrel=1`, run `updpkgsums`, then `makepkg --printsrcinfo > .SRCINFO`.
+        9. pkgver()/git packages whose version is derived at build time (e.g. llvm, mesa-git, ghostty, glibc, svt-av1, dolphin-emu, heroic-games-launcher, uutils/coreutils): do NOT hand-edit the derived `pkgver`. Record the new tracked release in old_ver.json; regenerate the real `pkgver` with non-interactive makepkg tooling only if the source clones cheaply, otherwise leave the PKGBUILD and mark it tracking-only.
+        10. `proton-cachyos-slr` and `wine-cachyos`: update `_srctag` and keep the derived `pkgver` expression unchanged.
+        11. `chromium`: parse the tracked Cromite release as `{pkgver}-{commit}`; update both `pkgver` and `_commit`; if `_pkgver` is missing, insert the literal assignment `_pkgver=${pkgver}` immediately after the `pkgver=` line; then refresh sums and `.SRCINFO`.
+
+        Fix before you skip:
+        12. When updpkgsums or makepkg fails, diagnose the cause before giving up. Common fixable causes: a hyphen/colon/slash in `pkgver` (keep the real value in a `_*` variable and fold it into a makepkg-valid `pkgver`); a changed tag scheme or moved source host (e.g. github to gitlab); a renamed/removed upstream; or local subdirectory sources makepkg cannot checksum (apply them from `$startdir` in `prepare()` instead of listing them in `source`). Apply a minimal, in-scope fix and retry.
+        13. Skip a package only when no bounded fix exists. For a genuine skip, leave its old_ver.json entry UNCHANGED so the next run retries it, and record the package, attempted version, and precise reason.
+
+        Validate, commit, report:
+        14. Before committing, validate each changed package: `.SRCINFO` regenerated and consistent with the PKGBUILD, `bash -n PKGBUILD` passes, and `tools/pkg.sh lint` / `tools/pkg.sh srcinfo` succeed when available.
+        15. Create branch `update/pkgbuilds-$(date +%Y%m%d-%H%M%S)` before any change. Commit the tracked files with a concise summary, push, and open exactly one PR against `main`; if an open update PR already exists, update it instead of duplicating.
+        16. The PR body must list, with old→new versions: packages updated, packages skipped (with reasons), and packages already current. If nothing changed, exit without creating a PR.
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}

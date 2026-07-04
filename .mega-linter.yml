@@ -1,0 +1,20 @@
+# MegaLinter configuration. See https://megalinter.io/configuration/
+DISABLE_LINTERS:
+  - COPYPASTE_JSCPD
+  - REPOSITORY_DEVSKIM
+  # osv-scanner finds no package manifests/lockfiles in this PKGBUILD repo and
+  # exits non-zero with "No package sources found". Dependency/vulnerability
+  # scanning is already covered by trivy and grype.
+  - REPOSITORY_OSV_SCANNER
+
+# chromium/ and firefox/ PKGBUILDs embed the well-known *public* Arch Linux
+# Google/Mozilla API keys and the default Google OAuth client secret
+# (see https://www.chromium.org/developers/how-tos/api-keys). They are inactive
+# public build keys and are already allowlisted for gitleaks in .gitleaks.toml.
+# Exclude just those two files from kingfisher so it keeps scanning the rest of
+# the repository.
+REPOSITORY_KINGFISHER_ARGUMENTS:
+  - --exclude
+  - chromium/PKGBUILD
+  - --exclude
+  - firefox/PKGBUILD

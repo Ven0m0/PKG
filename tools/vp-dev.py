@@ -7,6 +7,7 @@ import argparse
 import subprocess
 import shutil
 import re
+import shlex
 from pathlib import Path
 import concurrent.futures
 
@@ -40,8 +41,17 @@ def warn(m: str) -> None:
 class VpDev:
     __slots__ = ("root", "pkg_json", "git", "skip_dirs", "files_cache")
 
+    _COMMENT_RE = re.compile(r"(?m)^\s*#.*$")
+    _ASSIGN_RE = re.compile(
+        r"^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*"
+        r"(\((?:[^)]*)\)|'[^']*'|\"[^\"]*\"|[^\n#]*)",
+        re.MULTILINE,
+    )
+    _VAR_REF_RE = re.compile(r"\$\{([a-zA-Z0-9_]+)\}|\$([a-zA-Z0-9_]+)")
+
     def __init__(self) -> None:
-        self.root = Path(__file__).parent
+        # This script lives at <repo>/tools/vp-dev.py; the repo root is one level up.
+        self.root = Path(__file__).resolve().parent.parent
         self.pkg_json = self.root / "packages.json"
         self.git = "/usr/bin/git"
         self.skip_dirs = {
@@ -83,20 +93,50 @@ class VpDev:
         if not pb.exists():
             return None
         try:
-            import shlex
+            content = pb.read_text(encoding="utf-8", errors="replace")
+            pkg_vars: dict[str, str] = {}
 
-            cmd = f'source {shlex.quote(str(pb))} 2>/dev/null;echo "${{pkgname}}|${{pkgver}}|${{pkgrel}}|${{pkgdesc}}|${{url}}"'
-            r = subprocess.run(
-                ["bash", "-c", cmd],
-                capture_output=True,
-                text=True,
-                cwd=pb.parent,
-                check=False,
-            )
-            if r.returncode != 0:
-                return None
-            p = r.stdout.strip().split("|")
-            if len(p) < 4:
+            cleaned_content = self._COMMENT_RE.sub("", content)
+
+            for m in self._ASSIGN_RE.finditer(cleaned_content):
+                var = m.group(1)
+                val = m.group(2).strip()
+
+                if val.startswith("(") and val.endswith(")"):
+                    inner = val[1:-1].strip()
+                    try:
+                        tokens = shlex.split(inner)
+                    except ValueError:
+                        tokens = inner.split()
+                    val = tokens[0] if tokens else ""
+
+                if val and (val[0] == val[-1]) and val[0] in ("'", '"'):
+                    val = val[1:-1]
+
+                pkg_vars[var] = val
+
+            def expand_vars(text: str, depth: int = 0) -> str:
+                if not text or depth > 10:
+                    return text
+
+                def replace(match: re.Match) -> str:
+                    v = match.group(1) or match.group(2)
+                    return expand_vars(pkg_vars.get(v, ""), depth + 1)
+
+                if "$" in text:
+                    return self._VAR_REF_RE.sub(replace, text)
+                return text
+
+            name = expand_vars(pkg_vars.get("pkgname", ""))
+            if not name:
+                name = expand_vars(pkg_vars.get("pkgbase", ""))
+
+            version = expand_vars(pkg_vars.get("pkgver", ""))
+            rel = expand_vars(pkg_vars.get("pkgrel", ""))
+            desc = expand_vars(pkg_vars.get("pkgdesc", ""))
+            url = expand_vars(pkg_vars.get("url", ""))
+
+            if not name or not version or not rel:
                 return None
 
             if self.files_cache is not None:
@@ -112,10 +152,10 @@ class VpDev:
                 fs = [f for f in r2.stdout.strip().split("\n") if f and f != "PKGBUILD"]
 
             return {
-                "name": p[0],
-                "version": f"{p[1]}-{p[2]}",
-                "description": p[3],
-                "url": p[4] if len(p) > 4 else "",
+                "name": name,
+                "version": f"{version}-{rel}",
+                "description": desc,
+                "url": url,
                 "files": sorted(fs),
             }
         except Exception as e:
@@ -124,15 +164,15 @@ class VpDev:
 
     def _get_pkg_dirs(self) -> list[Path]:
         """Get all package directories (dirs with PKGBUILD, excluding skip_dirs)"""
-        dirs = []
-        for d in sorted(self.root.iterdir()):
-            if (
-                d.is_dir()
+        return sorted(
+            [
+                d
+                for d in self.root.iterdir()
+                if d.is_dir()
                 and d.name not in self.skip_dirs
                 and (d / "PKGBUILD").exists()
-            ):
-                dirs.append(d)
-        return dirs
+            ]
+        )
 
     def new(self, nm: str) -> int:
         d = self.root / nm
@@ -170,11 +210,6 @@ package(){{
 - [List optimizations]
 
 ## Installation
-```bash
-vp install {nm}
-```
-
-Or manual build:
 ```bash
 cd {nm}
 makepkg -si
@@ -222,20 +257,23 @@ makepkg -si
             return None
         try:
             data, files = {}, []
-            for line in si.read_text().splitlines():
-                if "=" not in line:
-                    continue
-                k, v = [x.strip() for x in line.split("=", 1)]
-                if k == "pkgname":
-                    if "name" in data:
-                        break  # Stop at first package
-                    data["name"] = v
-                elif k in ("pkgver", "pkgrel", "pkgdesc", "url"):
-                    data[k] = v
+            with si.open(encoding="utf-8") as f:
+                for line in f:
+                    if "=" not in line:
+                        continue
+                    k, v = line.split("=", 1)
+                    k = k.strip()
+                    v = v.strip()
+                    if k == "pkgname":
+                        if "name" in data:
+                            break  # Stop at first package
+                        data["name"] = v
+                    elif k in ("pkgver", "pkgrel", "pkgdesc", "url"):
+                        data[k] = v
             if "name" in data and "pkgver" in data and "pkgrel" in data:
                 if self.files_cache is not None:
                     files = sorted(
-                        [f for f in self.files_cache.get(d, []) if f != "PKGBUILD"]
+                        (f for f in self.files_cache.get(d, []) if f != "PKGBUILD")
                     )
                 else:
                     r = self._git(
@@ -243,7 +281,7 @@ makepkg -si
                     )
                     if r.returncode == 0:
                         files = sorted(
-                            [f for f in r.stdout.splitlines() if f and f != "PKGBUILD"]
+                            (f for f in r.stdout.splitlines() if f and f != "PKGBUILD")
                         )
                 return {
                     "name": data["name"],
@@ -271,25 +309,13 @@ makepkg -si
                 info(f"Found (fast): {pi['name']} {pi['version']}")
                 return pi
 
-            # Slow path: source PKGBUILD
+            # Slow path: parse PKGBUILD
             pb = d / "PKGBUILD"
-            srcinfo = d / ".SRCINFO"
 
-            # Fallback to full parse and regeneration
+            # Fallback to full parse
             pi = self._parse_pkg(pb)
             if pi:
                 info(f"Found: {pi['name']} {pi['version']}")
-                r = subprocess.run(
-                    ["makepkg", "--printsrcinfo"],
-                    cwd=d,
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                )
-                if r.returncode == 0:
-                    srcinfo.write_text(r.stdout)
-                else:
-                    warn(f"Failed to generate .SRCINFO for {d.name}")
                 return pi
             else:
                 warn(f"Failed to parse {d.name}/PKGBUILD")
@@ -306,26 +332,13 @@ makepkg -si
             results = executor.map(self._process_package, self._get_pkg_dirs())
             pkgs = [p for p in results if p]
 
-        # Get vp version
-        vv = "unknown"
-        vp = self.root / "vp"
-        if vp.exists():
-            try:
-                m = re.search(r'^VERSION="([^"]+)"', vp.read_text(), re.MULTILINE)
-                if m:
-                    vv = m.group(1)
-            except Exception:
-                pass
-
         if self.pkg_json.exists():
             shutil.copy(self.pkg_json, self.pkg_json.with_suffix(".json.bak"))
         self.pkg_json.write_text(
-            json.dumps(
-                {"packages": pkgs, "tools": {"vp": vv, "vp-dev": VERSION}}, indent=2
-            )
+            json.dumps({"packages": pkgs, "tools": {"vp-dev": VERSION}}, indent=2)
         )
         ok(f"Updated packages.json with {len(pkgs)} packages")
-        info(f"Tool versions: vp v{vv}, vp-dev v{VERSION}")
+        info(f"Tool version: vp-dev v{VERSION}")
         return 0
 
     def publish(self) -> int:

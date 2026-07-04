@@ -11,21 +11,22 @@ on:
       - '**/PKGBUILD'
       - '**/**.install'
       - '**/**.sh'
+  # checkov:skip=CKV_GHA_7: Manual inputs required
   workflow_dispatch:
 
 jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Install dependencies
         run: |
           sudo apt-get update -y
           sudo apt-get install -y jq pacman namcap
       - name: Update packages.json
         run: |
-          chmod +x vp-dev.py
-          ./vp-dev.py update
+          chmod +x tools/vp-dev.py
+          ./tools/vp-dev.py update
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"

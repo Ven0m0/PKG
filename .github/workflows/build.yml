@@ -1,5 +1,6 @@
 name: Build Packages
 on:
+  # checkov:skip=CKV_GHA_7: Manual inputs required
   workflow_dispatch:
     inputs:
       create_release:
@@ -32,7 +33,7 @@ jobs:
     outputs:
       pkgs: ${{ steps.set.outputs.pkgs }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - id: set
@@ -85,7 +86,7 @@ jobs:
         pkg: ${{ fromJSON(needs.matrix.outputs.pkgs) }}
         arch: [amd64, arm64]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Determine build method
         id: build_method
         shell: bash
@@ -148,7 +149,7 @@ jobs:
         uses: docker/setup-buildx-action@v4
       - name: Cache Docker layers
         if: steps.build_method.outputs.method == 'docker'
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ matrix.pkg }}-${{ hashFiles(format('{0}/PKGBUILD', matrix.pkg)) }}
@@ -241,7 +242,6 @@ jobs:
         run: |
           set -euo pipefail
           cd "${{ matrix.pkg }}"
-          source PKGBUILD
           PKGFILE=""
           PKGFILE_PATH=""
           # Handle both standard and Docker builds
@@ -264,12 +264,26 @@ jobs:
             echo "Error: Package file not found"
             exit 1
           fi
+
+          # Extract variables safely from the built package filename
+          # Format: pkgname-[epoch:]pkgver-pkgrel-arch.pkg.tar.*
+          base="${PKGFILE%.pkg.tar.*}"
+          arch="${base##*-}"
+          base="${base%-*}"
+          pkgrel="${base##*-}"
+          base="${base%-*}"
+          pkgver="${base##*-}"
+          pkgname="${base%-*}"
+
+          # Remove epoch from pkgver for the TAG creation
+          pkgver_no_epoch="${pkgver#*:}"
+
           {
             echo "PKGNAME=${pkgname}"
             echo "PKGVER=${pkgver}"
             echo "PKGREL=${pkgrel}"
             echo "PKGFILE=${PKGFILE}"
-            echo "TAG=v${pkgver}-${pkgrel}"
+            echo "TAG=v${pkgver_no_epoch}-${pkgrel}"
           } >> "$GITHUB_OUTPUT"
       - name: Upload artifact
         uses: actions/upload-artifact@v7

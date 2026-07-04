@@ -68,14 +68,14 @@ makepkg -si
 
 # Or use the build script
 cd ..
-./pkg.sh build firefox aria2 obs-studio
+./tools/pkg.sh build firefox aria2 obs-studio
 ```
 
 ### Docker Build (for complex packages)
 
 ```bash
 # Automatically handled for Firefox, OBS Studio, etc.
-./pkg.sh build firefox
+./tools/pkg.sh build firefox
 ```
 
 ## Repository Structure
@@ -93,9 +93,14 @@ PKG/
  README.md # Package documentation
  patches/ # Custom patches
  *.patch # Individual patch files
- lib/helpers.sh # Shared shell helper functions
+ tools/ # Repository tooling (all scripts live here)
  pkg.sh # Unified build/lint/srcinfo tool
- vp # Package helper CLI
+ vp-dev.py # Package dev helper (new/test/update/check/list)
+ find_updates.py # Report out-of-date local packages vs Arch/AUR
+ check-isa-level.sh # x86-64 microarchitecture level detection
+ generate-schedule.py # Generate scheduled build workflows
+ generate-workflow.py # Generate per-package workflows
+ lib/helpers.sh # Shared shell helper functions
  CLAUDE.md # AI assistant documentation
  CONTRIBUTING.md # Contribution guidelines
  SECURITY.md # Security policy
@@ -165,13 +170,13 @@ makepkg -s
 
 ```bash
 # Build specific packages
-./pkg.sh build firefox chromium obs-studio
+./tools/pkg.sh build firefox chromium obs-studio
 
 # Build all packages (not recommended)
-./pkg.sh build
+./tools/pkg.sh build
 
 # Force clean builds
-./pkg.sh build --force firefox
+./tools/pkg.sh build --force firefox
 ```
 
 ## Development
@@ -209,7 +214,7 @@ LEFTHOOK=0 git commit -m "message"
 
 ```bash
 # Run all linters
-./pkg.sh lint
+./tools/pkg.sh lint
 
 # Lint specific package
 cd <package>
@@ -235,7 +240,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 2. Update checksums: `updpkgsums`
 3. Regenerate metadata: `makepkg --printsrcinfo > .SRCINFO`
 4. Test: `makepkg -srC`
-5. Lint: `cd .. && ./pkg.sh lint`
+5. Lint: `cd .. && ./tools/pkg.sh lint`
 6. Commit with descriptive message
 
 ## CI/CD Integration

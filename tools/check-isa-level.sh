@@ -34,11 +34,8 @@ find_dynamic_linker(){
   return 1
 }
 
-DYNAMIC_LINKER=""
 # shellcheck disable=SC2310
-if ! DYNAMIC_LINKER=$(find_dynamic_linker); then
-  :
-fi
+DYNAMIC_LINKER=$(find_dynamic_linker) || DYNAMIC_LINKER=""
 
 # ─── Helpers ───────────────────────────────────────────────────────────────
 readonly R=$'\e[31m' G=$'\e[32m' Y=$'\e[33m' B=$'\e[34m' D=$'\e[0m'

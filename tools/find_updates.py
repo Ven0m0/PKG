@@ -1,22 +1,46 @@
 #!/usr/bin/env python3
+"""Report locally tracked packages that are out of date vs. Arch repos and the AUR."""
 
-import json
-from typing import List, Any, Dict, Type, Optional
+from __future__ import annotations
+
+from typing import Any
 
 import attr
-import pyalpm
 import requests
-from pycman import config
 
-from colorama import init as colorama_init
-from colorama import Fore
+AUR_URL = "https://aur.archlinux.org/rpc/v5"
+AUR_REQUEST_TIMEOUT = 10
+
+LOCAL_REPOS = {"custom", "loathk-public", "loathk-personal"}
+ARCH_REPOS = {"core", "extra", "community", "multilib"}
+
+_RED = "\033[31m"
+_GREEN = "\033[32m"
+_RESET = "\033[0m"
 
 
-class AdditionalPropertiesMixin:
-    additional_properties: Dict[str, Any]
+def _serialize(value: Any) -> Any:
+    """Recursively convert nested models to plain dicts for ``to_dict``."""
+    if isinstance(value, list):
+        return [_serialize(v) for v in value]
+    return value.to_dict() if hasattr(value, "to_dict") else value
+
+
+class _AurModel:
+    """Base for AUR RPC models, driven by two class attributes on subclasses:
+
+    ``_FIELDS`` maps each attrs field name to its JSON key (Pascal/camelCase),
+    and ``_NESTED`` maps list-of-model field names to their element class. This
+    replaces the per-field ``to_dict``/``from_dict`` boilerplate the JSON schema
+    would otherwise require.
+    """
+
+    _FIELDS: dict[str, str] = {}
+    _NESTED: dict[str, type] = {}
+    additional_properties: dict[str, Any]
 
     @property
-    def additional_keys(self) -> List[str]:
+    def additional_keys(self) -> list[str]:
         return list(self.additional_properties.keys())
 
     def __getitem__(self, key: str) -> Any:
@@ -31,110 +55,28 @@ class AdditionalPropertiesMixin:
     def __contains__(self, key: str) -> bool:
         return key in self.additional_properties
 
-
-@attr.s(auto_attribs=True)
-class PackageBasic(AdditionalPropertiesMixin):
-    id: Optional[int] = None
-    name: Optional[str] = None
-    description: Optional[str] = None
-    package_base_id: Optional[int] = None
-    package_base: Optional[str] = None
-    maintainer: Optional[str] = None
-    num_votes: Optional[int] = None
-    popularity: Optional[float] = None
-    first_submitted: Optional[int] = None
-    last_modified: Optional[int] = None
-    out_of_date: Optional[str] = None
-    version: Optional[str] = None
-    url_path: Optional[str] = None
-    url: Optional[str] = None
-    additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
-
-    def to_dict(self) -> Dict[str, Any]:
-        id = self.id
-        name = self.name
-        description = self.description
-        package_base_id = self.package_base_id
-        package_base = self.package_base
-        maintainer = self.maintainer
-        num_votes = self.num_votes
-        popularity = self.popularity
-        first_submitted = self.first_submitted
-        last_modified = self.last_modified
-        out_of_date = self.out_of_date
-        version = self.version
-        url_path = self.url_path
-        url = self.url
-        field_dict: Dict[str, Any] = {}
-        field_dict.update(self.additional_properties)
-        field_dict.update({})
-        if id is not None:
-            field_dict["ID"] = id
-        if name is not None:
-            field_dict["Name"] = name
-        if description is not None:
-            field_dict["Description"] = description
-        if package_base_id is not None:
-            field_dict["PackageBaseID"] = package_base_id
-        if package_base is not None:
-            field_dict["PackageBase"] = package_base
-        if maintainer is not None:
-            field_dict["Maintainer"] = maintainer
-        if num_votes is not None:
-            field_dict["NumVotes"] = num_votes
-        if popularity is not None:
-            field_dict["Popularity"] = popularity
-        if first_submitted is not None:
-            field_dict["FirstSubmitted"] = first_submitted
-        if last_modified is not None:
-            field_dict["LastModified"] = last_modified
-        if out_of_date is not None:
-            field_dict["OutOfDate"] = out_of_date
-        if version is not None:
-            field_dict["Version"] = version
-        if url_path is not None:
-            field_dict["URLPath"] = url_path
-        if url is not None:
-            field_dict["URL"] = url
-        return field_dict
+    def to_dict(self) -> dict[str, Any]:
+        out: dict[str, Any] = dict(self.additional_properties)
+        for attr_name, json_key in self._FIELDS.items():
+            value = getattr(self, attr_name)
+            if value is not None:
+                out[json_key] = _serialize(value)
+        return out
 
     @classmethod
-    def from_dict(
-        cls: Type["PackageBasic"], src_dict: Dict[str, Any]
-    ) -> "PackageBasic":
-        d = src_dict.copy()
-        id = d.pop("ID", None)
-        name = d.pop("Name", None)
-        description = d.pop("Description", None)
-        package_base_id = d.pop("PackageBaseID", None)
-        package_base = d.pop("PackageBase", None)
-        maintainer = d.pop("Maintainer", None)
-        num_votes = d.pop("NumVotes", None)
-        popularity = d.pop("Popularity", None)
-        first_submitted = d.pop("FirstSubmitted", None)
-        last_modified = d.pop("LastModified", None)
-        out_of_date = d.pop("OutOfDate", None)
-        version = d.pop("Version", None)
-        url_path = d.pop("URLPath", None)
-        url = d.pop("URL", None)
-        package_basic = cls(
-            id=id,
-            name=name,
-            description=description,
-            package_base_id=package_base_id,
-            package_base=package_base,
-            maintainer=maintainer,
-            num_votes=num_votes,
-            popularity=popularity,
-            first_submitted=first_submitted,
-            last_modified=last_modified,
-            out_of_date=out_of_date,
-            version=version,
-            url_path=url_path,
-            url=url,
-        )
-        package_basic.additional_properties = d
-        return package_basic
+    def from_dict(cls, src_dict: dict[str, Any]):
+        data = dict(src_dict)
+        kwargs: dict[str, Any] = {}
+        for attr_name, json_key in cls._FIELDS.items():
+            raw = data.pop(json_key, None)
+            nested = cls._NESTED.get(attr_name)
+            if nested is not None:
+                kwargs[attr_name] = [nested.from_dict(item) for item in (raw or [])]
+            else:
+                kwargs[attr_name] = raw
+        obj = cls(**kwargs)
+        obj.additional_properties = data
+        return obj
 
 
 @attr.s(auto_attribs=True)
@@ -436,104 +378,104 @@ class InfoResult(AdditionalPropertiesMixin):
         return info_result
 
 
-handle = None
-aur_url = "https://aur.archlinux.org/rpc/v5"
+@attr.s(auto_attribs=True)
+class InfoResult(_AurModel):
+    resultcount: int | None = None
+    type: str | None = None
+    version: int | None = None
+    results: list[PackageDetailed] | None = None
+    additional_properties: dict[str, Any] = attr.ib(init=False, factory=dict)
 
-local_repos = {"custom", "loathk-public", "loathk-personal"}
-arch_repos = {"core", "extra", "community", "multilib"}
+    _FIELDS = {
+        "resultcount": "resultcount",
+        "type": "type",
+        "version": "version",
+        "results": "results",
+    }
+    _NESTED = {"results": PackageDetailed}
 
 
-def search_single(name: str):
-    response = requests.get(f"{aur_url}/search/{name}?by=name")
-    return SearchResult.from_dict((json.loads(response.content)))
+def search_single(name: str) -> SearchResult:
+    response = requests.get(
+        f"{AUR_URL}/search/{name}?by=name", timeout=AUR_REQUEST_TIMEOUT
+    )
+    response.raise_for_status()
+    return SearchResult.from_dict(response.json())
 
 
-def info_multiple(names: List[str]):
-    payload = {"arg[]": names}
-    response = requests.get(f"{aur_url}/info", params=payload)
-    return InfoResult.from_dict(json.loads(response.content))
+def info_multiple(names: list[str]) -> InfoResult:
+    response = requests.get(
+        f"{AUR_URL}/info", params={"arg[]": names}, timeout=AUR_REQUEST_TIMEOUT
+    )
+    response.raise_for_status()
+    return InfoResult.from_dict(response.json())
 
 
 def print_package_update(
-    remote_db, local_db, package_name, remote_version, local_version
-):
+    remote_db: str,
+    local_db: str,
+    package_name: str,
+    remote_version: str,
+    local_version: str,
+) -> None:
     print(
         "{:20s} {:28s} {} -> {}".format(
             f"{remote_db} - {local_db}",
             package_name,
-            Fore.RED + local_version + Fore.RESET,
-            Fore.GREEN + remote_version + Fore.RESET,
+            _RED + local_version + _RESET,
+            _GREEN + remote_version + _RESET,
         )
     )
 
 
-if __name__ == "__main__":
-    colorama_init()
+def main() -> None:
+    import pyalpm
+    import pycman.config as config
 
     handle = config.init_with_config("/etc/pacman.conf")
-    arch_dbs = list(
-        filter(lambda r: r.name in arch_repos, [db for db in handle.get_syncdbs()])
-    )
+    syncdbs = handle.get_syncdbs()
+    arch_dbs = [db for db in syncdbs if db.name in ARCH_REPOS]
+    local_dbs = [db for db in syncdbs if db.name in LOCAL_REPOS]
 
-    local_dbs = list(
-        filter(lambda r: r.name in local_repos, [db for db in handle.get_syncdbs()])
-    )
-
-    # Pre-calculate Arch package map to avoid N+1 queries in the loop
-    # Maps package name to (package_object, db_name)
-    arch_pkg_map = {}
+    # Pre-compute an Arch package map to avoid N+1 lookups inside the loop.
+    # Maps package name -> (package_object, db_name).
+    arch_pkg_map: dict[str, tuple[Any, str]] = {}
     for adb in arch_dbs:
         for ap in adb.pkgcache:
-            if ap.name not in arch_pkg_map:
-                arch_pkg_map[ap.name] = (ap, adb.name)
+            arch_pkg_map.setdefault(ap.name, (ap, adb.name))
 
     for ldb in local_dbs:
-        local_packages: List[pyalpm.Package] = ldb.search("")
-        # Sort for consistent output/processing order
-        local_packages = sorted(local_packages, key=lambda p: p.name)
-
-        # Track which packages are found in Arch repos so we don't check them in AUR
-        found_in_arch = set()
+        local_packages = sorted(ldb.search(""), key=lambda p: p.name)
+        found_in_arch: set[str] = set()
 
         for lp in local_packages:
-            if lp.name in found_in_arch:
-                continue
-
             res = arch_pkg_map.get(lp.name)
             if res:
                 ap, adb_name = res
                 found_in_arch.add(lp.name)
-                # vercmp: left > right = 1
-                # vercmp: left < right = -1
-                outdated = pyalpm.vercmp(lp.version, ap.version)
-                if outdated < 0:
+                # vercmp: left < right -> -1 (local older than repo)
+                if pyalpm.vercmp(lp.version, ap.version) < 0:
                     print_package_update(
                         adb_name, ldb.name, lp.name, ap.version, lp.version
                     )
 
-        # Filter for AUR check
         aur_candidates = [lp for lp in local_packages if lp.name not in found_in_arch]
-
         if not aur_candidates:
             print("")
             continue
 
-        # Check AUR
-        aur_info = info_multiple([lp.name for lp in aur_candidates])
-
-        # Create a map for O(1) lookup
-        aur_map = {ap.name: ap for ap in aur_info.results}
+        aur_results = info_multiple([lp.name for lp in aur_candidates]).results or []
+        aur_map = {ap.name: ap for ap in aur_results}
 
         for lp in aur_candidates:
-            if lp.name in aur_map:
-                ap = aur_map[lp.name]
-                outdated = pyalpm.vercmp(lp.version, ap.version)
-                if outdated < 0:
-                    print_package_update(
-                        "aur", ldb.name, lp.name, ap.version, lp.version
-                    )
-            else:
-                # Not found in AUR
+            ap = aur_map.get(lp.name)
+            if ap is None:
                 print("{:20s} {}".format(f"non - {ldb.name}", lp.name))
+            elif ap.version and pyalpm.vercmp(lp.version, ap.version) < 0:
+                print_package_update("aur", ldb.name, lp.name, ap.version, lp.version)
 
         print("")
+
+
+if __name__ == "__main__":
+    main()

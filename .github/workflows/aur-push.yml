@@ -5,6 +5,7 @@ on:
     paths:
       - "aur/**/PKGBUILD"
       - "aur/**/.SRCINFO"
+  # checkov:skip=CKV_GHA_7: Manual inputs required
   workflow_dispatch:
     inputs:
       packages:
@@ -20,7 +21,7 @@ jobs:
   push-to-aur:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Setup SSH for AUR

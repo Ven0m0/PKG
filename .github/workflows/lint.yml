@@ -1,5 +1,6 @@
 name: Lint and Format
 on:
+  # checkov:skip=CKV_GHA_7: Manual inputs required
   workflow_dispatch:
   push:
     paths: ["**/PKGBUILD", "**/.SRCINFO", "**.sh", "**.py", "**.json", "**.y?ml"]
@@ -21,7 +22,7 @@ jobs:
       pkgs: ${{ steps.set.outputs.pkgs }}
       files: ${{ steps.set.outputs.files }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - id: set
@@ -45,8 +46,16 @@ jobs:
             mapfile -t files < <(git diff --name-only "$base" HEAD 2>/dev/null | grep -E '\.(sh|py|json|ya?ml)$' || true)
           fi
 
-          pkgs_json=$(printf '%s\n' "${pkgs[@]}" | jq -Rsc 'split("\n")[:-1]')
-          files_json=$(printf '%s\n' "${files[@]}" | jq -Rsc 'split("\n")[:-1]')
+          if [[ ${#pkgs[@]} -gt 0 ]]; then
+            pkgs_json=$(printf '%s\n' "${pkgs[@]}" | jq -Rsc 'split("\n")[:-1]')
+          else
+            pkgs_json='[]'
+          fi
+          if [[ ${#files[@]} -gt 0 ]]; then
+            files_json=$(printf '%s\n' "${files[@]}" | jq -Rsc 'split("\n")[:-1]')
+          else
+            files_json='[]'
+          fi
           echo "pkgs=$pkgs_json" >> "$GITHUB_OUTPUT"
           echo "files=$files_json" >> "$GITHUB_OUTPUT"
   pkgbuild-lint:
@@ -58,7 +67,7 @@ jobs:
       matrix:
         pkg: ${{ fromJSON(needs.matrix.outputs.pkgs) }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Build and validate ${{ matrix.pkg }}
         uses: ./.github/actions/pkgbuild
         with:
@@ -70,7 +79,7 @@ jobs:
     if: ${{ needs.matrix.outputs.files != '[]' && needs.matrix.outputs.files != '' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Cache APT packages
@@ -79,7 +88,7 @@ jobs:
           packages: shellcheck jq
           version: 1.0
       - name: Install uv
-        uses: astral-sh/setup-uv@v8.1.0
+        uses: astral-sh/setup-uv@v8.2.0
         with:
           enable-cache: false
       - name: Setup Python
@@ -169,11 +178,11 @@ jobs:
   megalinter:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Cache MegaLinter
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cache/megalinter

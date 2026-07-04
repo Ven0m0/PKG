@@ -22,6 +22,11 @@ on:
         required: false
         type: string
         default: ""
+      fallback_model:
+        description: "OpenCode fallback model, tried only if the primary opencode run fails (blank = no fallback)"
+        required: false
+        type: string
+        default: ""
     secrets:
       ANTHROPIC_API_KEY:
         required: false
@@ -36,6 +41,7 @@ on:
       KILO_ORG_ID:
         required: false
 
+  # checkov:skip=CKV_GHA_7: Manual inputs required
   workflow_dispatch:
     inputs:
       provider:
@@ -50,6 +56,11 @@ on:
         type: string
       model:
         description: "Model override (leave blank for provider default)"
+        required: false
+        type: string
+        default: ""
+      fallback_model:
+        description: "OpenCode fallback model, tried only if the primary opencode run fails (blank = no fallback)"
         required: false
         type: string
         default: ""
@@ -84,7 +95,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 2
       - name: Configure git identity
@@ -113,15 +124,22 @@ jobs:
 
       - name: Run Gemini
         if: inputs.provider == 'gemini'
-        uses: google-github-actions/run-gemini-cli@c28f3c6f6e6a537f8fb46e016f65dcfcee381ffa
+        uses: google-github-actions/run-gemini-cli@055c24c9f565debe282e4adf1f7ca1715040ebe2
         with:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
           gemini_model: ${{ inputs.model }}
           prompt: ${{ inputs.prompt }}
 
       - name: Run OpenCode
+        id: opencode
         if: inputs.provider == 'opencode'
-        uses: anomalyco/opencode/github@latest
+        # Must be a literal: expressions here are re-evaluated inside the
+        # composite action, where workflow inputs are empty, so
+        # `inputs.fallback_model != ''` silently becomes false
+        # (actions/runner#2418). The gate step below restores job failure
+        # when neither attempt succeeds.
+        continue-on-error: true
+        uses: anomalyco/opencode/github@github-v1.2.25
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
@@ -145,9 +163,50 @@ jobs:
           MORPH_TIMEOUT: "60000"
           MORPH_MODEL: morph-v3-fast
         with:
-          model: ${{ inputs.model != '' && inputs.model || 'opencode/minimax-m2.5-free' }}
+          model: ${{ inputs.model != '' && inputs.model || 'opencode/nemotron-3-ultra-free' }}
           prompt: ${{ inputs.prompt }}
-          use_github_token: true
+          use_github_token: false
+
+      - name: Run OpenCode (fallback model)
+        id: opencode-fallback
+        if: inputs.provider == 'opencode' && inputs.fallback_model != '' && steps.opencode.outcome == 'failure'
+        uses: anomalyco/opencode/github@github-v1.2.25
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          KILO_API_KEY: ${{ secrets.KILO_API_KEY }}
+          KILO_ORG_ID: ${{ secrets.KILO_ORG_ID }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
+          OPENCODE_EXPERIMENTAL: "true"
+          OPENCODE_ENABLE_EXA: "1"
+          OPENCODE_EXPERIMENTAL_LSP_TOOL: "true"
+          OPENCODE_EXPERIMENTAL_MARKDOWN: "true"
+          OPENCODE_ENABLE_EXPERIMENTAL_MODELS: "true"
+          OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "300000"
+          OPENCODE_EXPERIMENTAL_LAZY_TOOLS: "true"
+          OPENCODE_PRUNE_SCALE_WITH_CONTEXT: "true"
+          OPENCODE_DISABLE_FILETIME_CHECK: "true"
+          OPENCODE_DISABLE_CLAUDE_CODE_PROMPT: "1"
+          OPENCODE_DISABLE_AUTOUPDATE: "true"
+          OPENCODE_EXPERIMENTAL_OXFMT: "true"
+          MORPH_TIMEOUT: "60000"
+          MORPH_MODEL: morph-v3-fast
+        with:
+          model: ${{ inputs.fallback_model }}
+          prompt: ${{ inputs.prompt }}
+          use_github_token: false
+
+      # Restores the failure swallowed by continue-on-error on the primary
+      # OpenCode step when no fallback ran or the fallback was skipped.
+      - name: Fail if no OpenCode attempt succeeded
+        if: inputs.provider == 'opencode' && steps.opencode.outcome != 'success' && steps.opencode-fallback.outcome != 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "::error::OpenCode failed (primary: ${{ steps.opencode.outcome }}, fallback: ${{ steps.opencode-fallback.outcome }})"
+          exit 1
 
       - name: Get Kilo version
         if: inputs.provider == 'kilo'
@@ -156,30 +215,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
           VERSION="$(
             curl -fsSL \
               -H "Authorization: Bearer $GITHUB_TOKEN" \
               -H "Accept: application/vnd.github+json" \
               https://api.github.com/repos/Kilo-Org/kilocode/releases/latest |
-              python - <<'PY'
-                import json
-                import sys
-
-                data = json.load(sys.stdin)
-                version = data.get("tag_name")
-                if not version:
-                    sys.stderr.write("Missing tag_name in Kilo release response\n")
-                    sys.exit(1)
-
-                print(version)
-              PY
+            jq -er '.tag_name'
           )"
           [[ -n "${VERSION}" ]] || { echo "Failed to fetch Kilo version" >&2; exit 1; }
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
       - name: Cache Kilo
         if: inputs.provider == 'kilo'
         id: kilo-cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.kilo/bin
           key: kilo-${{ runner.os }}-${{ runner.arch }}-${{ steps.kilo-version.outputs.version }}
@@ -188,9 +237,11 @@ jobs:
       - name: Install Kilo CLI
         if: inputs.provider == 'kilo' && steps.kilo-cache.outputs.cache-hit != 'true'
         shell: bash
-        run: |
-          curl -fsSL https://kilo.ai/cli/install | bash
-          echo "$HOME/.kilo/bin" >> "$GITHUB_PATH"
+        run: curl -fsSL https://kilo.ai/cli/install | bash
+      - name: Add Kilo to PATH
+        if: inputs.provider == 'kilo'
+        shell: bash
+        run: echo "$HOME/.kilo/bin" >> "$GITHUB_PATH"
       - name: Run Kilo
         if: inputs.provider == 'kilo'
         shell: bash

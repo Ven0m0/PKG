@@ -1,6 +1,8 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "instructions": ["instructions.md", "AGENTS.md"],
+  "model": "opencode/minimax-m3-free",
+  "small_model": "opencode/deepseek-v4-flash-free",
   "permission": {
     "*": "allow",
     "sudo *": "deny",
@@ -11,7 +13,7 @@
     ":(){:|:&};:": "deny",
     "doom_loop": "deny"
   },
-  "disabled_providers": ["openai"],
+  "disabled_providers": [""],
   "plugin": [
     "openslimedit@1.0.4",
     "opencode-ignore@1.1.0",

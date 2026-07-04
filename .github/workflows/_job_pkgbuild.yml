@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Debloat GitHub runner
       uses: endersonmenezes/free-disk-space@v3
@@ -72,7 +72,7 @@ jobs:
 
     - name: Restore cache
       id: ccache-restore
-      uses: actions/cache/restore@v5
+      uses: actions/cache/restore@v6
       with:
         path: ./.ccache
         key: ccache-${{ inputs.pkgdir }}-${{ github.run_id }}
@@ -95,7 +95,7 @@ jobs:
     - name: Save cache
       id: ccache-save
       if: always()
-      uses: actions/cache/save@v5
+      uses: actions/cache/save@v6
       with:
         path: ./.ccache
         key: ${{ steps.ccache-restore.outputs.cache-primary-key }}

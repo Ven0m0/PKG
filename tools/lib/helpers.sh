@@ -21,6 +21,7 @@ log() { printf '%b\n' "${G}➜ $*${D}"; }
 err() { printf '%b\n' "${R}✘ $*${D}" >&2; }
 warn() { printf '%b\n' "${Y}⚠ $*${D}" >&2; }
 ok() { printf '%b\n' "${G}✓ $*${D}"; }
+info() { printf '%b\n' "${B}ℹ $*${D}"; }
 die() { err "$1"; exit "${2:-1}"; }
 sep() { msg '────────────────────────────────────────'; }
 
@@ -53,11 +54,63 @@ wait_for_jobs() {
   done
 }
 
-# ─── Script Directory ────────────────────────────────────────────────────────
-# Get the directory of the calling script
-# Usage: cd_to_script_dir
-cd_to_script_dir() {
-  local s=${BASH_SOURCE[1]:-${BASH_SOURCE[0]}}
-  [[ $s != /* ]] && s=$PWD/$s
-  cd -P -- "${s%/*}" || exit 1
+# ─── Parallel/Serial Batch Execution Helper ──────────────────────────────────
+# Run tasks in batch (parallel or serial) for list of directories
+# Usage: run_task_batch "$parallel" "$max_jobs" "handler_func" "errs_var" "items_var" "pre_task_func" "processor_func"
+run_task_batch() {
+  local parallel=$1 max_jobs=$2 handler=$3 errs_var=$4 items_var=$5 pre_task=$6 processor=$7
+  local -n items_ref=$items_var
+
+  if [[ $parallel == true ]]; then
+    local -a pids=()
+    local tmpdir
+    tmpdir=$(mktemp -d)
+    trap 'rm -rf "$tmpdir"' RETURN
+
+    for item in "${items_ref[@]}"; do
+      [[ -d "$item" ]] || continue
+
+      wait_for_jobs "$max_jobs"
+
+      if [[ -n $pre_task ]]; then "$pre_task" "$item"; fi
+
+      ("$processor" "$item" >"$tmpdir/job_${item//\//_}.log" 2>&1) &
+      pids+=($!)
+    done
+
+    for pid in "${pids[@]}"; do wait "$pid" || true; done
+
+    for logfile in "$tmpdir"/job_*.log; do
+      [[ -f $logfile ]] || continue
+      "$handler" "$errs_var" <"$logfile"
+    done
+  else
+    for item in "${items_ref[@]}"; do
+      [[ -d "$item" ]] || continue
+
+      if [[ -n $pre_task ]]; then "$pre_task" "$item"; fi
+
+      local output
+      output=$("$processor" "$item" 2>&1)
+      "$handler" "$errs_var" <<<"$output"
+    done
+  fi
+}
+
+# ─── Repository Root ─────────────────────────────────────────────────────────
+# cd to the repository root so package discovery and relative paths resolve the
+# same way regardless of where the entry-point script lives or is invoked from.
+# Usage: cd_to_repo_root
+cd_to_repo_root() {
+  local root
+  if root=$(git rev-parse --show-toplevel 2>/dev/null) && [[ -n $root ]]; then
+    cd -- "$root" || exit 1
+  else
+    # Fallback: this file lives at <root>/tools/lib/helpers.sh. Guard against a
+    # slash-less BASH_SOURCE (e.g. `source helpers.sh` from its own directory),
+    # where ${dir%/*} would otherwise drop the dir and break cd.
+    local dir=${BASH_SOURCE[0]}
+    [[ $dir != */* ]] && dir=./$dir
+    cd -P -- "${dir%/*}/../.." || exit 1
+  fi
 }

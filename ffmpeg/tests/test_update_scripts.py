@@ -7,7 +7,7 @@ import os
 # Add the directory containing update_scripts.py to sys.path and import it if available
 try:
     sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'patches', 'svt-av1-essential', 'util'))
-    from update_scripts import run_command, get_git_default_branch
+    from update_scripts import run_command, get_git_default_branch, update_script
 except ModuleNotFoundError:
     raise unittest.SkipTest("update_scripts.py not available; skipping update_scripts tests")
 class TestUpdateScripts(unittest.TestCase):
@@ -59,8 +59,9 @@ class TestUpdateScripts(unittest.TestCase):
 """
         result = get_git_default_branch('https://github.com/example/repo.git')
         self.assertEqual(result, "main")
+        # Security: verify that '--' is used before the repo URL
         mock_run_command.assert_called_once_with(
-            ['git', 'remote', 'show', 'https://github.com/example/repo.git']
+            ['git', 'remote', 'show', '--', 'https://github.com/example/repo.git']
         )
 
     @patch('update_scripts.run_command')
@@ -78,3 +79,55 @@ class TestUpdateScripts(unittest.TestCase):
             result = get_git_default_branch('https://github.com/example/repo.git')
             self.assertIsNone(result)
             mock_print.assert_called()
+
+    @patch('update_scripts.run_command')
+    @patch('builtins.open', new_callable=unittest.mock.mock_open, read_data='SCRIPT_REPO="svn://example.com/repo"\nSCRIPT_REV="123"\n')
+    def test_update_script_svn_security(self, mock_file, mock_run_command):
+        mock_run_command.return_value = "Revision: 124\n"
+
+        update_script("fake_path.sh")
+
+        # Security: verify that '--' is used before the repo URL in svn info
+        mock_run_command.assert_any_call(
+            ['svn', '--non-interactive', 'info', '--username', 'anonymous', '--password', '', '--', 'svn://example.com/repo']
+        )
+
+    @patch('update_scripts.run_command')
+    @patch('builtins.open', new_callable=unittest.mock.mock_open, read_data='SCRIPT_REPO="https://example.com/hg"\nSCRIPT_HGREV="abc"\n')
+    @patch('tempfile.TemporaryDirectory')
+    def test_update_script_hg_security(self, mock_tmpdir, mock_file, mock_run_command):
+        mock_tmpdir.return_value.__enter__.return_value = "/tmp/fake"
+        mock_run_command.return_value = "changeset: 0:def\n"
+
+        update_script("fake_path.sh")
+
+        # Security: verify that '--' is used before the repo URL in hg in
+        mock_run_command.assert_any_call(
+            ['hg', 'in', '-f', '-n', '-l', '1', '--', 'https://example.com/hg'],
+            cwd="/tmp/fake"
+        )
+
+    @patch('update_scripts.run_command')
+    @patch('builtins.open', new_callable=unittest.mock.mock_open, read_data='SCRIPT_REPO="https://example.com/git"\nSCRIPT_COMMIT="old"\nSCRIPT_TAGFILTER="v*"\n')
+    def test_update_script_git_tags_security(self, mock_file, mock_run_command):
+        mock_run_command.return_value = "hash\trefs/tags/v1.0\n"
+
+        update_script("fake_path.sh")
+
+        # Security: verify that '--' is used before the repo URL in git ls-remote
+        mock_run_command.assert_any_call(
+            ['git', 'ls-remote', '--exit-code', '--tags', '--refs', '--sort=v:refname', '--', 'https://example.com/git', 'refs/tags/v*']
+        )
+
+    @patch('update_scripts.get_git_default_branch')
+    @patch('update_scripts.run_command')
+    @patch('builtins.open', new_callable=unittest.mock.mock_open, read_data='SCRIPT_REPO="https://example.com/git"\nSCRIPT_COMMIT="old"\nSCRIPT_BRANCH="main"\n')
+    def test_update_script_git_heads_security(self, mock_file, mock_run_command, mock_get_branch):
+        mock_run_command.return_value = "newhash\trefs/heads/main\n"
+
+        update_script("fake_path.sh")
+
+        # Security: verify that '--' is used before the repo URL in git ls-remote
+        mock_run_command.assert_any_call(
+            ['git', 'ls-remote', '--exit-code', '--heads', '--refs', '--', 'https://example.com/git', 'refs/heads/main']
+        )

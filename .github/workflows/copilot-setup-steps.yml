@@ -1,6 +1,7 @@
 name: Copilot Setup Steps
 
 on:
+  # checkov:skip=CKV_GHA_7: Manual inputs required
   workflow_dispatch:
   push:
     paths:
@@ -22,13 +23,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install system packages
         uses: awalsh128/cache-apt-pkgs-action@v1
         with:
           # Ubuntu package names: `golang-go` provides `go`; `pacman` and `namcap` are used only for PKGBUILD syntax validation and metadata inspection in this Ubuntu bootstrap environment.
-          packages: fd-find golang-go jq namcap pacman parallel ripgrep shellcheck wget
+          packages: fd-find golang-go jq parallel ripgrep shellcheck wget
           version: 1.0
 
       - name: Expose fd on Ubuntu
@@ -40,7 +41,7 @@ jobs:
           fi
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v8.1.0
+        uses: astral-sh/setup-uv@v8.2.0
         with:
           python-version: "3.14"
           enable-cache: false

@@ -1,36 +1,36 @@
 # Maintainer: Chocobo1 <chocobo1 AT archlinux DOT net>
 
 pkgname=uutils-findutils
-pkgver=0.8.0
-pkgrel=2
+pkgver=0.9.1
+pkgrel=1
 pkgdesc="Rust implementation of findutils"
 arch=('i686' 'x86_64')
 url="https://github.com/uutils/findutils"
 license=('MIT')
 depends=('gcc-libs' 'oniguruma')
 makedepends=('cargo')
-source=("$pkgname-$pkgver-src.tar.gz::https://github.com/uutils/findutils/releases/download/$pkgver/source.tar.gz")
-sha256sums=('05a8c7d6f3dab9a6261f098b6203e909e1031f79b4a9395d9fe1c2d0a4a966ce')
+source=("$pkgname-$pkgver-src.tar.gz::https://github.com/uutils/findutils/archive/refs/tags/$pkgver.tar.gz")
+sha256sums=('d6dc466b7953f170cc7a4332c1576c5171b7d497b64e08cc63b3fcf54085e0ac')
 
 
 prepare() {
-  cd "findutils-$pkgver"
+  cd "findutils-$pkgver" || exit
 
-  if [ ! -f "Cargo.lock" ]; then
+  if [[ ! -f "Cargo.lock" ]]; then
     cargo update
   fi
   cargo fetch
 }
 
 check() {
-  cd "findutils-$pkgver"
+  cd "findutils-$pkgver" || exit
 
   #cargo test \
   #  --frozen
 }
 
 package() {
-  cd "findutils-$pkgver"
+  cd "findutils-$pkgver" || exit
 
   RUSTONIG_DYNAMIC_LIBONIG=1 \
   cargo install \
