@@ -252,7 +252,7 @@ makepkg -si
                     "url": data.get("url", ""),
                     "files": files,
                 }
-        except (OSError, subprocess.SubprocessError):
+        except (OSError, ValueError, subprocess.SubprocessError):
             pass
         return None
 
