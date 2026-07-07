@@ -207,7 +207,7 @@ prek install
 prek run --all-files
 
 # Skip hooks temporarily
-SKIP=<hook-id> git commit -m "message"
+SKIP=hook-id git commit -m "message"
 ```
 
 ### Linting

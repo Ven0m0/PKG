@@ -53,7 +53,7 @@ placeholders such as `.github/SECURITY.md` with `CVE-2024-XXXX`.
 ## Tasks
 
 ### T001 · Remove ELECTRON_DISABLE_SECURITY_WARNINGS from filen-desktop
-`filen-desktop/filen-desktop.sh:11` · medium · security · S · needs:— · blocks:— · **done**
+`filen-desktop/filen-desktop.sh` (line removed) · medium · security · S · needs:— · blocks:— · **done**
 Blanket env-var suppresses all Electron security warnings, masking real misconfiguration signals.
 - [x] `export ELECTRON_DISABLE_SECURITY_WARNINGS=true` removed from line 11; Electron launches without it
 - [x] No specific warnings needed silencing via `--disable-features=`; none were added
