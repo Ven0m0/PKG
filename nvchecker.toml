@@ -66,9 +66,15 @@ prefix = "v"
 # use_max_tag instead of use_latest_release because the upstream publishes
 # maintenance releases on the 2.6.x branch after newer 2.7.x releases, which
 # causes use_latest_release to pick an older version by number.
+# `prefix` only strips the winning tag after selection, it does NOT filter
+# candidates before the max-tag comparison, so unrelated tags in the repo
+# (different naming/series) could outrank the real latest release and
+# nvchecker would report a downgrade. include_regex restricts the candidate
+# tags to this release line before the max is picked.
 source = "github"
 github = "Digger1955/dxvk-gplasync-lowlatency"
 use_max_tag = true
+include_regex = "^DXVK-GPLALL-.*"
 prefix = "DXVK-GPLALL-"
 
 ["egl-wayland2"]
@@ -192,10 +198,12 @@ use_latest_release = true
 
 ["zlib-ng/lib32-zlib-ng"]
 # Tracks the 2.x stable/compat branch; the 3.x development track is in zlib-ng/zlib-ng
+# include_regex is matched with re.fullmatch, so "^2\." (2 chars) matched no
+# tags at all; it needs a trailing ".*" to match the full "2.x.y" tag string.
 source = "github"
 github = "zlib-ng/zlib-ng"
 use_max_tag = true
-include_regex = "^2\\."
+include_regex = "^2\\..*"
 
 # ════════════════════════════════════════════════════════════════
 # uutils
@@ -312,11 +320,14 @@ github = "nekotrix/SVT-AV1-Essential"
 use_max_tag = true
 
 ["update-alternatives"]
-# The upstream repo has no tags; track HEAD commit count via git source so the
-# -git pkgver() has a version to compare against.
+# The upstream repo has no tags at all, so the git source's default
+# `git ls-remote --tags --refs` returns nothing and nvchecker errors with
+# "command exited without output". use_commit tracks the branch HEAD commit
+# instead, which is what the -git pkgver() actually needs to compare against.
 source = "git"
 git = "https://github.com/fthomys/update-alternatives.git"
-branch = "main"
+branch = "master"
+use_commit = true
 
 ["wine-tkg-git"]
 # wine-tkg builds from wine source; track wine/wine releases as an update trigger
