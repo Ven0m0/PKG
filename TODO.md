@@ -6,15 +6,15 @@ This document tracks planned features, improvements, and long-term goals for the
 
 ### Fix packages
 
-- [ ] Fix package nvchecker to allow [_update-pkgbuilds.yml](.github/workflows/_update-pkgbuilds.yml) and [_run-agent.yml](.github/workflows/_run-agent.yml) to update the packages aswell.
+- [x] Fix package nvchecker to allow [_update-pkgbuilds.yml](.github/workflows/_update-pkgbuilds.yml) and [_run-agent.yml](.github/workflows/_run-agent.yml) to update the packages aswell.
 
-| Package | Reason |
-|---------|--------|
-| dxvk/dxvk-gplasync | nvchecker returned a downgrade (2.5.3-... < 2.7.1-4) |
-| update-alternatives | nvchecker git auth error |
-| zlib-ng/lib32-zlib-ng | include_regex `^2\.` matched no tags |
-| mesa-git | gitlab.freedesktop.org returned 500 |
-- [ ] remove lefthook completely and replace it with prek pre-commit
+| Package | Reason | Fix |
+|---------|--------|-----|
+| dxvk/dxvk-gplasync | nvchecker returned a downgrade (2.5.3-... < 2.7.1-4) | `prefix` only strips the winning tag, it doesn't filter candidates before `use_max_tag` picks the max, so unrelated tags could outrank the real release; added `include_regex = "^DXVK-GPLALL-.*"` |
+| update-alternatives | nvchecker git auth error | not an auth error: the repo's default branch is `master`, not `main`, so `git ls-remote ... refs/heads/main` returned nothing; also added `use_commit = true` since the repo has no tags at all (the tag-mode default) |
+| zlib-ng/lib32-zlib-ng | include_regex `^2\.` matched no tags | `include_regex` is matched with `re.fullmatch`, so `^2\.` only matched the literal 2-character string `"2."`; fixed to `^2\..*` |
+| mesa-git | gitlab.freedesktop.org returned 500 | transient upstream outage, not a config bug (verified the same request now returns 200); existing agent retry instructions already cover this |
+- [x] remove lefthook completely and replace it with prek pre-commit
 
 
 ### External references to review

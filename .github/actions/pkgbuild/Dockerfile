@@ -1,6 +1,7 @@
 FROM archlinux:base-devel
 
-RUN useradd -m builder && \
+RUN pacman -Syu --noconfirm --needed pacman-contrib git && \
+    useradd -m builder && \
     echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 COPY --chmod=755 entrypoint.sh /entrypoint.sh

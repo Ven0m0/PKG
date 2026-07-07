@@ -33,7 +33,7 @@ This repository provides optimized package builds for Arch Linux with a focus on
 - ** linting** (shellcheck, shellharden, shfmt, namcap)
 - **Automated formatting** with consistent style enforcement
 - **EditorConfig integration** for consistent coding standards
-- **Git hooks with lefthook** for automated quality checks
+- **Git hooks with prek** (pre-commit-compatible) for automated quality checks
 
 ### Optimization Techniques
 
@@ -183,31 +183,31 @@ makepkg -s
 
 ### Git Hooks Setup
 
-This repository uses [lefthook](https://github.com/evilmartians/lefthook) for automated code quality checks.
+This repository uses [prek](https://github.com/j178/prek), a fast pre-commit-compatible
+runner, with the hooks defined in [.pre-commit-config.yaml](.pre-commit-config.yaml).
 
 ```bash
-# Install lefthook
-# Linux/macOS via script
-curl -1sLf 'https://dl.cloudsmith.io/public/evilmartians/lefthook/setup.deb.sh' | sudo -E bash
-sudo apt-get install lefthook
+# Install prek
+# Via the install script
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/j178/prek/releases/latest/download/prek-installer.sh | sh
 
-# Or via Go
-go install github.com/evilmartians/lefthook@latest
-
-# Or via Homebrew (macOS)
-brew install lefthook
+# Or via Homebrew
+brew install prek
 
 # Or via uv (recommended for Python tools)
-uv tool install lefthook
+uv tool install prek
+
+# Or via pipx
+pipx install prek
 
 # Install hooks in repository
-lefthook install
+prek install
 
 # Run hooks manually
-lefthook run pre-commit
+prek run --all-files
 
 # Skip hooks temporarily
-LEFTHOOK=0 git commit -m "message"
+SKIP=hook-id git commit -m "message"
 ```
 
 ### Linting
