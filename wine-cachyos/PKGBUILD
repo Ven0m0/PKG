@@ -4,7 +4,7 @@
 # Upstream: Peter Jung <ptr1337@archlinux.org>
 
 pkgname=wine-cachyos
-_srctag=11.0-389954-20260702-p918c96-w9f7ab6-deea51b-v976a1c
+_srctag=11.0-396210-20260714-p51fec9-wbe6baf-d5098f1-v3dfc6f
 pkgver=${_srctag//-/.}
 _geckover=2.47.4
 _monover=10.3.0

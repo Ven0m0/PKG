@@ -9,7 +9,7 @@ pkgname=code
 pkgdesc='The Open Source build of Visual Studio Code (vscode) editor'
 # Important: Remember to check https://github.com/microsoft/vscode/wiki/How-to-Contribute#prerequisites for target node version
 _electron=electron39
-pkgver=1.128.0
+pkgver=1.129.1
 pkgrel=1
 arch=('x86_64' 'aarch64' 'armv7h')
 url='https://github.com/microsoft/vscode'
@@ -33,7 +33,7 @@ source=(vscode::"git+https://github.com/microsoft/vscode.git#tag=$pkgver"
         'microphone.patch'
         'extension-management.patch'
         'xterm.patch')
-sha512sums=('adb9ed789e32ca0d92d1b5ed86622f3aaef6ea0aa2b86b625b87aab932ef0142cafe69a632aa1bb1aceef7ef6aed323e1c8eba9a7acf0168d9ef4fab015a3b61'
+sha512sums=('7236e7aa6cedb947dabcc8ea297b87a27666dd9bbc06de2882603bed3b4ffb8ad5c6fad0f0c6a2209f542e6d8d1f6b65e5d2fceb49f77cb6bf76d20448ee00b6'
             '793f9ff6306e3992ac89802d98110cba288ea1181a901467333293b7d76182ef9792c2a39ff49d9347a18a174b1f42bc58862091dff583f4146c2704eea28033'
             '3de728229367014fb571761765461117c66c23cf80fecb64cba9af63b89f93ae77938c7a6dfeee71d84c6faf529a71fe9e703f55e8bffd469605fee36bc8cf2b'
             '02272060c3d8dc04edd9476c992c27e60d6f7d7d1605896100cc9ee080f4d970167e55efdd5568a97a02ced98cf3b9875f03eb1b1675120fbe12d7369b86c86d'
