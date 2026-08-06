@@ -1,15 +1,27 @@
 pkgbase = legcord
-pkgver = 1.2.4
-pkgrel = 1
-pkgdesc = Discord client with builtin client mod and theme support
-url = https://github.com/Legcord/Legcord
-arch = x86_64 aarch64
-license = (OSL-3.0)
-depends = (electron)
-makedepends = (git nodejs npm)
-optdepends = (libnotify: Notifications xdg-utils: Open links, files, etc bun: install via bun pnpm: install via pnpm npm: install via npm)
-provides = (legcord)
-conflicts = (armcord legcord)
-replaces = (armcord)
-source = legcord::git+https://github.com/Legcord/Legcord.git#tag=v1.2.4
-sha256sums = (SKIP)
+	pkgdesc = Discord client with builtin client mod and theme support
+	pkgver = 1.3.0
+	pkgrel = 1
+	url = https://github.com/Legcord/Legcord
+	install = notes.install
+	arch = x86_64
+	arch = aarch64
+	license = OSL-3.0
+	makedepends = git
+	makedepends = nodejs
+	makedepends = npm
+	depends = electron
+	optdepends = libnotify: Notifications
+	optdepends = xdg-utils: Open links, files, etc
+	optdepends = bun: install via bun
+	optdepends = pnpm: install via pnpm
+	optdepends = npm: install via npm
+	provides = legcord
+	conflicts = armcord
+	conflicts = legcord
+	replaces = armcord
+	source = legcord::git+https://github.com/Legcord/Legcord.git#tag=v1.3.0
+	sha256sums = cf19560369aa9314eb46d12e2a971f3b7edfcd76d6e35de3f26fb850bc2033ee
+
+pkgname = legcord
+	depends = electron
