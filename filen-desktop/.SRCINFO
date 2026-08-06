@@ -1,6 +1,6 @@
 pkgbase = filen-desktop
 	pkgdesc = Desktop client including Syncing, Virtual Drive, S3, WebDAV, File Browsing, Chats, Notes, Contacts
-	pkgver = 3.0.52
+	pkgver = 3.0.53
 	pkgrel = 1
 	url = https://filen.io
 	arch = x86_64
@@ -14,7 +14,7 @@ pkgbase = filen-desktop
 	provides = filen-desktop
 	conflicts = filen-desktop-bin
 	conflicts = filen-desktop-git
-	source = git+https://github.com/FilenCloudDienste/filen-desktop.git#commit=a2b684bff94b9c607aa465957d6d050bf708ac1a
-	sha256sums = SKIP
+	source = git+https://github.com/FilenCloudDienste/filen-desktop.git#commit=370514d797d5deee0a1d5002f50c3eca87811809
+	sha256sums = 4da94e3caac36c1a8e01f0afb37208cf39add50d5272ad6ceed311b84745a587
 
 pkgname = filen-desktop

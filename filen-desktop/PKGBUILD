@@ -1,6 +1,6 @@
 # Maintainer: Ven0m0 <ven0m0.wastaken@gmail.com>
 pkgname=filen-desktop
-pkgver=3.0.52
+pkgver=3.0.53
 pkgrel=1
 pkgdesc="Desktop client including Syncing, Virtual Drive, S3, WebDAV, File Browsing, Chats, Notes, Contacts"
 arch=('x86_64' 'aarch64')
@@ -11,8 +11,8 @@ depends=('electron34' 'nodejs' 'fuse3')
 makedepends=('bun' 'git')
 provides=('filen-desktop')
 conflicts=('filen-desktop-bin' 'filen-desktop-git')
-source=("git+${_ghurl}.git#commit=a2b684bff94b9c607aa465957d6d050bf708ac1a")
-sha256sums=('SKIP')
+source=("git+${_ghurl}.git#commit=370514d797d5deee0a1d5002f50c3eca87811809")
+sha256sums=('4da94e3caac36c1a8e01f0afb37208cf39add50d5272ad6ceed311b84745a587')
 
 prepare(){
   cd "${srcdir}/${pkgname}" || exit

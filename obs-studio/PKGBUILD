@@ -6,7 +6,7 @@
 # Contributor: ledti <antergist at gmail dot com>
 
 pkgname=obs-studio
-pkgver=32.1.2
+pkgver=32.2.1
 pkgrel=1
 pkgdesc="Free and open source software for video recording and live streaming (optimized)"
 arch=('x86_64')
@@ -104,7 +104,7 @@ source=(
   "12328-Cleanup_Qt_Gui_Private_linkage.patch" # https://github.com/obsproject/obs-studio/pull/12328
 )
 source_x86_64=("https://cdn-fastly.obsproject.com/downloads/cef_binary_6533_linux_x86_64.tar.xz")
-sha256sums=('b904d07ab9ee863adcc5d0bf9225885cea374bba8a0022dba0790562e2b8b1f5'
+sha256sums=('5b11ccf5468654d19537db108443812db12767084eba295ee532d81c4834492a'
             'SKIP'
             'SKIP'
             '25322c692cf5cc88fc7d17cbb40a61b7e32d5ea675da647dd1a1996474ec2c8e')
