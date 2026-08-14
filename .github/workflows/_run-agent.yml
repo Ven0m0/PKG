@@ -92,6 +92,14 @@ jobs:
       GH_PROMPT_DISABLED: "1"
       GIT_TERMINAL_PROMPT: "0"
       DEBIAN_FRONTEND: noninteractive
+      LC_ALL: C
+      PYTHONOPTIMIZE: "1"
+      PAGER: cat
+      GIT_PAGER: cat
+      GIT_MERGE_AUTOEDIT: no
+      NODE_NO_WARNINGS: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+      UV_LINK_MODE: symlink
 
     steps:
       - name: Checkout
