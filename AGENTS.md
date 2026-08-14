@@ -63,6 +63,12 @@ Use `makepkg -srC` inside an individual package directory for a clean local buil
 - GitHub Actions and composite actions: `.github/instructions/github-actions.instructions.md`
 - Reusable update workflow: `.github/skills/update-pkgbuild/SKILL.md`
 
+## Agent tooling layout
+
+- `.github/instructions/*.instructions.md` and `.github/skills/*/SKILL.md` are the canonical, tool-agnostic guidance. Edit them there.
+- `.opencode/` configures OpenCode against that same guidance: `opencode.json` loads `AGENTS.md` plus every instruction file, `agents/` holds the subagents, `commands/` the slash commands, and `skills/` symlinks back into `.github/skills/` so there is one copy of each skill.
+- Do not duplicate rule text into `.opencode/`; point at the canonical file instead.
+
 ## CI and workflow rules
 
 - Keep `push` and `pull_request` triggers path-scoped where possible.

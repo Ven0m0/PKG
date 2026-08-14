@@ -1,6 +1,10 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "instructions": ["instructions.md", "AGENTS.md"],
+  "instructions": [
+    "instructions.md",
+    "AGENTS.md",
+    ".github/instructions/*.instructions.md"
+  ],
   "model": "opencode/minimax-m3-free",
   "small_model": "opencode/deepseek-v4-flash-free",
   "permission": {
@@ -11,7 +15,13 @@
     "rm -rf ~": "deny",
     "rm -rf ~/*": "deny",
     ":(){:|:&};:": "deny",
-    "doom_loop": "deny"
+    "doom_loop": "deny",
+    "git push --force*": "ask",
+    "git push -f*": "ask",
+    "git reset --hard*": "ask",
+    "git clean -*": "ask",
+    "pacman -S*": "ask",
+    "makepkg -si*": "ask"
   },
   "disabled_providers": [""],
   "plugin": [
@@ -20,7 +30,43 @@
     "@gotgenes/opencode-agent-identity@3.0.1",
     "opencode-websearch@0.5.0"
   ],
-  "watcher": { "ignore": ["node_modules/**", "dist/**", ".git/**", ".venv/**"] },
+  "formatter": {
+    "shfmt": { "disabled": true },
+    "prettier": { "disabled": true }
+  },
+  "lsp": {
+    "bash": {
+      "command": ["bash-language-server", "start"],
+      "extensions": [".sh", ".bash"]
+    },
+    "pyright": {
+      "command": ["basedpyright-langserver", "--stdio"],
+      "extensions": [".py", ".pyw", ".pyi"]
+    },
+    "yaml-ls": {
+      "command": ["yaml-language-server", "--stdio"],
+      "extensions": [".yaml", ".yml"]
+    },
+    "json-ls": {
+      "command": ["vscode-json-language-server", "--stdio"],
+      "extensions": [".json", ".jsonc"]
+    },
+    "tombi": {
+      "command": ["tombi", "lsp"],
+      "extensions": [".toml"]
+    }
+  },
+  "watcher": {
+    "ignore": [
+      "node_modules/**",
+      "dist/**",
+      ".git/**",
+      ".venv/**",
+      "**/src/**",
+      "**/pkg/**",
+      "**/*.pkg.tar.*"
+    ]
+  },
   "mcp": {
     "ref-tools": {
       "type": "remote",

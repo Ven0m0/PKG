@@ -184,3 +184,6 @@ configs/
 *.log
 *.log.*
 *.sig
+
+# nvchecker writes this on every run; only old_ver.json is tracked state
+.github/nvchecker/new_ver.json

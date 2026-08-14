@@ -329,20 +329,21 @@ git = "https://github.com/fthomys/update-alternatives.git"
 branch = "master"
 use_commit = true
 
+["vscodium-prod-patcher"]
+# Upstream publishes no git tags at all, so the git source's default
+# `git ls-remote --tags --refs` returns nothing. Track the branch HEAD commit
+# instead, which is what the -git pkgver() compares against.
+source = "git"
+git = "https://github.com/Ven0m0/vscodium-prod-patcher.git"
+branch = "main"
+use_commit = true
+
 ["wine-tkg-git"]
 # wine-tkg builds from wine source; track wine/wine releases as an update trigger
 source = "github"
 github = "wine-mirror/wine"
 use_max_tag = true
 prefix = "wine-"
-
-# ════════════════════════════════════════════════════════════════
-# npm
-# ════════════════════════════════════════════════════════════════
-
-["gemini-cli"]
-source = "npm"
-npm = "@google/gemini-cli"
 
 # ════════════════════════════════════════════════════════════════
 # Regex / HTTP sources
