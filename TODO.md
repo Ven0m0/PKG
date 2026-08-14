@@ -8,6 +8,10 @@ This document tracks planned features, improvements, and long-term goals for the
 
 - [] add https://github.com/Ven0m0/vscodium-prod-patcher as a package
 - [] remove no longer present packages from nvchecker
+- [] Remove gemini and kilo from @.github/workflows/_run-agent.yml
+- [] Speed up ".github/workflows/_run-agent.yml and @.github/workflows/_update-pkgbuilds.yml
+- [] optimize and customize @.opencode/ for this repo specifically. Add skills, rules, agents and improve the instructions
+- [] optimize the prompt in @.github/workflows/_update-pkgbuilds.yml
 
 ### External references to review
 
