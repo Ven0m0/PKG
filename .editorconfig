@@ -55,3 +55,8 @@ max_line_length = 120
 
 [*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}]
 quote_type = single
+
+[*.{json,jsonc}]
+indent_style = space
+indent_size = 2
+tab_width = 2

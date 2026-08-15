@@ -13,7 +13,6 @@
   "filen-desktop": "v3.0.53",
   "firefox": "153.0.3",
   "ffmpeg": "v0.6.1",
-  "gemini-cli": "0.54.0",
   "ghostty": "v1.3.1",
   "glfw-wayland": "3.4",
   "handbrake": "1.11.2",
@@ -50,5 +49,6 @@
   "uutils/procps": "0.0.1",
   "uutils/tar": "latest-commit",
   "wine-tkg-git": "20050930",
-  "mesa-git": "26.2-branchpoint"
+  "mesa-git": "26.2-branchpoint",
+  "vscodium-prod-patcher": "f601a5efbc623cf55054f259181ae4f3bdca0d69"
 }

@@ -1,80 +1,87 @@
 # PKG Agent Guide
 
-> `AGENTS.md` is the canonical repo-wide guidance for AI agents in this repository.
-> `CLAUDE.md` must remain a symlink to `AGENTS.md`.
+> Canonical repo-wide guidance for AI agents. `CLAUDE.md` must remain a symlink to `AGENTS.md`.
+> Keep this file short enough to stay in context; path-specific detail belongs in `.opencode/rules/`.
 
 ## Priorities
 
 1. User instruction wins.
 2. Make the smallest useful diff; edit existing files before creating new ones.
-3. Keep repo-wide guidance here; keep `.github/copilot-instructions.md` bootstrap-only.
-4. Prefer existing repo workflows over one-off scripts.
-5. For new discovery code, prefer `git ls-files ':(glob)**/PKGBUILD'`, `rg`, and `fd`.
+3. Prefer existing repo workflows in `tools/` and `.github/scripts/` over one-off scripts.
+4. Keep repo-wide guidance here and `.github/copilot-instructions.md` bootstrap-only.
 
-## Project Context
+## What this repo is
 
-PKG maintains Arch Linux PKGBUILDs, patches, and automation around version tracking, validation, and CI publishing. Most work in this repo touches package metadata, repo automation, or agent guidance rather than application runtime code.
+PKG maintains Arch Linux PKGBUILDs, patches, and the automation around version tracking, validation, and CI publishing. Nearly every change is package metadata, repo tooling, or agent guidance. There is no application runtime here, and no test suite covering the packages — `tests/` covers `tools/` only.
 
 ## Repository map
 
-- Package directories live both at the repo root and in grouped folders such as `dxvk/`, `java/`, `uutils/`, and `zlib-ng/`.
-- `tools/` holds all repository tooling: `tools/pkg.sh` (canonical entry point for `build`, `lint`, `srcinfo`), `tools/vp-dev.py`, `tools/find_updates.py`, `tools/check-isa-level.sh`, and the workflow generators `tools/generate-schedule.py` / `tools/generate-workflow.py`.
-- `tools/lib/helpers.sh` contains shared shell helpers, including `find_pkgbuilds`.
-- `nvchecker.toml` and `.github/nvchecker/old_ver.json` track upstream versions.
-- `.github/scripts/try-update.sh`, `create-pr.sh`, and `fetch-changelog.sh` drive automated package updates.
+- Packages live at the repo root and in grouped folders (`dxvk/`, `java/`, `uutils/`, `zlib-ng/`). `git ls-files ':(glob)**/PKGBUILD'` is the source of truth for which exist.
+- `tools/pkg.sh` is the entry point for `build`, `lint`, and `srcinfo`; `tools/lib/helpers.sh` holds shared helpers including `find_pkgbuilds`.
+- Other tooling: `tools/vp-dev.py` (regenerates `packages.json` from the PKGBUILDs), `tools/find_updates.py`, `tools/check-isa-level.sh`, `tools/generate-schedule.py`, `tools/generate-workflow.py`.
+- Version tracking: `nvchecker.toml` plus `.github/nvchecker/old_ver.json`. `new_ver.json` is generated on every run and is not tracked.
+- Update automation: `.github/scripts/try-update.sh`, `create-pr.sh`, `fetch-changelog.sh`. `_update-pkgbuilds.yml` detects drift itself, then dispatches an agent through `_run-agent.yml`.
 - `.github/actions/pkgbuild/` is the reusable PKGBUILD validation action.
-- `.github/workflows/` contains CI for build, lint, package updates, AUR publishing, and agent tasks.
+- `.github/` is CI only. Rules, skills, agents, and commands live in `.opencode/`.
 
-## Discovery commands
+## Environment
 
-```bash
-git ls-files ':(glob)**/PKGBUILD'   # preferred package discovery
-rg 'pattern'                        # content search
-rg --files -g 'PKGBUILD'            # fallback file discovery
-fd -t f -g 'PKGBUILD'               # fallback when fd is available
-```
+`mise install` provisions the toolchain: Python 3.14, Node 24, bun, uv, ruff, ripgrep, fd, shellcheck, shfmt, actionlint.
 
-## Standard commands
+`makepkg`, `updpkgsums`, and `namcap` are Arch-only. On another distro run them inside `archlinux:base-devel` rather than reporting a package as unverifiable. `bash -n` works anywhere and is not a substitute for the rest.
+
+## Commands
 
 ```bash
-tools/pkg.sh lint
-tools/pkg.sh build <package>
-tools/pkg.sh srcinfo
-mise r list
-mise r setup-all
-mise r sync-all
+git ls-files ':(glob)**/PKGBUILD'   # package discovery; rg for content, fd for files
+tools/pkg.sh lint                   # lint and format PKGBUILDs
+tools/pkg.sh srcinfo                # regenerate every .SRCINFO
+tools/pkg.sh build <package>        # makepkg or Docker build
+make lint                           # shell and package lint
+mise r list | mise r setup-all | mise r sync-all
+makepkg -srC                        # clean build inside one package directory
 ```
 
-Use `makepkg -srC` inside an individual package directory for a clean local build.
+## Package updates
 
-## Package update workflow
+Read `nvchecker.toml` and `.github/nvchecker/old_ver.json` first. Derive every version from nvchecker or upstream — never guess one — and confirm the direction with `vercmp` before editing. Never downgrade. Full procedure: `.opencode/skills/update-pkgbuild/SKILL.md`.
 
-1. Read `nvchecker.toml` and `.github/nvchecker/old_ver.json` first.
-2. For normal PKGBUILDs: update `pkgver`, reset `pkgrel=1`, run `updpkgsums`, then regenerate `.SRCINFO`.
-3. For `proton-cachyos-slr` and `wine-cachyos`: update `_srctag` and leave the derived `pkgver` expression alone.
-4. For `llvm`: treat the nvchecker value as the tracked upstream release; if `pkgver()` derives the final value, refresh it with non-interactive makepkg tooling instead of hand-editing the generated result.
-5. For `chromium`: parse the tracked release as `{pkgver}-{commit}`, update `pkgver` and `_commit`, and keep `_pkgver=${pkgver}` present before refreshing sums and `.SRCINFO`.
-6. When the mechanical path fits, prefer `.github/scripts/try-update.sh` and `.github/scripts/create-pr.sh` over ad-hoc scripts.
+Default path: set `pkgver`, reset `pkgrel=1`, run `updpkgsums`, then `makepkg --printsrcinfo > .SRCINFO`. Exceptions:
+
+- **Any PKGBUILD defining `pkgver()`** resolves its real version from a clone at build time. Do not hand-edit the generated value; record the new tracked value in `old_ver.json` and let makepkg regenerate it. List them with
+  `rg -l '^\s*pkgver\s*\(\)' --glob PKGBUILD`.
+- **`proton-cachyos-slr`, `wine-cachyos`** — update `_srctag`; leave the derived `pkgver` expression alone.
+- **`chromium`** — the tracked value is `{pkgver}-{commit}`; update `pkgver` and `_commit`, and keep `_pkgver=${pkgver}` present.
+- **`llvm`** — the tracked value is the upstream release; refresh a `pkgver()`-derived result with non-interactive makepkg tooling instead of hand-editing it.
+
+Some untagged git packages (`ghostty`, `rclone-filen`, `update-alternatives`, `vscodium-prod-patcher`, several `uutils/*`) intentionally ship without `.SRCINFO`, because generating one needs a real clone. Do not add one from a stale value; the absence is deliberate, not an omission.
+
+When the mechanical path fits, prefer `.github/scripts/try-update.sh` and `create-pr.sh` over ad-hoc scripts.
 
 ## File-specific guidance
 
-- Shell scripts: `.github/instructions/shell.instructions.md`
-- `PKGBUILD` / `.SRCINFO`: `.github/instructions/pkgbuild.instructions.md`
-- GitHub Actions and composite actions: `.github/instructions/github-actions.instructions.md`
-- Reusable update workflow: `.github/skills/update-pkgbuild/SKILL.md`
+- Shell scripts: `.opencode/rules/shell.md`
+- `PKGBUILD` / `.SRCINFO`: `.opencode/rules/pkgbuild.md`
+- GitHub Actions and composite actions: `.opencode/rules/github-actions.md`
+- Reusable task workflows: `.opencode/skills/*/SKILL.md`
+
+## Agent tooling layout
+
+- `.opencode/` is the single home for agent configuration: `opencode.json` loads `AGENTS.md` plus every file in `rules/`; `agents/`, `commands/`, and `skills/` hold the rest.
+- There is exactly one copy of each rule and skill. Edit it in place; never fork a second copy into another tool's directory.
+- Tools that cannot discover `.opencode/` on their own are pointed at it from their own bootstrap file.
 
 ## CI and workflow rules
 
-- Keep `push` and `pull_request` triggers path-scoped where possible.
-- Declare least-privilege `permissions:` explicitly.
-- Reuse local actions under `.github/actions/` for PKGBUILD-specific jobs.
-- In new bash `run:` blocks, start with `set -euo pipefail`.
-- Install only the tools a job actually uses; if guidance requires a tool, setup must provide it.
-- Workflow secrets such as `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `OPENCODE_API_KEY`, `OPENROUTER_API_KEY`, `KILO_API_KEY`, `KILO_ORG_ID`, and `AUR_SSH_PRIVATE_KEY` are externally managed GitHub secrets; never hardcode or rename them in repo changes.
+- Path-scope `push` and `pull_request` triggers where possible; declare least-privilege `permissions:` explicitly.
+- Start every multi-line bash `run:` block with `set -euo pipefail`. Pass untrusted values (PR titles, branch names, issue bodies) through `env:`, never by interpolating `${{ }}` into the script body.
+- Reuse `.github/actions/pkgbuild/` for PKGBUILD jobs instead of reimplementing makepkg logic. Install only the tools a job uses — and everything its guidance requires.
+- Give long or dispatchable workflows a `timeout-minutes` and a `concurrency` group so superseded runs get cancelled.
+- `ANTHROPIC_API_KEY`, `OPENCODE_API_KEY`, `OPENROUTER_API_KEY`, `KILO_API_KEY`, `AUR_SSH_PRIVATE_KEY`, and `PAT` are externally managed GitHub secrets. Never hardcode, rename, or echo them.
 
 ## Safety and validation
 
-- No secrets, remote sourcing, or `curl | bash`.
-- Commit only tracked source files and metadata; leave generated build trees, package archives, and other build outputs out of the diff.
-- After PKGBUILD changes, run `makepkg --printsrcinfo > .SRCINFO`.
-- After shell or workflow changes, run the repository's existing validation plus any requested guidance tooling.
+- No secrets in the diff, no remote sourcing, no `curl | bash`.
+- Commit tracked sources only. `makepkg` and `updpkgsums` leave `src/`, `pkg/`, tarballs, and `git+` clones behind — delete them and check `git status --porcelain` before staging.
+- Regenerate `.SRCINFO` after any PKGBUILD change, except the packages noted above.
+- After shell or workflow changes, run the repository's existing validation. Fix the cause; never silence the check.
