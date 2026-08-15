@@ -1,11 +1,11 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "instructions": [
-    "instructions.md",
-    "AGENTS.md",
-    ".opencode/rules/*.instructions.md"
+    "AGENTS.md", ".opencode/rules/*.md", ".kilo/rules/*.md",
+    "https://raw.githubusercontent.com/DietrichGebert/ponytail/main/PONYTAIL.md",
+    "https://raw.githubusercontent.com/JuliusBrussee/caveman/main/CAVEMAN.md"
   ],
-  "model": "opencode/minimax-m3-free",
+  "model": "opencode/deepseek-v4-flash-free",
   "small_model": "opencode/deepseek-v4-flash-free",
   "permission": {
     "*": "allow",
@@ -25,10 +25,12 @@
   },
   "disabled_providers": [""],
   "plugin": [
-    "openslimedit@1.0.4",
     "opencode-ignore@1.1.0",
+    "@bastiangx/opencode-unmoji@0.3.12",
+    "opencode-agent-skills@0.6.5",
     "@gotgenes/opencode-agent-identity@3.0.1",
-    "opencode-websearch@0.5.0"
+    "@dietrichgebert/ponytail",
+    "kilo-tools@git+https://github.com/Ven0m0/claude-config.git"
   ],
   "formatter": {
     "shfmt": { "disabled": true },
@@ -78,17 +80,13 @@
       "url": "https://api.githubcopilot.com/mcp/",
       "enabled": true
     },
-    "gh_grep": {
-      "type": "remote",
-      "url": "https://mcp.grep.app",
-      "enabled": true
-    },
     "exa": {
       "type": "remote",
       "url": "https://mcp.exa.ai/mcp?tools=web_search_exa,web_search_advanced_exa,get_code_context_exa,crawling_exa",
       "enabled": true
     }
   },
+  "compaction": { "auto": true, "prune": true },
   "experimental": {
     "continue_loop_on_deny": false,
     "mcp_timeout": 30000,
