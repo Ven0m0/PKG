@@ -117,6 +117,16 @@ jobs:
           git config --local user.email "${GIT_AUTHOR_EMAIL}"
           git config --local user.name "${GIT_AUTHOR_NAME}"
 
+      # ripgrep is not in the ubuntu runner image, but AGENTS.md tells the agent
+      # to use `rg` for content search and the derived-pkgver() recipe is an rg
+      # invocation. Same cached-apt action lint.yml uses, so a warm cache
+      # restores the package instead of hitting the apt mirrors.
+      - name: Install ripgrep
+        uses: awalsh128/cache-apt-pkgs-action@v1
+        with:
+          packages: ripgrep
+          version: 1.0
+
       # The agent almost always needs the Arch build toolchain. Start the pull
       # detached so it overlaps with the agent's first (model-bound) turns
       # instead of stalling the run mid-task; docker de-duplicates a concurrent
