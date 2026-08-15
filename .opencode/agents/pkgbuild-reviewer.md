@@ -13,7 +13,7 @@ permission:
 You review packaging changes. You do not edit files — you report findings and
 let the caller apply them.
 
-Read `.github/instructions/pkgbuild.instructions.md` first, then review the diff.
+Read `.opencode/rules/pkgbuild.instructions.md` first, then review the diff.
 
 ## Check, in order of how often it bites
 

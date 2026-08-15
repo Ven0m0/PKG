@@ -58,16 +58,17 @@ Use `makepkg -srC` inside an individual package directory for a clean local buil
 
 ## File-specific guidance
 
-- Shell scripts: `.github/instructions/shell.instructions.md`
-- `PKGBUILD` / `.SRCINFO`: `.github/instructions/pkgbuild.instructions.md`
-- GitHub Actions and composite actions: `.github/instructions/github-actions.instructions.md`
-- Reusable update workflow: `.github/skills/update-pkgbuild/SKILL.md`
+- Shell scripts: `.opencode/rules/shell.instructions.md`
+- `PKGBUILD` / `.SRCINFO`: `.opencode/rules/pkgbuild.instructions.md`
+- GitHub Actions and composite actions: `.opencode/rules/github-actions.instructions.md`
+- Reusable update workflow: `.opencode/skills/update-pkgbuild/SKILL.md`
 
 ## Agent tooling layout
 
-- `.github/instructions/*.instructions.md` and `.github/skills/*/SKILL.md` are the canonical, tool-agnostic guidance. Edit them there.
-- `.opencode/` configures OpenCode against that same guidance: `opencode.json` loads `AGENTS.md` plus every instruction file, `agents/` holds the subagents, `commands/` the slash commands, and `skills/` symlinks back into `.github/skills/` so there is one copy of each skill.
-- Do not duplicate rule text into `.opencode/`; point at the canonical file instead.
+- `.opencode/rules/*.instructions.md` and `.opencode/skills/*/SKILL.md` are the canonical, tool-agnostic guidance. Edit them there; there is exactly one copy of each.
+- `.opencode/` is the single home for agent configuration: `opencode.json` loads `AGENTS.md` plus every file in `rules/`, `agents/` holds the subagents, `commands/` the slash commands, and `skills/` the reusable task workflows.
+- `.github/` holds CI only — workflows, composite actions, scripts, and the Copilot bootstrap. No rule or skill text lives there.
+- Tools that cannot discover `.opencode/` on their own are pointed at it from their own bootstrap file rather than given a second copy of the rules.
 
 ## CI and workflow rules
 

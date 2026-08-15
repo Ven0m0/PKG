@@ -3,7 +3,7 @@
   "instructions": [
     "instructions.md",
     "AGENTS.md",
-    ".github/instructions/*.instructions.md"
+    ".opencode/rules/*.instructions.md"
   ],
   "model": "opencode/minimax-m3-free",
   "small_model": "opencode/deepseek-v4-flash-free",

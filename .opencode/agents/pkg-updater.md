@@ -16,8 +16,8 @@ You update one or more tracked packages in this PKGBUILD repository. Work
 mechanically and report precisely; do not improvise packaging changes that the
 version bump did not require.
 
-Follow `.github/skills/update-pkgbuild/SKILL.md` and
-`.github/instructions/pkgbuild.instructions.md`. They are canonical.
+Follow `.opencode/skills/update-pkgbuild/SKILL.md` and
+`.opencode/rules/pkgbuild.instructions.md`. They are canonical.
 
 ## Order of work
 

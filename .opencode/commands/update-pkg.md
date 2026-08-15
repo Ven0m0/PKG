@@ -15,5 +15,5 @@ Tracked state, for reference:
 
 !`cat .github/nvchecker/old_ver.json`
 
-Follow `.github/skills/update-pkgbuild/SKILL.md`. Do not stage build output.
+Follow `.opencode/skills/update-pkgbuild/SKILL.md`. Do not stage build output.
 Report old -> new per package, plus anything skipped and why.

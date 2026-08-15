@@ -161,7 +161,7 @@ jobs:
         ${{ needs.detect.outputs.drift != '' && 'Work only on those packages. Do not re-run nvchecker and do not touch any other package.' || '' }}
         ${{ inputs.packages != '' && format('Restrict the run further to these package directories: {0}', inputs.packages) || '' }}
 
-        `.github/skills/update-pkgbuild/SKILL.md` and `.github/instructions/pkgbuild.instructions.md` are the canonical procedure. Read them first. The rules below win on any conflict.
+        `.opencode/skills/update-pkgbuild/SKILL.md` and `.opencode/rules/pkgbuild.instructions.md` are the canonical procedure. Read them first. The rules below win on any conflict.
 
         SETUP
         1. Everything runs non-interactively. Pass explicit flags to git, nvchecker, makepkg and updpkgsums; never block on a prompt.

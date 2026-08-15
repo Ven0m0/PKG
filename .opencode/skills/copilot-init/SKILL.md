@@ -13,8 +13,8 @@ Refresh the repository's Copilot bootstrap assets without duplicating the long-f
 - Long-form repo guide: `AGENTS.md`
 - Mirror file: `CLAUDE.md` symlinked to `AGENTS.md`
 - Startup bootstrap only: `.github/copilot-instructions.md`
-- Path-specific rules: `.github/instructions/*.instructions.md`
-- Reusable task workflows: `.github/skills/*/SKILL.md`
+- Path-specific rules: `.opencode/rules/*.instructions.md`
+- Reusable task workflows: `.opencode/skills/*/SKILL.md`
 - Bootstrap environment: `.github/workflows/copilot-setup-steps.yml`
 
 ## Requirements
@@ -24,4 +24,5 @@ Refresh the repository's Copilot bootstrap assets without duplicating the long-f
 3. Match workflow setup to the real toolchain already used here: Python 3.14, Node 24 with Bun, mise, shell tooling, yamlfmt, and PKGBUILD helpers.
 4. Keep instruction files focused and avoid restating large rule blocks across files.
 5. Preserve the `CLAUDE.md -> AGENTS.md` symlink.
-6. Validate every referenced command and path before finishing.
+6. Rules and skills live under `.opencode/`, not `.github/instructions/` or `.github/skills/`. Copilot therefore does not apply them automatically by path — reference them from `.github/copilot-instructions.md` instead of copying them back into `.github/`.
+7. Validate every referenced command and path before finishing.
