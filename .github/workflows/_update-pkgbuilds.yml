@@ -148,8 +148,8 @@ jobs:
     uses: ./.github/workflows/_run-agent.yml
     with:
       provider: opencode
-      model: "opencode/minimax-m3-free" # opencode/nemotron-3-ultra-free
-      fallback_model: "opencode/deepseek-v4-flash-free"
+      model: "opencode/deepseek-v4-flash-free"
+      fallback_model: "opencode/nemotron-3-ultra-free"
       concurrency_group: update-pkgbuilds
       prompt: |
         Update the PKGBUILDs listed below to their latest upstream versions and open ONE pull request.
