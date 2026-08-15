@@ -18,6 +18,7 @@ Server = https://mirror.b-interactive.com.au/endeavouros/repo/$repo/$arch
 ## Belgium
 Server = https://ftp.belnet.be/mirror/endeavouros/repo/$repo/$arch
 
+
 ## China
 Server = https://mirrors.tuna.tsinghua.edu.cn/endeavouros/repo/$repo/$arch
 Server = https://mirrors.jlu.edu.cn/endeavouros/repo/$repo/$arch
@@ -33,7 +34,7 @@ Server = https://mirror.rznet.fr/endeavouros/repo/$repo/$arch
 Server = https://mirror.alpix.eu/endeavouros/repo/$repo/$arch
 Server = https://mirror.moson.org/endeavouros/repo/$repo/$arch
 Server = https://ftp.rz.tu-bs.de/pub/mirror/endeavouros/repo/$repo/$arch
-Server = https://de.repo.c48.uk/endeavouros/repo/$repo/$arch
+Server = https://mirror.diyarciftci.xyz/endeavouros/repo/$repo/$arch
 
 ## Greece
 Server = https://fosszone.csd.auth.gr/endeavouros/repo/$repo/$arch
@@ -46,11 +47,8 @@ Server = https://mirrors.nxtgen.com/endeavouros-mirror/repo/$repo/$arch
 ## Japan
 Server = https://www.miraa.jp/endeavouros/repo/$repo/$arch
 
-## Moldova
-Server = https://md.mirrors.hacktegic.com/endeavouros/repo/$repo/$arch
-
-## Portugal
-Server = https://mirror.leitecastro.com/endeavouros/repo/$repo/$arch
+## Luxembourg
+Server = https://mirror.lu.stratonexus.net/endeavouros/repo/$repo/$arch
 
 ## Singapore
 Server = https://mirror.jingk.ai/endeavouros/repo/$repo/$arch
@@ -64,6 +62,8 @@ Server = https://mirror.funami.tech/endeavouros/repo/$repo/$arch
 
 ## Sweden
 Server = https://mirror.accum.se/mirror/endeavouros/repo/$repo/$arch
+Server = https://mirror.retropc.se/endeavouros/repo/$repo/$arch
+Server = https://mirror.zyner.org/mirror/endeavouros/repo/$repo/$arch
 
 ## Switzerland
 Server = https://mirror.gofoss.xyz/endeavouros/repo/$repo/$arch
@@ -80,4 +80,7 @@ Server = https://repo.c48.uk/endeavouros/repo/$repo/$arch
 
 ## United States
 Server = https://mirrors.gigenet.com/endeavouros/repo/$repo/$arch
+
+## Vietnam
+Server = https://mirror.meowsmp.net/endeavouros/repo/$repo/$arch
 
