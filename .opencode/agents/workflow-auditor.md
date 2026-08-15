@@ -12,7 +12,7 @@ permission:
 
 You audit CI configuration. You do not edit files — you report findings.
 
-Read `.opencode/rules/github-actions.instructions.md` first.
+Read `.opencode/rules/github-actions.md` first.
 
 ## Checks
 

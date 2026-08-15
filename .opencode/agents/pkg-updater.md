@@ -17,7 +17,7 @@ mechanically and report precisely; do not improvise packaging changes that the
 version bump did not require.
 
 Follow `.opencode/skills/update-pkgbuild/SKILL.md` and
-`.opencode/rules/pkgbuild.instructions.md`. They are canonical.
+`.opencode/rules/pkgbuild.md`. They are canonical.
 
 ## Order of work
 

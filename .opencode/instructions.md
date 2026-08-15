@@ -1,7 +1,7 @@
 # OpenCode bootstrap — PKG
 
 Canonical repo-wide guidance is the repo-root `AGENTS.md`; `opencode.json` loads
-it alongside this file and every `.opencode/rules/*.instructions.md`. Apply
+it alongside this file and every `.opencode/rules/*.md`. Apply
 `AGENTS.md` first, then the path-specific instruction files, then this file.
 Keep `CLAUDE.md` symlinked to `AGENTS.md`, never to this file.
 
@@ -44,7 +44,7 @@ them for that reason. Match the surrounding style by hand: 2-space indent,
 `[[ ]]`, quoted expansions.
 
 Packages with special update rules are listed in
-`.opencode/rules/pkgbuild.instructions.md`. Read it before touching
+`.opencode/rules/pkgbuild.md`. Read it before touching
 `proton-cachyos-slr`, `wine-cachyos`, `llvm`, or `chromium`.
 
 ## Validation

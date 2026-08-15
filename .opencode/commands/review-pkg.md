@@ -5,7 +5,7 @@ subtask: true
 ---
 
 Review the packaging changes below against
-`.opencode/rules/pkgbuild.instructions.md`.
+`.opencode/rules/pkgbuild.md`.
 
 Working tree status:
 
