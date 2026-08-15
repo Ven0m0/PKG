@@ -6,7 +6,7 @@
 # Contributor: ledti <antergist at gmail dot com>
 
 pkgname=obs-studio
-pkgver=32.2.1
+pkgver=32.2.2
 pkgrel=1
 pkgdesc="Free and open source software for video recording and live streaming (optimized)"
 arch=('x86_64')
@@ -97,17 +97,18 @@ conflicts=(
   "libva-vdpau-driver" # This driver is abandonned and make OBS segfault if it happen to be loaded, try libva-nvidia-driver is you really need Nvidia decode through VAAPI
 )
 options=('strip')
+# Local patches live in this package's patches/ tree and are applied directly
+# from $startdir in prepare(); keeping them out of source= avoids makepkg's
+# inability to checksum subdirectory-prefixed local paths (updpkgsums fails).
 source=(
   "obs-studio::git+https://github.com/obsproject/obs-studio.git#tag=$pkgver"
   "obs-browser::git+https://github.com/obsproject/obs-browser.git"
   "obs-websocket::git+https://github.com/obsproject/obs-websocket.git"
-  "12328-Cleanup_Qt_Gui_Private_linkage.patch" # https://github.com/obsproject/obs-studio/pull/12328
 )
 source_x86_64=("https://cdn-fastly.obsproject.com/downloads/cef_binary_6533_linux_x86_64.tar.xz")
-sha256sums=('5b11ccf5468654d19537db108443812db12767084eba295ee532d81c4834492a'
+sha256sums=('18edf1162e6cc37c192c4532ccfb902a07c5891d5929e95c4f028c6ad5d762d5'
             'SKIP'
-            'SKIP'
-            '25322c692cf5cc88fc7d17cbb40a61b7e32d5ea675da647dd1a1996474ec2c8e')
+            'SKIP')
 sha256sums_x86_64=('fab66dfc9cfd2e26fb87798f855aef30c2004edc8e19570d37af555644ae1655')
 prepare() {
   cd "$srcdir/obs-studio" || exit
@@ -117,7 +118,7 @@ prepare() {
   ## Mark log and titlebar version
   sed -i "s|obs_get_version_string()|\"$_pkgver-$_suffix-$pkgrel\"|" frontend/OBSApp.cpp
   ## frontend: Cleanup Qt GuiPrivate linkage (https://github.com/obsproject/obs-studio/pull/12328)
-  patch -Np1 -i "$srcdir/12328-Cleanup_Qt_Gui_Private_linkage.patch" || :
+  patch -Np1 -i "$startdir/patches/12328-Cleanup_Qt_Gui_Private_linkage.patch" || :
   patch -Np1 -i "${srcdir}/12328.patch" || :
 }
 
