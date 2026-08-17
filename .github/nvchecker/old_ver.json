@@ -32,7 +32,7 @@
   "rare": "1.12.0",
   "ryujinx": "1.3.3",
   "smartdns-rs": "0.13.1",
-  "umu-launcher": "1.4.1",
+  "umu-launcher": "1.4.4",
   "universal-android-debloater": "1.2.0",
   "uutils/coreutils": "0.10.0",
   "uutils/diffutils": "0.5.0",
@@ -43,12 +43,12 @@
   "zlib-ng/zlib-ng": "2.3.3",
   "zlib-ng/lib32-zlib-ng": "2.3.3",
   "dolphin-emu": "2606",
-  "intel-ucode-min": "20260512",
+  "intel-ucode-min": "20260812",
   "rclone-filen": "v1.70.0-filen.15",
   "svt-av1": "v4.0.1",
   "uutils/procps": "0.0.1",
   "uutils/tar": "latest-commit",
   "wine-tkg-git": "20050930",
   "mesa-git": "26.2-branchpoint",
-  "vscodium-prod-patcher": "f601a5efbc623cf55054f259181ae4f3bdca0d69"
+  "vscodium-prod-patcher": "e60af1dd5654802efbc9d71832020be9d8b25c45"
 }
