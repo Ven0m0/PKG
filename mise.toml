@@ -64,3 +64,324 @@ else
   echo "  (none)"
 fi
 '''
+
+[tasks.setup-workspace]
+description = "Clone/prepare a package workspace (Docker upstream or AUR remote) and apply existing patches"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Works for both Docker (upstream = app source) and AUR (upstream = AUR remote)
+
+mkdir -p "$(dirname "$WORKSPACE")"
+
+if [[ "$PKG_TYPE" == "docker" ]]; then
+    # Docker: clone app upstream
+    if [[ -z "$UPSTREAM" ]]; then
+        echo "ERROR: No .upstream file found"
+        exit 1
+    fi
+
+    if [[ ! -d "$WORKSPACE/.jj" ]]; then
+        echo "Cloning upstream: $UPSTREAM"
+        git clone "$UPSTREAM" "$WORKSPACE"
+        cd "$WORKSPACE"
+        jj git init --colocate
+        jj git remote add upstream "$UPSTREAM"
+    fi
+
+    # Apply existing patches if any
+    if [[ -d "$PKG_DIR/patches" ]] && ls "$PKG_DIR/patches"/*.patch 1>/dev/null 2>&1; then
+        cd "$WORKSPACE"
+
+        # Reset to upstream ref
+        REF="${UPSTREAM_REF:-main}"
+        jj new "$REF" -m "base"
+
+        for patch in "$PKG_DIR/patches"/*.patch; do
+            echo "Applying: $(basename "$patch")"
+            PATCH_NAME=$(basename "$patch" .patch | sed 's/^[0-9]*-//')
+            git apply "$patch"
+            jj commit -m "$PATCH_NAME"
+        done
+    fi
+
+elif [[ "$PKG_TYPE" == "aur" ]]; then
+    # AUR: clone AUR remote (or init empty if new package)
+    if [[ ! -d "$WORKSPACE/.jj" ]]; then
+        if [[ -n "$AUR_REMOTE" ]]; then
+            echo "Cloning AUR: $AUR_REMOTE"
+            git clone "$AUR_REMOTE" "$WORKSPACE" 2>/dev/null || {
+                echo "New package, initializing empty repo"
+                mkdir -p "$WORKSPACE"
+                cd "$WORKSPACE"
+                git init
+                git remote add origin "$AUR_REMOTE"
+            }
+        else
+            echo "No AUR remote, initializing local workspace"
+            mkdir -p "$WORKSPACE"
+            cd "$WORKSPACE"
+            git init
+        fi
+        cd "$WORKSPACE"
+        jj git init --colocate
+    fi
+
+    # Copy our PKGBUILD etc. to workspace
+    cp "$PKG_DIR/PKGBUILD" "$WORKSPACE/" 2>/dev/null || true
+    cp "$PKG_DIR/.SRCINFO" "$WORKSPACE/" 2>/dev/null || true
+fi
+
+echo "Workspace ready: $WORKSPACE"
+'''
+
+[tasks.sync-upstream]
+description = "Fetch upstream/AUR and rebase patches or sync tracked files"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Ensure WORKSPACE is defined before use
+if [[ -z "${WORKSPACE:-}" ]]; then
+  if [[ -n "${PKG_DIR:-}" ]]; then
+    WORKSPACE="${PKG_DIR}"
+  elif [[ -n "${CACHE_DIR:-}" && -n "${PKG_NAME:-}" ]]; then
+    WORKSPACE="${CACHE_DIR}/${PKG_NAME}"
+  else
+    echo "ERROR: WORKSPACE is not set and could not be inferred (need WORKSPACE, PKG_DIR, or CACHE_DIR+PKG_NAME)" >&2
+    exit 1
+  fi
+fi
+cd "$WORKSPACE"
+
+if [[ "$PKG_TYPE" == "docker" ]]; then
+    echo "Fetching upstream..."
+    jj git fetch --remote upstream
+
+    echo "Rebasing patches onto upstream..."
+    if ! jj rebase -d main@upstream 2>&1; then
+        # Rebase failed; determine if it's due to conflicts or another error
+        if jj log -r @ --no-graph 2>&1 | grep -q "conflict"; then
+            echo "STATUS: CONFLICTS"
+            jj status
+            exit 1
+        else
+            echo "ERROR: jj rebase failed"
+            exit 1
+        fi
+    fi
+
+    # Check for conflicts
+    if jj log -r @ --no-graph 2>&1 | grep -q "conflict"; then
+        echo "STATUS: CONFLICTS"
+        jj status
+        exit 1
+    else
+        echo "STATUS: CLEAN"
+    fi
+
+elif [[ "$PKG_TYPE" == "aur" ]]; then
+    echo "Fetching from AUR..."
+    jj git fetch --remote origin 2>/dev/null || echo "No remote or new package"
+
+    # Sync files listed in .aur-files
+    if [[ ! -f "$PKG_DIR/.aur-files" ]]; then
+        echo "ERROR: .aur-files not found in $PKG_DIR"
+        exit 1
+    fi
+
+    while IFS= read -r file || [[ -n "$file" ]]; do
+        # Skip empty lines and comments
+        [[ -z "$file" || "$file" == \#* ]] && continue
+
+        if [[ -e "$PKG_DIR/$file" ]]; then
+            cp -r "$PKG_DIR/$file" "$WORKSPACE/"
+            echo "Synced: $file"
+        else
+            echo "Note: $file not yet present (will be created)"
+        fi
+    done < "$PKG_DIR/.aur-files"
+
+    echo "STATUS: SYNCED"
+fi
+'''
+
+[tasks.export-patches]
+description = "Export patches for a Docker package from upstream to HEAD"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Only meaningful for Docker packages (patches on upstream source)
+if [[ "$PKG_TYPE" != "docker" ]]; then
+    echo "export-patches: skipping for $PKG_TYPE packages"
+    exit 0
+fi
+
+cd "$WORKSPACE"
+
+# Determine base commit (upstream)
+BASE=$(jj log -r "main@upstream" --no-graph -T 'commit_id' 2>/dev/null || echo "")
+if [[ -z "$BASE" ]]; then
+    echo "Cannot determine upstream base"
+    exit 1
+fi
+
+echo "Exporting patches from upstream to HEAD..."
+
+rm -rf "$PKG_DIR/patches"
+mkdir -p "$PKG_DIR/patches"
+
+# Get list of commits between upstream and HEAD (oldest first)
+COMMITS=$(jj log -r "($BASE)..@" --no-graph -T 'commit_id.short() ++ "\n"' 2>/dev/null | tac)
+
+COUNT=1
+for rev in $COMMITS; do
+    [[ -z "$rev" ]] && continue
+
+    PADDED=$(printf "%04d" $COUNT)
+
+    # Get commit message for filename
+    MSG=$(jj log -r "$rev" --no-graph -T 'description.first_line()' 2>/dev/null || echo "patch")
+    SAFE_MSG=$(echo "$MSG" | tr ' ' '-' | tr -cd 'a-zA-Z0-9-' | head -c 50)
+
+    FILENAME="${PADDED}-${SAFE_MSG}.patch"
+
+    echo "Exporting: $FILENAME"
+    jj diff -r "$rev" --git > "$PKG_DIR/patches/$FILENAME"
+
+    ((COUNT++))
+done
+
+# Update upstream ref
+jj log -r "main@upstream" --no-graph -T 'commit_id' > "$PKG_DIR/.upstream-ref"
+
+echo "Exported $((COUNT-1)) patches"
+echo "Updated .upstream-ref to $(cat "$PKG_DIR/.upstream-ref" | head -c 12)..."
+'''
+
+[tasks.gather-context]
+description = "Gather package context (sync/build output, patches, changelog, AGENTS.md) for agent invocation"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Gather all context for OpenCode before invocation
+# This runs AFTER setup and sync attempts - reads their outputs
+
+cat << HEADER
+================================================================================
+PACKAGE CONTEXT: $PKG_NAME ($PKG_TYPE)
+================================================================================
+
+=== PACKAGE INFO ===
+Name: $PKG_NAME
+Type: $PKG_TYPE
+Directory: $PKG_DIR
+Workspace: $WORKSPACE
+HEADER
+
+if [[ "$PKG_TYPE" == "docker" ]]; then
+    cat << DOCKER_INFO
+Upstream: ${UPSTREAM:-none}
+Current Ref: ${UPSTREAM_REF:-none}
+Registries: ${REGISTRIES:-none}
+DOCKER_INFO
+elif [[ "$PKG_TYPE" == "aur" ]]; then
+    cat << AUR_INFO
+AUR Remote: ${AUR_REMOTE:-none}
+AUR_INFO
+fi
+
+echo ""
+echo "=== SYNC OUTPUT ==="
+if [[ -f /tmp/sync-output.txt ]]; then
+    cat /tmp/sync-output.txt
+else
+    echo "(no sync output captured)"
+fi
+
+echo ""
+echo "=== BUILD OUTPUT ==="
+if [[ -f /tmp/build-output.txt ]]; then
+    cat /tmp/build-output.txt
+else
+    echo "(no build output captured)"
+fi
+
+echo ""
+echo "=== CURRENT PATCHES ==="
+if [[ -d "$PKG_DIR/patches" ]]; then
+    ls -1 "$PKG_DIR/patches/" 2>/dev/null || echo "(no patches)"
+else
+    echo "(no patches directory)"
+fi
+
+echo ""
+echo "=== CHANGELOG (new upstream commits) ==="
+if [[ -f /tmp/changelog.txt ]]; then
+    cat /tmp/changelog.txt
+else
+    echo "(no changelog captured)"
+fi
+
+echo ""
+echo "=== AGENTS.MD ==="
+if [[ -f "$PKG_DIR/AGENTS.md" ]]; then
+    cat "$PKG_DIR/AGENTS.md"
+else
+    echo "(no AGENTS.md found)"
+fi
+
+echo ""
+echo "================================================================================"
+'''
+
+[tasks.aur-push]
+description = "Copy .aur-files listed files into the workspace, commit with jj, and push to AUR"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ -z "$AUR_REMOTE" ]]; then
+    echo "ERROR: No .aur-remote configured"
+    exit 1
+fi
+
+if [[ ! -f "$PKG_DIR/.aur-files" ]]; then
+    echo "ERROR: .aur-files not found in $PKG_DIR"
+    exit 1
+fi
+
+cd "$WORKSPACE"
+
+# Copy files listed in .aur-files (fail if missing)
+while IFS= read -r file || [[ -n "$file" ]]; do
+    # Skip empty lines and comments
+    [[ -z "$file" || "$file" == \#* ]] && continue
+
+    if [[ ! -e "$PKG_DIR/$file" ]]; then
+        echo "ERROR: File '$file' listed in .aur-files does not exist"
+        exit 1
+    fi
+
+    cp -r "$PKG_DIR/$file" "$WORKSPACE/"
+    echo "Copied: $file"
+done < "$PKG_DIR/.aur-files"
+
+# Stage and commit
+jj new -m "Update package"
+git add -A
+
+# Get commit message from parent repo's latest commit or use default
+COMMIT_MSG="${COMMIT_MSG:-Update $(date +%Y-%m-%d)}"
+
+jj commit -m "$COMMIT_MSG"
+
+# Push to AUR
+echo "Pushing to AUR: $AUR_REMOTE"
+jj git push --remote origin
+
+echo "Successfully pushed to AUR"
+'''

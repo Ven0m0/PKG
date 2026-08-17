@@ -77,7 +77,7 @@ When the mechanical path fits, prefer `.github/scripts/try-update.sh` and `creat
 - Start every multi-line bash `run:` block with `set -euo pipefail`. Pass untrusted values (PR titles, branch names, issue bodies) through `env:`, never by interpolating `${{ }}` into the script body.
 - Reuse `.github/actions/pkgbuild/` for PKGBUILD jobs instead of reimplementing makepkg logic. Install only the tools a job uses — and everything its guidance requires.
 - Give long or dispatchable workflows a `timeout-minutes` and a `concurrency` group so superseded runs get cancelled.
-- `ANTHROPIC_API_KEY`, `OPENCODE_API_KEY`, `OPENROUTER_API_KEY`, `KILO_API_KEY`, `AUR_SSH_PRIVATE_KEY`, and `PAT` are externally managed GitHub secrets. Never hardcode, rename, or echo them.
+- `ANTHROPIC_API_KEY`, `OPENCODE_API_KEY`, `OPENROUTER_API_KEY`, `AUR_SSH_PRIVATE_KEY`, and `PAT` are externally managed GitHub secrets. Never hardcode, rename, or echo them.
 
 ## Safety and validation
 

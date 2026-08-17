@@ -1,0 +1,51 @@
+post_install() {
+  echo "==> Reloading udev rules..."
+  udevadm control --reload-rules
+  udevadm trigger
+
+  echo ""
+  echo "==> SteelSeries GG for Linux has been installed!"
+  echo ""
+  echo "To use SteelSeries devices without root, add your user to the 'input' group:"
+  echo "  sudo usermod -aG input \$USER"
+  echo ""
+  echo "Then log out and log back in for the group change to take effect."
+  echo ""
+  echo "To start the daemon as a user service:"
+  echo "  systemctl --user daemon-reload"
+  echo "  systemctl --user enable --now ssgg.service"
+  echo ""
+  echo "To have the service start at boot (without login):"
+  echo "  sudo loginctl enable-linger \$USER"
+  echo ""
+  echo "Check status with:"
+  echo "  systemctl --user status ssgg.service"
+  echo "  journalctl --user -u ssgg.service"
+  echo ""
+}
+
+post_upgrade() {
+  echo "==> Reloading udev rules..."
+  udevadm control --reload-rules
+  udevadm trigger
+
+  echo ""
+  echo "==> SteelSeries GG for Linux has been upgraded!"
+  echo ""
+  echo "If the user service is enabled, reload the user unit definitions and restart it:"
+  echo "  systemctl --user daemon-reload"
+  echo "  systemctl --user restart ssgg.service"
+  echo ""
+}
+
+post_remove() {
+  echo "==> Reloading udev rules..."
+  udevadm control --reload-rules
+  udevadm trigger
+
+  echo ""
+  echo "SteelSeries GG for Linux has been removed."
+  echo "If the systemd service was enabled, you may want to disable it:"
+  echo "  systemctl --user disable ssgg.service"
+  echo ""
+}

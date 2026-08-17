@@ -6,11 +6,11 @@ This document tracks planned features, improvements, and long-term goals for the
 
 ### Fix packages
 
-- [ ] move @.mise/tasks/ into @mise.toml
-- [ ] add "https://github.com/Ven0m0/steelseriesgg-rs as a package
-- [ ] ensure @.gitattributes allows for cloning and working with this repo on windowd without breaking lf
-- [ ] `check-updates.yml` still calls the Kilo CLI; decide whether it follows `_run-agent.yml` in dropping it
-- [ ] Generate `vscodium-prod-patcher/.SRCINFO` on an Arch host (needs a real clone for `pkgver()`)
+- [x] move @.mise/tasks/ into @mise.toml — tasks are now inline `[tasks.*]` entries in `mise.toml`; the now-redundant `.mise/tasks/` script files still need to be deleted by hand (the agent sandbox that did this migration couldn't get permission to delete pre-existing files)
+- [x] add "https://github.com/Ven0m0/steelseriesgg-rs as a package — added as `steelseriesgg-rs/` (pkgname `ssgg`), tracked in `nvchecker.toml`/`old_ver.json`; `sha256sums` is still `SKIP` and `.SRCINFO` is not generated because this sandbox has no `makepkg`/working Docker daemon and no direct network access to `codeload.github.com` — run `updpkgsums && makepkg --printsrcinfo > .SRCINFO` on an Arch host
+- [x] ensure @.gitattributes allows for cloning and working with this repo on windowd without breaking lf — added explicit `text eol=lf` rules for `.install`, `.hook`, `.timer`, `.desktop`, `.diff`, `.vdf`, `.template`, `.wow64`, and `.patch`/`.gitmodules` so they don't depend solely on `text=auto` autodetection
+- [x] `check-updates.yml` still calls the Kilo CLI; decide whether it follows `_run-agent.yml` in dropping it — dropped: the Kilo install step used `curl | bash`, which `AGENTS.md`'s safety rules forbid, and PR creation/agent-driven fixes for package updates are already the job of `_update-pkgbuilds.yml` via `_run-agent.yml`
+- [ ] Generate `vscodium-prod-patcher/.SRCINFO` on an Arch host (needs a real clone for `pkgver()`) — confirmed `old_ver.json`'s tracked commit (`e60af1d...`) is current via a real clone; still needs `makepkg` on an Arch host to regenerate `.SRCINFO` itself, unavailable in this sandbox
 
 ### External references to review
 
