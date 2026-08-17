@@ -8,6 +8,7 @@ This document tracks planned features, improvements, and long-term goals for the
 
 - [ ] move @.mise/tasks/ into @mise.toml
 - [ ] add "https://github.com/Ven0m0/steelseriesgg-rs as a package
+- [ ] ensure @.gitattributes allows for cloning and working with this repo on windowd without breaking lf
 - [ ] `check-updates.yml` still calls the Kilo CLI; decide whether it follows `_run-agent.yml` in dropping it
 - [ ] Generate `vscodium-prod-patcher/.SRCINFO` on an Arch host (needs a real clone for `pkgver()`)
 
