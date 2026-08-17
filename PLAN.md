@@ -188,7 +188,7 @@ nvchecker detects version deltas silently; maintainers miss updates without manu
 - [ ] CI creates GitHub issue via `gh issue create` on version delta; body includes pkg, old ver, new ver, upstream URL
 - [ ] Duplicate suppression via `gh issue list --search "title:<pkgname>"`; runs on daily `schedule` + `workflow_dispatch`
 - [ ] `pkg.sh lint` passes on modified workflow
-> `extend check-updates.yml; use nvchecker --logger json for structured output`
+> `extend check-updates.yml (its LLM review/fix steps were dropped for using an unvetted curl|bash CLI install — see AGENTS.md's remote-sourcing rule); use nvchecker --logger json for structured output`
 
 ### T018 · Write build system documentation for pkg.sh and Docker
 `docs/build-system.md` (new) · medium · docs · M · needs:— · blocks:—

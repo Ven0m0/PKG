@@ -178,6 +178,11 @@ github = "mokeyish/smartdns-rs"
 use_latest_release = true
 prefix = "v"
 
+["steelseriesgg-rs"]
+source = "github"
+github = "Ven0m0/steelseriesgg-rs"
+use_max_tag = true
+prefix = "v"
 
 ["umu-launcher"]
 source = "github"

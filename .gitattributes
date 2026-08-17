@@ -18,6 +18,15 @@ PKGBUILD text eol=lf diff=bash
 *.cfg text
 *.conf text
 *.service text
+*.install text eol=lf
+*.hook text eol=lf
+*.timer text eol=lf
+*.desktop text eol=lf
+*.diff text eol=lf diff=patch
+*.vdf text eol=lf
+*.template text eol=lf
+*.wow64 text eol=lf diff=bash
+.gitmodules text
 *.jpg binary diff=exif
 *.jpeg binary diff=exif
 *.webp binary diff=exif
@@ -25,7 +34,7 @@ PKGBUILD text eol=lf diff=bash
 *.svg text
 *.ttf binary
 Makefile text eol=lf whitespace=blank-at-eol,-blank-at-eof,-space-before-tab,tab-in-indent,tabwidth=4
-*.patch diff=patch
+*.patch text eol=lf diff=patch
 .gitignore text
 .gitattributes text
 .editorconfig text

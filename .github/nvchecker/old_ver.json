@@ -50,5 +50,6 @@
   "uutils/tar": "latest-commit",
   "wine-tkg-git": "20050930",
   "mesa-git": "26.2-branchpoint",
-  "vscodium-prod-patcher": "e60af1dd5654802efbc9d71832020be9d8b25c45"
+  "vscodium-prod-patcher": "e60af1dd5654802efbc9d71832020be9d8b25c45",
+  "steelseriesgg-rs": "0.1.2"
 }
