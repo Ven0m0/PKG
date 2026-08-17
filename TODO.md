@@ -6,12 +6,8 @@ This document tracks planned features, improvements, and long-term goals for the
 
 ### Fix packages
 
-- [x] add https://github.com/Ven0m0/vscodium-prod-patcher as a package
-- [x] remove no longer present packages from nvchecker
-- [x] Remove gemini and kilo from @.github/workflows/_run-agent.yml
-- [x] Speed up ".github/workflows/_run-agent.yml and @.github/workflows/_update-pkgbuilds.yml
-- [x] optimize and customize @.opencode/ for this repo specifically. Add skills, rules, agents and improve the instructions
-- [x] optimize the prompt in @.github/workflows/_update-pkgbuilds.yml
+- [ ] move @.mise/tasks/ into @mise.toml
+- [ ] add "https://github.com/Ven0m0/steelseriesgg-rs as a package
 - [ ] `check-updates.yml` still calls the Kilo CLI; decide whether it follows `_run-agent.yml` in dropping it
 - [ ] Generate `vscodium-prod-patcher/.SRCINFO` on an Arch host (needs a real clone for `pkgver()`)
 
