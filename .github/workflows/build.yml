@@ -112,7 +112,7 @@ jobs:
           cache_apt_lists: true
       - name: Free disk space
         if: steps.build_method.outputs.needs_space == 'true'
-        uses: endersonmenezes/free-disk-space@v3
+        uses: endersonmenezes/free-disk-space@v4
         with:
           remove_android: true
           remove_dotnet: true
