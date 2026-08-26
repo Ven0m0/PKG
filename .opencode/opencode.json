@@ -1,13 +1,13 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "instructions": [
-    "AGENTS.md", ".opencode/instructions.md",
-    ".opencode/rules/*.md", ".kilo/rules/*.md",
+    "AGENTS.md", ".opencode/instructions.md", ".opencode/rules/*.md",
     "https://raw.githubusercontent.com/DietrichGebert/ponytail/main/PONYTAIL.md",
     "https://raw.githubusercontent.com/JuliusBrussee/caveman/main/CAVEMAN.md"
   ],
-  "model": "opencode/deepseek-v4-flash-free",
-  "small_model": "opencode/deepseek-v4-flash-free",
+  "skills": { "paths": [".kilo/skills", ".claude/skills", ".opencode/skills"] },
+  "model": "opencode/nemotron-3-ultra-free",
+  "small_model": "opencode/nemotron-3.5-lightning-free",
   "permission": {
     "*": "allow",
     "sudo *": "deny",
@@ -28,9 +28,10 @@
   "plugin": [
     "opencode-ignore@1.1.0",
     "@bastiangx/opencode-unmoji@0.3.12",
-    "opencode-agent-skills@0.6.5",
+    "opencode-ascii@0.1.8",
+    "opencode-agent-skills@0.7.0",
     "@gotgenes/opencode-agent-identity@3.0.1",
-    "@dietrichgebert/ponytail",
+    "@dietrichgebert/ponytail@1.0.57",
     "kilo-tools@git+https://github.com/Ven0m0/claude-config.git"
   ],
   "formatter": {
