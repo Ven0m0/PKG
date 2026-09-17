@@ -6,7 +6,7 @@
 
 _pkgname=qpdf
 pkgname="${_pkgname}-zopfli"
-pkgver=12.4.0
+pkgver=12.4.1
 pkgrel=1
 pkgdesc="QPDF: A Content-Preserving PDF Transformation System (with Zopfli support, optimized)"
 arch=('x86_64')
