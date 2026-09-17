@@ -230,6 +230,43 @@ jobs:
           prompt: ${{ inputs.prompt }}
           use_github_token: false
 
+      # opencode only pushes and opens a PR when the agent stays on the branch
+      # opencode created. An agent that switches branches itself, or dies
+      # mid-task (run 35213973895: 504 from the model, then exit), leaves its
+      # edits stranded on the runner. Publish whatever is left as a draft PR.
+      # Only tracked files are staged so makepkg leftovers never get committed.
+      - name: Publish leftover agent changes
+        if: ${{ !cancelled() }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE: ${{ github.event.repository.default_branch }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          branch=$(git branch --show-current)
+          if [[ -z "$branch" || "$branch" == "$BASE" ]]; then
+            branch="agent/run-${GITHUB_RUN_ID}"
+            git checkout -b "$branch"
+          fi
+          if ! git diff --quiet HEAD; then
+            git add -u
+            git commit -m "chore: agent changes from run ${GITHUB_RUN_ID}"
+          fi
+          if [[ "$(git rev-list --count "origin/${BASE}..HEAD")" -eq 0 ]]; then
+            echo "Nothing to publish"
+            exit 0
+          fi
+          gh auth setup-git
+          git push -u origin "HEAD:refs/heads/${branch}"
+          if [[ -n "$(gh pr list --head "$branch" --state open --json number --jq '.[].number')" ]]; then
+            echo "PR for ${branch} already open"
+            exit 0
+          fi
+          gh pr create --draft --base "$BASE" --head "$branch" \
+            --title "chore: agent changes from run ${GITHUB_RUN_ID}" \
+            --body "The agent did not open a PR itself, so this workflow published its leftover changes. Review before merging: the run may have stopped mid-task. Run: ${RUN_URL}"
+
       # Restores the failure swallowed by continue-on-error on the primary
       # OpenCode step when no fallback ran or the fallback was skipped.
       - name: Fail if no OpenCode attempt succeeded
