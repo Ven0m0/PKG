@@ -257,6 +257,10 @@ jobs:
             echo "Nothing to publish"
             exit 0
           fi
+          # opencode leaves its own app token in this header and revokes the
+          # token when it exits, so pushing with it fails authentication
+          # (run 35219512645). Drop it so the gh credential helper is used.
+          git config --local --unset-all http.https://github.com/.extraheader || true
           gh auth setup-git
           git push -u origin "HEAD:refs/heads/${branch}"
           if [[ -n "$(gh pr list --head "$branch" --state open --json number --jq '.[].number')" ]]; then
