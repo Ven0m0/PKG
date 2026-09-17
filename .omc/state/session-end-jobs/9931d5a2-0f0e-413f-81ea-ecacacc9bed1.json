@@ -1,0 +1,220 @@
+{
+  "version": 1,
+  "jobId": "ee8e2392-16f0-421a-a34d-3e695b073a2d",
+  "sessionId": "9931d5a2-0f0e-413f-81ea-ecacacc9bed1",
+  "scopeKey": "9f22cbd8edafe4708f0cf1b37381a585c4b5ff80280f382562e5c5500dd4bcdf",
+  "revision": 7,
+  "createdAt": "2026-09-17T02:04:50.333Z",
+  "updatedAt": "2026-09-17T02:04:50.461Z",
+  "producerGraceExpiresAt": "2026-09-17T02:05:20.333Z",
+  "bestEffortDeadlineAt": "2026-09-17T02:06:11.333Z",
+  "producers": {
+    "core": {
+      "state": "prepared",
+      "intentKey": "a34096719d471e71de0e78d042f1b53f5d3effb60b1b959e551f4517b6691b8e",
+      "payloadDigest": "a34096719d471e71de0e78d042f1b53f5d3effb60b1b959e551f4517b6691b8e"
+    },
+    "wiki": {
+      "state": "no-op",
+      "sealedAt": "2026-09-17T02:04:50.390Z",
+      "sealedBy": "wiki-producer"
+    }
+  },
+  "actions": {
+    "foreground-cleanup": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "pending",
+      "attempts": 0,
+      "idempotencyKey": "6d095e905f52cbdd60897e7d3418016d547d411520240513d06992ca79928dda",
+      "payload": {
+        "transcriptPath": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1.jsonl",
+        "cwd": "/home/ven0m0/project/PKG",
+        "reason": "prompt_input_exit",
+        "input": {
+          "session_id": "9931d5a2-0f0e-413f-81ea-ecacacc9bed1",
+          "transcript_path": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1.jsonl",
+          "cwd": "/home/ven0m0/project/PKG",
+          "scratchpad_dir": "/tmp/claude-1000/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1/scratchpad",
+          "prompt_id": "626ee69e-714f-49a1-a809-d81aca3878ef",
+          "hook_event_name": "SessionEnd",
+          "reason": "prompt_input_exit"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {}
+      },
+      "budgetMs": 9000
+    },
+    "wiki-capture": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "completed",
+      "attempts": 0,
+      "idempotencyKey": "8c516045b16da69f849a38409a5b05505d2cc366ffaf46c5f8a7cfb61da82be7",
+      "payload": {
+        "transcriptPath": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1.jsonl",
+        "cwd": "/home/ven0m0/project/PKG",
+        "reason": "prompt_input_exit",
+        "input": {
+          "session_id": "9931d5a2-0f0e-413f-81ea-ecacacc9bed1",
+          "transcript_path": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1.jsonl",
+          "cwd": "/home/ven0m0/project/PKG",
+          "scratchpad_dir": "/tmp/claude-1000/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1/scratchpad",
+          "prompt_id": "626ee69e-714f-49a1-a809-d81aca3878ef",
+          "hook_event_name": "SessionEnd",
+          "reason": "prompt_input_exit"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {}
+      },
+      "budgetMs": 9000,
+      "completedAt": "2026-09-17T02:04:50.390Z"
+    },
+    "team-cleanup": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "pending",
+      "attempts": 0,
+      "idempotencyKey": "6d154bae84762abc46c3f8ddb7b75ec5828eee7503bd3e380f278bbb7d226f04",
+      "payload": {
+        "transcriptPath": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1.jsonl",
+        "cwd": "/home/ven0m0/project/PKG",
+        "reason": "prompt_input_exit",
+        "input": {
+          "session_id": "9931d5a2-0f0e-413f-81ea-ecacacc9bed1",
+          "transcript_path": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1.jsonl",
+          "cwd": "/home/ven0m0/project/PKG",
+          "scratchpad_dir": "/tmp/claude-1000/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1/scratchpad",
+          "prompt_id": "626ee69e-714f-49a1-a809-d81aca3878ef",
+          "hook_event_name": "SessionEnd",
+          "reason": "prompt_input_exit"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {}
+      },
+      "budgetMs": 9000
+    },
+    "python-cleanup": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "pending",
+      "attempts": 0,
+      "idempotencyKey": "abf95eed1deefc344bf05c5725e52d1c708b85a679bd0392ec348bf5f1546c3c",
+      "payload": {
+        "transcriptPath": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1.jsonl",
+        "cwd": "/home/ven0m0/project/PKG",
+        "reason": "prompt_input_exit",
+        "input": {
+          "session_id": "9931d5a2-0f0e-413f-81ea-ecacacc9bed1",
+          "transcript_path": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1.jsonl",
+          "cwd": "/home/ven0m0/project/PKG",
+          "scratchpad_dir": "/tmp/claude-1000/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1/scratchpad",
+          "prompt_id": "626ee69e-714f-49a1-a809-d81aca3878ef",
+          "hook_event_name": "SessionEnd",
+          "reason": "prompt_input_exit"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {}
+      },
+      "budgetMs": 9000
+    },
+    "reply-cleanup": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "pending",
+      "attempts": 0,
+      "idempotencyKey": "7ef92de78b8890a70b206cba1031ee8fbb48ed50e42cb896eb218d3a054f61e2",
+      "payload": {
+        "transcriptPath": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1.jsonl",
+        "cwd": "/home/ven0m0/project/PKG",
+        "reason": "prompt_input_exit",
+        "input": {
+          "session_id": "9931d5a2-0f0e-413f-81ea-ecacacc9bed1",
+          "transcript_path": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1.jsonl",
+          "cwd": "/home/ven0m0/project/PKG",
+          "scratchpad_dir": "/tmp/claude-1000/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1/scratchpad",
+          "prompt_id": "626ee69e-714f-49a1-a809-d81aca3878ef",
+          "hook_event_name": "SessionEnd",
+          "reason": "prompt_input_exit"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {}
+      },
+      "budgetMs": 9000
+    },
+    "callback": {
+      "class": "best-effort",
+      "phase": "deferred-best-effort",
+      "status": "pending",
+      "attempts": 0,
+      "idempotencyKey": "1838dd52d48fd68dca01edf29d0b73aa3befba269aba4ebb6bd9504cc7e11a38",
+      "payload": {
+        "transcriptPath": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1.jsonl",
+        "cwd": "/home/ven0m0/project/PKG",
+        "reason": "prompt_input_exit",
+        "input": {
+          "session_id": "9931d5a2-0f0e-413f-81ea-ecacacc9bed1",
+          "transcript_path": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1.jsonl",
+          "cwd": "/home/ven0m0/project/PKG",
+          "scratchpad_dir": "/tmp/claude-1000/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1/scratchpad",
+          "prompt_id": "626ee69e-714f-49a1-a809-d81aca3878ef",
+          "hook_event_name": "SessionEnd",
+          "reason": "prompt_input_exit"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {}
+      },
+      "budgetMs": 2000
+    },
+    "notification": {
+      "class": "best-effort",
+      "phase": "deferred-best-effort",
+      "status": "pending",
+      "attempts": 0,
+      "idempotencyKey": "b769b191328ab8de0a76e64e931dddb168d2f4afd77c62e6f384e873ac026c5d",
+      "payload": {
+        "transcriptPath": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1.jsonl",
+        "cwd": "/home/ven0m0/project/PKG",
+        "reason": "prompt_input_exit",
+        "input": {
+          "session_id": "9931d5a2-0f0e-413f-81ea-ecacacc9bed1",
+          "transcript_path": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1.jsonl",
+          "cwd": "/home/ven0m0/project/PKG",
+          "scratchpad_dir": "/tmp/claude-1000/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1/scratchpad",
+          "prompt_id": "626ee69e-714f-49a1-a809-d81aca3878ef",
+          "hook_event_name": "SessionEnd",
+          "reason": "prompt_input_exit"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {}
+      },
+      "budgetMs": 2000
+    },
+    "openclaw": {
+      "class": "best-effort",
+      "phase": "deferred-best-effort",
+      "status": "pending",
+      "attempts": 0,
+      "idempotencyKey": "d8d9830cf3dd49b725406e6ac41588009ec89da02583413ae6597218847396bb",
+      "payload": {
+        "transcriptPath": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1.jsonl",
+        "cwd": "/home/ven0m0/project/PKG",
+        "reason": "prompt_input_exit",
+        "input": {
+          "session_id": "9931d5a2-0f0e-413f-81ea-ecacacc9bed1",
+          "transcript_path": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1.jsonl",
+          "cwd": "/home/ven0m0/project/PKG",
+          "scratchpad_dir": "/tmp/claude-1000/-home-ven0m0-project-PKG/9931d5a2-0f0e-413f-81ea-ecacacc9bed1/scratchpad",
+          "prompt_id": "626ee69e-714f-49a1-a809-d81aca3878ef",
+          "hook_event_name": "SessionEnd",
+          "reason": "prompt_input_exit"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {}
+      },
+      "budgetMs": 2000
+    }
+  },
+  "owner": null,
+  "phase": "recoverable-failure"
+}

@@ -1,0 +1,217 @@
+{
+  "version": 1,
+  "jobId": "9135d3cf-9d52-4456-afc6-2ae8ed3a6bc4",
+  "sessionId": "0d52ee8c-e036-4fab-be02-04e5d8e3bc81",
+  "scopeKey": "9f22cbd8edafe4708f0cf1b37381a585c4b5ff80280f382562e5c5500dd4bcdf",
+  "revision": 0,
+  "createdAt": "2026-09-17T01:57:51.406Z",
+  "updatedAt": "2026-09-17T01:57:51.406Z",
+  "producerGraceExpiresAt": "2026-09-17T01:58:21.407Z",
+  "bestEffortDeadlineAt": "2026-09-17T01:59:12.407Z",
+  "producers": {
+    "core": {
+      "state": "prepared",
+      "intentKey": "85c435474f105d997eb744369d06a584bd3bb741cab7b105b2129afe685d9955",
+      "payloadDigest": "85c435474f105d997eb744369d06a584bd3bb741cab7b105b2129afe685d9955"
+    },
+    "wiki": {
+      "state": "absent"
+    }
+  },
+  "actions": {
+    "foreground-cleanup": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "pending",
+      "attempts": 0,
+      "idempotencyKey": "aa997a0c1a0b579da839cc35f20724c007c2c9874f0750c4f941b264d8037c09",
+      "payload": {
+        "transcriptPath": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81.jsonl",
+        "cwd": "/home/ven0m0/project/PKG",
+        "reason": "resume",
+        "input": {
+          "session_id": "0d52ee8c-e036-4fab-be02-04e5d8e3bc81",
+          "transcript_path": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81.jsonl",
+          "cwd": "/home/ven0m0/project/PKG",
+          "scratchpad_dir": "/tmp/claude-1000/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81/scratchpad",
+          "prompt_id": "e932674c-cc83-4158-9b07-220842dcd88b",
+          "hook_event_name": "SessionEnd",
+          "reason": "resume"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {}
+      },
+      "budgetMs": 9000
+    },
+    "wiki-capture": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "pending",
+      "attempts": 0,
+      "idempotencyKey": "eebdd763f30d5787a79ea18e58f39fc5677eff78817a8c40aa4ec9b50f2d2f9c",
+      "payload": {
+        "transcriptPath": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81.jsonl",
+        "cwd": "/home/ven0m0/project/PKG",
+        "reason": "resume",
+        "input": {
+          "session_id": "0d52ee8c-e036-4fab-be02-04e5d8e3bc81",
+          "transcript_path": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81.jsonl",
+          "cwd": "/home/ven0m0/project/PKG",
+          "scratchpad_dir": "/tmp/claude-1000/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81/scratchpad",
+          "prompt_id": "e932674c-cc83-4158-9b07-220842dcd88b",
+          "hook_event_name": "SessionEnd",
+          "reason": "resume"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {}
+      },
+      "budgetMs": 9000
+    },
+    "team-cleanup": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "pending",
+      "attempts": 0,
+      "idempotencyKey": "d2ec65ae6144b7400dfc904fe2ca51d30b2032e90192254d7963acd41e2d63d8",
+      "payload": {
+        "transcriptPath": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81.jsonl",
+        "cwd": "/home/ven0m0/project/PKG",
+        "reason": "resume",
+        "input": {
+          "session_id": "0d52ee8c-e036-4fab-be02-04e5d8e3bc81",
+          "transcript_path": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81.jsonl",
+          "cwd": "/home/ven0m0/project/PKG",
+          "scratchpad_dir": "/tmp/claude-1000/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81/scratchpad",
+          "prompt_id": "e932674c-cc83-4158-9b07-220842dcd88b",
+          "hook_event_name": "SessionEnd",
+          "reason": "resume"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {}
+      },
+      "budgetMs": 9000
+    },
+    "python-cleanup": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "pending",
+      "attempts": 0,
+      "idempotencyKey": "adb319f8e26339f3e906eef3ec22384058c92070296830c8327e69dca6492e7d",
+      "payload": {
+        "transcriptPath": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81.jsonl",
+        "cwd": "/home/ven0m0/project/PKG",
+        "reason": "resume",
+        "input": {
+          "session_id": "0d52ee8c-e036-4fab-be02-04e5d8e3bc81",
+          "transcript_path": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81.jsonl",
+          "cwd": "/home/ven0m0/project/PKG",
+          "scratchpad_dir": "/tmp/claude-1000/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81/scratchpad",
+          "prompt_id": "e932674c-cc83-4158-9b07-220842dcd88b",
+          "hook_event_name": "SessionEnd",
+          "reason": "resume"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {}
+      },
+      "budgetMs": 9000
+    },
+    "reply-cleanup": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "pending",
+      "attempts": 0,
+      "idempotencyKey": "ad337a471a29904c839601d2baef9dd7af01a4391fba606cddaaaef9d8125c01",
+      "payload": {
+        "transcriptPath": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81.jsonl",
+        "cwd": "/home/ven0m0/project/PKG",
+        "reason": "resume",
+        "input": {
+          "session_id": "0d52ee8c-e036-4fab-be02-04e5d8e3bc81",
+          "transcript_path": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81.jsonl",
+          "cwd": "/home/ven0m0/project/PKG",
+          "scratchpad_dir": "/tmp/claude-1000/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81/scratchpad",
+          "prompt_id": "e932674c-cc83-4158-9b07-220842dcd88b",
+          "hook_event_name": "SessionEnd",
+          "reason": "resume"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {}
+      },
+      "budgetMs": 9000
+    },
+    "callback": {
+      "class": "best-effort",
+      "phase": "deferred-best-effort",
+      "status": "pending",
+      "attempts": 0,
+      "idempotencyKey": "5c074e512b5042158968e81c9dedfaf062feda024969203e32c8a66f3de0c249",
+      "payload": {
+        "transcriptPath": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81.jsonl",
+        "cwd": "/home/ven0m0/project/PKG",
+        "reason": "resume",
+        "input": {
+          "session_id": "0d52ee8c-e036-4fab-be02-04e5d8e3bc81",
+          "transcript_path": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81.jsonl",
+          "cwd": "/home/ven0m0/project/PKG",
+          "scratchpad_dir": "/tmp/claude-1000/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81/scratchpad",
+          "prompt_id": "e932674c-cc83-4158-9b07-220842dcd88b",
+          "hook_event_name": "SessionEnd",
+          "reason": "resume"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {}
+      },
+      "budgetMs": 2000
+    },
+    "notification": {
+      "class": "best-effort",
+      "phase": "deferred-best-effort",
+      "status": "pending",
+      "attempts": 0,
+      "idempotencyKey": "61b7f2d2ae028778019579374f6ea7858fd7ca08f2d3cc03a9a08e6f95203d79",
+      "payload": {
+        "transcriptPath": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81.jsonl",
+        "cwd": "/home/ven0m0/project/PKG",
+        "reason": "resume",
+        "input": {
+          "session_id": "0d52ee8c-e036-4fab-be02-04e5d8e3bc81",
+          "transcript_path": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81.jsonl",
+          "cwd": "/home/ven0m0/project/PKG",
+          "scratchpad_dir": "/tmp/claude-1000/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81/scratchpad",
+          "prompt_id": "e932674c-cc83-4158-9b07-220842dcd88b",
+          "hook_event_name": "SessionEnd",
+          "reason": "resume"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {}
+      },
+      "budgetMs": 2000
+    },
+    "openclaw": {
+      "class": "best-effort",
+      "phase": "deferred-best-effort",
+      "status": "pending",
+      "attempts": 0,
+      "idempotencyKey": "71e8d5aab45dadcda3fb5b266e9d7eb45178c40523c09281e8730e0fda4b63c2",
+      "payload": {
+        "transcriptPath": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81.jsonl",
+        "cwd": "/home/ven0m0/project/PKG",
+        "reason": "resume",
+        "input": {
+          "session_id": "0d52ee8c-e036-4fab-be02-04e5d8e3bc81",
+          "transcript_path": "/home/ven0m0/.claude/projects/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81.jsonl",
+          "cwd": "/home/ven0m0/project/PKG",
+          "scratchpad_dir": "/tmp/claude-1000/-home-ven0m0-project-PKG/0d52ee8c-e036-4fab-be02-04e5d8e3bc81/scratchpad",
+          "prompt_id": "e932674c-cc83-4158-9b07-220842dcd88b",
+          "hook_event_name": "SessionEnd",
+          "reason": "resume"
+        },
+        "initialTeamNames": [],
+        "openClawRouting": {}
+      },
+      "budgetMs": 2000
+    }
+  },
+  "owner": null,
+  "phase": "collecting"
+}

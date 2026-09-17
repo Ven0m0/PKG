@@ -111,6 +111,11 @@ jobs:
           # the clone into a partial one, so later reads lazily refetch blobs.
           fetch-depth: 2
           show-progress: false
+          # Checkout's persisted http.extraheader Authorization stacks with
+          # the GH_TOKEN-based auth gh/git add for push, and GitHub rejects
+          # the request with "Duplicate header: Authorization". GH_TOKEN
+          # below is the only credential source the agent needs.
+          persist-credentials: false
       - name: Configure git identity
         shell: bash
         run: |
@@ -170,7 +175,11 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          GITHUB_TOKEN: ${{ github.token }}
+          # GITHUB_TOKEN and GH_TOKEN both present make gh/git assemble an
+          # Authorization header from each, and GitHub rejects the push/PR
+          # request with "Duplicate header: Authorization" (seen when the
+          # agent pushed its own branch in run 35167498704). GH_TOKEN is the
+          # only credential source gh/git need here.
           GH_TOKEN: ${{ github.token }}
           OPENCODE_EXPERIMENTAL: "true"
           OPENCODE_ENABLE_EXA: "1"
@@ -199,7 +208,8 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          GITHUB_TOKEN: ${{ github.token }}
+          # See the primary Run OpenCode step: GH_TOKEN alone, not paired
+          # with GITHUB_TOKEN, avoids the duplicate Authorization header.
           GH_TOKEN: ${{ github.token }}
           OPENCODE_EXPERIMENTAL: "true"
           OPENCODE_ENABLE_EXA: "1"

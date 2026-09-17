@@ -1,0 +1,604 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1789609619302,
+  "projectRoot": "/home/ven0m0/project/PKG",
+  "techStack": {
+    "languages": [
+      {
+        "name": "C/C++",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "Makefile"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "tests"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "aria2": {
+      "path": "aria2",
+      "purpose": null,
+      "fileCount": 5,
+      "lastAccessed": 1789609619260,
+      "keyFiles": [
+        "0001-tweak-aria2-for-speed.patch",
+        "0002-retry-options.patch",
+        "PKGBUILD",
+        "readme.md"
+      ]
+    },
+    "chromium": {
+      "path": "chromium",
+      "purpose": null,
+      "fileCount": 15,
+      "lastAccessed": 1789609619268,
+      "keyFiles": [
+        "LICENSE",
+        "PKGBUILD",
+        "README.md",
+        "chromium-138-nodejs-version-check.patch",
+        "chromium-138-rust-1.86-mismatched_lifetime_syntaxes.patch"
+      ]
+    },
+    "code": {
+      "path": "code",
+      "purpose": null,
+      "fileCount": 11,
+      "lastAccessed": 1789609619269,
+      "keyFiles": [
+        "0009-openvsx-extension-signature.patch",
+        "PKGBUILD",
+        "clipath.patch",
+        "code.mjs",
+        "code.sh"
+      ]
+    },
+    "discord": {
+      "path": "discord",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1789609619272,
+      "keyFiles": [
+        "default.nix",
+        "krisp-patcher.py",
+        "readme.md"
+      ]
+    },
+    "dolphin-emu": {
+      "path": "dolphin-emu",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1789609619272,
+      "keyFiles": [
+        "PKGBUILD",
+        "cmake-mgba.diff",
+        "readme.md"
+      ]
+    },
+    "dxvk": {
+      "path": "dxvk",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1789609619272,
+      "keyFiles": [
+        "readme.md"
+      ]
+    },
+    "egl-wayland2": {
+      "path": "egl-wayland2",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1789609619272,
+      "keyFiles": [
+        "PKGBUILD"
+      ]
+    },
+    "endeavouros-keyring": {
+      "path": "endeavouros-keyring",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1789609619272,
+      "keyFiles": [
+        "PKGBUILD",
+        "endeavouros-keyring.install",
+        "readme.md"
+      ]
+    },
+    "endeavouros-mirrorlist": {
+      "path": "endeavouros-mirrorlist",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1789609619272,
+      "keyFiles": [
+        "PKGBUILD",
+        "endeavouros-mirrorlist",
+        "readme.md"
+      ]
+    },
+    "etchdns": {
+      "path": "etchdns",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1789609619273,
+      "keyFiles": [
+        "PKGBUILD",
+        "Readme.md",
+        "etchdns.install"
+      ]
+    },
+    "ffmpeg": {
+      "path": "ffmpeg",
+      "purpose": null,
+      "fileCount": 5,
+      "lastAccessed": 1789609619273,
+      "keyFiles": [
+        "PKGBUILD",
+        "ffmpeg-mini.sh",
+        "patches.txt",
+        "readme.md"
+      ]
+    },
+    "filen-desktop": {
+      "path": "filen-desktop",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1789609619273,
+      "keyFiles": [
+        "PKGBUILD",
+        "bunfig.toml",
+        "filen-desktop.sh"
+      ]
+    },
+    "firefox": {
+      "path": "firefox",
+      "purpose": null,
+      "fileCount": 11,
+      "lastAccessed": 1789609619273,
+      "keyFiles": [
+        "PKGBUILD",
+        "firefox-symbolic.svg",
+        "firefox.desktop",
+        "mozconfig",
+        "mozconfig-fast"
+      ]
+    },
+    "firefox-sync": {
+      "path": "firefox-sync",
+      "purpose": null,
+      "fileCount": 5,
+      "lastAccessed": 1789609619273,
+      "keyFiles": [
+        "PKGBUILD",
+        "firefox-sync-cron.service",
+        "firefox-sync-cron.timer",
+        "firefox-sync.service",
+        "firefox-sync.sh"
+      ]
+    },
+    "ghostty": {
+      "path": "ghostty",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1789609619273,
+      "keyFiles": [
+        "PKGBUILD"
+      ]
+    },
+    "glfw-wayland": {
+      "path": "glfw-wayland",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1789609619273,
+      "keyFiles": [
+        "PKGBUILD",
+        "applyPatches.sh",
+        "rebuildPatches.sh"
+      ]
+    },
+    "glibc": {
+      "path": "glibc",
+      "purpose": null,
+      "fileCount": 15,
+      "lastAccessed": 1789609619275,
+      "keyFiles": [
+        "PGKBUILD-eac",
+        "PKGBUILD",
+        "PKGBUILD-pgo",
+        "glibc.install",
+        "glibc_eac.sh"
+      ]
+    },
+    "handbrake": {
+      "path": "handbrake",
+      "purpose": null,
+      "fileCount": 5,
+      "lastAccessed": 1789609619275,
+      "keyFiles": [
+        "PKGBUILD",
+        "README.md",
+        "patch.sh"
+      ]
+    },
+    "heroic-games-launcher": {
+      "path": "heroic-games-launcher",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1789609619278,
+      "keyFiles": [
+        "PKGBUILD",
+        "readme.md"
+      ]
+    },
+    "intel-ucode-min": {
+      "path": "intel-ucode-min",
+      "purpose": null,
+      "fileCount": 6,
+      "lastAccessed": 1789609619278,
+      "keyFiles": [
+        "99-intel-ucode-scan.hook",
+        "PKGBUILD",
+        "intel-ucode-scan.install",
+        "intel-ucode-scan.sh",
+        "readme.md"
+      ]
+    },
+    "java": {
+      "path": "java",
+      "purpose": null,
+      "fileCount": 6,
+      "lastAccessed": 1789609619278,
+      "keyFiles": [
+        "PKGBUILD",
+        "install_jdk-openjdk.sh",
+        "install_jre-openjdk-headless.sh",
+        "install_jre-openjdk.sh",
+        "readme.md"
+      ]
+    },
+    "legcord": {
+      "path": "legcord",
+      "purpose": null,
+      "fileCount": 6,
+      "lastAccessed": 1789609619279,
+      "keyFiles": [
+        "PKGBUILD",
+        "legcord-launcher.sh",
+        "legcord.desktop",
+        "notes.install",
+        "readme.md"
+      ]
+    },
+    "llvm": {
+      "path": "llvm",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1789609619279,
+      "keyFiles": [
+        "PKGBUILD",
+        "llvm-config.h",
+        "readme.md"
+      ]
+    },
+    "localepurge": {
+      "path": "localepurge",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1789609619280,
+      "keyFiles": [
+        "PKGBUILD",
+        "locale.nopurge"
+      ]
+    },
+    "mesa-git": {
+      "path": "mesa-git",
+      "purpose": null,
+      "fileCount": 8,
+      "lastAccessed": 1789609619292,
+      "keyFiles": [
+        "LICENSE",
+        "PKGBUILD",
+        "customization.cfg",
+        "llvm32.native",
+        "patches.txt"
+      ]
+    },
+    "mpv": {
+      "path": "mpv",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1789609619292,
+      "keyFiles": [
+        "010-mpv-ffmpeg8.0-support.patch",
+        "PKGBUILD",
+        "PKGBUILD-build"
+      ]
+    },
+    "nvidia_oc": {
+      "path": "nvidia_oc",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1789609619292,
+      "keyFiles": [
+        "PKGBUILD",
+        "readme.md"
+      ]
+    },
+    "obs-studio": {
+      "path": "obs-studio",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1789609619292,
+      "keyFiles": [
+        "PKGBUILD",
+        "readme.md"
+      ]
+    },
+    "onlyoffice": {
+      "path": "onlyoffice",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1789609619292,
+      "keyFiles": [
+        "PKGBUILD",
+        "onlyoffice.svg",
+        "readme.md"
+      ]
+    },
+    "preload-ng": {
+      "path": "preload-ng",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1789609619292,
+      "keyFiles": [
+        "PKGBUILD",
+        "preload-ng.install",
+        "readme.md"
+      ]
+    },
+    "prismlauncher": {
+      "path": "prismlauncher",
+      "purpose": null,
+      "fileCount": 6,
+      "lastAccessed": 1789609619292,
+      "keyFiles": [
+        "PKGBUILD",
+        "batch.license",
+        "lionshead.license",
+        "mdi.license",
+        "readme.md"
+      ]
+    },
+    "proton-cachyos-slr": {
+      "path": "proton-cachyos-slr",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1789609619292,
+      "keyFiles": [
+        "PKGBUILD",
+        "compatibilitytool.vdf.template",
+        "proton-cachyos-slr.install"
+      ]
+    },
+    "qpdf": {
+      "path": "qpdf",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1789609619292,
+      "keyFiles": [
+        "PKGBUILD"
+      ]
+    },
+    "rare": {
+      "path": "rare",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1789609619292,
+      "keyFiles": [
+        "PKGBUILD",
+        "rare.sh"
+      ]
+    },
+    "rclone-filen": {
+      "path": "rclone-filen",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1789609619292,
+      "keyFiles": [
+        "LICENSE",
+        "PKGBUILD"
+      ]
+    },
+    "ryujinx": {
+      "path": "ryujinx",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1789609619292,
+      "keyFiles": [
+        "PKGBUILD"
+      ]
+    },
+    "smartdns-rs": {
+      "path": "smartdns-rs",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1789609619292,
+      "keyFiles": [
+        "PKGBUILD",
+        "readme.md",
+        "smartdns-rs.install"
+      ]
+    },
+    "steelseriesgg-rs": {
+      "path": "steelseriesgg-rs",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1789609619292,
+      "keyFiles": [
+        "PKGBUILD",
+        "ssgg.install"
+      ]
+    },
+    "svt-av1": {
+      "path": "svt-av1",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1789609619292,
+      "keyFiles": [
+        "PKGBUILD"
+      ]
+    },
+    "tests": {
+      "path": "tests",
+      "purpose": "Test files",
+      "fileCount": 4,
+      "lastAccessed": 1789609619293,
+      "keyFiles": [
+        "__init__.py",
+        "test_find_updates.py",
+        "test_vp_dev.py",
+        "test_vp_dev_utils.py"
+      ]
+    },
+    "tools": {
+      "path": "tools",
+      "purpose": null,
+      "fileCount": 6,
+      "lastAccessed": 1789609619293,
+      "keyFiles": [
+        "check-isa-level.sh",
+        "find_updates.py",
+        "generate-schedule.py",
+        "generate-workflow.py",
+        "pkg.sh"
+      ]
+    },
+    "umu-launcher": {
+      "path": "umu-launcher",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1789609619293,
+      "keyFiles": [
+        "PKGBUILD"
+      ]
+    },
+    "universal-android-debloater": {
+      "path": "universal-android-debloater",
+      "purpose": null,
+      "fileCount": 6,
+      "lastAccessed": 1789609619293,
+      "keyFiles": [
+        "LICENSE",
+        "PKGBUILD",
+        "uad-ng.desktop"
+      ]
+    },
+    "update-alternatives": {
+      "path": "update-alternatives",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1789609619293,
+      "keyFiles": [
+        "PKGBUILD",
+        "readme.md"
+      ]
+    },
+    "uutils": {
+      "path": "uutils",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1789609619293,
+      "keyFiles": []
+    },
+    "vscodium-prod-patcher": {
+      "path": "vscodium-prod-patcher",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1789609619296,
+      "keyFiles": [
+        "PKGBUILD",
+        "readme.md"
+      ]
+    },
+    "wine-cachyos": {
+      "path": "wine-cachyos",
+      "purpose": null,
+      "fileCount": 16,
+      "lastAccessed": 1789609619296,
+      "keyFiles": [
+        "30-win32-aliases.conf",
+        "PKGBUILD",
+        "PKGBUILD-loathing",
+        "PKGBUILD-opt",
+        "PKGBUILD.llvm"
+      ]
+    },
+    "wine-tkg-git": {
+      "path": "wine-tkg-git",
+      "purpose": null,
+      "fileCount": 8,
+      "lastAccessed": 1789609619296,
+      "keyFiles": [
+        "30-win32-aliases.conf",
+        "PKGBUILD",
+        "README.md",
+        "customization.cfg",
+        "non-makepkg-build.sh"
+      ]
+    },
+    "zlib-ng": {
+      "path": "zlib-ng",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1789609619300,
+      "keyFiles": []
+    },
+    "ffmpeg/tests": {
+      "path": "ffmpeg/tests",
+      "purpose": "Test files",
+      "fileCount": 1,
+      "lastAccessed": 1789609619300,
+      "keyFiles": [
+        "test_update_scripts.py"
+      ]
+    },
+    "tools/lib": {
+      "path": "tools/lib",
+      "purpose": "Library code",
+      "fileCount": 1,
+      "lastAccessed": 1789609619301,
+      "keyFiles": [
+        "helpers.sh"
+      ]
+    }
+  },
+  "hotPaths": [],
+  "userDirectives": []
+}
