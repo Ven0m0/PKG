@@ -182,8 +182,8 @@ jobs:
         VALIDATE AND COMMIT
         11. Per changed package: `bash -n PKGBUILD` passes, `.SRCINFO` is regenerated and matches the PKGBUILD, and `tools/pkg.sh lint` / `tools/pkg.sh srcinfo` succeed where available.
         12. Stage ONLY tracked sources: `PKGBUILD`, `.SRCINFO`, patch files, and `.github/nvchecker/old_ver.json`. Delete the tarballs, debs, and `git+` clones that makepkg and updpkgsums leave behind before staging — `git status --porcelain` must show nothing unexpected.
-        13. Branch `update/pkgbuilds-$(date +%Y%m%d-%H%M%S)` before the first change. One commit, push, and exactly one PR against `main`. If an open update PR already exists, push to it instead of opening a second.
-        14. The PR body lists, with old -> new versions: updated, skipped (with reasons), already current. If nothing changed, do not open a PR.
+        13. Stay on the branch you start on. Do not create or switch branches, commit, push, or open a PR: the workflow commits your working-tree changes, pushes them, and opens the PR itself. Switching branches disables that step.
+        14. End with a summary listing, with old -> new versions: updated, skipped (with reasons), already current. It becomes the PR description. If nothing changed, leave the working tree clean.
     secrets:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
