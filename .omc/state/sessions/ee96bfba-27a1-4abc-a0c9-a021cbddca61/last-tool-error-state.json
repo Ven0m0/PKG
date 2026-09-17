@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"for f in /home/ven0m0/.claude/settings.json /home/ven0m0/.claude/settings.local.json /home/ven0m0/project/PKG/.claude/settings.json /home/ven0m0/project/PKG/.claude/settings.local.json; do...",
-  "error": "Exit code 1\n=== /home/ven0m0/.claude/settings.json ===\n0\n=== /home/ven0m0/.claude/settings.local.json ===\n0",
-  "timestamp": "2026-09-17T01:53:17.864Z",
-  "retry_count": 1
-}
