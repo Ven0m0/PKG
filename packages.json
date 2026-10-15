@@ -310,7 +310,7 @@
     },
     {
       "name": "code",
-      "version": "1.133.0-1",
+      "version": "1.138.0-1",
       "description": "The Open Source build of Visual Studio Code (vscode) editor",
       "url": "https://github.com/microsoft/vscode",
       "files": [
@@ -332,9 +332,24 @@
       "description": "A Gamecube / Wii emulator",
       "url": "https://github.com/xiota/dolphin-primehack",
       "files": [
-        ".SRCINFO",
         "cmake-mgba.diff",
         "readme.md"
+      ]
+    },
+    {
+      "name": "dxvk-gplasync-lowlatency",
+      "version": "2.7.1.4-1",
+      "description": "Vulkan-based implementation of D3D8/9/10/11 with GPL Async and Low Latency features",
+      "url": "https://github.com/Digger1955/dxvk-gplasync-lowlatency",
+      "files": [
+        ".SRCINFO",
+        "5367.patch",
+        "Allow-build-with-AVX-when-using-Clang.patch",
+        "dxvk-async.conf",
+        "dxvk-extraopts.patch",
+        "dxvk-sarek.conf",
+        "readme.md",
+        "setup_dxvk.sh"
       ]
     },
     {
@@ -358,7 +373,7 @@
     },
     {
       "name": "endeavouros-mirrorlist",
-      "version": "26.8-1",
+      "version": "26.9.1-1",
       "description": "EndeavourOS mirrorlist",
       "url": "https://github.com/endeavouros-team/PKGBUILDS/tree/master/endeavouros-mirrorlist",
       "files": [
@@ -369,7 +384,7 @@
     },
     {
       "name": "etchdns",
-      "version": "0.1.3-1",
+      "version": "0.1.5-1",
       "description": "Caching DNS proxy with advanced security features and WebAssembly hooks",
       "url": "https://github.com/jedisct1/etchdns",
       "files": [
@@ -385,7 +400,6 @@
       "url": "https://ffmpeg.org",
       "files": [
         ".SRCINFO",
-        "ffmpeg-mini.sh",
         "patches.txt",
         "patches/0001-Refactor-exponent-parsing-to-use-lookup-table.patch",
         "patches/0001-avcodec-libsvtav1-add-version-guard-for-external-par.patch",
@@ -413,7 +427,7 @@
     },
     {
       "name": "firefox-custom",
-      "version": "153.0.4-1",
+      "version": "156.0-1",
       "description": "Firefox with aggressive optimizations, VA-API, PGO, and all performance tweaks",
       "url": "https://mozilla.org/firefox",
       "files": [
@@ -492,7 +506,7 @@
     },
     {
       "name": "glfw-wayland-minecraft-cursorfix",
-      "version": "3.4-6",
+      "version": "3.5.1-1",
       "description": "A free, open source, portable framework for graphical application development (wayland, patched for Minecraft)",
       "url": "https://github.com/BoyOrigin/glfw-wayland",
       "files": [
@@ -592,14 +606,27 @@
         "install_jdk-openjdk.sh",
         "install_jre-openjdk-headless.sh",
         "install_jre-openjdk.sh",
-        "java-openjdk/.SRCINFO",
-        "java-openjdk/PKGBUILD",
-        "java-openjdk/install_jdk-openjdk.sh",
-        "java-openjdk/install_jre-openjdk-headless.sh",
-        "java-openjdk/install_jre-openjdk.sh",
-        "java21-openjdk/PKGBUILD",
         "readme.md"
       ]
+    },
+    {
+      "name": "jdk-openjdk",
+      "version": "25.0.1.u8-1",
+      "description": "",
+      "url": "https://openjdk.java.net/",
+      "files": [
+        ".SRCINFO",
+        "install_jdk-openjdk.sh",
+        "install_jre-openjdk-headless.sh",
+        "install_jre-openjdk.sh"
+      ]
+    },
+    {
+      "name": "jre21-openjdk-headless",
+      "version": "21.0.9.u10-2",
+      "description": "",
+      "url": "https://openjdk.java.net/",
+      "files": []
     },
     {
       "name": "legcord",
@@ -631,7 +658,6 @@
       "description": "Script to remove disk space wasted for unneeded localizations.",
       "url": "https://packages.debian.org/source/sid/localepurge",
       "files": [
-        ".SRCINFO",
         "locale.nopurge"
       ]
     },
@@ -710,7 +736,7 @@
     },
     {
       "name": "prismlauncher",
-      "version": "11.0.3-1",
+      "version": "11.1.0-1",
       "description": "Minecraft launcher with ability to manage multiple instances (optimized)",
       "url": "https://prismlauncher.org",
       "files": [
@@ -724,7 +750,7 @@
     },
     {
       "name": "proton-cachyos-slr",
-      "version": "${_srctag//-/.}-1",
+      "version": "11.0.20260703-1",
       "description": "A compatibility tool for Steam Play based on Wine and additional components, experimental branch with extra CachyOS flavour (Steam Linux Runtime build)",
       "url": "https://github.com/CachyOS/proton-cachyos",
       "files": [
@@ -735,7 +761,7 @@
     },
     {
       "name": "qpdf-zopfli",
-      "version": "12.4.0-1",
+      "version": "12.4.1-1",
       "description": "QPDF: A Content-Preserving PDF Transformation System (with Zopfli support, optimized)",
       "url": "https://github.com/qpdf/qpdf",
       "files": [
@@ -781,19 +807,20 @@
     },
     {
       "name": "ssgg",
-      "version": "0.1.2-1",
+      "version": "0.1.5-1",
       "description": "A complete open-source SteelSeries GG replacement for Linux - RGB lighting, audio mixer, and GameSense support",
       "url": "https://github.com/Ven0m0/steelseriesgg-rs",
-      "files": []
+      "files": [
+        ".SRCINFO",
+        "ssgg.install"
+      ]
     },
     {
       "name": "svt-av1-essential-git",
       "version": "4.0.1.r1.g4ae9272b-1",
       "description": "A no-nonsense SVT-AV1 encoder fork with sensible defaults and Quality of Life improvements",
       "url": "https://github.com/nekotrix/SVT-AV1-Essential",
-      "files": [
-        ".SRCINFO"
-      ]
+      "files": []
     },
     {
       "name": "umu-launcher",
@@ -828,6 +855,43 @@
       ]
     },
     {
+      "name": "uutils-coreutils-git",
+      "version": "0.8.0.r463.gc6cbfab-1",
+      "description": "Rust rewrite of coreutils",
+      "url": "https://github.com/uutils/coreutils",
+      "files": []
+    },
+    {
+      "name": "uutils-diffutils",
+      "version": "0.5.0-1",
+      "description": "Rust implementation of diffutils",
+      "url": "https://github.com/uutils/diffutils",
+      "files": []
+    },
+    {
+      "name": "uutils-findutils",
+      "version": "0.10.0-1",
+      "description": "Rust implementation of findutils",
+      "url": "https://github.com/uutils/findutils",
+      "files": [
+        ".SRCINFO"
+      ]
+    },
+    {
+      "name": "uutils-procps-git",
+      "version": "0.0.1.r632.ge809c19-1",
+      "description": "Rust reimplementation of the procps project",
+      "url": "https://github.com/uutils/procps",
+      "files": []
+    },
+    {
+      "name": "uutils-tar-git",
+      "version": "0.0.1.r150.1578d39-1",
+      "description": "Rust implementation of tar",
+      "url": "https://github.com/uutils/tar",
+      "files": []
+    },
+    {
       "name": "vscodium-prod-patcher-git",
       "version": "r158.f601a5e-1",
       "description": "Universal patcher for VSCodium product.json (extension marketplace, features, data dir)",
@@ -838,7 +902,7 @@
     },
     {
       "name": "wine-cachyos",
-      "version": "${_srctag//-/.}-1",
+      "version": "11.0.404944.20260727.p6ed41e.w17b615.d1a5919b.v30a219-1",
       "description": "Wine compatibility layer with CachyOS optimizations and wine-osu patches (system-wide install)",
       "url": "https://github.com/CachyOS/wine-cachyos",
       "files": [
@@ -910,6 +974,24 @@
         "wine-tkg-userpatches/wine-bug-56653.patch",
         "wine-tkg-userpatches/wine-osu-README.md",
         "wine.install"
+      ]
+    },
+    {
+      "name": "lib32-zlib-ng",
+      "version": "2.3.3-1",
+      "description": "zlib replacement with optimizations for next generation systems - 32-bit",
+      "url": "https://github.com/zlib-ng/zlib-ng",
+      "files": [
+        ".SRCINFO"
+      ]
+    },
+    {
+      "name": "zlib-ng",
+      "version": "2.1.9-1",
+      "description": "zlib replacement library with optimizations",
+      "url": "https://github.com/zlib-ng/zlib-ng",
+      "files": [
+        ".SRCINFO"
       ]
     }
   ],

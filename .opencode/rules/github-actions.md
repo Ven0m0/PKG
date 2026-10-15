@@ -26,5 +26,5 @@ Keep shell steps non-interactive and install only the tools that the job actuall
 
 - `build.yml` and `_job_pkgbuild.yml` are the reference paths for package build jobs.
 - `lint.yml` is the reference path for shell, Python, YAML, and JSON tooling.
-- `_update-pkgbuilds.yml`, `.github/scripts/try-update.sh`, and `.github/scripts/create-pr.sh` define the repository's package-update automation.
+- `_update-pkgbuilds.yml`, `.github/scripts/bump-pkgbuilds.sh`, and `.github/scripts/arch-run.sh` define the repository's package-update automation.
 - `copilot-setup-steps.yml` should mirror the real bootstrap toolchain: Python 3.14, Node 24 with Bun, mise, shell tooling, yamlfmt, and package-inspection helpers.

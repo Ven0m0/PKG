@@ -12,7 +12,7 @@ Update a tracked package with a clean, verifiable diff that matches this reposit
 
 1. **Read tracking state first** — inspect `nvchecker.toml` and `.github/nvchecker/old_ver.json` before deciding what to change.
 2. **Choose the correct path**:
-   - Prefer `.github/scripts/try-update.sh` for straightforward mechanical bumps.
+   - Prefer `.github/scripts/bump-pkgbuilds.sh` (run through `arch-run`) for straightforward mechanical bumps.
    - Fall back to manual PKGBUILD edits when patches, generated versions, or package-specific logic require it.
 3. **Apply the version update**:
    - Normal packages: update `pkgver`, reset `pkgrel=1`.

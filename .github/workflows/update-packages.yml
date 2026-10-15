@@ -19,10 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - name: Install dependencies
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y jq pacman namcap
+      # vp-dev.py needs only python3 and git, both on the runner image. The old
+      # apt step failed on every run: namcap is not packaged for Ubuntu.
       - name: Update packages.json
         run: |
           chmod +x tools/vp-dev.py

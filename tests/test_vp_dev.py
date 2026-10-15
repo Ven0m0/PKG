@@ -1,13 +1,13 @@
-import unittest
-from unittest.mock import patch, MagicMock
-import sys
-import os
 import importlib.util
 import io
-import subprocess
+import json
+import os
+import sys
 import tempfile
 import time
+import unittest
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 # Dynamically import vp-dev.py using an absolute path relative to this test file
 current_dir = Path(os.path.dirname(os.path.abspath(__file__)))
@@ -20,6 +20,7 @@ spec.loader.exec_module(vp_dev)
 
 
 # ─── Output Utilities ────────────────────────────────────────────────────────
+
 
 class TestOutputUtils(unittest.TestCase):
     def test_colors(self):
@@ -36,7 +37,7 @@ class TestOutputUtils(unittest.TestCase):
             vp_dev.info("test message")
             self.assertEqual(
                 captured_output.getvalue(),
-                f"{vp_dev.Colors.B}→{vp_dev.Colors.N} test message\n"
+                f"{vp_dev.Colors.B}→{vp_dev.Colors.N} test message\n",
             )
         finally:
             sys.stdout = sys.__stdout__
@@ -48,7 +49,7 @@ class TestOutputUtils(unittest.TestCase):
             vp_dev.ok("test message")
             self.assertEqual(
                 captured_output.getvalue(),
-                f"{vp_dev.Colors.G}✓{vp_dev.Colors.N} test message\n"
+                f"{vp_dev.Colors.G}✓{vp_dev.Colors.N} test message\n",
             )
         finally:
             sys.stdout = sys.__stdout__
@@ -60,7 +61,7 @@ class TestOutputUtils(unittest.TestCase):
             vp_dev.warn("test message")
             self.assertEqual(
                 captured_output.getvalue(),
-                f"{vp_dev.Colors.Y}⚠{vp_dev.Colors.N} test message\n"
+                f"{vp_dev.Colors.Y}⚠{vp_dev.Colors.N} test message\n",
             )
         finally:
             sys.stdout = sys.__stdout__
@@ -72,7 +73,7 @@ class TestOutputUtils(unittest.TestCase):
             vp_dev.err("error message")
             self.assertEqual(
                 captured_output.getvalue(),
-                f"{vp_dev.Colors.R}✗{vp_dev.Colors.N} error message\n"
+                f"{vp_dev.Colors.R}✗{vp_dev.Colors.N} error message\n",
             )
         finally:
             sys.stderr = sys.__stderr__
@@ -80,10 +81,11 @@ class TestOutputUtils(unittest.TestCase):
 
 # ─── _parse_srcinfo ───────────────────────────────────────────────────────────
 
+
 class TestParseSrcinfo(unittest.TestCase):
     def setUp(self):
         self.app = vp_dev.VpDev()
-        self.app.root = Path('/mock/root')
+        self.app.root = Path("/mock/root")
         self.app.files_cache = None
 
     def test_parse_srcinfo_missing_both_files(self):
@@ -159,7 +161,7 @@ class TestParseSrcinfo(unittest.TestCase):
                 "pkgname = mypkg\n"
             )
             self.app.files_cache = None
-            with patch('subprocess.run') as mock_run:
+            with patch("subprocess.run") as mock_run:
                 mock_result = MagicMock()
                 mock_result.returncode = 0
                 mock_result.stdout = "PKGBUILD\nsome_patch.patch\nanother_file.txt\n"
@@ -178,12 +180,7 @@ class TestParseSrcinfo(unittest.TestCase):
             pb.touch()
             old_time = time.time() - 10
             os.utime(pb, (old_time, old_time))
-            si.write_text(
-                "pkgbase = mypkg\n"
-                "\tpkgver = 1.0.0\n"
-                "\n"
-                "pkgname = mypkg\n"
-            )
+            si.write_text("pkgbase = mypkg\n\tpkgver = 1.0.0\n\npkgname = mypkg\n")
             self.app.files_cache = {d: []}
             self.assertIsNone(self.app._parse_srcinfo(d))
 
@@ -212,7 +209,7 @@ class TestParseSrcinfo(unittest.TestCase):
             self.assertIsNotNone(result)
             self.assertEqual(result["name"], "mypkg-first")
 
-    @patch('pathlib.Path.read_text')
+    @patch("pathlib.Path.read_text")
     def test_parse_srcinfo_exception(self, mock_read_text):
         mock_read_text.side_effect = Exception("File read error")
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -227,10 +224,11 @@ class TestParseSrcinfo(unittest.TestCase):
 
 # ─── _parse_pkg ───────────────────────────────────────────────────────────────
 
+
 class TestParsePkg(unittest.TestCase):
     def setUp(self):
         self.vp = vp_dev.VpDev()
-        self.vp.root = Path('/mock/root')
+        self.vp.root = Path("/mock/root")
         self.vp.files_cache = None
 
     def test_parse_pkg_not_exists(self):
@@ -293,11 +291,13 @@ class TestParsePkg(unittest.TestCase):
                 "url=https://example.com\n"
             )
             self.vp.files_cache = {
-                Path(tmpdir): ['PKGBUILD', 'file_cache_1.txt', 'file_cache_2.patch']
+                Path(tmpdir): ["PKGBUILD", "file_cache_1.txt", "file_cache_2.patch"]
             }
             result = self.vp._parse_pkg(pb)
             self.assertIsNotNone(result)
-            self.assertEqual(result["files"], ["file_cache_1.txt", "file_cache_2.patch"])
+            self.assertEqual(
+                result["files"], ["file_cache_1.txt", "file_cache_2.patch"]
+            )
 
     def test_parse_pkg_pkgbase_fallback(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -333,6 +333,7 @@ class TestParsePkg(unittest.TestCase):
 
 
 # ─── VpDev init and new ───────────────────────────────────────────────────────
+
 
 class TestVpDev(unittest.TestCase):
     def setUp(self):
@@ -423,8 +424,6 @@ class TestVpDev(unittest.TestCase):
         mock_file.unlink.assert_called_once()
         mock_rmtree.assert_called_once_with(mock_dir)
 
-
-
     @patch("vp_dev.err")
     def test_updpkgsums_pkg_not_found(self, mock_err):
         mock_d = MagicMock(spec=Path)
@@ -451,23 +450,28 @@ class TestVpDev(unittest.TestCase):
 
         def d_exists():
             return True
+
         mock_d.exists.side_effect = d_exists
 
         def pb_exists():
             return False
+
         mock_pb.exists.side_effect = pb_exists
 
         def d_truediv_side_effect(name):
             if name == "PKGBUILD":
                 return mock_pb
             return MagicMock()
+
         mock_d.__truediv__.side_effect = d_truediv_side_effect
 
         mock_root = MagicMock(spec=Path)
+
         def root_truediv_side_effect(name):
             if name == "testpkg":
                 return mock_d
             return MagicMock()
+
         mock_root.__truediv__.side_effect = root_truediv_side_effect
 
         self.vd.root = mock_root
@@ -494,13 +498,16 @@ class TestVpDev(unittest.TestCase):
             elif name == ".SRCINFO":
                 return mock_srcinfo
             return MagicMock()
+
         mock_d.__truediv__.side_effect = d_truediv_side_effect
 
         mock_root = MagicMock(spec=Path)
+
         def root_truediv_side_effect(name):
             if name == "testpkg":
                 return mock_d
             return MagicMock()
+
         mock_root.__truediv__.side_effect = root_truediv_side_effect
         self.vd.root = mock_root
 
@@ -521,7 +528,11 @@ class TestVpDev(unittest.TestCase):
             ["updpkgsums"], cwd=mock_d, capture_output=True, text=True, check=False
         )
         mock_run.assert_any_call(
-            ["makepkg", "--printsrcinfo"], cwd=mock_d, capture_output=True, text=True, check=False
+            ["makepkg", "--printsrcinfo"],
+            cwd=mock_d,
+            capture_output=True,
+            text=True,
+            check=False,
         )
 
         mock_srcinfo.write_text.assert_called_once_with("srcinfo content")
@@ -544,13 +555,16 @@ class TestVpDev(unittest.TestCase):
             if name == "PKGBUILD":
                 return mock_pb
             return MagicMock()
+
         mock_d.__truediv__.side_effect = d_truediv_side_effect
 
         mock_root = MagicMock(spec=Path)
+
         def root_truediv_side_effect(name):
             if name == "testpkg":
                 return mock_d
             return MagicMock()
+
         mock_root.__truediv__.side_effect = root_truediv_side_effect
         self.vd.root = mock_root
 
@@ -580,13 +594,16 @@ class TestVpDev(unittest.TestCase):
             if name == "PKGBUILD":
                 return mock_pb
             return MagicMock()
+
         mock_d.__truediv__.side_effect = d_truediv_side_effect
 
         mock_root = MagicMock(spec=Path)
+
         def root_truediv_side_effect(name):
             if name == "testpkg":
                 return mock_d
             return MagicMock()
+
         mock_root.__truediv__.side_effect = root_truediv_side_effect
         self.vd.root = mock_root
 
@@ -602,5 +619,113 @@ class TestVpDev(unittest.TestCase):
         mock_err.assert_called_once_with("Failed to update checksums: error output")
 
 
-if __name__ == '__main__':
+# ─── Package discovery, file ownership, expansion, update guard ───────────────
+
+
+class TestDiscoveryAndUpdate(unittest.TestCase):
+    # VpDev uses __slots__, so methods are patched on the class, not the instance.
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.vp = vp_dev.VpDev()
+        self.vp.root = self.root
+        self.vp.pkg_json = self.root / "packages.json"
+        for name in ("info", "ok", "err", "warn"):
+            self._start(patch(f"vp_dev.{name}"))
+
+    def _start(self, patcher):
+        mock = patcher.start()
+        self.addCleanup(patcher.stop)
+        return mock
+
+    def _patch(self, attr, **kw):
+        return self._start(patch.object(vp_dev.VpDev, attr, **kw))
+
+    def _git_stdout(self, text):
+        self._patch("_git", return_value=MagicMock(stdout=text))
+
+    def test_get_pkg_dirs_finds_nested_and_skips_excluded(self):
+        self._git_stdout("a/PKGBUILD\ngrp/sub/PKGBUILD\nffmpeg/patches/x/PKGBUILD\n")
+        self.assertEqual(
+            self.vp._get_pkg_dirs(), [self.root / "a", self.root / "grp/sub"]
+        )
+
+    def test_files_cache_assigns_files_to_nearest_package(self):
+        java, sub = self.root / "java", self.root / "java/java-openjdk"
+        self._patch("_get_pkg_dirs", return_value=[java, sub])
+        self._git_stdout(
+            "java/PKGBUILD\njava/a.patch\n"
+            "java/java-openjdk/PKGBUILD\njava/java-openjdk/b.sh\nREADME.md\n"
+        )
+        self.vp._populate_files_cache()
+        self.assertEqual(self.vp.files_cache[java], ["PKGBUILD", "a.patch"])
+        self.assertEqual(self.vp.files_cache[sub], ["PKGBUILD", "b.sh"])
+
+    def test_parse_pkg_expands_pattern_substitution(self):
+        pb = self.root / "PKGBUILD"
+        pb.write_text(
+            "_srctag=11.0-20261005\n"
+            "_name=a-b-c\n"
+            "pkgname=${_name/-/_}\n"
+            "pkgver=${_srctag//-/.}\n"
+            "pkgrel=1\n"
+        )
+        self.vp.files_cache = {self.root: []}
+        result = self.vp._parse_pkg(pb)
+        self.assertEqual(result["name"], "a_b-c")
+        self.assertEqual(result["version"], "11.0.20261005-1")
+
+    def _run_update(self, parsed, dirs=("a", "b")):
+        self._patch("_get_pkg_dirs", return_value=[self.root / d for d in dirs])
+        self._patch("_populate_files_cache")
+        self._patch("_process_package", side_effect=parsed)
+        return self.vp.update()
+
+    def test_update_refuses_to_write_when_a_package_fails(self):
+        self.vp.pkg_json.write_text("OLD")
+        self.assertEqual(self._run_update([{"name": "a"}, None]), 1)
+        self.assertEqual(self.vp.pkg_json.read_text(), "OLD")
+
+    def test_update_refuses_to_write_when_no_packages(self):
+        self.vp.pkg_json.write_text("OLD")
+        self.assertEqual(self._run_update([], dirs=()), 1)
+        self.assertEqual(self.vp.pkg_json.read_text(), "OLD")
+
+    def test_update_writes_all_packages_with_lf(self):
+        self.assertEqual(self._run_update([{"name": "a"}, {"name": "b"}]), 0)
+        raw = self.vp.pkg_json.read_bytes()
+        self.assertNotIn(b"\r\n", raw)
+        self.assertEqual(len(json.loads(raw)["packages"]), 2)
+
+    def test_process_package_falls_back_to_older_srcinfo(self):
+        # Assignments inside if/else are invisible to the regex parser.
+        d = self.root / "pkg"
+        d.mkdir()
+        (d / ".SRCINFO").write_text(
+            "pkgbase = demo\n\tpkgver = 2.7.1.4\n\tpkgrel = 1\n\tpkgdesc = Demo\n\npkgname = demo\n"
+        )
+        (d / "PKGBUILD").write_text(
+            "if true; then\n  pkgname=demo\n  pkgver=2.7.1.4\nfi\npkgrel=1\n"
+        )
+        self.vp.files_cache = {d: []}
+        result = self.vp._process_package(d)
+        self.assertEqual(result["name"], "demo")
+        self.assertEqual(result["version"], "2.7.1.4-1")
+
+    def test_process_package_ignores_hand_written_srcinfo(self):
+        d = self.root / "code"
+        d.mkdir()
+        (d / "PKGBUILD").write_text(
+            "pkgname=code\npkgver=1.138.0\npkgrel=1\npkgdesc='Editor'\nurl='https://x'\n"
+        )
+        # Written after the PKGBUILD, so the mtime check alone would trust it.
+        (d / ".SRCINFO").write_text("pkgname=code\npkgver=1.138.0\npkgrel=1\n")
+        self.vp.files_cache = {d: []}
+        result = self.vp._process_package(d)
+        self.assertEqual(result["description"], "Editor")
+        self.assertEqual(result["url"], "https://x")
+
+
+if __name__ == "__main__":
     unittest.main()

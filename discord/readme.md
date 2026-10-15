@@ -1,2 +1,0 @@
-- <https://github.com/keysmashes/sys/tree/main/hm/discord>
-- <https://aur.archlinux.org/packages/discord_arch_electron>

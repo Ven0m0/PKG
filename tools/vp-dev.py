@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """vp-dev - Development tool for Ven0m0's PKG repository"""
 
-import sys
-import json
 import argparse
-import subprocess
-import shutil
+import concurrent.futures
+import json
 import re
 import shlex
-from pathlib import Path
-import concurrent.futures
+import shutil
+import subprocess
+import sys
+from pathlib import Path, PurePosixPath
 
 VERSION = "1.0.0"
 
@@ -39,7 +39,7 @@ def warn(m: str) -> None:
 
 
 class VpDev:
-    __slots__ = ("root", "pkg_json", "git", "skip_dirs", "files_cache")
+    __slots__ = ("files_cache", "git", "pkg_json", "root", "skip_dirs")
 
     _COMMENT_RE = re.compile(r"(?m)^\s*#.*$")
     _ASSIGN_RE = re.compile(
@@ -47,13 +47,16 @@ class VpDev:
         r"(\((?:[^)]*)\)|'[^']*'|\"[^\"]*\"|[^\n#]*)",
         re.MULTILINE,
     )
-    _VAR_REF_RE = re.compile(r"\$\{([a-zA-Z0-9_]+)\}|\$([a-zA-Z0-9_]+)")
+    # ${var}, ${var/pat/rep}, ${var//pat/rep} and $var
+    _VAR_REF_RE = re.compile(
+        r"\$\{([a-zA-Z0-9_]+)(?:(//?)([^/}]*)/([^}]*))?\}|\$([a-zA-Z0-9_]+)"
+    )
 
     def __init__(self) -> None:
         # This script lives at <repo>/tools/vp-dev.py; the repo root is one level up.
         self.root = Path(__file__).resolve().parent.parent
         self.pkg_json = self.root / "packages.json"
-        self.git = "/usr/bin/git"
+        self.git = shutil.which("git") or "git"
         self.skip_dirs = {
             ".git",
             ".github",
@@ -71,15 +74,19 @@ class VpDev:
         info("Populating file cache...")
         self.files_cache = {}
         try:
+            pkg_dirs = {
+                d.relative_to(self.root).as_posix() for d in self._get_pkg_dirs()
+            }
             r = self._git(["ls-files"], capture_output=True, text=True, check=True)
             for f in r.stdout.splitlines():
-                parts = f.split("/", 1)
-                if len(parts) == 2:
-                    pkg, rel = parts
-                    d = self.root / pkg
-                    if d not in self.files_cache:
-                        self.files_cache[d] = []
-                    self.files_cache[d].append(rel)
+                rel = PurePosixPath(f)
+                # A file belongs to its nearest enclosing package, so a grouped
+                # folder's own package never lists its sub-packages' files.
+                pkg = next((p for p in rel.parents if p.as_posix() in pkg_dirs), None)
+                if pkg is not None:
+                    self.files_cache.setdefault(self.root / pkg, []).append(
+                        rel.relative_to(pkg).as_posix()
+                    )
         except Exception as e:
             warn(f"Failed to populate file cache: {e}")
             self.files_cache = None
@@ -120,8 +127,14 @@ class VpDev:
                     return text
 
                 def replace(match: re.Match) -> str:
-                    v = match.group(1) or match.group(2)
-                    return expand_vars(pkg_vars.get(v, ""), depth + 1)
+                    v = match.group(1) or match.group(5)
+                    value = expand_vars(pkg_vars.get(v, ""), depth + 1)
+                    if match.group(2):
+                        # shortcut: literal patterns only, not bash globs; enough for
+                        # pkgver=${_srctag//-/.}. Upgrade if a PKGBUILD needs globs.
+                        count = -1 if match.group(2) == "//" else 1
+                        value = value.replace(match.group(3), match.group(4), count)
+                    return value
 
                 if "$" in text:
                     return self._VAR_REF_RE.sub(replace, text)
@@ -163,15 +176,24 @@ class VpDev:
             return None
 
     def _get_pkg_dirs(self) -> list[Path]:
-        """Get all package directories (dirs with PKGBUILD, excluding skip_dirs)"""
-        return sorted(
+        """Get all package directories: the parent of every PKGBUILD git knows
+        about (tracked or new, not ignored) at any depth, excluding skip_dirs."""
+        r = self._git(
             [
-                d
-                for d in self.root.iterdir()
-                if d.is_dir()
-                and d.name not in self.skip_dirs
-                and (d / "PKGBUILD").exists()
-            ]
+                "ls-files",
+                "--cached",
+                "--others",
+                "--exclude-standard",
+                "--",
+                ":(glob)**/PKGBUILD",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        dirs = {PurePosixPath(p).parent for p in r.stdout.splitlines()}
+        return sorted(
+            self.root / d for d in dirs if not self.skip_dirs.intersection(d.parts)
         )
 
     def new(self, nm: str) -> int:
@@ -246,13 +268,15 @@ makepkg -si
                 return 1
         return 0
 
-    def _parse_srcinfo(self, d: Path) -> dict[str, str | list[str]] | None:
+    def _parse_srcinfo(
+        self, d: Path, ignore_mtime: bool = False
+    ) -> dict[str, str | list[str]] | None:
         si = d / ".SRCINFO"
         pb = d / "PKGBUILD"
         if (
             not si.exists()
             or not pb.exists()
-            or si.stat().st_mtime < pb.stat().st_mtime
+            or (not ignore_mtime and si.stat().st_mtime < pb.stat().st_mtime)
         ):
             return None
         try:
@@ -268,12 +292,14 @@ makepkg -si
                         if "name" in data:
                             break  # Stop at first package
                         data["name"] = v
-                    elif k in ("pkgver", "pkgrel", "pkgdesc", "url"):
+                    elif k in ("pkgbase", "pkgver", "pkgrel", "pkgdesc", "url"):
                         data[k] = v
-            if "name" in data and "pkgver" in data and "pkgrel" in data:
+            # makepkg always writes pkgbase; a file without it was hand-written
+            # (agents once tee'd partial ones) and is not trusted over the PKGBUILD.
+            if all(k in data for k in ("pkgbase", "name", "pkgver", "pkgrel")):
                 if self.files_cache is not None:
                     files = sorted(
-                        (f for f in self.files_cache.get(d, []) if f != "PKGBUILD")
+                        f for f in self.files_cache.get(d, []) if f != "PKGBUILD"
                     )
                 else:
                     r = self._git(
@@ -281,7 +307,7 @@ makepkg -si
                     )
                     if r.returncode == 0:
                         files = sorted(
-                            (f for f in r.stdout.splitlines() if f and f != "PKGBUILD")
+                            f for f in r.stdout.splitlines() if f and f != "PKGBUILD"
                         )
                 return {
                     "name": data["name"],
@@ -312,8 +338,8 @@ makepkg -si
             # Slow path: parse PKGBUILD
             pb = d / "PKGBUILD"
 
-            # Fallback to full parse
-            pi = self._parse_pkg(pb)
+            # Fallback to full parse, then to makepkg's own .SRCINFO even if older
+            pi = self._parse_pkg(pb) or self._parse_srcinfo(d, ignore_mtime=True)
             if pi:
                 info(f"Found: {pi['name']} {pi['version']}")
                 return pi
@@ -327,15 +353,34 @@ makepkg -si
     def update(self) -> int:
         self._populate_files_cache()
         info("Scanning for packages...")
-        pkgs = []
+        dirs = self._get_pkg_dirs()
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            results = executor.map(self._process_package, self._get_pkg_dirs())
-            pkgs = [p for p in results if p]
+            results = list(executor.map(self._process_package, dirs))
+
+        # A partial result would silently drop packages from packages.json
+        # (a missing git once wrote 0 packages and exited 0), so refuse instead.
+        failed = [
+            d.relative_to(self.root).as_posix() for d, p in zip(dirs, results) if not p
+        ]
+        if not dirs or failed:
+            err(
+                f"Not writing {self.pkg_json.name}: "
+                + (
+                    f"failed to parse {', '.join(failed)}"
+                    if failed
+                    else "no PKGBUILDs found"
+                )
+            )
+            return 1
+        pkgs = results
 
         if self.pkg_json.exists():
             shutil.copy(self.pkg_json, self.pkg_json.with_suffix(".json.bak"))
+        # newline="\n" keeps the committed LF endings when run on Windows.
         self.pkg_json.write_text(
-            json.dumps({"packages": pkgs, "tools": {"vp-dev": VERSION}}, indent=2)
+            json.dumps({"packages": pkgs, "tools": {"vp-dev": VERSION}}, indent=2),
+            encoding="utf-8",
+            newline="\n",
         )
         ok(f"Updated packages.json with {len(pkgs)} packages")
         info(f"Tool version: vp-dev v{VERSION}")
@@ -346,10 +391,11 @@ makepkg -si
         if self.update() != 0:
             return 1
         try:
-            self._git(["add", "-A"], check=True)
+            # Only packages.json: unrelated work in the tree must not ride along.
+            self._git(["add", "--", self.pkg_json.name], check=True)
             if (
                 self._git(
-                    ["diff", "--cached", "--exit-code"],
+                    ["diff", "--cached", "--exit-code", "--", self.pkg_json.name],
                     capture_output=True,
                     check=False,
                 ).returncode
@@ -357,12 +403,12 @@ makepkg -si
             ):
                 info("No changes to publish")
                 return 0
-            self._git(["commit", "-m", "Update packages"], check=True)
+            self._git(
+                ["commit", "-m", "Update packages", "--", self.pkg_json.name],
+                check=True,
+            )
             self._git(["push"], check=True)
             ok("Published successfully!")
-            info(
-                "Changes will be live at https://ven0m0.github.io/PKG/ in a few minutes"
-            )
         except subprocess.CalledProcessError as e:
             err(f"Git operation failed: {e}")
             return 1
@@ -372,7 +418,7 @@ makepkg -si
         errs = 0
         msgs = []
         pb = d / "PKGBUILD"
-        pi = self._parse_pkg(pb)
+        pi = self._parse_pkg(pb) or self._parse_srcinfo(d, ignore_mtime=True)
         if not pi:
             msgs.append((err, f"{d.name}: Failed to parse PKGBUILD"))
             errs += 1
@@ -417,8 +463,12 @@ makepkg -si
                 if name in ("pkg", "src") or name.endswith(
                     (".pkg.tar.zst", ".pkg.tar.xz", ".log", ".bak")
                 ):
-                    (shutil.rmtree if it.is_dir() else it.unlink)(it)
-                    info(f"Removed {'directory' if it.is_dir() else 'file'}: {it}")
+                    is_dir = it.is_dir()
+                    if is_dir:
+                        shutil.rmtree(it)
+                    else:
+                        it.unlink()
+                    info(f"Removed {'directory' if is_dir else 'file'}: {it}")
                     c += 1
         ok(f"Cleaned {c} items")
         return 0
@@ -427,7 +477,9 @@ makepkg -si
         pi = self._parse_srcinfo(d)
         if pi:
             return d, pi
-        return d, self._parse_pkg(d / "PKGBUILD")
+        return d, self._parse_pkg(d / "PKGBUILD") or self._parse_srcinfo(
+            d, ignore_mtime=True
+        )
 
     def list(self) -> int:
         self._populate_files_cache()

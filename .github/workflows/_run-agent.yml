@@ -31,6 +31,11 @@ on:
         required: false
         type: string
         default: ""
+      ref:
+        description: "Branch to check out and continue on (blank = the triggering ref)"
+        required: false
+        type: string
+        default: ""
     secrets:
       ANTHROPIC_API_KEY:
         required: false
@@ -78,13 +83,13 @@ concurrency:
 jobs:
   run-agent:
     runs-on: ubuntu-latest
-    # Package update tasks may need extra time for non-interactive checksum and
-    # metadata refreshes on heavyweight packages such as LLVM or Chromium.
+    # Budget: ~5 min setup, 50 min primary model, 25 min fallback, then the
+    # publish step. The per-step timeouts below keep a stalled model from
+    # reaching this limit, which cancels the job and skips the fallback and
+    # the publish step with it (run 32983923618).
     timeout-minutes: 90
+    # Secrets are set only on the steps that use them.
     env:
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
-      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       GIT_AUTHOR_NAME: Ven0m0
       GIT_AUTHOR_EMAIL: Ven0m0@users.noreply.github.com
       GIT_COMMITTER_NAME: Ven0m0
@@ -106,6 +111,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          # On a branch, the publish step below pushes to that same branch,
+          # so leftover changes land in its already open PR.
+          ref: ${{ inputs.ref }}
           # fetch-depth 2 keeps HEAD~1 available for diffing. Do not add a
           # blob:none filter on top: at this depth it saves nothing and turns
           # the clone into a partial one, so later reads lazily refetch blobs.
@@ -132,6 +140,17 @@ jobs:
           packages: ripgrep
           version: 1.0
 
+      # The stock runner has ~20 GB free. Heavy upstream sources (llvm and
+      # wine git clones, chromium and firefox tarballs) plus the Arch image
+      # exhausted it and crashed the runner (run 38054504314).
+      - name: Free disk space
+        uses: endersonmenezes/free-disk-space@v4
+        with:
+          remove_android: true
+          remove_dotnet: true
+          remove_haskell: true
+          remove_tool_cache: true
+
       # The agent almost always needs the Arch build toolchain. Start the pull
       # detached so it overlaps with the agent's first (model-bound) turns
       # instead of stalling the run mid-task; docker de-duplicates a concurrent
@@ -142,6 +161,13 @@ jobs:
         run: |
           set -euo pipefail
           nohup docker pull --quiet archlinux:base-devel >/dev/null 2>&1 &
+
+      # Agents without a ready command searched for makepkg, tried apt, and
+      # finally hand-wrote .SRCINFO files (run 35219512645). This gives them one
+      # command that works.
+      - name: Install arch-run helper
+        shell: bash
+        run: sudo install -m 0755 .github/scripts/arch-run.sh /usr/local/bin/arch-run
 
       - name: Run Claude
         if: inputs.provider == 'claude'
@@ -170,6 +196,9 @@ jobs:
         # (actions/runner#2418). The gate step below restores job failure
         # when neither attempt succeeds.
         continue-on-error: true
+        # A timeout counts as failure, so a stalled model hands over to the
+        # fallback instead of using up the job timeout.
+        timeout-minutes: 50
         uses: anomalyco/opencode/github@github-v1.2.25
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -203,6 +232,7 @@ jobs:
       - name: Run OpenCode (fallback model)
         id: opencode-fallback
         if: inputs.provider == 'opencode' && inputs.fallback_model != '' && steps.opencode.outcome == 'failure'
+        timeout-minutes: 25
         uses: anomalyco/opencode/github@github-v1.2.25
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -253,7 +283,13 @@ jobs:
             git add -u
             git commit -m "chore: agent changes from run ${GITHUB_RUN_ID}"
           fi
-          if [[ "$(git rev-list --count "origin/${BASE}..HEAD")" -eq 0 ]]; then
+          # A checked-out branch (inputs.ref) has no origin/BASE fetched; only
+          # commits beyond what that branch already pushed are new.
+          since="origin/${BASE}"
+          if git rev-parse -q --verify "origin/${branch}" >/dev/null; then
+            since="origin/${branch}"
+          fi
+          if [[ "$(git rev-list --count "${since}..HEAD")" -eq 0 ]]; then
             echo "Nothing to publish"
             exit 0
           fi

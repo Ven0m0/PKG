@@ -20,7 +20,7 @@ PKG maintains Arch Linux PKGBUILDs, patches, and the automation around version t
 - `tools/pkg.sh` is the entry point for `build`, `lint`, and `srcinfo`; `tools/lib/helpers.sh` holds shared helpers including `find_pkgbuilds`.
 - Other tooling: `tools/vp-dev.py` (regenerates `packages.json` from the PKGBUILDs), `tools/find_updates.py`, `tools/check-isa-level.sh`, `tools/generate-schedule.py`, `tools/generate-workflow.py`.
 - Version tracking: `nvchecker.toml` plus `.github/nvchecker/old_ver.json`. `new_ver.json` is generated on every run and is not tracked.
-- Update automation: `.github/scripts/try-update.sh`, `create-pr.sh`, `fetch-changelog.sh`. `_update-pkgbuilds.yml` detects drift itself, then dispatches an agent through `_run-agent.yml`.
+- Update automation: `_update-pkgbuilds.yml` (daily, or dispatched) detects drift, bumps every package it can with `.github/scripts/bump-pkgbuilds.sh`, opens one PR, and dispatches an agent through `_run-agent.yml` only for the packages left over. `.github/scripts/arch-run.sh` runs makepkg tooling in an Arch container on the Ubuntu runners.
 - `.github/actions/pkgbuild/` is the reusable PKGBUILD validation action.
 - `.github/` is CI only. Rules, skills, agents, and commands live in `.opencode/`.
 
@@ -38,7 +38,6 @@ tools/pkg.sh lint                   # lint and format PKGBUILDs
 tools/pkg.sh srcinfo                # regenerate every .SRCINFO
 tools/pkg.sh build <package>        # makepkg or Docker build
 make lint                           # shell and package lint
-mise r list | mise r setup-all | mise r sync-all
 makepkg -srC                        # clean build inside one package directory
 ```
 
@@ -56,7 +55,7 @@ Default path: set `pkgver`, reset `pkgrel=1`, run `updpkgsums`, then `makepkg --
 
 Some untagged git packages (`ghostty`, `rclone-filen`, `update-alternatives`, `vscodium-prod-patcher`, several `uutils/*`) intentionally ship without `.SRCINFO`, because generating one needs a real clone. Do not add one from a stale value; the absence is deliberate, not an omission.
 
-When the mechanical path fits, prefer `.github/scripts/try-update.sh` and `create-pr.sh` over ad-hoc scripts.
+When the mechanical path fits, prefer `.github/scripts/bump-pkgbuilds.sh` over ad-hoc scripts.
 
 ## File-specific guidance
 

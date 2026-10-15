@@ -1,7 +1,7 @@
 import unittest
 import sys
 import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 # Mock required modules that may not be available (Arch Linux specific)
 sys.modules['pyalpm'] = MagicMock()

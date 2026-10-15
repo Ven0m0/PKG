@@ -1,0 +1,45 @@
+# SHA pinning is intentionally not used; actions float on their latest major tag.
+# ghalint needs one exclusion per action, so a newly added action needs its own entry.
+excludes:
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: actions/cache
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: actions/cache/restore
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: actions/cache/save
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: actions/checkout
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: actions/setup-node
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: actions/setup-python
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: actions/upload-artifact
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: anomalyco/opencode/github
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: anthropics/claude-code-action
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: astral-sh/setup-uv
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: awalsh128/cache-apt-pkgs-action
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: docker/build-push-action
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: docker/login-action
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: docker/metadata-action
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: docker/setup-buildx-action
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: edlanglois/pkgbuild-action
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: endersonmenezes/free-disk-space
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: oven-sh/setup-bun
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: oxsecurity/megalinter
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: softprops/action-gh-release
+  - policy_name: action_ref_should_be_full_length_commit_sha
+    action_name: vegardit/fast-apt-mirror.sh

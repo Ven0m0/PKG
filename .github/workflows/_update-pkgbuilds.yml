@@ -1,5 +1,8 @@
 name: _update-pkgbuilds
 on:
+  # Scheduled runs take the dispatch defaults: every tracked package, no force.
+  schedule:
+    - cron: "0 5 * * *"
   # checkov:skip=CKV_GHA_7: Manual inputs required
   workflow_dispatch:
     inputs:
@@ -32,12 +35,14 @@ jobs:
     outputs:
       has_drift: ${{ steps.diff.outputs.has_drift }}
       drift: ${{ steps.diff.outputs.drift }}
+      drift_tsv: ${{ steps.diff.outputs.drift_tsv }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
           fetch-depth: 1
           show-progress: false
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -87,6 +92,7 @@ jobs:
             {
               echo "has_drift=true"
               echo "drift="
+              echo "drift_tsv="
             } >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -122,6 +128,11 @@ jobs:
           for name, before, after in drift:
               print(f"- {name}: {before} -> {after}")
           print("NVDRIFT")
+          # Tab-separated copy for the bump job's script.
+          print("drift_tsv<<NVTSV")
+          for row in drift:
+              print("\t".join(row))
+          print("NVTSV")
           PY
 
       - name: Summarise
@@ -137,9 +148,84 @@ jobs:
             printf '## All tracked packages are current\n\nNo agent run needed.\n'
           fi >> "$GITHUB_STEP_SUMMARY"
 
-  update-pkgbuilds:
+  # A plain version bump needs no model. Bump every drifted package here in
+  # one Arch container and leave the agent only what this cannot do safely:
+  # a ~5 min model turn per step cannot cover 17 packages (run 32983923618).
+  bump:
     needs: detect
-    if: needs.detect.outputs.has_drift == 'true'
+    if: needs.detect.outputs.drift_tsv != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      branch: ${{ steps.publish.outputs.branch }}
+      agent_drift: ${{ steps.bump.outputs.agent_drift }}
+    env:
+      GIT_AUTHOR_NAME: Ven0m0
+      GIT_AUTHOR_EMAIL: Ven0m0@users.noreply.github.com
+      GIT_COMMITTER_NAME: Ven0m0
+      GIT_COMMITTER_EMAIL: Ven0m0@users.noreply.github.com
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          show-progress: false
+          persist-credentials: false
+
+      - name: Bump versions
+        id: bump
+        shell: bash
+        env:
+          DRIFT_TSV: ${{ needs.detect.outputs.drift_tsv }}
+        run: |
+          set -euo pipefail
+          sudo install -m 0755 .github/scripts/arch-run.sh /usr/local/bin/arch-run
+          # Scratch files live under .git/: inside the container's mount, never staged.
+          printf '%s\n' "${DRIFT_TSV}" > .git/bump-drift.tsv
+          arch-run . 'bash .github/scripts/bump-pkgbuilds.sh .git/bump-drift.tsv .git/bump-results.tsv'
+          {
+            echo "agent_drift<<NVAGENT"
+            awk -F'\t' '$1 == "agent" { printf "- %s: %s -> %s (%s)\n", $2, $3, $4, $5 }' .git/bump-results.tsv
+            echo "NVAGENT"
+          } >> "$GITHUB_OUTPUT"
+          {
+            printf '## Version bump\n\n| Status | Package | Tracked | Latest | Detail |\n| --- | --- | --- | --- | --- |\n'
+            awk -F'\t' '{ gsub(/\|/, "\\|", $5); printf "| %s | %s | %s | %s | %s |\n", $1, $2, $3, $4, $5 }' .git/bump-results.tsv
+          } > .git/bump-summary.md
+          cat .git/bump-summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open pull request
+        id: publish
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "Nothing was bumped"
+            exit 0
+          fi
+          branch="update/pkgbuilds-${GITHUB_RUN_ID}"
+          git checkout -b "${branch}"
+          git add -u
+          git commit -m "chore: update PKGBUILDs"
+          gh auth setup-git
+          git push -u origin "HEAD:refs/heads/${branch}"
+          gh pr create --base "${BASE}" --head "${branch}" \
+            --title "chore: update PKGBUILDs" --body-file .git/bump-summary.md
+          echo "branch=${branch}" >> "$GITHUB_OUTPUT"
+
+  # Runs for what the bump left over. It also covers everything when detection
+  # failed (bump skipped), when the bump job failed, or when forced.
+  update-pkgbuilds:
+    needs: [detect, bump]
+    if: >-
+      always() && needs.detect.outputs.has_drift == 'true'
+      && (needs.bump.result != 'success' || needs.bump.outputs.agent_drift != '' || inputs.force)
     permissions:
       id-token: write
       contents: write
@@ -148,29 +234,34 @@ jobs:
     uses: ./.github/workflows/_run-agent.yml
     with:
       provider: opencode
-      model: "opencode/nemotron-3.5-lightning-free"
-      fallback_model: "opencode/big-pickle"
+      # nemotron-3.5-lightning-free averaged ~5 min per turn with 504 idle
+      # timeouts (run 32983923618), so it is only the fallback now.
+      model: "opencode/big-pickle"
+      fallback_model: "opencode/nemotron-3.5-lightning-free"
       concurrency_group: update-pkgbuilds
+      # Continue on the bump branch so the agent's fixes join that PR.
+      ref: ${{ needs.bump.outputs.branch }}
+      # The bump job's leftovers; the full drift when it did not run or failed.
       prompt: |
         Update the PKGBUILDs listed below to their latest upstream versions and open ONE pull request.
 
-        ${{ needs.detect.outputs.drift != '' && 'nvchecker has already run. These packages are behind upstream, given as `nvchecker key: tracked -> latest`:' || 'Version detection did not run this time. Install and run nvchecker against `nvchecker.toml` yourself, diff the result against `.github/nvchecker/old_ver.json`, and update every package that is behind.' }}
+        ${{ (needs.bump.outputs.agent_drift || needs.detect.outputs.drift) != '' && 'nvchecker has already run. These packages are behind upstream, given as `nvchecker key: tracked -> latest`. A note in parentheses says why the automatic bump left the package to you; every other drifted package is already bumped on this branch:' || 'Version detection did not run this time. Install and run nvchecker against `nvchecker.toml` yourself, diff the result against `.github/nvchecker/old_ver.json`, and update every package that is behind.' }}
 
-        ${{ needs.detect.outputs.drift }}
+        ${{ needs.bump.outputs.agent_drift || needs.detect.outputs.drift }}
 
-        ${{ needs.detect.outputs.drift != '' && 'Work only on those packages. Do not re-run nvchecker and do not touch any other package.' || '' }}
+        ${{ (needs.bump.outputs.agent_drift || needs.detect.outputs.drift) != '' && 'Work only on those packages. Do not re-run nvchecker and do not touch any other package.' || '' }}
         ${{ inputs.packages != '' && format('Restrict the run further to these package directories: {0}', inputs.packages) || '' }}
 
         `.opencode/skills/update-pkgbuild/SKILL.md` and `.opencode/rules/pkgbuild.md` are the canonical procedure. Read them first. The rules below win on any conflict.
 
         SETUP
         1. Everything runs non-interactively. Pass explicit flags to git, nvchecker, makepkg and updpkgsums; never block on a prompt.
-        2. You need makepkg and updpkgsums (pacman-contrib). If the runner lacks them, run the build-tool steps in the `archlinux:base-devel` container, which is already being pulled for you. A missing toolchain is a setup bug to fix, never a reason to skip a package.
+        2. makepkg and updpkgsums are NOT installed on this Ubuntu runner. Run them only through the `arch-run` helper, from the repo root: `arch-run <package-dir> '<command>'`, e.g. `arch-run firefox 'updpkgsums && makepkg --printsrcinfo > .SRCINFO'`. It runs the command in an Arch container and discards downloaded sources afterwards. Do not apt-install pacman tools or search the filesystem for them. Never hand-write, `tee`, or `sed` a `.SRCINFO`: generate it with makepkg or leave it unchanged.
         3. Isolate each package: one failure must not abort the others.
 
         EDITING — classify each package first
-        4. Normal package: set `pkgver`, reset `pkgrel=1`, run `updpkgsums`, then `makepkg --printsrcinfo > .SRCINFO`.
-        5. Package whose version is derived at build time by `pkgver()` — detect them with `rg -l '^\s*pkgver\s*\(\)' --glob PKGBUILD` rather than assuming a list: do NOT hand-edit the derived `pkgver`. Record the new tracked value in `old_ver.json` and leave the PKGBUILD alone unless the source clones cheaply. Some of these ship without `.SRCINFO` on purpose; do not add one from a stale value.
+        4. Normal package: set `pkgver`, reset `pkgrel=1`, then `arch-run <dir> 'updpkgsums && makepkg --printsrcinfo > .SRCINFO'`. If every source whose URL changed is a `git+` URL (checksum `SKIP`), skip `updpkgsums` and only regenerate `.SRCINFO`.
+        5. Package whose version is derived at build time by `pkgver()` — detect them with `rg -l '^\s*pkgver\s*\(\)' --glob PKGBUILD` rather than assuming a list: do NOT hand-edit the derived `pkgver`. Record the new tracked value in `old_ver.json` and leave the PKGBUILD alone unless the source clones cheaply. `llvm` never clones cheaply (llvm-project is several GB): never clone it. Some of these ship without `.SRCINFO` on purpose; do not add one from a stale value.
         6. `proton-cachyos-slr` and `wine-cachyos`: update `_srctag` only; the derived `pkgver` expression stays as-is.
         7. `chromium`: the tracked value is `{pkgver}-{commit}`. Update `pkgver` and `_commit`, ensure the literal line `_pkgver=${pkgver}` follows `pkgver=`, then refresh sums and `.SRCINFO`.
         8. Never downgrade. Confirm the direction with `vercmp` before editing. If `pkgver` is unchanged, leave the package untouched.
@@ -180,7 +271,7 @@ jobs:
         10. Skip only when no bounded fix exists. For a real skip, leave that package's `old_ver.json` entry UNCHANGED so the next run retries it, and record the package, target version, and precise reason.
 
         VALIDATE AND COMMIT
-        11. Per changed package: `bash -n PKGBUILD` passes, `.SRCINFO` is regenerated and matches the PKGBUILD, and `tools/pkg.sh lint` / `tools/pkg.sh srcinfo` succeed where available.
+        11. Per changed package: `bash -n PKGBUILD` passes, `.SRCINFO` is regenerated and matches the PKGBUILD, and `tools/pkg.sh lint` / `tools/pkg.sh srcinfo` succeed where available. Never run a full build (`makepkg` without `-g`/`--printsrcinfo`, or `tools/pkg.sh build`): this job has neither the time nor the disk for it.
         12. Stage ONLY tracked sources: `PKGBUILD`, `.SRCINFO`, patch files, and `.github/nvchecker/old_ver.json`. Delete the tarballs, debs, and `git+` clones that makepkg and updpkgsums leave behind before staging — `git status --porcelain` must show nothing unexpected.
         13. Stay on the branch you start on. Do not create or switch branches, commit, push, or open a PR: the workflow commits your working-tree changes, pushes them, and opens the PR itself. Switching branches disables that step.
         14. End with a summary listing, with old -> new versions: updated, skipped (with reasons), already current. It becomes the PR description. If nothing changed, leave the working tree clean.
