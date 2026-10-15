@@ -14,7 +14,7 @@
     },
     {
       "name": "cromite",
-      "version": "148.0.7778.168-1",
+      "version": "153.0.8010.37-1",
       "description": "A Bromite fork with ad blocking and privacy enhancements",
       "url": "https://github.com/uazo/cromite",
       "files": [
@@ -354,7 +354,7 @@
     },
     {
       "name": "egl-wayland2",
-      "version": "v1.0.1-1",
+      "version": "v1.0.2-1",
       "description": "new EGLStream-based Wayland external platform",
       "url": "https://github.com/NVIDIA/egl-wayland2",
       "files": [
@@ -585,7 +585,7 @@
     },
     {
       "name": "intel-ucode-scan",
-      "version": "1.0.1-1",
+      "version": "1.0.2-1",
       "description": "Pacman hook + helper: generate per-CPU intel microcode image and rebuild initramfs",
       "url": "https://github.com/intel/Intel-Linux-Processor-Microcode-Data-Files",
       "files": [
@@ -736,7 +736,7 @@
     },
     {
       "name": "prismlauncher",
-      "version": "11.1.0-1",
+      "version": "11.1.1-1",
       "description": "Minecraft launcher with ability to manage multiple instances (optimized)",
       "url": "https://prismlauncher.org",
       "files": [
