@@ -1,4 +1,21 @@
-pkgname=etchdns
-pkgver=0.1.5
-pkgrel=1
-source=($pkgname-$pkgver.tar.gz::https://github.com/jedisct1/$pkgname/archive/refs/tags/$pkgver.tar.gz)
+pkgbase = etchdns
+	pkgdesc = Caching DNS proxy with advanced security features and WebAssembly hooks
+	pkgver = 0.9.0
+	pkgrel = 1
+	url = https://github.com/jedisct1/etchdns
+	install = etchdns.install
+	arch = x86_64
+	arch = aarch64
+	license = MIT
+	makedepends = rust
+	makedepends = cargo
+	depends = gcc-libs
+	depends = glibc
+	options = strip
+	options = !emptydirs
+	options = !debug
+	options = !libtool
+	source = etchdns-0.9.0.tar.gz::https://github.com/jedisct1/etchdns/archive/refs/tags/0.9.0.tar.gz
+	sha256sums = c84261b5bb06898f9dd41f84acdc45024a4a0b50e26f8ee952fb0d7edc90d4cb
+
+pkgname = etchdns

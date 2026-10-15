@@ -1,7 +1,7 @@
 # Maintainer: Ven0m0
 # shellcheck disable=SC2034,SC2154
 pkgname=ssgg
-pkgver=0.1.5
+pkgver=0.1.6
 pkgrel=1
 pkgdesc="A complete open-source SteelSeries GG replacement for Linux - RGB lighting, audio mixer, and GameSense support"
 arch=('x86_64')
@@ -14,7 +14,7 @@ source=(
   "$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz"
 )
 # TODO: run `updpkgsums` on a host with network access to codeload.github.com
-sha256sums=('SKIP')
+sha256sums=('8e78b16667b0cc7991b3e42afb32b1f7c1dd712115bfe19cff503b9a66e8aebc')
 
 _archive_dir="steelseriesgg-rs-$pkgver"
 _rust_target="$CARCH-unknown-linux-gnu"

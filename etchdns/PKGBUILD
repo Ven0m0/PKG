@@ -1,6 +1,6 @@
 # Maintainer: Frank Denis
 pkgname=etchdns
-pkgver=0.1.5
+pkgver=0.9.0
 pkgrel=1
 makedepends=('rust' 'cargo')
 depends=('gcc-libs' 'glibc')
@@ -11,7 +11,7 @@ license=('MIT')
 options=('strip' '!emptydirs' '!debug' '!libtool')
 install="$pkgname.install"
 source=("$pkgname-$pkgver.tar.gz::https://github.com/jedisct1/$pkgname/archive/refs/tags/$pkgver.tar.gz")
-sha256sums=('SKIP')
+sha256sums=('c84261b5bb06898f9dd41f84acdc45024a4a0b50e26f8ee952fb0d7edc90d4cb')
 
 export CARGO_PROFILE_RELEASE_LTO=true CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1 CARGO_INCREMENTAL=0
 export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target
