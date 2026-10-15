@@ -1,7 +1,7 @@
 # Maintainer: pingplug < aur at pingplug dot me >
 # shellcheck enable=all shell=bash source-path=SCRIPTDIR external-sources=true
 pkgname=intel-ucode-scan
-pkgver=1.0.1
+pkgver=1.0.2
 pkgrel=1
 pkgdesc="Pacman hook + helper: generate per-CPU intel microcode image and rebuild initramfs"
 arch=('x86_64')
@@ -13,7 +13,7 @@ optdepends=('intel-ucode: intel microcode firmware'
 source=("99-intel-ucode-scan.hook"
   "intel-ucode-scan.sh")
 sha256sums=('8febf07b7a3e7c247e0efcde49677329f117784c1e879be4fe341bdfecbf70f4'
-  '4d61a83b24c0da467eaa55efaa78d2a677234d8fe11ba1e011de76de83fb9ed0')
+            '4d61a83b24c0da467eaa55efaa78d2a677234d8fe11ba1e011de76de83fb9ed0')
 
 build() { return 0; }
 package() {
