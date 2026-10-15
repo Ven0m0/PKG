@@ -88,13 +88,13 @@ jobs:
           packages: shellcheck jq
           version: 1.0
       - name: Install uv
-        uses: astral-sh/setup-uv@v10.2.0
+        uses: astral-sh/setup-uv@v10.3.0
         with:
           enable-cache: false
       - name: Setup Python
         uses: actions/setup-python@v7
         with:
-          python-version: "3.14"
+          python-version: "3.15"
       - name: Install Python linters
         shell: bash
         run: |
