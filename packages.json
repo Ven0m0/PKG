@@ -310,7 +310,7 @@
     },
     {
       "name": "code",
-      "version": "1.138.0-1",
+      "version": "1.142.0-1",
       "description": "The Open Source build of Visual Studio Code (vscode) editor",
       "url": "https://github.com/microsoft/vscode",
       "files": [
@@ -384,7 +384,7 @@
     },
     {
       "name": "etchdns",
-      "version": "0.1.5-1",
+      "version": "0.9.0-1",
       "description": "Caching DNS proxy with advanced security features and WebAssembly hooks",
       "url": "https://github.com/jedisct1/etchdns",
       "files": [
@@ -427,7 +427,7 @@
     },
     {
       "name": "firefox-custom",
-      "version": "156.0-1",
+      "version": "158.0-1",
       "description": "Firefox with aggressive optimizations, VA-API, PGO, and all performance tweaks",
       "url": "https://mozilla.org/firefox",
       "files": [
@@ -714,7 +714,7 @@
     },
     {
       "name": "onlyoffice",
-      "version": "9.4.0-1",
+      "version": "10.0.0-1",
       "description": "An office suite that combines text, spreadsheet and presentation editors",
       "url": "https://www.onlyoffice.com/",
       "files": [
@@ -750,7 +750,7 @@
     },
     {
       "name": "proton-cachyos-slr",
-      "version": "11.0.20260703-1",
+      "version": "11.0.20261005-1",
       "description": "A compatibility tool for Steam Play based on Wine and additional components, experimental branch with extra CachyOS flavour (Steam Linux Runtime build)",
       "url": "https://github.com/CachyOS/proton-cachyos",
       "files": [
@@ -761,7 +761,7 @@
     },
     {
       "name": "qpdf-zopfli",
-      "version": "12.4.1-1",
+      "version": "12.4.2-1",
       "description": "QPDF: A Content-Preserving PDF Transformation System (with Zopfli support, optimized)",
       "url": "https://github.com/qpdf/qpdf",
       "files": [
@@ -807,7 +807,7 @@
     },
     {
       "name": "ssgg",
-      "version": "0.1.5-1",
+      "version": "0.1.6-1",
       "description": "A complete open-source SteelSeries GG replacement for Linux - RGB lighting, audio mixer, and GameSense support",
       "url": "https://github.com/Ven0m0/steelseriesgg-rs",
       "files": [
@@ -902,7 +902,7 @@
     },
     {
       "name": "wine-cachyos",
-      "version": "11.0.404944.20260727.p6ed41e.w17b615.d1a5919b.v30a219-1",
+      "version": "11.0.443694.20261001.pe4bd4f.w6d211a.d685301.v44cf7c-1",
       "description": "Wine compatibility layer with CachyOS optimizations and wine-osu patches (system-wide install)",
       "url": "https://github.com/CachyOS/wine-cachyos",
       "files": [
