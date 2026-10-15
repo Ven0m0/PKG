@@ -43,7 +43,7 @@
   "zlib-ng/zlib-ng": "2.3.3",
   "zlib-ng/lib32-zlib-ng": "2.3.3",
   "dolphin-emu": "2606",
-  "intel-ucode-min": "20260812",
+  "intel-ucode-min": "20260925",
   "rclone-filen": "v1.70.0-filen.15",
   "svt-av1": "v4.0.1",
   "uutils/procps": "0.0.1",
