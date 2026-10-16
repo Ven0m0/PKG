@@ -49,7 +49,7 @@
   "uutils/procps": "0.0.1",
   "uutils/tar": "latest-commit",
   "wine-tkg-git": "20050930",
-  "mesa-git": "26.2-branchpoint",
+  "mesa-git": "26.3-branchpoint",
   "vscodium-prod-patcher": "ce9f740745c2189c4bf32823f54c9cdacc6e8719",
   "steelseriesgg-rs": "0.1.6"
 }
