@@ -902,7 +902,7 @@
     },
     {
       "name": "wine-cachyos",
-      "version": "11.0.443694.20261001.pe4bd4f.w6d211a.d685301.v44cf7c-1",
+      "version": "11.0.451980.20261014.pb94341.w7fc704.da78a46.v0bb64c-1",
       "description": "Wine compatibility layer with CachyOS optimizations and wine-osu patches (system-wide install)",
       "url": "https://github.com/CachyOS/wine-cachyos",
       "files": [
