@@ -750,7 +750,7 @@
     },
     {
       "name": "proton-cachyos-slr",
-      "version": "11.0.20261005-1",
+      "version": "11.0.20261014-1",
       "description": "A compatibility tool for Steam Play based on Wine and additional components, experimental branch with extra CachyOS flavour (Steam Linux Runtime build)",
       "url": "https://github.com/CachyOS/proton-cachyos",
       "files": [
