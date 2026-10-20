@@ -807,7 +807,7 @@
     },
     {
       "name": "ssgg",
-      "version": "0.1.6-1",
+      "version": "0.1.7-1",
       "description": "A complete open-source SteelSeries GG replacement for Linux - RGB lighting, audio mixer, and GameSense support",
       "url": "https://github.com/Ven0m0/steelseriesgg-rs",
       "files": [
