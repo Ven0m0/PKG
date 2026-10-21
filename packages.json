@@ -373,7 +373,7 @@
     },
     {
       "name": "endeavouros-mirrorlist",
-      "version": "26.9.1-1",
+      "version": "26.10-1",
       "description": "EndeavourOS mirrorlist",
       "url": "https://github.com/endeavouros-team/PKGBUILDS/tree/master/endeavouros-mirrorlist",
       "files": [
@@ -427,7 +427,7 @@
     },
     {
       "name": "firefox-custom",
-      "version": "158.0-1",
+      "version": "158.0.1-1",
       "description": "Firefox with aggressive optimizations, VA-API, PGO, and all performance tweaks",
       "url": "https://mozilla.org/firefox",
       "files": [
@@ -750,7 +750,7 @@
     },
     {
       "name": "proton-cachyos-slr",
-      "version": "11.0.20261014-1",
+      "version": "11.0.20261015-1",
       "description": "A compatibility tool for Steam Play based on Wine and additional components, experimental branch with extra CachyOS flavour (Steam Linux Runtime build)",
       "url": "https://github.com/CachyOS/proton-cachyos",
       "files": [
@@ -807,7 +807,7 @@
     },
     {
       "name": "ssgg",
-      "version": "0.1.7-1",
+      "version": "0.1.8-1",
       "description": "A complete open-source SteelSeries GG replacement for Linux - RGB lighting, audio mixer, and GameSense support",
       "url": "https://github.com/Ven0m0/steelseriesgg-rs",
       "files": [
