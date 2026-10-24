@@ -310,7 +310,7 @@
     },
     {
       "name": "code",
-      "version": "1.142.0-1",
+      "version": "1.143.1-1",
       "description": "The Open Source build of Visual Studio Code (vscode) editor",
       "url": "https://github.com/microsoft/vscode",
       "files": [
@@ -703,7 +703,7 @@
     },
     {
       "name": "obs-studio",
-      "version": "32.2.2-1",
+      "version": "33.0.0-1",
       "description": "Free and open source software for video recording and live streaming (optimized)",
       "url": "https://github.com/obsproject/obs-studio",
       "files": [
@@ -863,7 +863,7 @@
     },
     {
       "name": "uutils-diffutils",
-      "version": "0.5.0-1",
+      "version": "0.6.0-1",
       "description": "Rust implementation of diffutils",
       "url": "https://github.com/uutils/diffutils",
       "files": []
