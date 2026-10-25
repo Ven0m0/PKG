@@ -2,7 +2,7 @@
   "packages": [
     {
       "name": "aria2-ven0m0",
-      "version": "release-1.37.0-3",
+      "version": "1.37.0-3",
       "description": "Download utility that supports HTTP(S), FTP, BitTorrent, and Metalink",
       "url": "https://aria2.github.io",
       "files": [
