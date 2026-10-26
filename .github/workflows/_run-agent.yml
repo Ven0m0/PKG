@@ -199,7 +199,7 @@ jobs:
         # A timeout counts as failure, so a stalled model hands over to the
         # fallback instead of using up the job timeout.
         timeout-minutes: 50
-        uses: anomalyco/opencode/github@github-v1.2.26
+        uses: anomalyco/opencode/github@github-v1.2.27
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
@@ -233,7 +233,7 @@ jobs:
         id: opencode-fallback
         if: inputs.provider == 'opencode' && inputs.fallback_model != '' && steps.opencode.outcome == 'failure'
         timeout-minutes: 25
-        uses: anomalyco/opencode/github@github-v1.2.26
+        uses: anomalyco/opencode/github@github-v1.2.27
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
