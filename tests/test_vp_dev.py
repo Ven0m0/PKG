@@ -346,7 +346,7 @@ class TestVpDev(unittest.TestCase):
             self.vd.pkg_json = self.vd.root / "packages.json"
 
     def test_init(self):
-        self.assertEqual(str(self.vd.root), "/mock/root")
+        self.assertEqual(self.vd.root, Path("/mock/root"))
         self.assertIn(".git", self.vd.skip_dirs)
 
     @patch("vp_dev.info")

@@ -14,6 +14,7 @@ drift=${1:?usage: bump-pkgbuilds.sh <drift.tsv> <results.tsv>}
 results=${2:?usage: bump-pkgbuilds.sh <drift.tsv> <results.tsv>}
 oldver=.github/nvchecker/old_ver.json
 log=$(mktemp)
+trap 'rm -f "${log}"' EXIT
 : >"${results}"
 
 # old_ver.json is a flat {"key": "value"} map, one entry per line.
@@ -51,6 +52,9 @@ bump() {
     return
   fi
   cur=$(sed -n "s/^${var}=//p" "${pkgbuild}")
+  # A quoted pkgver="1.2" is still a plain bump; without this it failed the
+  # ^[0-9] gate below and went to the agent.
+  cur=${cur//[\"\']/}
   # old_ver.json often lags the PKGBUILD, so compare against the PKGBUILD. A
   # tracked value that is not the PKGBUILD's own version scheme (an update
   # trigger such as intel-ucode-min, chromium's pkgver-commit pair, a

@@ -200,7 +200,8 @@ jobs:
         # fallback instead of using up the job timeout.
         timeout-minutes: 50
         uses: anomalyco/opencode/github@github-v1.2.27
-        env:
+        # Anchored so the fallback step runs with the identical environment.
+        env: &opencode-env
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
@@ -234,27 +235,7 @@ jobs:
         if: inputs.provider == 'opencode' && inputs.fallback_model != '' && steps.opencode.outcome == 'failure'
         timeout-minutes: 25
         uses: anomalyco/opencode/github@github-v1.2.27
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          # See the primary Run OpenCode step: GH_TOKEN alone, not paired
-          # with GITHUB_TOKEN, avoids the duplicate Authorization header.
-          GH_TOKEN: ${{ github.token }}
-          OPENCODE_EXPERIMENTAL: "true"
-          OPENCODE_ENABLE_EXA: "1"
-          OPENCODE_EXPERIMENTAL_LSP_TOOL: "true"
-          OPENCODE_EXPERIMENTAL_MARKDOWN: "true"
-          OPENCODE_ENABLE_EXPERIMENTAL_MODELS: "true"
-          OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS: "300000"
-          OPENCODE_EXPERIMENTAL_LAZY_TOOLS: "true"
-          OPENCODE_PRUNE_SCALE_WITH_CONTEXT: "true"
-          OPENCODE_DISABLE_FILETIME_CHECK: "true"
-          OPENCODE_DISABLE_CLAUDE_CODE_PROMPT: "1"
-          OPENCODE_DISABLE_AUTOUPDATE: "true"
-          OPENCODE_EXPERIMENTAL_OXFMT: "true"
-          MORPH_TIMEOUT: "60000"
-          MORPH_MODEL: morph-v3-fast
+        env: *opencode-env
         with:
           model: ${{ inputs.fallback_model }}
           prompt: ${{ inputs.prompt }}
@@ -271,10 +252,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           BASE: ${{ github.event.repository.default_branch }}
+          REF: ${{ inputs.ref }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
-          branch=$(git branch --show-current)
+          # opencode switches to its own branch off the checked-out ref; pushing
+          # that branch split one run into two PRs (#299/#300). Publish onto the
+          # requested ref instead, which opencode's branch fast-forwards.
+          branch="${REF:-$(git branch --show-current)}"
           if [[ -z "$branch" || "$branch" == "$BASE" ]]; then
             branch="agent/run-${GITHUB_RUN_ID}"
             git checkout -b "$branch"

@@ -12,13 +12,13 @@
 
 ## What this repo is
 
-PKG maintains Arch Linux PKGBUILDs, patches, and the automation around version tracking, validation, and CI publishing. Nearly every change is package metadata, repo tooling, or agent guidance. There is no application runtime here, and no test suite covering the packages — `tests/` covers `tools/` only.
+PKG maintains Arch Linux PKGBUILDs, patches, and the automation around version tracking, validation, and CI publishing. Nearly every change is package metadata, repo tooling, or agent guidance. There is no application runtime here, and no test suite covering the packages — `tests/` covers `tools/` and `.github/scripts/` only; `lint.yml` runs it.
 
 ## Repository map
 
 - Packages live at the repo root and in grouped folders (`dxvk/`, `java/`, `uutils/`, `zlib-ng/`). `git ls-files ':(glob)**/PKGBUILD'` is the source of truth for which exist.
 - `tools/pkg.sh` is the entry point for `build`, `lint`, and `srcinfo`; `tools/lib/helpers.sh` holds shared helpers including `find_pkgbuilds`.
-- Other tooling: `tools/vp-dev.py` (regenerates `packages.json` from the PKGBUILDs), `tools/find_updates.py`, `tools/check-isa-level.sh`, `tools/generate-schedule.py`, `tools/generate-workflow.py`.
+- Other tooling: `tools/vp-dev.py` (regenerates `packages.json` from the PKGBUILDs), `tools/check-isa-level.sh`.
 - Version tracking: `nvchecker.toml` plus `.github/nvchecker/old_ver.json`. `new_ver.json` is generated on every run and is not tracked.
 - Update automation: `_update-pkgbuilds.yml` (daily, or dispatched) detects drift, bumps every package it can with `.github/scripts/bump-pkgbuilds.sh`, opens one PR, and dispatches an agent through `_run-agent.yml` only for the packages left over. `.github/scripts/arch-run.sh` runs makepkg tooling in an Arch container on the Ubuntu runners.
 - `.github/actions/pkgbuild/` is the reusable PKGBUILD validation action.

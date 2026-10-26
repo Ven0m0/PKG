@@ -96,44 +96,7 @@ jobs:
             } >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          python - <<'PY' >> "$GITHUB_OUTPUT"
-          import json
-          import os
-          from pathlib import Path
-
-          def load(path):
-              """Read either nvchecker format as a flat {name: version} map.
-
-              nvchecker writes the v2 shape ({"version": 2, "data": {name:
-              {"version": ...}}}) but still reads the legacy flat map, which is
-              what old_ver.json in this repo is.
-              """
-              data = json.loads(Path(path).read_text())
-              if isinstance(data, dict) and data.get("version") == 2:
-                  return {k: v["version"] for k, v in data.get("data", {}).items()}
-              return data
-
-          old = load(".github/nvchecker/old_ver.json")
-          new = load(".github/nvchecker/new_ver.json")
-          # nvchecker always checks every entry; honour the dispatch filter here.
-          wanted = set(os.environ.get("PACKAGES", "").split())
-          drift = sorted(
-              (name, old.get(name, "<untracked>"), version)
-              for name, version in new.items()
-              if old.get(name) != version and (not wanted or name in wanted)
-          )
-          forced = os.environ.get("FORCE") == "true"
-          print(f"has_drift={'true' if drift or forced else 'false'}")
-          print("drift<<NVDRIFT")
-          for name, before, after in drift:
-              print(f"- {name}: {before} -> {after}")
-          print("NVDRIFT")
-          # Tab-separated copy for the bump job's script.
-          print("drift_tsv<<NVTSV")
-          for row in drift:
-              print("\t".join(row))
-          print("NVTSV")
-          PY
+          python .github/scripts/nvchecker_drift.py >> "$GITHUB_OUTPUT"
 
       - name: Summarise
         shell: bash
@@ -205,19 +168,31 @@ jobs:
           BASE: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
-          if git diff --quiet; then
-            echo "Nothing was bumped"
-            exit 0
-          fi
-          branch="update/pkgbuilds-${GITHUB_RUN_ID}"
+          # One stable branch, not one per run: a per-run branch opened a
+          # second PR whenever the previous day's PR was still open (#309/#310).
+          branch="update/pkgbuilds"
+          bumped=false
           git checkout -b "${branch}"
-          git add -u
-          git commit -m "chore: update PKGBUILDs"
+          if ! git diff --quiet; then
+            git add -u
+            git commit -m "chore: update PKGBUILDs"
+            bumped=true
+          fi
           gh auth setup-git
-          git push -u origin "HEAD:refs/heads/${branch}"
-          gh pr create --base "${BASE}" --head "${branch}" \
-            --title "chore: update PKGBUILDs" --body-file .git/bump-summary.md
+          # Rebuilt from main every run, so today's drift covers any unmerged
+          # bump and replacing the branch loses nothing the bump would redo.
+          git push --force origin "HEAD:refs/heads/${branch}"
+          # Always set, so the agent continues here even when nothing was bumped.
           echo "branch=${branch}" >> "$GITHUB_OUTPUT"
+          pr="$(gh pr list --head "${branch}" --state open --json number --jq '.[0].number // empty')"
+          if [[ -n "${pr}" ]]; then
+            gh pr edit "${pr}" --body-file .git/bump-summary.md
+          elif [[ "${bumped}" == "true" ]]; then
+            gh pr create --base "${BASE}" --head "${branch}" \
+              --title "chore: update PKGBUILDs" --body-file .git/bump-summary.md
+          else
+            echo "Nothing was bumped"
+          fi
 
   # Runs for what the bump left over. It also covers everything when detection
   # failed (bump skipped), when the bump job failed, or when forced.

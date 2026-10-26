@@ -141,7 +141,7 @@ jobs:
           set -euo pipefail
           mapfile -t sh_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep '\.sh$' || true)
           if [[ ${#sh_files[@]} -gt 0 ]]; then
-            # shellcheck with comprehensive flags (matches lint.sh)
+            # Comprehensive shellcheck flags (match lint.sh)
             shellcheck -x -a -s bash "${sh_files[@]}" || :
             # shellharden for safety checks
             for f in "${sh_files[@]}"; do
@@ -175,6 +175,25 @@ jobs:
           set -euo pipefail
           mapfile -t json_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep '\.json$' || true)
           [[ ${#json_files[@]} -gt 0 ]] && biome check "${json_files[@]}" || :
+  # The tools/ and .github/scripts/ tests were never run in CI, so a broken
+  # module (tools/find_updates.py) sat undetected.
+  unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.15"
+      - name: Run unit tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s tests -t . -v
   megalinter:
     runs-on: ubuntu-latest
     steps:

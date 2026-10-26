@@ -96,10 +96,7 @@ PKG/
  tools/ # Repository tooling (all scripts live here)
  pkg.sh # Unified build/lint/srcinfo tool
  vp-dev.py # Package dev helper (new/test/update/check/list)
- find_updates.py # Report out-of-date local packages vs Arch/AUR
  check-isa-level.sh # x86-64 microarchitecture level detection
- generate-schedule.py # Generate scheduled build workflows
- generate-workflow.py # Generate per-package workflows
  lib/helpers.sh # Shared shell helper functions
  CLAUDE.md # AI assistant documentation
  CONTRIBUTING.md # Contribution guidelines
