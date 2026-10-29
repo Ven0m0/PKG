@@ -310,7 +310,7 @@
     },
     {
       "name": "code",
-      "version": "1.143.1-1",
+      "version": "1.144.0-1",
       "description": "The Open Source build of Visual Studio Code (vscode) editor",
       "url": "https://github.com/microsoft/vscode",
       "files": [
@@ -427,7 +427,7 @@
     },
     {
       "name": "firefox-custom",
-      "version": "158.0.1-1",
+      "version": "159.0-1",
       "description": "Firefox with aggressive optimizations, VA-API, PGO, and all performance tweaks",
       "url": "https://mozilla.org/firefox",
       "files": [
