@@ -528,8 +528,8 @@
     },
     {
       "name": "glibc-eac-roco",
-      "version": "2.42.9000+r37+g7aa1a7b3974-1",
-      "description": "",
+      "version": "2.42+r33+gde1fe81f4714-1",
+      "description": "GNU C Library with DT_HASH patch for EAC and Rogue Company compatibility",
       "url": "https://www.gnu.org/software/libc",
       "files": [
         ".SRCINFO",
@@ -703,7 +703,7 @@
     },
     {
       "name": "obs-studio",
-      "version": "33.0.0-1",
+      "version": "33.0.1-1",
       "description": "Free and open source software for video recording and live streaming (optimized)",
       "url": "https://github.com/obsproject/obs-studio",
       "files": [
