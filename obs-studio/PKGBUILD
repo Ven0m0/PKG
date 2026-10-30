@@ -6,7 +6,7 @@
 # Contributor: ledti <antergist at gmail dot com>
 
 pkgname=obs-studio
-pkgver=33.0.0
+pkgver=33.0.1
 pkgrel=1
 pkgdesc="Free and open source software for video recording and live streaming (optimized)"
 arch=('x86_64')
@@ -106,7 +106,7 @@ source=(
   "obs-websocket::git+https://github.com/obsproject/obs-websocket.git"
 )
 source_x86_64=("https://cdn-fastly.obsproject.com/downloads/cef_binary_6533_linux_x86_64.tar.xz")
-sha256sums=('a682ad0e3d780508ec81e4dae4e7ff824b0ddc6ddf4b6cb095c341d0907d798b'
+sha256sums=('146e64de76ee79a8bc9155a7eb33886ab7b9b3a3de0f275a7ba3ff75ceb2ac74'
             'SKIP'
             'SKIP')
 sha256sums_x86_64=('fab66dfc9cfd2e26fb87798f855aef30c2004edc8e19570d37af555644ae1655')
