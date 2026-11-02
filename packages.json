@@ -528,8 +528,8 @@
     },
     {
       "name": "glibc-eac-roco",
-      "version": "2.42+r33+gde1fe81f4714-1",
-      "description": "GNU C Library with DT_HASH patch for EAC and Rogue Company compatibility",
+      "version": "2.42.9000+r37+g7aa1a7b3974-1",
+      "description": "",
       "url": "https://www.gnu.org/software/libc",
       "files": [
         ".SRCINFO",
@@ -807,7 +807,7 @@
     },
     {
       "name": "ssgg",
-      "version": "0.1.13-1",
+      "version": "0.1.14-1",
       "description": "A complete open-source SteelSeries GG replacement for Linux - RGB lighting, audio mixer, and GameSense support",
       "url": "https://github.com/Ven0m0/steelseriesgg-rs",
       "files": [
