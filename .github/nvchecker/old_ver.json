@@ -33,10 +33,10 @@
   "ryujinx": "1.3.3",
   "smartdns-rs": "0.13.1",
   "umu-launcher": "1.4.4",
-  "universal-android-debloater": "1.2.0",
+  "universal-android-debloater": "1.3.1",
   "uutils/coreutils": "0.12.0",
   "uutils/diffutils": "0.6.0",
-  "uutils/findutils": "0.10.0",
+  "uutils/findutils": "0.11.0",
   "endeavouros-keyring": "20231222",
   "endeavouros-mirrorlist": "26.10",
   "glibc": "2.42.9000",
@@ -50,6 +50,6 @@
   "uutils/tar": "latest-commit",
   "wine-tkg-git": "20050930",
   "mesa-git": "26.3-branchpoint",
-  "vscodium-prod-patcher": "43f958ada22fa33ff1eb05f7c54f461acaadfa35",
-  "steelseriesgg-rs": "0.1.14"
+  "vscodium-prod-patcher": "2a3fbe5aeb39b3a5e757b6eefb949398240e6d02",
+  "steelseriesgg-rs": "0.1.15"
 }
