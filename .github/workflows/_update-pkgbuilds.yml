@@ -149,6 +149,7 @@ jobs:
           # Scratch files live under .git/: inside the container's mount, never staged.
           printf '%s\n' "${DRIFT_TSV}" > .git/bump-drift.tsv
           arch-run . 'bash .github/scripts/bump-pkgbuilds.sh .git/bump-drift.tsv .git/bump-results.tsv'
+          python3 .github/scripts/nvchecker_drift.py record .git/bump-results.tsv
           {
             echo "agent_drift<<NVAGENT"
             awk -F'\t' '$1 == "agent" { printf "- %s: %s -> %s (%s)\n", $2, $3, $4, $5 }' .git/bump-results.tsv
@@ -237,7 +238,7 @@ jobs:
         EDITING — classify each package first
         4. Normal package: set `pkgver`, reset `pkgrel=1`, then `arch-run <dir> 'updpkgsums && makepkg --printsrcinfo > .SRCINFO'`. If every source whose URL changed is a `git+` URL (checksum `SKIP`), skip `updpkgsums` and only regenerate `.SRCINFO`.
         5. Package whose version is derived at build time by `pkgver()` — detect them with `rg -l '^\s*pkgver\s*\(\)' --glob PKGBUILD` rather than assuming a list: do NOT hand-edit the derived `pkgver`. Record the new tracked value in `old_ver.json` and leave the PKGBUILD alone unless the source clones cheaply. `llvm` never clones cheaply (llvm-project is several GB): never clone it. Some of these ship without `.SRCINFO` on purpose; do not add one from a stale value.
-        6. `proton-cachyos-slr` and `wine-cachyos`: update `_srctag` only; the derived `pkgver` expression stays as-is.
+        6. Packages marked `srctag` in `tools/pkg-policy.txt` (`proton-cachyos-slr`, `wine-cachyos`): update `_srctag` only; the derived `pkgver` expression stays as-is.
         7. `chromium`: the tracked value is `{pkgver}-{commit}`. Update `pkgver` and `_commit`, ensure the literal line `_pkgver=${pkgver}` follows `pkgver=`, then refresh sums and `.SRCINFO`.
         8. Never downgrade. Confirm the direction with `vercmp` before editing. If `pkgver` is unchanged, leave the package untouched.
 

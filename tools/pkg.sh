@@ -344,11 +344,11 @@ lint_pkg() {
   [[ $nc -eq 1 ]] && { namcap PKGBUILD &>/dev/null || echo "WARN:$pkg: namcap issues"; }
 
   if [[ -f .SRCINFO ]]; then
-    makepkg --printsrcinfo 2>/dev/null | diff -B .SRCINFO - &>/dev/null || {
+    srcinfo_current || {
       echo "ERROR:$pkg: .SRCINFO dirty"
       echo "INFO:    Run: makepkg --printsrcinfo > .SRCINFO"
     }
-  else
+  elif ! srcinfo_exempt "$pkg"; then
     echo "ERROR:$pkg: missing .SRCINFO"
   fi
 
@@ -419,14 +419,8 @@ process_srcinfo_pkg() {
     return 1
   }
 
-  updpkgsums 2>/dev/null || {
-    echo "ERROR:$pkg: updpkgsums failed"
-    builtin cd "$root"
-    return 1
-  }
-
-  makepkg --printsrcinfo >.SRCINFO 2>/dev/null || {
-    echo "ERROR:$pkg: makepkg failed"
+  srcinfo_regenerate "$pkg" 2>/dev/null || {
+    echo "ERROR:$pkg: updpkgsums or makepkg failed"
     builtin cd "$root"
     return 1
   }

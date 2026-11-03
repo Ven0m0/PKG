@@ -14,6 +14,7 @@ current_dir = Path(os.path.dirname(os.path.abspath(__file__)))
 vp_dev_path = current_dir.parent / "tools" / "vp-dev.py"
 
 spec = importlib.util.spec_from_file_location("vp_dev", vp_dev_path)
+assert spec is not None and spec.loader is not None
 vp_dev = importlib.util.module_from_spec(spec)
 sys.modules["vp_dev"] = vp_dev
 spec.loader.exec_module(vp_dev)
@@ -347,7 +348,9 @@ class TestVpDev(unittest.TestCase):
 
     def test_init(self):
         self.assertEqual(self.vd.root, Path("/mock/root"))
-        self.assertIn(".git", self.vd.skip_dirs)
+        # setUp mocks Path, so read skip_dirs from the real policy file.
+        self.assertIn(".git", vp_dev.VpDev().skip_dirs)
+        self.assertIn("patches", vp_dev.VpDev().skip_dirs)
 
     @patch("vp_dev.info")
     @patch("vp_dev.err")

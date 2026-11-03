@@ -49,11 +49,11 @@ Default path: set `pkgver`, reset `pkgrel=1`, run `updpkgsums`, then `makepkg --
 
 - **Any PKGBUILD defining `pkgver()`** resolves its real version from a clone at build time. Do not hand-edit the generated value; record the new tracked value in `old_ver.json` and let makepkg regenerate it. List them with
   `rg -l '^\s*pkgver\s*\(\)' --glob PKGBUILD`.
-- **`proton-cachyos-slr`, `wine-cachyos`** — update `_srctag`; leave the derived `pkgver` expression alone.
+- **`srctag` packages** (`proton-cachyos-slr`, `wine-cachyos`; list in `tools/pkg-policy.txt`) — update `_srctag`; leave the derived `pkgver` expression alone.
 - **`chromium`** — the tracked value is `{pkgver}-{commit}`; update `pkgver` and `_commit`, and keep `_pkgver=${pkgver}` present.
 - **`llvm`** — the tracked value is the upstream release; refresh a `pkgver()`-derived result with non-interactive makepkg tooling instead of hand-editing it.
 
-Some untagged git packages (`ghostty`, `rclone-filen`, `update-alternatives`, `vscodium-prod-patcher`, several `uutils/*`) intentionally ship without `.SRCINFO`, because generating one needs a real clone. Do not add one from a stale value; the absence is deliberate, not an omission.
+Packages listed as `nosrcinfo` in `tools/pkg-policy.txt` (`dolphin-emu`, `ghostty`, `rclone-filen`, `svt-av1`, `update-alternatives`, `vscodium-prod-patcher`, `wine-tkg-git`, four `uutils/*`) intentionally ship without `.SRCINFO`, because generating one needs a real clone. Lint, `tools/pkg.sh srcinfo`, and the bump script honor that list. Do not add one from a stale value; the absence is deliberate, not an omission. `tools/pkg-policy.txt` is also the single list of directories that are not packages (`skipdir`).
 
 When the mechanical path fits, prefer `.github/scripts/bump-pkgbuilds.sh` over ad-hoc scripts.
 

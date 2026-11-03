@@ -1,0 +1,11 @@
+--- ../../../localepurge-orig/usr/sbin/localepurge	2024-11-23 15:42:34.789868263 +0100
++++ localepurge	2024-11-23 15:43:13.353618710 +0100
+@@ -28,7 +28,7 @@
+     echo " No $NOPURGECONF file present, exiting ..."
+     exit 0
+ else
+-    if fgrep --quiet --line-regexp NEEDSCONFIGFIRST $NOPURGECONF ; then
++    if grep --quiet --line-regexp NEEDSCONFIGFIRST $NOPURGECONF ; then
+ 	echo
+ 	echo "	  You have to configure \"localepurge\" by editing"
+ 	echo

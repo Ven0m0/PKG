@@ -25,7 +25,7 @@ Reset `pkgrel=1` when updating `pkgver` unless the change is only a packaging re
 
 ## Special cases
 
-- `proton-cachyos-slr` and `wine-cachyos`: update `_srctag`; keep the derived `pkgver` expression unchanged.
+- `srctag` packages in `tools/pkg-policy.txt` (`proton-cachyos-slr`, `wine-cachyos`): update `_srctag`; keep the derived `pkgver` expression unchanged.
 - `llvm`: treat the tracked nvchecker value as the upstream release version; if `pkgver()` derives the final value, refresh it with makepkg tooling instead of hand-editing the generated version.
 - `chromium`: parse the tracked release as `{pkgver}-{commit}`; update `pkgver`, `_commit`, and keep `_pkgver=${pkgver}` present before recalculating checksums and `.SRCINFO`.
 

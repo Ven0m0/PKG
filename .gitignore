@@ -190,3 +190,4 @@ configs/
 .omc/
 .codegraph/
 .serena/
+.claude/logs/

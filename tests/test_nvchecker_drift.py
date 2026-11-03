@@ -8,6 +8,7 @@ ROOT = Path(__file__).parent.parent
 spec = importlib.util.spec_from_file_location(
     "nvchecker_drift", ROOT / ".github" / "scripts" / "nvchecker_drift.py"
 )
+assert spec is not None and spec.loader is not None
 drift = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(drift)
 
@@ -57,6 +58,40 @@ class TestRender(unittest.TestCase):
         out = drift.render([("a", "1", "2")])
         self.assertIn("\n- a: 1 -> 2\n", out)
         self.assertIn("\na\t1\t2\nNVTSV\n", out)
+
+
+class TestRecord(unittest.TestCase):
+    ROWS = (
+        ["updated", "a", "1", "2", "pkgver 1 -> 2"],
+        ["recorded", "b", "1", "3", "pkgver() tracks the git source"],
+        ["agent", "c", "1", "4", "needs the agent"],
+        ["updated", "untracked", "x", "9", "not in old_ver"],
+    )
+
+    def test_applies_updated_and_recorded_only_for_tracked_keys(self):
+        old = {"a": "1", "b": "1", "c": "1"}
+        self.assertEqual(drift.record(old, self.ROWS), {"a": "2", "b": "3", "c": "1"})
+
+    def test_does_not_mutate_input(self):
+        old = {"a": "1"}
+        drift.record(old, self.ROWS)
+        self.assertEqual(old, {"a": "1"})
+
+    def test_read_results_skips_blank_lines(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "results.tsv"
+            path.write_text("updated\ta\t1\t2\tx\n\nagent\tb\t1\t2\ty\n")
+            self.assertEqual(
+                drift.read_results(path),
+                [["updated", "a", "1", "2", "x"], ["agent", "b", "1", "2", "y"]],
+            )
+
+    def test_write_round_trips_repo_formatting(self):
+        text = (ROOT / ".github" / "nvchecker" / "old_ver.json").read_text()
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "old_ver.json"
+            drift.write_old_ver(path, json.loads(text))
+            self.assertEqual(path.read_text(), text)
 
 
 if __name__ == "__main__":

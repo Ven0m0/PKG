@@ -25,21 +25,26 @@ info() { printf '%b\n' "${B}ℹ $*${D}"; }
 die() { err "$1"; exit "${2:-1}"; }
 sep() { msg '────────────────────────────────────────'; }
 
+# shellcheck source=tools/lib/policy.sh
+source "${BASH_SOURCE[0]%/*}/policy.sh"
+
 # ─── Package Discovery ───────────────────────────────────────────────────────
-# Find all PKGBUILD directories
+# Find all PKGBUILD directories: tracked or new (not ignored), minus the
+# `skipdir` entries in tools/pkg-policy.txt. tools/vp-dev.py applies the same rule.
 # Usage: mapfile -t pkgs < <(find_pkgbuilds)
 find_pkgbuilds() {
   if [[ -d .git ]] && command -v git >/dev/null; then
     # O(1) using git index, ~10-100x faster than find/fd
     # Use :(glob) pathspec to match recursively and handle root PKGBUILD
-    git ls-files ':(glob)**/PKGBUILD' | sed -e 's|/PKGBUILD$||' -e 's|^PKGBUILD$|.|'
+    git ls-files --cached --others --exclude-standard -- ':(glob)**/PKGBUILD' |
+      sed -e 's|/PKGBUILD$||' -e 's|^PKGBUILD$|.|' | sort -u | filter_pkg_dirs
     return
   fi
 
   if has fd; then
-    fd -t f -g 'PKGBUILD' -x printf '%{//}\n' | sort -u
+    fd -t f -g 'PKGBUILD' -x printf '%{//}\n' | sort -u | filter_pkg_dirs
   else
-    find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | sort -u
+    find . -type f -name PKGBUILD -printf '%h\n' | sed 's|^\./||' | sort -u | filter_pkg_dirs
   fi
 }
 

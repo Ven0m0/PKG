@@ -1,0 +1,30 @@
+# Per-package rules shared by shell, Python and agent guidance.
+# One rule per line: <kind> <name>. Read by tools/lib/policy.sh and tools/vp-dev.py.
+#
+# skipdir      path component that is never a package directory
+# nosrcinfo    package that ships without .SRCINFO on purpose (generating one needs
+#              a real clone); lint must not demand one and srcinfo must not add one
+# srctag       package whose tracked version goes into _srctag; pkgver is derived
+
+skipdir .git
+skipdir .github
+skipdir node_modules
+skipdir __pycache__
+skipdir .vscode
+skipdir patches
+skipdir docs
+
+nosrcinfo dolphin-emu
+nosrcinfo ghostty
+nosrcinfo rclone-filen
+nosrcinfo svt-av1
+nosrcinfo update-alternatives
+nosrcinfo vscodium-prod-patcher
+nosrcinfo wine-tkg-git
+nosrcinfo uutils/coreutils
+nosrcinfo uutils/diffutils
+nosrcinfo uutils/procps
+nosrcinfo uutils/tar
+
+srctag proton-cachyos-slr
+srctag wine-cachyos

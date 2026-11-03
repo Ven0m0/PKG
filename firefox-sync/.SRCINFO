@@ -1,0 +1,19 @@
+pkgbase = firefox-sync
+	pkgdesc = Speed up Firefox using tmpfs
+	pkgver = 20251127
+	pkgrel = 2
+	url = https://wiki.archlinux.org/title/Firefox/Profile_on_RAM
+	arch = any
+	license = GPL
+	depends = rsync
+	depends = firefox
+	source = firefox-sync.sh
+	source = firefox-sync.service
+	source = firefox-sync-cron.service
+	source = firefox-sync-cron.timer
+	sha256sums = SKIP
+	sha256sums = SKIP
+	sha256sums = SKIP
+	sha256sums = SKIP
+
+pkgname = firefox-sync

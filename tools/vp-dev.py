@@ -2,6 +2,7 @@
 """vp-dev - Development tool for Ven0m0's PKG repository"""
 
 import argparse
+import builtins
 import concurrent.futures
 import json
 import re
@@ -9,6 +10,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+from collections.abc import Callable
 from pathlib import Path, PurePosixPath
 
 VERSION = "1.0.0"
@@ -57,16 +59,15 @@ class VpDev:
         self.root = Path(__file__).resolve().parent.parent
         self.pkg_json = self.root / "packages.json"
         self.git = shutil.which("git") or "git"
-        self.skip_dirs = {
-            ".git",
-            ".github",
-            "node_modules",
-            "__pycache__",
-            ".vscode",
-            "patches",
-            "docs",
-        }
+        # Same `skipdir` rule as tools/lib/policy.sh (filter_pkg_dirs).
+        self.skip_dirs = self._policy_names("skipdir")
         self.files_cache = None
+
+    def _policy_names(self, kind: str) -> set[str]:
+        """Names listed under `kind` in tools/pkg-policy.txt."""
+        lines = (self.root / "tools" / "pkg-policy.txt").read_text().splitlines()
+        rows = [line.split() for line in lines if not line.lstrip().startswith("#")]
+        return {r[1] for r in rows if len(r) > 1 and r[0] == kind}
 
     def _populate_files_cache(self) -> None:
         if self.files_cache is not None:
@@ -92,11 +93,11 @@ class VpDev:
             self.files_cache = None
 
     def _git(
-        self, args: list[str], cwd: Path | None = None, **kw
-    ) -> subprocess.CompletedProcess:
+        self, args: builtins.list[str], cwd: Path | None = None, **kw
+    ) -> subprocess.CompletedProcess[str]:
         return subprocess.run([self.git] + args, cwd=cwd or self.root, **kw)
 
-    def _parse_pkg(self, pb: Path) -> dict[str, str | list[str]] | None:
+    def _parse_pkg(self, pb: Path) -> dict[str, str | builtins.list[str]] | None:
         if not pb.exists():
             return None
         try:
@@ -126,7 +127,7 @@ class VpDev:
                 if not text or depth > 10:
                     return text
 
-                def replace(match: re.Match) -> str:
+                def replace(match: re.Match[str]) -> str:
                     v = match.group(1) or match.group(5)
                     value = expand_vars(pkg_vars.get(v, ""), depth + 1)
                     if match.group(2):
@@ -175,7 +176,7 @@ class VpDev:
             err(f"Failed to parse {pb}: {e}")
             return None
 
-    def _get_pkg_dirs(self) -> list[Path]:
+    def _get_pkg_dirs(self) -> builtins.list[Path]:
         """Get all package directories: the parent of every PKGBUILD git knows
         about (tracked or new, not ignored) at any depth, excluding skip_dirs."""
         r = self._git(
@@ -270,7 +271,7 @@ makepkg -si
 
     def _parse_srcinfo(
         self, d: Path, ignore_mtime: bool = False
-    ) -> dict[str, str | list[str]] | None:
+    ) -> dict[str, str | builtins.list[str]] | None:
         si = d / ".SRCINFO"
         pb = d / "PKGBUILD"
         if (
@@ -320,7 +321,7 @@ makepkg -si
             pass
         return None
 
-    def _process_package(self, d: Path) -> dict[str, str | list[str]] | None:
+    def _process_package(self, d: Path) -> dict[str, str | builtins.list[str]] | None:
         """Process a single package directory.
 
         This method is intended to be called from multiple threads (see ``update``).
@@ -414,9 +415,11 @@ makepkg -si
             return 1
         return 0
 
-    def _check_pkg_parallel(self, d: Path) -> tuple[int, list]:
+    def _check_pkg_parallel(
+        self, d: Path
+    ) -> tuple[int, builtins.list[tuple[Callable[[str], None], str]]]:
         errs = 0
-        msgs = []
+        msgs: builtins.list[tuple[Callable[[str], None], str]] = []
         pb = d / "PKGBUILD"
         pi = self._parse_pkg(pb) or self._parse_srcinfo(d, ignore_mtime=True)
         if not pi:
@@ -473,7 +476,9 @@ makepkg -si
         ok(f"Cleaned {c} items")
         return 0
 
-    def _list_worker(self, d: Path) -> tuple[Path, dict[str, str | list[str]] | None]:
+    def _list_worker(
+        self, d: Path
+    ) -> tuple[Path, dict[str, str | builtins.list[str]] | None]:
         pi = self._parse_srcinfo(d)
         if pi:
             return d, pi

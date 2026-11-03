@@ -1,6 +1,6 @@
 pkgbase = legcord
 	pkgdesc = Discord client with builtin client mod and theme support
-	pkgver = 1.3.0
+	pkgver = 1.3.1
 	pkgrel = 1
 	url = https://github.com/Legcord/Legcord
 	install = notes.install
@@ -20,8 +20,8 @@ pkgbase = legcord
 	conflicts = armcord
 	conflicts = legcord
 	replaces = armcord
-	source = legcord::git+https://github.com/Legcord/Legcord.git#tag=v1.3.0
-	sha256sums = cf19560369aa9314eb46d12e2a971f3b7edfcd76d6e35de3f26fb850bc2033ee
+	source = legcord::git+https://github.com/Legcord/Legcord.git#tag=v1.3.1
+	sha256sums = c888f5e706a6c63d983fdf7c3b5e81359f5a45cf2e80ed182e2ae97c5746fa2c
 
 pkgname = legcord
 	depends = electron

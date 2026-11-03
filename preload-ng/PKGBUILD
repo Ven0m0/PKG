@@ -16,9 +16,11 @@ sha256sums=('40831ee59ce18a883308d5c77ef7121e1c993db71d7505d0260f7cf534c7f4f8')
 
 build(){
   cd "$pkgname-$pkgver/preload-src" || exit
+  # The Makefile assigns CFLAGS/LDFLAGS (include paths, glib, version defines),
+  # so passing them on the command line would drop those. Put ours in CC, which
+  # is used for both compiling and linking.
   make -j"$(nproc)" \
-    CFLAGS="$CFLAGS -O3 -march=native -mtune=native -flto=auto -fuse-linker-plugin" \
-    LDFLAGS="$LDFLAGS -Wl,-O3,--sort-common,--as-needed,--gc-sections,-z,relro,-z,now -flto=auto"
+    CC="gcc $CFLAGS -O3 -march=native -mtune=native -flto=auto -fuse-linker-plugin $LDFLAGS -Wl,-O3,--sort-common,--as-needed,--gc-sections,-z,relro,-z,now"
 }
 
 check(){

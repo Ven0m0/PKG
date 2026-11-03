@@ -1,0 +1,196 @@
+pkgbase = java21-openjdk
+	pkgver = 21.0.9.u10
+	pkgrel = 2
+	url = https://openjdk.java.net/
+	arch = x86_64
+	license = LicenseRef-Java
+	checkdepends = jtreg
+	makedepends = java-environment=21
+	makedepends = alsa-lib
+	makedepends = bash
+	makedepends = cpio
+	makedepends = freetype2
+	makedepends = gcc-libs
+	makedepends = giflib
+	makedepends = glibc
+	makedepends = graphviz
+	makedepends = harfbuzz
+	makedepends = lcms2
+	makedepends = libcups
+	makedepends = libelf
+	makedepends = libjpeg-turbo
+	makedepends = libnet
+	makedepends = libpng
+	makedepends = libx11
+	makedepends = libxext
+	makedepends = libxrandr
+	makedepends = libxrender
+	makedepends = libxt
+	makedepends = libxtst
+	makedepends = pandoc
+	makedepends = unzip
+	makedepends = zip
+	options = !lto
+	source = https://github.com/openjdk/jdk21u/archive/jdk-21.0.9+10.tar.gz
+	source = freedesktop-java.desktop
+	source = freedesktop-jconsole.desktop
+	source = freedesktop-jshell.desktop
+	sha256sums = f2f9a21fd61ab3f63dac7e3d8747e849c9e0a1f14ed617c239ef9911755c756b
+	sha256sums = 72111743ab6ab36854b0c85a504172983715d0798fce10bc4e35689b7d15fd93
+	sha256sums = 8ecdf5c1605bafa58b3f7da615e6d8d3d943e3a2d3831930d6efa7815aacce07
+	sha256sums = 50fc0d677489b73d549df2f08d759d5f057f200adbbab83ea5e87456152ee03e
+
+pkgname = jre21-openjdk-headless
+	pkgdesc = OpenJDK Java 21 headless runtime environment
+	install = install_jre-openjdk-headless.sh
+	depends = java-runtime-common>=3
+	depends = ca-certificates-utils
+	depends = freetype2
+	depends = gcc-libs
+	depends = glibc
+	depends = harfbuzz
+	depends = lcms2
+	depends = libfreetype.so
+	depends = libharfbuzz.so
+	depends = libjpeg.so
+	depends = libjpeg-turbo
+	depends = liblcms2.so
+	depends = libnet
+	depends = nss
+	optdepends = java-rhino: for some JavaScript support
+	provides = java-runtime-headless=21
+	provides = java-runtime-headless-openjdk=21
+	provides = jre21-openjdk-headless=21.0.9.u10-2
+	conflicts = jdk21-openjdk
+	conflicts = jre21-openjdk
+	backup = etc/java21-openjdk/logging.properties
+	backup = etc/java21-openjdk/management/jmxremote.access
+	backup = etc/java21-openjdk/management/jmxremote.password.template
+	backup = etc/java21-openjdk/management/management.properties
+	backup = etc/java21-openjdk/net.properties
+	backup = etc/java21-openjdk/security/java.policy
+	backup = etc/java21-openjdk/security/java.security
+	backup = etc/java21-openjdk/security/policy/README.txt
+	backup = etc/java21-openjdk/security/policy/limited/default_US_export.policy
+	backup = etc/java21-openjdk/security/policy/limited/default_local.policy
+	backup = etc/java21-openjdk/security/policy/limited/exempt_local.policy
+	backup = etc/java21-openjdk/security/policy/unlimited/default_US_export.policy
+	backup = etc/java21-openjdk/security/policy/unlimited/default_local.policy
+	backup = etc/java21-openjdk/sound.properties
+
+pkgname = jre21-openjdk
+	pkgdesc = OpenJDK Java 21 full runtime environment
+	install = install_jre-openjdk.sh
+	depends = java-runtime-common>=3
+	depends = ca-certificates-utils
+	depends = freetype2
+	depends = gcc-libs
+	depends = glibc
+	depends = harfbuzz
+	depends = lcms2
+	depends = libfreetype.so
+	depends = libharfbuzz.so
+	depends = libjpeg.so
+	depends = libjpeg-turbo
+	depends = liblcms2.so
+	depends = libnet
+	depends = nss
+	depends = giflib
+	depends = libgif.so
+	depends = libpng
+	optdepends = alsa-lib: for basic sound support
+	optdepends = gtk3: for the Gtk+ 3 look and feel - desktop usage
+	provides = java-runtime=21
+	provides = java-runtime-openjdk=21
+	provides = jre21-openjdk=21.0.9.u10-2
+	provides = java-runtime-headless=21
+	provides = java-runtime-headless-openjdk=21
+	provides = jre21-openjdk-headless=21.0.9.u10-2
+	conflicts = jdk21-openjdk
+	conflicts = jre21-openjdk-headless
+	backup = etc/java21-openjdk/logging.properties
+	backup = etc/java21-openjdk/management/jmxremote.access
+	backup = etc/java21-openjdk/management/jmxremote.password.template
+	backup = etc/java21-openjdk/management/management.properties
+	backup = etc/java21-openjdk/net.properties
+	backup = etc/java21-openjdk/security/java.policy
+	backup = etc/java21-openjdk/security/java.security
+	backup = etc/java21-openjdk/security/policy/README.txt
+	backup = etc/java21-openjdk/security/policy/limited/default_US_export.policy
+	backup = etc/java21-openjdk/security/policy/limited/default_local.policy
+	backup = etc/java21-openjdk/security/policy/limited/exempt_local.policy
+	backup = etc/java21-openjdk/security/policy/unlimited/default_US_export.policy
+	backup = etc/java21-openjdk/security/policy/unlimited/default_local.policy
+	backup = etc/java21-openjdk/sound.properties
+
+pkgname = jdk21-openjdk
+	pkgdesc = OpenJDK Java 21 development kit
+	install = install_jdk-openjdk.sh
+	depends = java-runtime-common>=3
+	depends = ca-certificates-utils
+	depends = freetype2
+	depends = gcc-libs
+	depends = glibc
+	depends = harfbuzz
+	depends = lcms2
+	depends = libfreetype.so
+	depends = libharfbuzz.so
+	depends = libjpeg.so
+	depends = libjpeg-turbo
+	depends = liblcms2.so
+	depends = libnet
+	depends = nss
+	depends = java-environment-common=3
+	depends = ca-certificates-utils
+	depends = freetype2
+	depends = harfbuzz
+	depends = hicolor-icon-theme
+	depends = lcms2
+	depends = libelf
+	depends = libfreetype.so
+	depends = libgif.so
+	depends = libharfbuzz.so
+	depends = libjpeg.so
+	depends = libjpeg-turbo
+	depends = liblcms2.so
+	depends = libnet
+	depends = libpng
+	depends = nss
+	optdepends = java-rhino: for some JavaScript support
+	optdepends = alsa-lib: for basic sound support
+	optdepends = gtk3: for the Gtk+ 3 look and feel - desktop usage
+	provides = java-environment=21
+	provides = java-environment-openjdk=21
+	provides = jdk21-openjdk=21.0.9.u10-2
+	provides = java-runtime=21
+	provides = java-runtime-openjdk=21
+	provides = jre21-openjdk=21.0.9.u10-2
+	provides = java-runtime-headless=21
+	provides = java-runtime-headless-openjdk=21
+	provides = jre21-openjdk-headless=21.0.9.u10-2
+	conflicts = jre21-openjdk
+	conflicts = jre21-openjdk-headless
+	backup = etc/java21-openjdk/logging.properties
+	backup = etc/java21-openjdk/management/jmxremote.access
+	backup = etc/java21-openjdk/management/jmxremote.password.template
+	backup = etc/java21-openjdk/management/management.properties
+	backup = etc/java21-openjdk/net.properties
+	backup = etc/java21-openjdk/security/java.policy
+	backup = etc/java21-openjdk/security/java.security
+	backup = etc/java21-openjdk/security/policy/README.txt
+	backup = etc/java21-openjdk/security/policy/limited/default_US_export.policy
+	backup = etc/java21-openjdk/security/policy/limited/default_local.policy
+	backup = etc/java21-openjdk/security/policy/limited/exempt_local.policy
+	backup = etc/java21-openjdk/security/policy/unlimited/default_US_export.policy
+	backup = etc/java21-openjdk/security/policy/unlimited/default_local.policy
+	backup = etc/java21-openjdk/sound.properties
+
+pkgname = openjdk21-src
+	pkgdesc = OpenJDK Java 21 sources
+	depends = jdk21-openjdk=21.0.9.u10-2
+	provides = openjdk21-src=21.0.9.u10-2
+
+pkgname = openjdk21-doc
+	pkgdesc = OpenJDK Java 21 documentation
+	depends = jdk21-openjdk=21.0.9.u10-2
+	provides = openjdk21-doc=21.0.9.u10-2

@@ -16,7 +16,7 @@ Update a tracked package with a clean, verifiable diff that matches this reposit
    - Fall back to manual PKGBUILD edits when patches, generated versions, or package-specific logic require it.
 3. **Apply the version update**:
    - Normal packages: update `pkgver`, reset `pkgrel=1`.
-   - `proton-cachyos-slr` and `wine-cachyos`: update `_srctag`; leave the derived `pkgver` expression unchanged.
+   - `srctag` packages in `tools/pkg-policy.txt` (`proton-cachyos-slr`, `wine-cachyos`): update `_srctag`; leave the derived `pkgver` expression unchanged.
    - `llvm`: treat the tracked nvchecker value as the upstream release version and refresh any generated `pkgver()` result with non-interactive makepkg tooling.
    - `chromium`: parse the tracked release as `{pkgver}-{commit}`, update both `pkgver` and `_commit`, and ensure `_pkgver=${pkgver}` is present.
 4. **Refresh generated metadata**:
