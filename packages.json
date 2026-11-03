@@ -2,7 +2,7 @@
   "packages": [
     {
       "name": "aria2-ven0m0",
-      "version": "release-1.37.0-3",
+      "version": "1.37.0-3",
       "description": "Download utility that supports HTTP(S), FTP, BitTorrent, and Metalink",
       "url": "https://aria2.github.io",
       "files": [
@@ -367,6 +367,7 @@
       "description": "EndeavourOS keyring",
       "url": "https://endeavouros.com/",
       "files": [
+        ".SRCINFO",
         "endeavouros-keyring.install",
         "readme.md"
       ]
@@ -491,6 +492,7 @@
       "description": "Speed up Firefox using tmpfs",
       "url": "https://wiki.archlinux.org/title/Firefox/Profile_on_RAM",
       "files": [
+        ".SRCINFO",
         "firefox-sync-cron.service",
         "firefox-sync-cron.timer",
         "firefox-sync.service",
@@ -551,7 +553,7 @@
     {
       "name": "handbrake-svt-av1-essential-llvm-optimized",
       "version": "1.10.2.r4.g53aeefb9e-3",
-      "description": "Multithreaded video transcoder with SVT-AV1-Essential (with HDR+PSY enhancements), LLVM-optimized",
+      "description": "",
       "url": "https://handbrake.fr/",
       "files": [
         ".SRCINFO",
@@ -626,11 +628,16 @@
       "version": "21.0.9.u10-2",
       "description": "",
       "url": "https://openjdk.java.net/",
-      "files": []
+      "files": [
+        ".SRCINFO",
+        "install_jdk-openjdk.sh",
+        "install_jre-openjdk-headless.sh",
+        "install_jre-openjdk.sh"
+      ]
     },
     {
       "name": "legcord",
-      "version": "1.3.0-1",
+      "version": "1.3.1-1",
       "description": "Discord client with builtin client mod and theme support",
       "url": "https://github.com/Legcord/Legcord",
       "files": [
@@ -658,7 +665,12 @@
       "description": "Script to remove disk space wasted for unneeded localizations.",
       "url": "https://packages.debian.org/source/sid/localepurge",
       "files": [
-        "locale.nopurge"
+        ".SRCINFO",
+        "locale.nopurge",
+        "localepurge.8.diff",
+        "localepurge.config.diff",
+        "localepurge.diff",
+        "localepurge_fgrep.diff"
       ]
     },
     {
@@ -792,7 +804,9 @@
       "version": "1.3.3-1",
       "description": "Experimental Nintendo Switch Emulator written in C#",
       "url": "https://git.ryujinx.app/ryubing/ryujinx",
-      "files": []
+      "files": [
+        ".SRCINFO"
+      ]
     },
     {
       "name": "smartdns-rs",
