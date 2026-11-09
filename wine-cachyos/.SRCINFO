@@ -1,6 +1,6 @@
 pkgbase = wine-cachyos
 	pkgdesc = Wine compatibility layer with CachyOS optimizations and wine-osu patches (system-wide install)
-	pkgver = 11.0.451980.20261014.pb94341.w7fc704.da78a46.v0bb64c
+	pkgver = 11.0.467735.20261107.pde7c9d.we893f5.d829e37.vdb5628
 	pkgrel = 1
 	epoch = 2
 	url = https://github.com/CachyOS/wine-cachyos
@@ -98,7 +98,7 @@ pkgbase = wine-cachyos
 	options = !staticlibs
 	options = !lto
 	options = !debug
-	source = wine-cachyos::git+https://github.com/CachyOS/wine-cachyos.git#tag=experimental-wine-bleeding-edge-11.0-451980-20261014-pb94341-w7fc704-da78a46-v0bb64c
+	source = wine-cachyos::git+https://github.com/CachyOS/wine-cachyos.git#tag=experimental-wine-bleeding-edge-11.0-467735-20261107-pde7c9d-we893f5-d829e37-vdb5628
 	source = wine-staging::git+https://github.com/wine-staging/wine-staging.git#tag=v11.0
 	source = https://dl.winehq.org/wine/wine-gecko/2.47.4/wine-gecko-2.47.4-x86.tar.xz
 	source = https://dl.winehq.org/wine/wine-gecko/2.47.4/wine-gecko-2.47.4-x86_64.tar.xz
@@ -107,7 +107,7 @@ pkgbase = wine-cachyos
 	source = 30-win32-aliases.conf
 	source = wine-binfmt.conf
 	source = apply-wine-osu-patches.sh
-	b2sums = 15262824afaa3d815396683242465c8982df929e3f0712d8d88e2be3da4e44cb37df8b3849294c5c2b9989332378a3384a34b3de3b418c170c8dea37fef30d45
+	b2sums = 76f2cbf077752207955ca7b02c72c4cca3e57531b16f43780c77b149906929f306186c8c82fc42517f58bb72bfe64778388413062599ba64b684d7fbadccd51a
 	b2sums = 7c386cc30b144d66ea58dbad84db86dbc40bd0150cddaa4f4f7e1c762b64a33a9fcb87e4e21d39e12ded9146c982946c522f87b3891383e2efa1f07fe0ade777
 	b2sums = 2a73c12585b502ae11188482cbc9fb1f45f95bfe4383a7615011104b132f4845f9813d01fb40277e1934fab5f1b35ab40b4f4a66a9967463dd1d666a666904e9
 	b2sums = 62856a88266b4757602c0646e024f832974a93f03b9df253fd4895d4f11a41b435840ad8f7003ec85a0d8087dec15f2e096dbfb4b01ebe4d365521e48fd0c5c0
