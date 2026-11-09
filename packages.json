@@ -310,7 +310,7 @@
     },
     {
       "name": "code",
-      "version": "1.144.0-1",
+      "version": "1.145.2-1",
       "description": "The Open Source build of Visual Studio Code (vscode) editor",
       "url": "https://github.com/microsoft/vscode",
       "files": [
@@ -428,7 +428,7 @@
     },
     {
       "name": "firefox-custom",
-      "version": "159.0-1",
+      "version": "159.0.1-1",
       "description": "Firefox with aggressive optimizations, VA-API, PGO, and all performance tweaks",
       "url": "https://mozilla.org/firefox",
       "files": [
@@ -553,7 +553,7 @@
     {
       "name": "handbrake-svt-av1-essential-llvm-optimized",
       "version": "1.10.2.r4.g53aeefb9e-3",
-      "description": "",
+      "description": "Multithreaded video transcoder with SVT-AV1-Essential (with HDR+PSY enhancements), LLVM-optimized",
       "url": "https://handbrake.fr/",
       "files": [
         ".SRCINFO",
@@ -694,7 +694,7 @@
     },
     {
       "name": "mpv-full",
-      "version": "0.41.0-1",
+      "version": "0.42.0-1",
       "description": "A free, open source, and cross-platform media player (optimized)",
       "url": "https://mpv.io/",
       "files": [
@@ -812,7 +812,7 @@
     },
     {
       "name": "ssgg",
-      "version": "0.1.15-1",
+      "version": "0.1.17-1",
       "description": "A complete open-source SteelSeries GG replacement for Linux - RGB lighting, audio mixer, and GameSense support",
       "url": "https://github.com/Ven0m0/steelseriesgg-rs",
       "files": [
@@ -907,7 +907,7 @@
     },
     {
       "name": "wine-cachyos",
-      "version": "11.0.451980.20261014.pb94341.w7fc704.da78a46.v0bb64c-1",
+      "version": "11.0.467735.20261107.pde7c9d.we893f5.d829e37.vdb5628-1",
       "description": "Wine compatibility layer with CachyOS optimizations and wine-osu patches (system-wide install)",
       "url": "https://github.com/CachyOS/wine-cachyos",
       "files": [
