@@ -6,7 +6,7 @@
   "chromium": "153.0.8010.37-11507ac1061b5ea227806f5e84db5a57df6ccf6a",
   "aria2": "release-1.37.0",
   "borked3DS": "v2025.03.11",
-  "code": "1.145.3",
+  "code": "1.146.0",
   "dxvk/dxvk-gplasync": "2.7.1-4",
   "egl-wayland2": "v1.0.2",
   "etchdns": "0.9.0",
@@ -51,5 +51,5 @@
   "wine-tkg-git": "20050930",
   "mesa-git": "26.3-branchpoint",
   "vscodium-prod-patcher": "cd5c053298fb4f02619419b32ccb1f1409f18b1b",
-  "steelseriesgg-rs": "0.1.19"
+  "steelseriesgg-rs": "0.1.20"
 }
