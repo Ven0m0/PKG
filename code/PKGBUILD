@@ -8,7 +8,7 @@
 pkgname=code
 pkgdesc='The Open Source build of Visual Studio Code (vscode) editor'
 # Important: Remember to check https://github.com/microsoft/vscode/wiki/How-to-Contribute#prerequisites for target node version
-_electron=electron39
+_electron=electron43
 pkgver=1.146.0
 pkgrel=1
 arch=('x86_64' 'aarch64' 'armv7h')
@@ -18,7 +18,7 @@ depends=($_electron 'libsecret' 'libx11' 'libxkbfile' 'ripgrep')
 optdepends=('bash-completion: Bash completions'
             'zsh-completions: ZSH completions'
             'x11-ssh-askpass: SSH authentication')
-makedepends=('git' 'nodejs-lts-jod' 'npm' 'python' 'desktop-file-utils' 'zip' 'jq')
+makedepends=('git' 'nodejs-lts-krypton' 'pnpm' 'python' 'desktop-file-utils' 'zip' 'jq')
 provides=('vscode' 'vscodium' 'codium' 'vscodium-electron')
 conflicts=('vscode' 'vscodium' 'codium' 'vscodium-bin' 'vscodium-git' 'vscodium-electron')
 options=('!strip' '!debug')
@@ -26,23 +26,12 @@ source=(vscode::"git+https://github.com/microsoft/vscode.git#tag=$pkgver"
         'code.mjs'
         'code.sh'
         'product_json.diff'
-        'clipath.patch'
-        # Originally taken from https://github.com/termux/termux-packages/raw/0974620c52e72d0c80bcc8a42bad482555f629e8/x11-packages/code-oss/0009-openvsx-extension-signature.patch
-        '0009-openvsx-extension-signature.patch'
-        'translucent.patch'
-        'microphone.patch'
-        'extension-management.patch'
-        'xterm.patch')
+        'clipath.patch')
 sha512sums=('f0b3d5774b39ef09e5ad479b8aef03f20ad276bda2fabda6f8a9bb64bb158db39c62ebb67a9a8f3aa2419404ee06d5248954c316a79ed16eb8b83092b843a7a3'
             '793f9ff6306e3992ac89802d98110cba288ea1181a901467333293b7d76182ef9792c2a39ff49d9347a18a174b1f42bc58862091dff583f4146c2704eea28033'
             '3de728229367014fb571761765461117c66c23cf80fecb64cba9af63b89f93ae77938c7a6dfeee71d84c6faf529a71fe9e703f55e8bffd469605fee36bc8cf2b'
             '02272060c3d8dc04edd9476c992c27e60d6f7d7d1605896100cc9ee080f4d970167e55efdd5568a97a02ced98cf3b9875f03eb1b1675120fbe12d7369b86c86d'
-            '51dae4716b4c4059fd0e028faa03754fd49ee97cd6f852432b0c0692bbb8669bca8bfa195774bbd5c65db1ab06e84d392b049ae9cb85ebdc21bddcf818c8a802'
-            '68ca9ef8fdc189f9f4d68363dde867d4eabed92db94bae9230449144bc70685c8747a100ef1aad2b1c7615b7406512f89eae85b98efe0a2f679678181f06cfdd'
-            '94045c480b6596e2f4bbf63833807262beff7396f97f17736dd4cbf91a69b140c81b4819487c0c58bf23594ee9636bff26213322f0ea4aa6f8ad18cb54caefcc'
-            '25abdf02babacc3d7bf0e67f46b0941d5bb94c38ed6a48867d39fed69f392a9445d030bda1594f267108349e276d9be5301721cdcd6c5c14cb9fd75c91ce2075'
-            'a7b4884fbaa516dd55bcfa68397623ce32897cdd01ea203179c1717ec7f56bc858ab117285368ba61ef5d573fced06ddd9e310d4610d92249091edd24dd5f276'
-            '5f8a737de48088fb3e68f60cec24f02f3cc40068167be4adad3538fa1513146dd41a9edd57ef81d44b7b3a9b6e031f309f02da514856305cc7f8f121a7194462')
+            '51dae4716b4c4059fd0e028faa03754fd49ee97cd6f852432b0c0692bbb8669bca8bfa195774bbd5c65db1ab06e84d392b049ae9cb85ebdc21bddcf818c8a802')
 
 # Even though we don't officially support other archs, let's
 # allow the user to use this PKGBUILD to compile the package
@@ -78,12 +67,12 @@ esac
 prepare() {
   cd vscode || exit
 
-  local _electronver=$(awk -F= '{if ($1 == "target") {gsub(/"|\..*"/, "", $2); print $2}}' .npmrc)
-  if [[ "electron$_electronver" != "$_electron" ]]; then
-    echo "Wrong electron dependency. Change _electron to electron$_electronver"
+  local _electronver
+  _electronver=$(jq -r '.nativeBuild.target' package.json)
+  if [[ "electron${_electronver%%.*}" != "$_electron" ]]; then
+    echo "Wrong electron dependency. Change _electron to electron${_electronver%%.*}"
     exit 1
   fi
-  _electronver=$(jq -r '.packages[""].devDependencies.electron' package-lock.json)
 
   # Change electron binary name to the target electron
   sed -e "s|name=electron|name=$_electron|" \
@@ -99,14 +88,7 @@ prepare() {
   # See https://github.com/Microsoft/vscode/issues/31168 for details.
   patch -p0 -i ../product_json.diff
 
-  # OpenVSX signature verification
-  patch -p1 -i ../0009-openvsx-extension-signature.patch
 
-  # Repository optimizations
-  patch -p1 -i ../translucent.patch
-  patch -p1 -i ../microphone.patch
-  patch -p1 -i ../extension-management.patch
-  patch -p1 -i ../xterm.patch
 
   # Set the commit and build date
   local _commit _date
@@ -114,8 +96,6 @@ prepare() {
   _date=$(date -u -Is --date=@"$SOURCE_DATE_EPOCH" | sed 's/\+00:00/Z/')
   sed -e "s/@COMMIT@/$_commit/" -e "s/@DATE@/$_date/" -i product.json
 
-  # Build native modules for system electron
-  sed -i "s/^target=.*/target=\"${_electronver//v/}\"/" .npmrc
 
   # Patch appdata and desktop file
   sed -i 's|/usr/share/@@NAME@@/@@NAME@@|@@NAME@@|g
@@ -151,10 +131,8 @@ build() {
   cd vscode || exit
   export ELECTRON_SKIP_BINARY_DOWNLOAD=1 PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
   export XDG_CACHE_HOME="$srcdir"
-  npm install --cpu="$_vscode_arch"
-  npm run gulp \
-       --openssl-legacy-provider \
-       vscode-linux-"${_vscode_arch}"-min
+  pnpm install --frozen-lockfile
+  pnpm run gulp vscode-linux-"${_vscode_arch}"-min
 }
 
 package() {

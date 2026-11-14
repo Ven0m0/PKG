@@ -315,15 +315,10 @@
       "url": "https://github.com/microsoft/vscode",
       "files": [
         ".SRCINFO",
-        "0009-openvsx-extension-signature.patch",
         "clipath.patch",
         "code.mjs",
         "code.sh",
-        "extension-management.patch",
-        "microphone.patch",
-        "product_json.diff",
-        "translucent.patch",
-        "xterm.patch"
+        "product_json.diff"
       ]
     },
     {
