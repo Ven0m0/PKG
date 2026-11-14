@@ -168,7 +168,7 @@ jobs:
           pkg="$PKG"
 
           # Use cached base image from GHCR or build if needed
-          BASE_IMAGE="ghcr.io/${{ github.repository }}/archlinux-buildenv:latest"
+          BASE_IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}/archlinux-buildenv:latest"
           if ! timeout 300 docker pull "$BASE_IMAGE" 2>/dev/null; then
             echo "Building base image (will be cached for future runs)..."
             cat > /tmp/Dockerfile.build <<'DOCKERFILE'
