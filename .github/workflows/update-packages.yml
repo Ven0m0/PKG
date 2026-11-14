@@ -1,4 +1,4 @@
-name: Update Packages
+name: Update packages.json
 
 permissions:
   contents: read
