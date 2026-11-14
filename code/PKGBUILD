@@ -18,7 +18,7 @@ depends=($_electron 'libsecret' 'libx11' 'libxkbfile' 'ripgrep')
 optdepends=('bash-completion: Bash completions'
             'zsh-completions: ZSH completions'
             'x11-ssh-askpass: SSH authentication')
-makedepends=('git' 'nodejs-lts-krypton' 'pnpm' 'python' 'desktop-file-utils' 'zip' 'jq')
+makedepends=('git' 'nodejs-lts-krypton' 'node-gyp' 'pnpm' 'python' 'desktop-file-utils' 'zip' 'jq')
 provides=('vscode' 'vscodium' 'codium' 'vscodium-electron')
 conflicts=('vscode' 'vscodium' 'codium' 'vscodium-bin' 'vscodium-git' 'vscodium-electron')
 options=('!strip' '!debug')
@@ -131,6 +131,8 @@ build() {
   cd vscode || exit
   export ELECTRON_SKIP_BINARY_DOWNLOAD=1 PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
   export XDG_CACHE_HOME="$srcdir"
+  # vscode preinstall.ts aborts unless pnpm hands it a node-gyp; point it at the system one.
+  export npm_config_node_gyp="$(readlink -f /usr/bin/node-gyp)"
   pnpm install --frozen-lockfile
   pnpm run gulp vscode-linux-"${_vscode_arch}"-min
 }

@@ -9,6 +9,7 @@ pkgbase = code
 	license = MIT
 	makedepends = git
 	makedepends = nodejs-lts-krypton
+	makedepends = node-gyp
 	makedepends = pnpm
 	makedepends = python
 	makedepends = desktop-file-utils

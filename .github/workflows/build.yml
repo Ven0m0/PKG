@@ -89,7 +89,6 @@ jobs:
       fail-fast: false
       matrix:
         pkg: ${{ fromJSON(needs.matrix.outputs.pkgs) }}
-        arch: [amd64, arm64]
     steps:
       - uses: actions/checkout@v7
       - name: Determine build method
