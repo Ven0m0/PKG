@@ -14,7 +14,7 @@ conflicts=('firefox')
 depends=(
   alsa-lib at-spi2-core bash cairo dbus ffmpeg4.4 fontconfig freetype2
   gcc-libs gdk-pixbuf2 glib2 glibc gtk3 hicolor-icon-theme libevent
-  libjpeg libpulse libvpx libwebp mime-types nss nspr pango
+  libjpeg-turbo libpulse libvpx libwebp mime-types nss nspr pango
   ttf-font dbus-glib dav1d aom icu graphite harfbuzz
 )
 makedepends=(

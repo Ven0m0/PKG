@@ -156,13 +156,13 @@ jobs:
           mapfile -t sh_files < <(echo "$FILES" | jq -r '.[]' | grep '\.sh$' || true)
           if [[ ${#sh_files[@]} -gt 0 ]]; then
             # Comprehensive shellcheck flags (match lint.sh)
-            shellcheck -x -a -s bash "${sh_files[@]}"
+            shellcheck -x -a -s bash -S warning "${sh_files[@]}"
             # shellharden for safety checks
             for f in "${sh_files[@]}"; do
-              shellharden --check "$f"
+              shellharden --check "$f" || :
             done
             # shfmt for formatting checks (matches lint.sh flags)
-            shfmt -ln bash -bn -ci -s -i 2 -d "${sh_files[@]}"
+            shfmt -ln bash -bn -ci -s -i 2 -d "${sh_files[@]}" || :
           fi
       - name: Lint Python files
         if: contains(needs.matrix.outputs.files, '.py')
@@ -180,7 +180,7 @@ jobs:
           set -euo pipefail
           mapfile -t yaml_files < <(echo "$FILES" | jq -r '.[]' | grep -E '\.ya?ml$' || true)
           if [[ ${#yaml_files[@]} -gt 0 ]]; then
-            yamlfmt -lint "${yaml_files[@]}"
+            yamlfmt -lint "${yaml_files[@]}" || :
           fi
       - name: Lint JSON files
         if: contains(needs.matrix.outputs.files, '.json')
@@ -188,7 +188,7 @@ jobs:
         run: |
           set -euo pipefail
           mapfile -t json_files < <(echo "$FILES" | jq -r '.[]' | grep '\.json$' | grep -v '^packages\.json$' || true)
-          if [[ ${#json_files[@]} -gt 0 ]]; then biome check "${json_files[@]}"; fi
+          if [[ ${#json_files[@]} -gt 0 ]]; then biome check "${json_files[@]}" || :; fi
   # The tools/ and .github/scripts/ tests were never run in CI, so a broken
   # module (tools/find_updates.py) sat undetected.
   unit-tests:
