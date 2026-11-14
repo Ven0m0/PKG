@@ -646,7 +646,7 @@
     {
       "name": "llvm-minimal",
       "version": "21.0.0_r537041.f2e62cfca5e5-2",
-      "description": "",
+      "description": "Collection of modular and reusable compiler and toolchain technologies with lld, lldb, polly, bolt (optimized)",
       "url": "https://llvm.org/",
       "files": [
         ".SRCINFO",
