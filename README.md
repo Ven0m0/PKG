@@ -245,7 +245,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 ### GitHub Actions Workflows
 
 - **build.yml** - Automated package building with matrix strategy
-- **lint.yml** - Code quality checks (shellcheck, namcap, prettier, MegaLinter)
+- **lint.yml** - Code quality checks (shellcheck, namcap, prettier)
 - **automerge-dependabot.yml** - Automated dependency updates
 
 ### Build Caching
