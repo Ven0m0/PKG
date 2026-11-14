@@ -28,6 +28,8 @@ jobs:
       - id: set
         name: Determine modified packages and files
         shell: bash
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
           set -euo pipefail
           pkgs=(); files=()
@@ -38,7 +40,7 @@ jobs:
             mapfile -t files < <(find . -type f \( -name "*.sh" -o -name "*.py" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" \) -printf '%p\n' | sed 's|^\./||')
           else
             base="HEAD~1"
-            [[ "$event" == "pull_request" ]] && base="origin/${{ github.base_ref }}"
+            [[ "$event" == "pull_request" ]] && base="origin/${BASE_REF}"
             echo "Diffing against: $base"
             while IFS= read -r dir; do
               [[ -f "$dir/PKGBUILD" ]] && pkgs+=("$dir")
@@ -68,15 +70,27 @@ jobs:
         pkg: ${{ fromJSON(needs.matrix.outputs.pkgs) }}
     steps:
       - uses: actions/checkout@v7
+      - name: Read SRCINFO policy
+        id: policy
+        shell: bash
+        env:
+          PKG: ${{ matrix.pkg }}
+        run: |
+          set -euo pipefail
+          source tools/lib/policy.sh
+          if srcinfo_exempt "$PKG"; then require=false; else require=true; fi
+          echo "require_srcinfo=$require" >> "$GITHUB_OUTPUT"
       - name: Build and validate ${{ matrix.pkg }}
         uses: ./.github/actions/pkgbuild
         with:
           pkgdir: ${{ matrix.pkg }}
-          requireSrcinfo: true
+          requireSrcinfo: ${{ steps.policy.outputs.require_srcinfo }}
           validateChecksums: true
   fast-lint:
     needs: matrix
     if: ${{ needs.matrix.outputs.files != '[]' && needs.matrix.outputs.files != '' }}
+    env:
+      FILES: ${{ needs.matrix.outputs.files }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -139,42 +153,42 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mapfile -t sh_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep '\.sh$' || true)
+          mapfile -t sh_files < <(echo "$FILES" | jq -r '.[]' | grep '\.sh$' || true)
           if [[ ${#sh_files[@]} -gt 0 ]]; then
             # Comprehensive shellcheck flags (match lint.sh)
-            shellcheck -x -a -s bash "${sh_files[@]}" || :
+            shellcheck -x -a -s bash "${sh_files[@]}"
             # shellharden for safety checks
             for f in "${sh_files[@]}"; do
-              shellharden --check "$f" || :
+              shellharden --check "$f"
             done
             # shfmt for formatting checks (matches lint.sh flags)
-            shfmt -ln bash -bn -ci -s -i 2 -d "${sh_files[@]}" || :
+            shfmt -ln bash -bn -ci -s -i 2 -d "${sh_files[@]}"
           fi
       - name: Lint Python files
         if: contains(needs.matrix.outputs.files, '.py')
         shell: bash
         run: |
           set -euo pipefail
-          mapfile -t py_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep '\.py$' || true)
+          mapfile -t py_files < <(echo "$FILES" | jq -r '.[]' | grep '\.py$' || true)
           if [[ ${#py_files[@]} -gt 0 ]]; then
-            ruff check "${py_files[@]}" || :
+            ruff check "${py_files[@]}"
           fi
       - name: Lint YAML files
         if: contains(needs.matrix.outputs.files, '.yml') || contains(needs.matrix.outputs.files, '.yaml')
         shell: bash
         run: |
           set -euo pipefail
-          mapfile -t yaml_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep -E '\.ya?ml$' || true)
+          mapfile -t yaml_files < <(echo "$FILES" | jq -r '.[]' | grep -E '\.ya?ml$' || true)
           if [[ ${#yaml_files[@]} -gt 0 ]]; then
-            yamlfmt -lint "${yaml_files[@]}" || :
+            yamlfmt -lint "${yaml_files[@]}"
           fi
       - name: Lint JSON files
         if: contains(needs.matrix.outputs.files, '.json')
         shell: bash
         run: |
           set -euo pipefail
-          mapfile -t json_files < <(echo '${{ needs.matrix.outputs.files }}' | jq -r '.[]' | grep '\.json$' || true)
-          [[ ${#json_files[@]} -gt 0 ]] && biome check "${json_files[@]}" || :
+          mapfile -t json_files < <(echo "$FILES" | jq -r '.[]' | grep '\.json$' || true)
+          if [[ ${#json_files[@]} -gt 0 ]]; then biome check "${json_files[@]}"; fi
   # The tools/ and .github/scripts/ tests were never run in CI, so a broken
   # module (tools/find_updates.py) sat undetected.
   unit-tests:

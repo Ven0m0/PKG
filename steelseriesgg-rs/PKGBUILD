@@ -58,6 +58,9 @@ check() {
   cd "$(_resolve_archive_dir)" || return 1
   export CARGO_HOME="$srcdir/cargo-home"
   export CARGO_TARGET_DIR="$srcdir/target"
+  # The diagnostics test writes under the config dir; the build sandbox HOME is not writable.
+  export HOME="$srcdir/home" XDG_CONFIG_HOME="$srcdir/home/.config" XDG_DATA_HOME="$srcdir/home/.local/share"
+  mkdir -p "$HOME"
   cargo test --frozen
 }
 

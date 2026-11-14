@@ -30,7 +30,7 @@ FILE="$(basename "$0")"
 
 if [ "${INPUT_MULTILIB:-false}" == true ]; then
 	# Enable the multilib repository
-	cat << EOM >> /etc/pacman.conf
+	sudo tee -a /etc/pacman.conf > /dev/null << EOM
 [multilib]
 Include = /etc/pacman.d/mirrorlist
 EOM
@@ -38,7 +38,7 @@ fi
 
 if [ -n "${INPUT_AURDEPS:-}" ]; then
 	# Add alerque repository for paru
-	cat << EOM >> /etc/pacman.conf
+	sudo tee -a /etc/pacman.conf > /dev/null << EOM
 [alerque]
 SigLevel = Optional TrustAll
 Server = https://arch.alerque.com/\$arch
@@ -48,16 +48,16 @@ fi
 
 if [ -n "${INPUT_PACMANCONF:-}" ]; then
 	echo "Using ${INPUT_PACMANCONF:-} as pacman.conf"
-	cp -v "${INPUT_PACMANCONF:-}" /etc/pacman.conf
+	sudo cp -v "${INPUT_PACMANCONF:-}" /etc/pacman.conf
 fi
 
 if [ -n "${INPUT_MAKEPKGCONF:-}" ]; then
 	echo "Using ${INPUT_MAKEPKGCONF:-} as makepkg.conf"
-	cp -v "${INPUT_MAKEPKGCONF:-}" /etc/makepkg.conf
+	sudo cp -v "${INPUT_MAKEPKGCONF:-}" /etc/makepkg.conf
     MAKEPKGCONFD="$(dirname "${INPUT_MAKEPKGCONF:-}")"/makepkg.conf.d
     if [ -d "$MAKEPKGCONFD" ]; then
         for file in "$MAKEPKGCONFD"/*; do
-            cp -v "$file" /etc/makepkg.conf.d/"$(basename "$file")"
+            sudo cp -v "$file" /etc/makepkg.conf.d/"$(basename "$file")"
         done
     fi
 fi

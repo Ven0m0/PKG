@@ -39,11 +39,14 @@ jobs:
       - id: set
         name: Determine modified packages
         shell: bash
+        env:
+          INPUT_PACKAGE: ${{ inputs.package }}
+          BASE_REF: ${{ github.base_ref }}
         run: |
           set -euo pipefail
           pkgs=()
           event="${{ github.event_name }}"
-          manual_pkg="${{ inputs.package }}"
+          manual_pkg="$INPUT_PACKAGE"
 
           # Validate manual package input if provided
           if [[ -n "$manual_pkg" ]]; then
@@ -66,7 +69,7 @@ jobs:
             fi
           else
             base="HEAD~1"
-            [[ "$event" == "pull_request" ]] && base="origin/${{ github.base_ref }}"
+            [[ "$event" == "pull_request" ]] && base="origin/${BASE_REF}"
             echo "Checking changes against: $base"
             while IFS= read -r dir; do
               [[ -f "${dir}/PKGBUILD" ]] && pkgs+=("$dir")
@@ -78,6 +81,8 @@ jobs:
   build:
     needs: matrix
     if: ${{ needs.matrix.outputs.pkgs != '[]' && needs.matrix.outputs.pkgs != '' }}
+    env:
+      PKG: ${{ matrix.pkg }}
     runs-on: ubuntu-latest
     timeout-minutes: 120
     strategy:
@@ -91,7 +96,7 @@ jobs:
         id: build_method
         shell: bash
         run: |
-          pkg="${{ matrix.pkg }}"
+          pkg="$PKG"
           docker_pkgs="${DOCKER_BUILD_PACKAGES//,/|}"
           if [[ "$pkg" =~ ^($docker_pkgs)$ ]]; then
             echo "method=docker" >> "$GITHUB_OUTPUT"
@@ -161,7 +166,7 @@ jobs:
         timeout-minutes: 90
         run: |
           set -euo pipefail
-          pkg="${{ matrix.pkg }}"
+          pkg="$PKG"
 
           # Use cached base image from GHCR or build if needed
           BASE_IMAGE="ghcr.io/${{ github.repository }}/archlinux-buildenv:latest"
@@ -241,7 +246,7 @@ jobs:
         id: pkg_info
         run: |
           set -euo pipefail
-          cd "${{ matrix.pkg }}"
+          cd "$PKG"
           PKGFILE=""
           PKGFILE_PATH=""
           # Handle both standard and Docker builds
@@ -256,7 +261,7 @@ jobs:
             shopt -u nullglob
             if [[ ${#pkgfiles[@]} -gt 0 ]]; then
               PKGFILE="${pkgfiles[0]}"
-              PKGFILE_PATH="${{ matrix.pkg }}/${PKGFILE}"
+              PKGFILE_PATH="${PKG}/${PKGFILE}"
             fi
           fi
           # Validate PKGFILE exists

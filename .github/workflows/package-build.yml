@@ -58,11 +58,14 @@ jobs:
       - name: Detect packages to build
         id: detect
         shell: bash
+        env:
+          MANUAL_PKGS: ${{ inputs.packages }}
+          BASE_REF: ${{ github.base_ref }}
         run: |
           set -euo pipefail
 
           pkgs=()
-          manual_pkgs="${{ inputs.packages }}"
+          manual_pkgs="$MANUAL_PKGS"
 
           if [[ -n "$manual_pkgs" ]]; then
             # Parse space-separated package list
@@ -89,7 +92,7 @@ jobs:
                 head="HEAD"
               fi
             elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-              base="origin/${{ github.base_ref }}"
+              base="origin/${BASE_REF}"
               head="HEAD"
             else
               base="HEAD~1"
