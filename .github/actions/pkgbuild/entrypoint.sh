@@ -170,6 +170,17 @@ fi
 # we can't do this earlier as it will change files that are for github actions, which results in warnings in github actions logs.
 sudo chown -R builder .
 
+# Import the signing keys the PKGBUILD declares so makepkg can verify source signatures
+# (callers must not pass --skippgpcheck).
+mapfile -t VALID_PGP_KEYS < <(bash -c 'source ./PKGBUILD >/dev/null 2>&1; printf "%s\n" "${validpgpkeys[@]}"' | awk 'NF')
+if ((${#VALID_PGP_KEYS[@]} > 0)); then
+	for attempt in 1 2 3; do
+		gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys "${VALID_PGP_KEYS[@]}" && break
+		[ "$attempt" -lt 3 ] || { echo "::error::Could not import validpgpkeys"; exit 1; }
+		sleep 10
+	done
+fi
+
 # Build packages
 # INPUT_MAKEPKGARGS is intentionally unquoted to allow arg splitting
 # shellcheck disable=SC2086

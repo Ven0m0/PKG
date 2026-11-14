@@ -511,6 +511,17 @@ package(){
   cd "$_pkgname-$pkgver" || exit
   DESTDIR="$pkgdir" ./mach install
   # Vendor preferences (privacy, performance, hardware acceleration)
+  local _vaapi_prefs=''
+  if [[ ${ENABLE_VAAPI} == "true" ]]; then
+    _vaapi_prefs='// Hardware acceleration (VA-API)
+pref("gfx.webrender.all", true);
+pref("media.hardware-video-decoding.enabled", true);
+pref("media.hardware-video-decoding.force-enabled", true);
+pref("media.ffmpeg.vaapi.enabled", true);
+pref("media.rdd-ffmpeg.enabled", true);
+pref("media.av1.enabled", true);
+pref("media.webrtc.hw.h264.enabled", true);'
+  fi
   install -Dm644 /dev/stdin "$pkgdir/usr/lib/$_pkgname/browser/defaults/preferences/vendor.js" <<END
 // Use LANG environment variable
 pref("intl.locale.requested", "");
@@ -542,18 +553,11 @@ pref("browser.discovery.enabled", false);
 // GNOME integration
 pref("browser.gnome-search-provider.enabled", true);
 // XDG portals
-pref("widget.use-xdg-desktop-portal. file-picker", 1);
+pref("widget.use-xdg-desktop-portal.file-picker", 1);
 pref("widget.use-xdg-desktop-portal.mime-handler", 1);
 // Prevent telemetry notification
 pref("services.settings.main.search-telemetry-v2.last_check", $(date +%s));
-// Hardware acceleration (VA-API)
-pref("gfx.webrender.all", true);
-pref("media.hardware-video-decoding. enabled", true);
-pref("media.hardware-video-decoding.force-enabled", true);
-pref("media.ffmpeg.vaapi.enabled", true);
-pref("media.rdd-ffmpeg.enabled", true);
-pref("media.av1.enabled", true);
-pref("media.webrtc.hw. h264.enabled", true);
+${_vaapi_prefs}
 // Performance tweaks
 pref("layers.acceleration.force-enabled", true);
 pref("webgl.force-enabled", true);

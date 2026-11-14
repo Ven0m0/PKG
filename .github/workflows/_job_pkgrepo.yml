@@ -43,7 +43,7 @@ jobs:
       pkgdir: ${{ inputs.pkgdir }}
       pacman_conf: .github/conf/${{ inputs.repository }}/pacman.conf
       makepkg_conf: .github/conf/${{ inputs.repository }}/makepkg.conf
-      makepkg_args: -p ${{ inputs.pkgbuild }} --skippgpcheck
+      makepkg_args: -p ${{ inputs.pkgbuild }}
       multilib: ${{ inputs.multilib }}
       ccache_ext: ${{ inputs.ccache_ext }}
       release_tag: ven0m0-${{ inputs.repository }}
