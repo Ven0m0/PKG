@@ -18,7 +18,7 @@ depends=(
   ttf-font dbus-glib dav1d aom icu graphite harfbuzz
 )
 makedepends=(
-  autoconf2.13 rust-bindgen cargo cargo-make cbindgen clang clang-tools-extra
+  rust-bindgen cargo cargo-make cbindgen clang clang-tools-extra
   cmake diffutils git git-cinnabar gtk-doc imake jack lld llvm mesa nasm
   ninja nodejs pkg-config python rust sed grep file unzip dump_syms
   wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi
