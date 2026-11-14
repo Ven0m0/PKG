@@ -123,6 +123,9 @@ prepare() {
 
   patch -p1 -i "$srcdir/clipath.patch"
 
+  # The built-in Copilot extension is optional; skip its ripgrep shim when the SDK was not packaged
+  # instead of failing the whole build.
+  sed -i '/Copilot SDK directory not found at/s/throw new Error(.*);/return;/' build/lib/copilot.ts
   # disable electron checksum verification as we are not bundling electron
   sed -i 's|validateChecksum: true,|validateChecksum: false,|' build/lib/electron.ts
 }

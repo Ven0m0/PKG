@@ -24,7 +24,7 @@ on:
       ccache_ext:
         required: false
         type: boolean
-        default: true
+        default: false
       action:
         required: false
         type: string
