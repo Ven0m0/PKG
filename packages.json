@@ -310,7 +310,7 @@
     },
     {
       "name": "code",
-      "version": "1.146.0-1",
+      "version": "1.147.0-1",
       "description": "The Open Source build of Visual Studio Code (vscode) editor",
       "url": "https://github.com/microsoft/vscode",
       "files": [
@@ -423,7 +423,7 @@
     },
     {
       "name": "firefox-custom",
-      "version": "160.0-1",
+      "version": "160.0.1-1",
       "description": "Firefox with aggressive optimizations, VA-API, PGO, and all performance tweaks",
       "url": "https://mozilla.org/firefox",
       "files": [
@@ -596,7 +596,7 @@
     {
       "name": "jre-openjdk-headless",
       "version": "24.0.1.u9-3",
-      "description": "",
+      "description": "OpenJDK Java 24 headless runtime environment",
       "url": "https://openjdk.java.net/",
       "files": [
         ".SRCINFO",
@@ -807,7 +807,7 @@
     },
     {
       "name": "ssgg",
-      "version": "0.1.21-1",
+      "version": "0.1.22-1",
       "description": "A complete open-source SteelSeries GG replacement for Linux - RGB lighting, audio mixer, and GameSense support",
       "url": "https://github.com/Ven0m0/steelseriesgg-rs",
       "files": [

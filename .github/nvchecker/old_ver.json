@@ -2,16 +2,16 @@
   "proton-cachyos-slr": "11.0-20261015",
   "update-alternatives": "10fd49bb10b3f9315e158e60e8b27c4ae8db8463",
   "wine-cachyos": "11.0-467735-20261107-pde7c9d-we893f5-d829e37-vdb5628",
-  "llvm": "23.1.5",
+  "llvm": "23.1.6",
   "chromium": "153.0.8010.37-11507ac1061b5ea227806f5e84db5a57df6ccf6a",
   "aria2": "release-1.37.0",
   "borked3DS": "v2025.03.11",
-  "code": "1.146.0",
+  "code": "1.147.0",
   "dxvk/dxvk-gplasync": "2.7.1-4",
   "egl-wayland2": "v1.0.2",
   "etchdns": "0.9.0",
   "filen-desktop": "v3.0.53",
-  "firefox": "160.0",
+  "firefox": "160.0.1",
   "ffmpeg": "v0.6.1",
   "ghostty": "v1.4.0",
   "glfw-wayland": "3.5.1",
@@ -50,6 +50,6 @@
   "uutils/tar": "latest-commit",
   "wine-tkg-git": "20050930",
   "mesa-git": "26.3-branchpoint",
-  "vscodium-prod-patcher": "cd5c053298fb4f02619419b32ccb1f1409f18b1b",
-  "steelseriesgg-rs": "0.1.21"
+  "vscodium-prod-patcher": "cc9a9f21cf7689152f5fc6df1fb7eef26c3be960",
+  "steelseriesgg-rs": "0.1.22"
 }
