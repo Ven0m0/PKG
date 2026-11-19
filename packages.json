@@ -596,7 +596,7 @@
     {
       "name": "jre-openjdk-headless",
       "version": "24.0.1.u9-3",
-      "description": "OpenJDK Java 24 headless runtime environment",
+      "description": "",
       "url": "https://openjdk.java.net/",
       "files": [
         ".SRCINFO",
