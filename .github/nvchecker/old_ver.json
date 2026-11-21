@@ -24,7 +24,7 @@
   "localepurge": "0.7.3.11",
   "mpv": "0.42.0",
   "nvidia_oc": "0.1.24",
-  "obs-studio": "33.0.1",
+  "obs-studio": "33.0.2",
   "onlyoffice": "10.0.0",
   "preload-ng": "0.6.7",
   "prismlauncher": "11.1.1",
@@ -34,7 +34,7 @@
   "smartdns-rs": "0.13.1",
   "umu-launcher": "1.4.4",
   "universal-android-debloater": "1.3.1",
-  "uutils/coreutils": "0.12.0",
+  "uutils/coreutils": "0.13.0",
   "uutils/diffutils": "0.6.0",
   "uutils/findutils": "0.11.0",
   "endeavouros-keyring": "20231222",
@@ -51,5 +51,5 @@
   "wine-tkg-git": "20050930",
   "mesa-git": "26.3-branchpoint",
   "vscodium-prod-patcher": "cc9a9f21cf7689152f5fc6df1fb7eef26c3be960",
-  "steelseriesgg-rs": "0.1.22"
+  "steelseriesgg-rs": "0.1.23"
 }
