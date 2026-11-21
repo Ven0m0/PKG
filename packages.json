@@ -710,7 +710,7 @@
     },
     {
       "name": "obs-studio",
-      "version": "33.0.1-1",
+      "version": "33.0.2-1",
       "description": "Free and open source software for video recording and live streaming (optimized)",
       "url": "https://github.com/obsproject/obs-studio",
       "files": [
@@ -807,7 +807,7 @@
     },
     {
       "name": "ssgg",
-      "version": "0.1.22-1",
+      "version": "0.1.23-1",
       "description": "A complete open-source SteelSeries GG replacement for Linux - RGB lighting, audio mixer, and GameSense support",
       "url": "https://github.com/Ven0m0/steelseriesgg-rs",
       "files": [
