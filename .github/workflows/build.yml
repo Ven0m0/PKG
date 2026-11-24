@@ -137,7 +137,7 @@ jobs:
           df -h
       - name: Cache APT packages
         if: steps.build_method.outputs.method == 'standard'
-        uses: awalsh128/cache-apt-pkgs-action@v1
+        uses: awalsh128/cache-apt-pkgs-action@v2
         with:
           packages: build-essential pkg-config
           version: 1.0

@@ -135,7 +135,7 @@ jobs:
       # invocation. Same cached-apt action lint.yml uses, so a warm cache
       # restores the package instead of hitting the apt mirrors.
       - name: Install ripgrep
-        uses: awalsh128/cache-apt-pkgs-action@v1
+        uses: awalsh128/cache-apt-pkgs-action@v2
         with:
           packages: ripgrep
           version: 1.0
