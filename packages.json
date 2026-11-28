@@ -310,7 +310,7 @@
     },
     {
       "name": "code",
-      "version": "1.147.0-1",
+      "version": "1.148.0-1",
       "description": "The Open Source build of Visual Studio Code (vscode) editor",
       "url": "https://github.com/microsoft/vscode",
       "files": [
@@ -423,7 +423,7 @@
     },
     {
       "name": "firefox-custom",
-      "version": "160.0.1-1",
+      "version": "161.0-1",
       "description": "Firefox with aggressive optimizations, VA-API, PGO, and all performance tweaks",
       "url": "https://mozilla.org/firefox",
       "files": [
@@ -710,7 +710,7 @@
     },
     {
       "name": "obs-studio",
-      "version": "33.0.2-1",
+      "version": "33.0.3-1",
       "description": "Free and open source software for video recording and live streaming (optimized)",
       "url": "https://github.com/obsproject/obs-studio",
       "files": [
@@ -807,7 +807,7 @@
     },
     {
       "name": "ssgg",
-      "version": "0.1.23-1",
+      "version": "0.1.24-1",
       "description": "A complete open-source SteelSeries GG replacement for Linux - RGB lighting, audio mixer, and GameSense support",
       "url": "https://github.com/Ven0m0/steelseriesgg-rs",
       "files": [

@@ -1,6 +1,6 @@
 pkgbase = ssgg
 	pkgdesc = A complete open-source SteelSeries GG replacement for Linux - RGB lighting, audio mixer, and GameSense support
-	pkgver = 0.1.23
+	pkgver = 0.1.24
 	pkgrel = 1
 	url = https://github.com/Ven0m0/steelseriesgg-rs
 	install = ssgg.install
@@ -10,7 +10,7 @@ pkgbase = ssgg
 	depends = hidapi
 	depends = glibc
 	depends = systemd
-	source = ssgg-0.1.23.tar.gz::https://github.com/Ven0m0/steelseriesgg-rs/archive/refs/tags/v0.1.23.tar.gz
-	sha256sums = 2de182d40152826c7c7779d7d9e5eaacc9e66da51a4540961f96a0b5034533fd
+	source = ssgg-0.1.24.tar.gz::https://github.com/Ven0m0/steelseriesgg-rs/archive/refs/tags/v0.1.24.tar.gz
+	sha256sums = 77bae73e42a5fea9e209742ffc2cac05694ca404fd4b5f390b3a88b9b9a2bf4b
 
 pkgname = ssgg

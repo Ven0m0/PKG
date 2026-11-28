@@ -1,6 +1,6 @@
 pkgbase = obs-studio
 	pkgdesc = Free and open source software for video recording and live streaming (optimized)
-	pkgver = 33.0.2
+	pkgver = 33.0.3
 	pkgrel = 1
 	url = https://github.com/obsproject/obs-studio
 	arch = x86_64
@@ -72,7 +72,7 @@ pkgbase = obs-studio
 	optdepends = libva-mesa-driver: VAAPI encoder support
 	optdepends = v4l2loopback-dkms: V4L2 virtual camera output
 	optdepends = decklink: Blackmagic Design DeckLink support
-	provides = obs-studio=33.0.2
+	provides = obs-studio=33.0.3
 	provides = obs-vst
 	provides = obs-websocket
 	provides = obs-browser
@@ -83,10 +83,10 @@ pkgbase = obs-studio
 	conflicts = obs-linuxbrowser
 	conflicts = libva-vdpau-driver
 	options = strip
-	source = obs-studio::git+https://github.com/obsproject/obs-studio.git#tag=33.0.2
+	source = obs-studio::git+https://github.com/obsproject/obs-studio.git#tag=33.0.3
 	source = obs-browser::git+https://github.com/obsproject/obs-browser.git
 	source = obs-websocket::git+https://github.com/obsproject/obs-websocket.git
-	sha256sums = dbb898c7f42cfba4e4bf5aa363825c0ada6ce856ef5995b7f63f77a2b87b9ea9
+	sha256sums = 00e29d0f4f9f43118740ee427068cd31b0314e88da2088f92e115fadbcfb3149
 	sha256sums = SKIP
 	sha256sums = SKIP
 	source_x86_64 = https://cdn-fastly.obsproject.com/downloads/cef_binary_6533_linux_x86_64.tar.xz
